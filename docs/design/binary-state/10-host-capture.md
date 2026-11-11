@@ -1,5 +1,9 @@
 # 10：Host 采集器
 
+**2026-11-11 第9步各域正文实现，版本60**：[正文实现与边界](9-domain-body-codec.md)、[同源数字计划](layouts/09-wire-format/body-codec-plan.md)。BodyValueSource按数字布局／字段／规范父路径提供已封存的小端纯值、宽count、共享presence和Weapon槽；编码器不读取原生对象或Lua。空主动槽／Null costume不询问源旧尾值。实际采集窗口／纯值源及正常结果缓存仍由本步实现，不能把接口当作Host采集已接通。
+
+**2026-11-11 第9步公共合同，版本59**：[正式结构](9-public-wire-contract.md)。按版本59公共头408—421封存来源与显示实例身份；produced_revision保留真实初次生产，不把Peer target或GameFrame当来源。为多pass贡献和稳定voice事件封存自有纯值，必要Gap不折空；只更新公共合同，不表示本步Hook／缓存已经实现。
+
 **第8步版本58交接**：[正式源与来源合同](implementation-8-presentation.md)已经生成。按数字布局／字段与28条具名合同接正常生产缓存；地图复用300—303，心格可见payload353、Stat行354、D0 356、随机alpha357／358、Pill359及各组选择364。必须覆盖所有组合法来源，音乐逻辑gain／用途退休等Gap仍保留；不因布局已登记就额外执行getter／Render／随机／HUD重算。
 
 **2026-11-10 显示批次来源定稿交接**：[方案B及全部控制组来源合同](presentation-result-batches.md)要求正常生产／消费点封存真实owner、subject/use/shape、来源修订和独立贡献；瞬态结果不能在普通后态补采，持久缓存须有明确有效依赖。Host应提供全部组详细History／Stat及公共多人HUD所需结果，不能只采当前原生两槽或把个人HUD关闭当world缺席；未闭合组／视口来源仍记Gap，不额外getter／Lua／Update／Recompute／随机。仅自有不可变值交后台，Authority不等待；正式缓存／Hook未实施，版本57不变，无构建或测试。

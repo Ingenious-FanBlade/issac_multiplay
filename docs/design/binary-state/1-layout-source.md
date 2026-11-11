@@ -68,8 +68,11 @@
 | `state_capture.inc` | Host 复制计划：每个布局的合并区间、换算项、引用项、容器项 |
 | `state_wire.inc` | 每个布局、每个块在线上的偏移、大小、元素类型和上限 |
 | `state_client.inc` | Client 解码校验表与写入分派表，按字段索引分派，不比较字符串 |
+| `state_body_codec.inc` | 第9步同源正文计划：标量／条件／精确范围／计数组／规范规则，运行按数字索引分派 |
 | `state_members.inc` | 公开成员回映射，供 E2E Lua 对照（第 15 步）和覆盖报告使用 |
 | `docs/design/binary-state/layouts/<步骤目录>/<类型>.md` | 两张单行表格，格式见[总计划第 5 节](README.md#5-布局表格要求) |
+
+**版本60正文机器规则**：`wire.when.test`为条件提供明确的整数／bit／集合／item-config操作，原predicate语义和证据保留；`wire.value_rule`登记非Null、可空水面及计数模式，`body_rule`登记空主动槽／Null costume规范。它们同源生成到`state_body_codec.inc`，不在运行时解释自然语言，也不改变公共头或字段顺序。实现边界见[第9步正文](9-domain-body-codec.md)。
 
 ### 1.3 区间合并规则
 

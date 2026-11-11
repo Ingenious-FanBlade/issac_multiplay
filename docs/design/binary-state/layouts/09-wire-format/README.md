@@ -1,0 +1,26 @@
+# 9：公共报文结构：生成布局
+
+[返回布局总索引](../README.md) · [对应总计划步骤](../../9-wire-format.md)
+
+按布局编号排列；共享类型通过引用复用，不重复生成。未知字节与完整标志只描述布局事实，不表示采集、应用或验收已完成。
+
+| 类型 | 布局编号 | 原生字节 | 未知字节 | 完整 |
+|---|---|---|---|---|
+| [StateCommonHeader](StateCommonHeader.md) | 408 | 0 | 0 | 是 |
+| [StateFrameHeader](StateFrameHeader.md) | 409 | 0 | 0 | 是 |
+| [StateSectionHeader](StateSectionHeader.md) | 410 | 0 | 0 | 是 |
+| [StateRecordHeader](StateRecordHeader.md) | 411 | 0 | 0 | 是 |
+| [StateTableHeader](StateTableHeader.md) | 412 | 0 | 0 | 是 |
+| [StateMemberEntry](StateMemberEntry.md) | 413 | 0 | 0 | 是 |
+| [StateResultGroupHeader](StateResultGroupHeader.md) | 414 | 0 | 0 | 是 |
+| [StateDependencyEntry](StateDependencyEntry.md) | 415 | 0 | 0 | 是 |
+| [StateContributionEntry](StateContributionEntry.md) | 416 | 0 | 0 | 是 |
+| [StateAudioEventHeader](StateAudioEventHeader.md) | 417 | 0 | 0 | 是 |
+| [StateContextReady](StateContextReady.md) | 418 | 0 | 0 | 是 |
+| [StateAppliedAckHeader](StateAppliedAckHeader.md) | 419 | 0 | 0 | 是 |
+| [StateAppliedAckEntry](StateAppliedAckEntry.md) | 420 | 0 | 0 | 是 |
+| [StateResyncHeader](StateResyncHeader.md) | 421 | 0 | 0 | 是 |
+
+[公共报文编号、枚举与预算](protocol-constants.md)。
+
+[各域正文数字编解码计划](body-codec-plan.md)。

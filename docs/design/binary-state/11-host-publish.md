@@ -1,5 +1,9 @@
 # 11：Host 变化检测、增量与发布
 
+**2026-11-11 第9步各域正文实现，版本60**：[正文实现与边界](9-domain-body-codec.md)、[同源数字计划](layouts/09-wire-format/body-codec-plan.md)。EncodeBodyInto／EncodeRecordInto处理变化块，EncodeValueInto处理具名结果；原生换算、canonical排序先在自有状态完成。reliable承运与world/body确认分开，ordinary body-joint不套fast专用body_limit。所有调用还须传整帧剩余预算并逐三端实际计费；完整Frame／表／资源调度未接通。
+
+**2026-11-11 第9步公共合同，版本59**：[正式结构](9-public-wire-contract.md)。采用公共上下文50B、Frame壳2B及Section52B；world/body按Peer独立确认，双分段共同提交承接ordinary body-joint。Host来源映射逐Peer目标，旧目标Resync不重置计数，未确认音频事件保留至world水位ACK。普通动态64KiB／旧可靠32MiB是保护上限，三端总10Mbps／模组7.5Mbps、首次准备1MiB／10秒与实际封装／重传计费同时约束；运行调度未实现。
+
 **第8步版本58交接**：[具名结果与28条窄依赖合同](implementation-8-presentation.md)已纳入唯一源。源修订映射各Peer目标，按world／body所属目标与必要资源共同提交；全部控制组显示选择不改变输入归属，缺必要结果不发布不完整目标。外层封装继续按第9步落实，不新增Presentation确认序列。
 
 **2026-11-10 显示批次发布定稿交接**：[方案B](presentation-result-batches.md)继续使用world／body两序列。发布端将Host来源修订映射到各Peer目标版本，按owner／有效依赖共享不可变结果，保持明确贡献身份及顺序；各端详细HUD默认跟随自身控制组，公共多人HUD及各组必要结果完整。分组不授权部分提交不完整目标，body不扩大为等待完整地图；必要Gap／资源Wait不发布成空值或确认已安装，旧结果不换来源标签，Authority不等待。具体组帧／预算仍待实施，版本57不变，无构建或测试。
@@ -64,18 +68,18 @@ body 序列用同样的流程，使用独立的版本号和独立的块存储。
   - 变化日志能覆盖 A 时，取 A+1 到当前版本各日志的并集。
   - 覆盖不了时，扫描全部块存储（几千个块，后台可以承受）。
 - **共享编码**：只有序列范围、base/target、成员／资源epoch、布局及专用依赖均相同的Peer才共享正文／压缩结果；仅已确认版本号相同不够。
-- **空帧**：没有变化块时，也要发送 record_count=0 的帧，正文只有 26 字节帧头。
+- **空帧**：没有变化块时，也要发送 record_count=0 的帧，公共正文至少104B（50B公共头＋2B Frame壳＋52B单分段头），另有40B信封和实际分片／合包开销。
   - Client 用帧头的 game_frame 推进展示时钟（第 13 步 13.6）。这样在静止场景中，FrameCount、Timeout 等由帧锚点还原的值也能正确前进。
   - 空帧同样参与确认，用来推进已确认版本。
-- **Baseline**：A=0 的帧就是 Baseline，包含全部现存成员的全部块。
-  - 首次准备时，在 `Baseline` 可靠通道上发送“成员表全量 + 资源表全量 + base=0 帧”。
-  - Resync 时，把该 Peer 的已确认版本重置为 0，下一帧就是 Baseline。
+- **Baseline**：A=0 的帧就是 Baseline，包含全部现存成员在该序列的全部必要非空块及合法结果；两序列首次准备共同提交。
+  - 首次准备时，在 `Baseline` 可靠通道上发送“成员表全量＋资源表全量＋world/body共同提交的base=0帧”。
+  - Resync 时，保留Host目标计数的单调性，该Peer恢复帧以base=0完整重建；不能在同路由把target重置为0。
 - **表先于帧**：帧引用的成员表 epoch 和资源表 epoch 先经 `Context` 通道可靠发送。Client 安装表之前，按第 9 步的规则暂存或丢弃帧。
 
 ### 11.4 确认与自愈
 
 - **确认内容**：Client 原生写入完成后，`AppliedAck` 带回 world 版本、body 版本、成员表 epoch、资源表 epoch。Host 只把已确认版本向前推进，不回退。
-- **丢帧**：帧丢失时不需要重传。下一帧的起点仍是旧的已确认版本，丢失的块会被再次带上。
+- **丢帧**：普通动态帧不逐帧重传，下一帧仍从旧确认版本带齐变化块；未确认音频事件也须保留并重复带齐，不能随latest-only候选淘汰。可靠结构／Baseline按原通道重传。
 - **变了又变回**：判断依据是变化版本，不是与快照比较，所以块“变了又变回”也不会被漏发。
 
 ### 11.5 带宽与限速

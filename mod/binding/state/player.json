@@ -210,7 +210,8 @@
       },
       "members": [],
       "public_owners": [],
-      "notes": ""
+      "notes": "",
+      "body_rule": "null-costume-layer-zero"
     },
     {
       "type": "CostumeSpriteDesc",
@@ -1067,7 +1068,11 @@
             "client": "player_current_record_sprite_install",
             "when": {
               "field": "has_draw_record",
-              "predicate": "draw_record_present"
+              "predicate": "draw_record_present",
+              "test": {
+                "kind": "equal",
+                "value": 1
+              }
             }
           }
         },
@@ -1129,7 +1134,11 @@
           "client": "player_single_record_node",
           "when": {
             "field": "has_draw_record",
-            "predicate": "draw_record_present"
+            "predicate": "draw_record_present",
+            "test": {
+              "kind": "equal",
+              "value": 1
+            }
           }
         }
       ]
@@ -2541,7 +2550,8 @@
       },
       "members": [],
       "public_owners": [],
-      "notes": "Player专用P4四槽视图；空item时五值规范零且不读取旧payload。来源池和调度冷却留Host。"
+      "notes": "Player专用P4四槽视图；空item时五值规范零且不读取旧payload。来源池和调度冷却留Host。",
+      "body_rule": "empty-active-zero"
     },
     {
       "type": "PlayerTemporaryEffect",
@@ -2567,7 +2577,8 @@
             "type": "u16",
             "target": "item-config",
             "host": "playertemporaryeffect_item_resource",
-            "client": "playertemporaryeffect_item_borrow"
+            "client": "playertemporaryeffect_item_borrow",
+            "value_rule": "non-null"
           }
         },
         {
@@ -2600,7 +2611,16 @@
             "client": "playertemporaryeffect_cooldown_install",
             "when": {
               "field": "item",
-              "predicate": "is_collectible_704"
+              "predicate": "is_collectible_704",
+              "test": {
+                "kind": "item-config",
+                "value": 704,
+                "values": [
+                  1,
+                  3,
+                  4
+                ]
+              }
             }
           }
         },

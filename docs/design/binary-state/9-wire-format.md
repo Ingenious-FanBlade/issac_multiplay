@@ -1,5 +1,9 @@
 # 9：线格式
 
+**2026-11-11 第9步各域正文实现，版本60**：[正文实现与边界](9-domain-body-codec.md)、[同源数字计划](layouts/09-wire-format/body-codec-plan.md)。各域正文与12B记录编解码已实现，布局版本60；公共结构尺寸沿用59。新state/body_codec.*使用同源state_body_codec.inc覆盖337布局／2763字段／79条件，输出块／可选根字段视图与投影事实；缺base或资源仍不得安装／ACK。完整typed资源、用途允许集、Frame装配与会话接受入口仍待后续。
+
+**2026-11-11 第9步第一项完成，版本59**：[公共报文结构正式合同](9-public-wire-contract.md)、[同源固定头／常量表](layouts/09-wire-format/README.md)。保留u32块掩码与12B记录头；50B公共上下文、1／2分段共同提交、按Peer body确认、u32 GameFrame、显式资源空间、结果组／贡献／事件外层已入源。三端总上行10Mbps、模组持续7.5Mbps；32MiB仅为旧可靠大消息／解码内存保护，普通帧按实际预算发送。完整资源payload、用途允许集、接受规则与运行编解码仍待本步后续；第15步唯一验收。以下较早交接保留原时点，结构冲突以正式合同为准。
+
 **第8步版本58交接**：[正式结果与生成合同](implementation-8-presentation.md)已登记310—407、28条来源／序列／窄依赖合同和141＋54行回映射。这里继续落实批次公共上下文、贡献／事件身份、Clear范围、固定shader／blend／sampler允许集与audio-table资源payload；不得新增Presentation确认序列，也不得把元素表当完整可接受报文。
 
 **2026-11-10 显示批次编码定稿交接**：[用户确定的方案B](presentation-result-batches.md)保持world／body两序列，按实际owner分组并声明共同提交范围；正式封装须表达Host来源修订与逐Peer目标版本映射、subject/use/shape、组／身体显示选择、资源／拓扑依赖及多pass／layer／递归贡献身份与顺序。History／Stat原生两槽不是Peer容量，各端默认主体为本端控制组；全部必要来源缺口与资源Wait不能编码成空值或早ACK。精确字段宽度／布局号／预算仍由本步同源登记；版本57不变，无构建或测试。
@@ -10,7 +14,7 @@
 
 **2026-11-10 第8步资源／屏幕来源交接**：[具体来源与结果合同](presentation-resource-screen-sources.md)补核RGBA8、内置shader表及固定pass格式、前后surface、Nightmare条件内容和BossOverlay。9.10.6中的“Nightmare条件payload／运行模式显示owner完全未核”由该文的具体结论修订：条件结果来源已核，模式4为原版Deathmatch而排除，Pause仅密码1B排除；其余孔仍UNKNOWN。正式结果布局、固定shader资源表示与typed表项kind的对应、完整recipe／blob分派和预算仍待本步实施，不把来源目录当可接受报文或恢复Mod shader旁表依赖。版本57不变，无构建或测试。
 
-状态：设计稿，线格式与运行接线未实施。上级：[总计划](README.md)。
+状态：公共结构与各域正文已实现并同源生成；完整资源payload、整消息装配、详细接受规则与运行接线未实施。上级：[总计划](README.md)。
 
 **2026-11-10 各域编码交接统一整理**：现行交接入口为 **9.10**，逐项列出来源、特殊编码规则、版本依赖和待落实项；显示／资源、RoomSave／Exploration与其余域按同一结构登记。本次静态审阅读取的唯一布局源整数版本为 **57**，已包含同期登记的Room／Level及部分显示／资源值布局；完整消息、Presentation其余投影和运行接线仍分项列为待落实。本次只整理文档，不修改布局源、生成表或实现，不构建、不运行测试；原版本提示移至文末历史说明。
 
@@ -22,17 +26,17 @@
 
 ### 现有传输层
 
-- **路由头**：固定 64 字节（`mod/src/replica/stream_codec.h:20-28,57`）。
+- **传输封套**：64B分片头＋40B逻辑消息信封；前者固定64字节（`mod/src/replica/stream_codec.h:20-28,57`）。
 - **报文与分片**：报文最大 1200 字节，分片正文 1136 字节（`stream_config.h:21`）。
-- **单条消息上限**：world 32 MiB，fast 64 KiB（`stream_config.h:22`）。
+- **保护上限与速率**：配置中的world 32MiB是可靠大消息／内存保护，普通非可靠world/body还受EncodeBlob的64KiB收紧；均不是发送额度。三端总上行10Mbps、模组持续7.5Mbps，按最终分片／合包／重传字节计费，见[正式合同第9节](9-public-wire-contract.md#9-带宽消息保护与准备预算)。
 - **通道**：`Control`、`Baseline`、`Context`、`WorldDynamic`、`PlayerFast`、`Input`。其中 `Baseline` 和 `Context` 是可靠通道（`stream_transport.cpp:62`）；`WorldDynamic` 和 `PlayerFast` 只保留最新。
 - **消息种类**：`ScenePrepare`、`Range`、`ReceiveAck`、`ContextReady`、`AppliedAck`、`Resync` 等（`stream_codec.h:6`）。
 - **现在的正文**：`Range` 的正文是带字段编号的树形编码，固定 payload schema=2（`stream_codec.h:47`），必须先还原成范围模型才能使用。
-- **身份的数据类型**：key 是 `{run u64, space u32, id u64}`（`mod/src/game/client_objects_native.h:12-14`）；use 和 shape（revision）都是 u64。
+- **身份的数据类型**：key 是 `{run u64, space u32, id u64}`（`mod/src/replica/stream_model.h::Member`及`SubjectKey`）；use 和 shape（revision）都是 u64。
 
 ### 各域资料与当前状态
 
-- **唯一布局源**：[`version.json`](../../../mod/binding/state/version.json)在本次静态审阅时为57，登记base、entity、entity-effect、entity-classes、entity-text-dummy、player、grid、grid-classes、run、room和level十一份域源。字段顺序、布局号、条件、序列与预算以这些源及其[同源生成表](layouts/README.md)为准；本清单不建立第二份可执行schema。
+- **唯一布局源**：[`version.json`](../../../mod/binding/state/version.json)当前为60，公共结构尺寸沿用59；包含前13份域源与新增`wire.json`，共14份；公共固定头408—421及304／306的更新与常量同源生成。字段、布局号、条件、序列和预算以源及[生成表](layouts/README.md)为准，正文编解码已实现，完整消息运行入口仍未接通。
 - **设计来源与同期入源**：第2—8步及其职责核对、字节账本、补证文档提供语义和未决项。原资料中的版本56“Room／Level／新显示结果未注册”保留其时点；[第7步版本57实现说明](implementation-7-room-level.md)与实际`room.json`／`level.json`提供同期入源范围。本清单据此区分已入源值布局、待定完整消息与尚未注册结果，不宣称第9步协议已接通，也不让旧版本提前接受新字段。
 - **版本含义**：布局版本、类型布局编号、成员／资源epoch、world／body版本及专用拓扑／显示修订分别承担不同职责。布局已经生成不表示第9步报文或第10—13步采集、发布、解码、安装已经接通；历史版本不作为当前兼容分支。
 
@@ -55,101 +59,65 @@
 - **条件与空值**：存在位、条件选择器和mask只控制已登记的分支；条件不成立时不读旧payload，也不消费其字节。已确认Null／缺席／空集合与来源Gap、资源Wait／失败分开，后者不能编码成前者。
 - **边界与预算**：数量先按原生宽度检查再窄化；元素数、字段／投影字节数、整记录／帧及整上下文预算同时适用。各小记录的大小不含外层身份、版本、记录头或依赖目录，不能直接用作完整Baseline大小。
 
-### 9.2 消息种类
+### 9.2 消息种类与公共上下文（定稿）
 
-| 种类 | 通道 | 用途 |
-| --- | --- | --- |
-| `StateFrame`（world） | `WorldDynamic`；Baseline 走 `Baseline` | 普通世界状态帧 |
-| `StateFrame`（body） | `PlayerFast` | 逐身体状态帧，每个合格身体一条记录 |
-| `MemberTable` | `Context` | 成员加入、形态变化、离开 |
-| `ResourceTable` | `Context` | 资源序号与typed内容描述的对应 |
-| `ResourceBlobChunk`（待注册） | `Context` | 已登记不可变资源项的有界内容块；不替代world状态帧 |
+正式Kind：21 StateFrame、22 MemberTable、23 ResourceTable、24 ResourceBlobChunk；ContextReady8、AppliedAck9、Resync10保留编号。路由头和信封不变，新正文统一以StateCommonHeader408的50B开始，包含u16 layout_version及完整WorldScope六个u64。这里只登记数字合同，旧stream_codec／握手／合包尚未接通新Kind，不能提前接受不完整正文。
 
-- **取代关系**：现有 `Range` 的树形正文由上表取代。场景准备 `ScenePrepare` 改为“成员表 + 资源表 + base=0 的状态帧”。
-- **沿用的消息**：`AppliedAck`、`Resync`、`Cancel` 等控制语义不变。`AppliedAck` 中的确认量改为“各序列已安装的目标版本”。
+完整顺序、通道及生命周期见[正式合同第1节](9-public-wire-contract.md#1-封套公共上下文与消息编号)。
 
-### 9.3 状态帧头（26 字节，草稿）
+### 9.3 状态帧与分段头（定稿）
 
-| +0x00 u16 layout_version：布局版本，两端必须相同 | +0x02 u8 stream：0=world 序列，1=body 序列 | +0x03 u8 flags：bit0=base 为 0 的完整帧，其余位必须为 0 | +0x04 u32 member_epoch：帧中成员序号依据的成员表版本 | +0x08 u32 resource_epoch：帧中资源序号依据的资源表版本 | +0x0C u32 base_version：此帧以哪个已确认版本为起点，0 表示从空状态开始 | +0x10 u32 target_version：应用此帧后达到的版本 | +0x14 u32 game_frame：采集时的 Host 游戏帧；Client 用作展示时钟，由帧锚点还原计数（第 13 步 13.6），也用于诊断和插值 | +0x18 u16 record_count：随后的记录数 |
-|---|---|---|---|---|---|---|---|---|
+`公共头50B + Frame头409(2B) + 1或2个分段`。单分段可为world或body；双分段固定world随后body，整个目标共同提交、共同ACK，承接Baseline和ordinary body-joint。
 
-### 9.4 记录头（12 字节，草稿）
+每个分段为`Section头410(52B) + 成员记录 + 结果组 + 音频事件`。头部包含stream／flags、member/resource epoch、base/target、Host source_revision、presentation_batch、u32 GameFrame、三类计数及event_watermark；字节偏移见[同源表](layouts/09-wire-format/StateSectionHeader.md)。Host来源修订与逐Peer目标版本分开，不新增Presentation确认序列。完整语义见[正式合同第2节](9-public-wire-contract.md#2-stateframe与两个分段)。
 
-各域正文沿用同一记录头；Player的正式P0—P8、固定槽、条件效果和动态Weapon已随版本47入源，当前合同见9.10.3。专用结果的外层身份／批次仍待注册，不因本节已有记录头而假定已经包含所有依赖。
+### 9.4 记录头（保留12B与u32掩码）
 
-| +0x0 u16 member：成员序号 | +0x2 u16 layout：布局编号，必须与成员表中登记的一致 | +0x4 u32 block_mask：本记录携带的块，第 n 位对应块 n | +0x8 u32 record_bytes：记录头之后的正文字节数，解码必须恰好用完 |
+| +0x0 u16 member：精确成员表快照内的成员 | +0x2 u16 layout：与该成员登记一致 | +0x4 u32 block_mask：本记录携带的真实块 | +0x8 u32 record_bytes：头后正文精确长度 |
 |---|---|---|---|
 
-- **块的排列**：正文按块号从小到大依次排列。
-  - 定长块的长度由布局给出；含变长内容的块按字段顺序递归消费，普通容器字段默认带 `u16 元素数`，显式`count_type`例外按源消费。条件记录、真实固定槽、动态choice等不得额外加头，见9.1和9.10。
-  - 一个布局最多 32 个块。超过时由生成器拒绝，要求重新拆分。
-- **块的格式**：块的正文就是该块的状态布局，例如当前[EntityEffect生成表](layouts/04-entity-classes/EntityEffect.md)的FX0／FX1及具体变体投影，不按旧草稿示例推算长度。
+块按编号升序排列，最多32块号0—31，含父类和显式空预留；预留块不发送。当前旧323布局最多25块，32够用；它不限制每帧记录数。同段不得重复member，块只允许所属序列；条件／容器／固定槽严格按生成布局消费，record_bytes必须恰好用完。未携带块只从明确base继承，不能跨shape/use／拓扑拼装。见[正式合同第3节](9-public-wire-contract.md#3-记录头与块)。
 
-### 9.5 成员表项（38 字节，草稿）
+### 9.5 成员表（定稿10B表头／33B表项）
 
-| +0x00 u16 member：成员序号 | +0x02 u8 op：0=加入，1=形态变化，2=离开 | +0x03 u8 space：身份空间 | +0x04 u16 layout：布局编号 | +0x06 u64 run：身份 run | +0x0E u64 id：身份 id | +0x16 u64 use：同地址获取次数 | +0x1E u64 shape：形态版本 |
-|---|---|---|---|---|---|---|---|
+两表共用412：`epoch:u32 + previous_epoch:u32 + entry_count:u16`；previous=0为完整表，其余必须对应前一快照。
 
-`MemberTable` 消息结构为：`u32 epoch` + `u32 前一 epoch` + `u16 项数` + 若干表项。
+成员项413：`member:u16 + op:u8 + space:u32 + layout:u16 + id/use/shape:各u64`，run由公共头继承；0加入、1换形、2离开。表安装只构建元数据快照，不能立即退休已展示对象；成员操作随合法目标提交，精确epoch不得被最新表替换。完整语义和回收规则见[正式合同第4节](9-public-wire-contract.md#4-成员表资源表与blob)。
 
-- **按 epoch 安装**：Client 必须按 epoch 顺序安装；前一 epoch 不符就请求 Resync。
-- **序号复用**：成员离开后，它的序号要等所有 Peer 的已确认 epoch 都越过该次离开后，才能重新分配。
+### 9.6 资源表与blob（公共壳定稿）
 
-### 9.6 资源表项（草稿）
+304资源头现为8B：`table:u8 + index:u16 + kind:u8 + payload_bytes:u32`；306 blob头现为15B：`resource_epoch:u32 + table:u8 + index:u16 + offset:u32 + bytes:u32`。原号保留、版本59更新，不保留同义头。
 
-2026-11-10按[第7步资源设计第4节](room-display-resource-design.md#4-图像内容资源表和获取时点)替代旧5B头／全路径草稿。资源不是都能还原为路径，正式生产schema尚未接线。
+八张资源表使用明确u8编号，typed字段已知空间时仍只传u16引用；FFFF Null与非Null资源Wait／失败分开。一个run内同表资源号只增不改，内容变化分配新号；表到达、内容收齐、依赖ready与物化成功分别记录。完整payload、table/kind矩阵与shader／blend／sampler允许集仍待本步后续，不能仅因固定头生成而接受新资源。见[正式合同第4节](9-public-wire-contract.md#4-成员表资源表与blob)。
 
-同期版本57的`room.json`已登记ResourceEntryHeader304、SurfacePixelsDescriptor305、ResourceBlobChunkHeader306及SurfaceRecipeHeader／Clear／Quad307—309的值布局；这里仍需定稿完整表项payload分派、消息编号、依赖与blob封装，不能将固定头已入源解释为完整资源协议已实施。
+### 9.7 结果组、贡献、事件与当前范围（公共壳定稿）
 
-| +0x0 u16 index：资源序号 | +0x2 u8 kind | +0x3 u32 payload_bytes | +0x7 payload：按kind精确消费 |
-|---|---|---|---|
+414结果组42B、415依赖32B、416贡献定位16B、417音频事件40B共同表达owner／subject、实际生产修订、显示实例代次、具名依赖、Replace／Reference／Retire、多pass和事件去重／明确Clear范围。现有365／366 typed贡献只编码一次；不按Client访问计数匹配。详见[正式合同第5—7节](9-public-wire-contract.md#5-结果组缓存与依赖)。
 
-kind0/1/2仍是ANM2／文件图像／内置shader的`u16 length + path`；kind3是15B RoomConfigVisual；kind4是固定layout的有界SurfaceRecipe（头16B，Clear21B／Quad196B，包含SourceQuad坐标空间）；kind5是16B SurfacePixels描述。不得把配置／程序图像名编码成虚构文件路径。未知kind、recipe layout、shader视图或不完整依赖拒绝，不支持通用GPU命令／参数字典。
+第三方Mod自描述值、任意GPU命令、函数／getter参数字典继续不在范围内；未知来源、旧UNKNOWN及音频恢复Gap保持。
 
-`ResourceTable` 消息结构仍为`u32 epoch + u32 前一epoch + u16 项数 + 表项`。一个run内资源序号只增不改，始终绑定同一不可变**内容**；内容改变分配新号，配置／图像引用随目标world版本提交，不在原号覆盖。序号／epoch耗尽显式恢复，不回绕复用。路径≤4096B；资源图有界无环，空资源、Client等待／加载失败、Host源缺口分开。
+### 9.8 Client校验与接受规则（结构原则已定，详细实现待后续）
 
-SurfacePixels当前format0为RGBA8，native GetTexelRegion实际按RGBA/UNSIGNED_BYTE读回，不能照Wiki误读为float。logical／stored尺寸、原生编码及GL行方向都明确；浮点／特殊GPU格式不能无声量化。内容通过可靠`ResourceBlobChunk`传送，头为`resource_epoch:u32 + index:u16 + offset:u32 + bytes:u32`共14B。只有声明范围完全就绪且本地图像安装成功才把资源视为ready；错epoch、越界、重叠内容冲突、缺块、乘加溢出均失败，不因收到资源表头便ContextReady／AppliedAck。
+完整目标必须同时满足：整数布局版本、完整scope/route、精确表快照、base/target、生成布局／mask／长度、具名用途允许集、全部必要来源／资源／拓扑及共同提交关系。Gap／Wait不能规范化为空；无完整合法目标不安装、不ACK。
 
-固定上限与首次准备／三端带宽计费见设计第4节；chunk长度／像素内容的u32是此具名资源格式的显式规则，不改变9.1普通容器u16。recipe／压缩blob也计≤1MiB首次准备、≤10s及总持续7.5Mbps目标，不能移到Context后绕开统计。实际生产编号、组帧调度和预算效果仍待9—15步落实。
+ContextReady只确认元数据可解析；AppliedAck在原生提交成功后才确认目标。双分段一次确认两项，事件只随world回报连续水位；不是单独Presentation ACK。Host只接受实际发送目标的准确回报。普通Resync以base=0恢复、保持target单调；版本将回绕时须先退休旧复制代次，不能在原路由重置。见[正式合同第8节](9-public-wire-contract.md#8-确认基线回绕与接受边界)。
 
-版本32的资源字段允许`0xFFFF`（`kNullIndex`）表示Host未选择资源，不占资源表项。ANM2文件选择据Host loaded形成这一可空资源号，不再追加独立loaded布尔。已选择非Null但Client尚未准备／失败时仍为该目标资源，不能改成Null或提前AppliedAck；图层路径与实际Image资源号保持独立，具体身份限制见[动画／资源复核](animation-resource-synchronization-review.md)。
+### 9.9 版本序列与预算（定稿）
 
-### 9.7 当前格式边界
-
-原 Mod 值编码草稿已移至[后续方案](../mod-adaptation.md)。当前只接收已登记的原版类型布局，不引入 Mod 自描述值、共享节点图或 Lua 状态记录；未知布局按 9.8 拒绝。保留本节编号以免后续校验规则的引用错位。
-
-### 9.8 Client 校验与接受规则
-
-| 检查 | 失败处理 |
-| --- | --- |
-| 版本相符：layout_version 不同 | 断开会话，报布局版本不符 |
-| 表版本就绪：member_epoch 或 resource_epoch 还未安装 | world 帧暂存最新一帧，等表安装后再处理；body 帧直接丢弃 |
-| 帧版本连续：base_version 不是本端已安装的版本 | 丢弃；仍未收敛时由 Resync 恢复 |
-| 帧未过期：target_version 不大于已安装版本 | 丢弃（重复或乱序） |
-| 记录与成员表一致：成员序号未登记，或布局编号不符 | 整帧拒绝 |
-| 字节数一致：block_mask 含布局未定义的块，或 record_bytes 与解码消耗不符 | 整帧拒绝 |
-| 字段取值合法：容器超上限、枚举越界、浮点非有限、bool 不是 0／1 | 整帧拒绝，按具名原因记录 |
-| 专用布局一致：条件／choice／存在mask非法、固定槽数量不符、同目标版本投影计数或计数组不一致 | 拒绝候选，不能部分安装、截断或回退为通用布局 |
-| 必要依赖可用：资源内容尚未ready，或同world地图／显示批次、窄拓扑依赖未满足 | 按所属序列及具名合同等待／丢弃，不安装、不回复该目标的AppliedAck；body的窄依赖见9.9 |
-
-- **整帧接受**：一帧要么整帧接受，要么整帧拒绝，不部分接受。
-- **AppliedAck 的时机**：接受后先更新影子状态，再由第 13 步完成原生写入；写入成功后，才对该 target_version 回复 `AppliedAck`。
-
-### 9.9 版本序列
-
-- **独立序列**：world 和 body 是两条独立的版本序列。
-- **body 序列的范围**：body 序列按 Peer 计数，覆盖该 Peer 收到的全部身体记录。如果用户或后续设计要求每个身体独立确认，需要在本步定稿前改为按身体分别计版本。
-- **body帧依赖**：依赖成员表／资源表，不笼统绑定整个world的具体版本。Player P0携带`render_topology_revision`，须与已安装P6有序绘制目录版本相等；未就绪或已越过该拓扑时丢该body候选，不ACK、不按旧count／顺序安装。形态变化（换角色、加入或离开）仍必须先经过成员表。[版本47正式Player源／生成](implementation-5-player.md)已登记该元数据，当前静态审阅的布局源为57；实际组帧、解码和安装接线尚待后续步骤。
+- world和body独立，body按Peer覆盖其全部身体；不按身体另建序列。
+- Player P0和已安装P6须使用相等的u32绘制拓扑，保持成员／资源与相关结果的窄依赖；双分段结构事务明确共同提交，不扩大普通body对整个地图的依赖。
+- GameFrame保留u32，来源与事件身份用u64；不能以GameFrame代替来源修订或Peer目标。
+- 三端总上行10Mbps／模组持续7.5Mbps。每Peer world120000B/s、body120000B/s对应30/60Hz平均4000/2000B，另留控制／可靠额度。首次准备状态、表和资源合计≤1MiB、≤10秒，所有发送及重传均计费；32MiB旧保护不是正常world许可，64KiB普通消息保护也不是常态发送额度。见[正式合同第9节](9-public-wire-contract.md#9-带宽消息保护与准备预算)。
 
 ### 9.10 各域编码交接清单
 
-以下按第1—8步的来源统一核对，不以页首修订提示代表覆盖范围。表中的“已入源”只指布局与生成元数据；“待注册”指设计已有、生产schema仍未登记。第9步负责将现有决定落实为正式有界线格式；第10／11／12／13步分别承接来源、发布、解码和应用，第14步退出旧链，第15步才执行统一整体验收。本次不推进这些实现或测试。
+以下按第1—8步的来源统一核对，不以页首修订提示代表覆盖范围。表中的“已入源”只指布局与生成元数据；“待注册”指设计已有、生产schema仍未登记。第9步负责将现有决定落实为正式有界线格式；第10／11／12／13步分别承接来源、发布、解码和应用，第14步退出旧链，第15步才执行统一整体验收。公共外层已经版本59入源；表中第2—8步来源事实按原时点保留，外层尺寸／编号以本页9.2—9.9及正式合同为准，后续运行实现与测试尚未进行。
 
 #### 9.10.1 布局源、基础类型与公共封装
 
 | 范围与来源 | 特殊编码规则 | 版本／提交依赖 | 待落实项 |
 |---|---|---|---|
-| 布局与封装：[第1步](1-layout-source.md)、[第0—2步实现](implementation-0-2.md)、`state/*.json`及9.2—9.9 | 父块号、空预留块、最多32块及生成字段顺序保持；空块不要求发送零长字段。`native_view_of`／`nested_views`按声明选择具体子布局，报文不提供原生偏移、大小或函数。Control／Input保持原职责，不将输入命令或结构操作冒充状态字段 | u16布局版本与u16类型布局编号分开；成员key/use/shape、member/resource epoch及base/target版本按各自语义使用 | 帧／记录／成员表／资源表的正式生成、消息编号和编解码；world/body确认范围及回绕恢复仍按9.9和未决问题定稿，不把当前草稿视为已运行协议 |
+| 布局与封装：[第1步](1-layout-source.md)、[第0—2步实现](implementation-0-2.md)、`state/*.json`及9.2—9.9 | 父块号、空预留块、最多32块及生成字段顺序保持；空块不要求发送零长字段。`native_view_of`／`nested_views`按声明选择具体子布局，报文不提供原生偏移、大小或函数。Control／Input保持原职责，不将输入命令或结构操作冒充状态字段 | u16布局版本与u16类型布局编号分开；成员key/use/shape、member/resource epoch及base/target版本按各自语义使用 | 公共头408—421、资源头304／306和消息编号已按版本59生成；body按Peer／GameFrame u32已定。各域正文已在版本60实现；完整资源payload、严格接受规则与整消息运行入口仍待本步后续，不把固定头当可运行协议 |
 | 纯值与动画：[第2步](2-base-types.md)、[动画／资源复核](animation-resource-synchronization-review.md)、`base.json` | Vector8B、ColorMod44B、KColor20B、BlendMode20B按真实字段消费；专用裁剪视图不反改通用类型。AnimationState保留独立selector、帧、playing，ANM2保留playback_speed；事件位和ColorParams队列不恢复传输。资源有无并入可空引用，Host loaded原字节不发 | selector依据同资源／动画上下文，不能以Sprite总层数替代当前动画层数；路径元数据与实际Image独立，资源表收到不等于图像ready | 编解码递归使用生成布局及具名校验；资源／shader的具体owner接线见9.10.6，不靠重播动画事件或Update补值 |
 | 容器、共享payload与引用：[第1步1.3](1-layout-source.md#13-区间合并规则)、[嵌套规则](2-base-types.md#21-嵌套规则)、[正式Player生成能力](implementation-5-player.md) | 普通容器每投影默认u16 count，显式count_type例外按源；同容器投影计数一致，不同容器仅按声明的count_groups求和，不强行等长。fixed_count真实固定槽不附count；aggregate的stride=0，不把聚合pair当map节点。shared-owner按具体present／投影编码，不复制holder、vector/deque头；引用为u16成员号／FFFF，目标空间显式声明 | 同目标版本的存在性、投影计数、计数组、真实引用及资源闭包齐备后由同一owner提交；有效缺席可用布局定义的最短编码，来源失败不能伪装缺席 | 消费生成的条件、计数宽度、max_bytes及整记录预算；注册具体reader／decoder／owner。现有4／8／12B等具名deque来源不能外推成任意STL ABI支持 |
 
@@ -178,7 +146,7 @@ SurfacePixels当前format0为RGBA8，native GetTexelRegion实际按RGBA/UNSIGNED
 | P0—P2：[前三块设计](5-player-p0-p2.md)、正式197 | P0物理10为64B＋headAnim有效原始字节；P1为1B CanFly；P2为77B直接健康／资源输入，不恢复Player六项玩法属性或通用查询字典。父E1／E4／E5／E6与P0属于body，P1—P8仍world | P0携带统一render_topology_revision，须与已安装P6相等；运动、主Sprite三投影与P0快源完整同窗，不能将P1／P2夹入body。HUD最终心格／StatHUD另属Presentation | body／world块分派、有界字节与资源解码；按9.9丢弃拓扑不符候选，实际快源、HUD消费者及写入仍待10—13步 |
 | P3／P4：[中三块设计](5-player-p3-p5.md)、正式源 | P3格式下界88B，保留dense真实长度、4口袋／8材料／6poop固定槽、blocked及有效innate聚合；固定槽不加count，aggregate不按map节点复制。P4为4×24=96B；空Item的另外五值规范0且不读残留payload，通用12号ActiveItemDesc不改成此专用179 | 与同world真实Player／配置身份、资源epoch和有序库存语义对应；统计／名字／HUD显示依赖不能仅凭P3／P4原值假称已经重建 | 固定／变长／聚合字段的统一消费、空槽规则及具名owner；不调用通用库存getter或HUD Update补源 |
 | P5动态Weapon：正式181—194及choice | u8低5位存在mask＋逐槽u16 view_layout＋该类固定负载，共1—91B；按生成允许集合和真实type精确消费，type10／11可共享动态类但保留type。五类恒零充能不附被裁字段，Modifiers按各型mask，Whip仅真实主引用；不套通用13号Weapon | 槽存在性、动态类、同resource_epoch的配置与真实引用同目标；报文不提供native_size／函数，空槽不读旧指针 | choice允许集、mask及类型交叉校验与本地装备owner；不得为显示Fire／Update或制造原生对象身份 |
-| P6与Sprite目录：[后三块设计](5-player-p6-p8.md)、正式源 | P6物理16为111＋4C B，含有序目录与15×7B最终map；负index不读旧layer但保留body标志。19—21为13份固定ANM2投影，无count／重复slot头；22—24各自u16 count，为同一有序costume目录三投影 | P6目录、P0及costume三投影的计数／顺序受统一拓扑修订保护，跨身体借用不能只靠旧count或本地排序；资源闭包齐备再提交 | 完整目录／跨身体引用与三投影解码，拓扑及计数组接线；递归max_bytes与Player整记录32MiB、body组64KiB预算同时生效，快源超限走既定ordinary body-joint，不截断 |
+| P6与Sprite目录：[后三块设计](5-player-p6-p8.md)、正式源 | P6物理16为111＋4C B，含有序目录与15×7B最终map；负index不读旧layer但保留body标志。19—21为13份固定ANM2投影，无count／重复slot头；22—24各自u16 count，为同一有序costume目录三投影 | P6目录、P0及costume三投影的计数／顺序受统一拓扑修订保护，跨身体借用不能只靠旧count或本地排序；资源闭包齐备再提交 | 完整目录／跨身体引用与三投影解码，拓扑及计数组接线；递归max_bytes与Player旧整记录32MiB理论保护、body组64KiB及普通消息实际保护／速率同时生效，前者不许可正常大帧发送，快源超限走既定ordinary body-joint，不截断 |
 | P7、participant／control-group：正式195／196／197 | P7每身体21B，独立保存激活／列表资格、twin／backup／held及C/S组引用；不恢复native sub／replaced／703四槽。participant用空间9身份上下文；group空间10，21＋2N B有序active_anchors，N≤64；纯协议记录不分配原生游戏对象 | 四参与者与多身体分别计数；participant、group、身体成员／use及有序anchors同一结构事务，不用Player*、device key或原版Online身份续接 | 纯C/S结构记录封装、目标空间／引用和anchors校验；成员离开／复用、组变更与body候选退休接线 |
 | P8条件效果／残影／当前记录：正式180及相关视图 | 效果通常6B，仅真实资源type1／3／4且id704时追加4B cooldown，不能套通用14号固定10B。残影／当前可绘记录／ANM2按声明投影；先读同块已登记选择器，可选序列D=0不读节点／Sprite，固定槽不加count | 条件读取依赖同resource_epoch解析后的真实配置身份；效果、残影、当前可绘序列及Sprite与对应Player／world修订一致，不能从原生非空指针推断有效 | 条件handler、真实资源谓词、12B残影deque与完整字节预算消费；未注册处理器不因元数据已生成就视为可接受／可安装 |
 
@@ -196,7 +164,7 @@ SurfacePixels当前format0为RGBA8，native GetTexelRegion实际按RGBA/UNSIGNED
 
 | 范围与来源 | 特殊编码规则 | 版本／提交依赖 | 待落实项 |
 |---|---|---|---|
-| Room结构／时钟：239、[Room核对](room-synchronization-review.md)、[续核](room-residual-evidence.md) | R0当前几何36B、R1帧基准／Greed timer8B、R2直接显示104B、R3八门48B及其余结果块沿正式源。当前描述source-slot与成员引用分开；真实448格／8门、门成员号与门格序号不混用。帧基准配game_frame，地板／墙完整ColorMod、水量f32及熔岩保留；flow唯一归WaterVisual，不恢复path／占格表或生成历史 | Room成员／use与当前描述、Grid、门映射同world；Room initialized来源资格不等于线上一位即可授权构造；切房后旧引用／显示批次失效 | 第9步消费已入源块、固定槽、引用及32MiB记录预算，定稿结构封装与真实活动成员关联；具名来源／writer待10／13步，不以保存体或Init／Restore补齐结构 |
+| Room结构／时钟：239、[Room核对](room-synchronization-review.md)、[续核](room-residual-evidence.md) | R0当前几何36B、R1帧基准／Greed timer8B、R2直接显示104B、R3八门48B及其余结果块沿正式源。当前描述source-slot与成员引用分开；真实448格／8门、门成员号与门格序号不混用。帧基准配game_frame，地板／墙完整ColorMod、水量f32及熔岩保留；flow唯一归WaterVisual，不恢复path／占格表或生成历史 | Room成员／use与当前描述、Grid、门映射同world；Room initialized来源资格不等于线上一位即可授权构造；切房后旧引用／显示批次失效 | 第9步消费已入源块、固定槽、引用及旧32MiB理论内存保护与实际发送预算，落实已定公共结构封装与真实活动成员关联；具名来源／writer待10／13步，不以保存体或Init／Restore补齐结构 |
 | Backdrop／FX／rails：240／242／244—249、281—284／291—296、[Room核对第4—5节](room-synchronization-review.md) | BackdropBinding为u16 count＋(u8 slot,u16 resource)，≤7项，slot0..6升序唯一且活动项资源非FFFF，extent16B。FX保留实际pass1..6、10B有序pose、选中非空ray组／10B RayVisual、poop存在／alpha；VeinGraphPayload294有10根固定槽及显式u8节点count≤10，非通用u16容器。两Sprite非覆写投影、rails真实extent内有效字节按源编码 | 图像、几何／pose、pass及资源同批；ray phase取已消费结果，重复展示不累加。vein索引／图须完整有效；世界可显示目录不能裁成Host视口前缀，同名图像不构成内容身份 | 第9步落实已入源计数／条件、索引／环检测、预算及资源绑定，具体图形消费归10／13步；程序图内容交9.10.6，未知pass／缺生产结果不编码为空，不恢复Backdrop RNG轨迹 |
 | Water／Lighting／Wave／ForcedFocus：285—290、[显示资源设计第5节](room-display-resource-design.md#5-必要显示结果与本地变换) | WaterVisual287最大48B：present后按分支含mode／image／有符号phase／flow／最终32B shader结果；Lighting288按u8低4位mask附两KColor／alpha／特殊kind，最大46B；Wave289低2位mask按A/B附中心／radius_used／gain_used，1..33B；ForcedFocus290为present＋Vector，1/9B。flow等不重复编码 | 绑定world／presentation修订、资源epoch及pass；phase与816BB0的2×game_frame用途分开。mask／present表示已确认world分支，不把Host Options或未走绘制分支当禁用 | 消费已入源mode／mask／存在性与条件长度，补齐具名kind／资源／外层批次校验；正常结果缓存／纯值来源与本地视口adapter待10／13步，不猜GPU ABI或回放推进参数 |
 | Level／Descriptor L0／L1：276／270、[Level核对](level-synchronization-review.md)、[Descriptor补证](room-descriptor-synchronization-review.md) | L0固定22B，effective_curses为最终u32，非Greed只将wave规范0，Boss匹配所有模式保留。L1每活动描述53B，独立nullable Data／OverrideData、u8门mask＋8×i32目标、u32 DisplayFlags、visited布尔、含HasWater的五位投影及Greed最终图标；不恢复全flags／seed／商店生成表 | 活动描述物理源槽／代次、RoomConfigVisual资源、同world Room／Grid及Run上下文对应；Grid／Safe／ListIndex与入口象限不混用，配置StageId不是Level.stage或Room Type | 按已入源字段落实位投影／负目标／特殊槽和资源交叉校验及结构封装；有效curse只取Host已核投影，不凭Run七位种子显示标志在Client重算 |
@@ -205,29 +173,29 @@ SurfacePixels当前format0为RGBA8，native GetTexelRegion实际按RGBA/UNSIGNED
 
 #### 9.10.6 Run、Presentation、Random与资源／音频
 
-Run的`run.json`布局230—238已在版本56入源；同期版本57又在room／level源登记配置、地图结果及资源固定值（263、300—309等）。Presentation根／HUD、D0、逐用途随机结果和音频仍有待注册布局；资源完整消息和显示批次外层也不能由小记录入源代替。按文件归档不改变Presentation对地图显示结果的唯一职责。
+Run的`run.json`布局230—238已在版本56入源；同期版本57又在room／level源登记配置、地图结果及资源固定值（263、300—309等）。Presentation根／HUD、D0、逐用途随机结果和音频已随版本58登记310—383等值布局；版本59补公共外层。下面旧待注册措辞保留原交接时点，现行仍待完整payload／允许集和运行接线，不能把小记录或固定头当完整可接受报文。按文件归档不改变Presentation对地图显示结果的唯一职责。
 
 | 范围与来源 | 特殊编码规则 | 版本／提交依赖 | 待落实项 |
 |---|---|---|---|
 | Run／Seeds／分数：[Run核对](run-synchronization-review.md)、`run.json` | GameRun固定132B，复用内嵌子布局不再独立发第二份。TimeCounter是u32模2^32帧基准，GameFrame只在帧头；种子显示u8低7位仅8/9/10/29/30/78/79，bit7=0；ascent只取bit48布尔、daily只取id非零。ColorModState只发current六f32，两个黑暗值均保留，最终分数64B及最终进度图标另按源编码 | 帧基准用同world已应用game_frame还原i32；分数／资格结果必须对应真实显示批次，当前Game缓存与旧结算副本不能混用；Room／HUD等跨域上下文不重复归属 | 新转换／handler及解码分派；实际结算／标题／暂停显示交对应Presentation owner，不能调用Calculate、每日Init或排行榜请求补值。Ambush／ChallengeParam／种子树无负载类型不创建状态记录 |
-| PlayerHUD／StatHUD／History：[Presentation第2—3、8节](presentation-synchronization-review.md) | Heart为1—9B草稿，visible0只有首字节，overlay_animation受eternal条件限定；ActiveVisual12B、TrinketVisual15B（含1B tint_override）、Inventory／HistoryVisual6B且保留顺序／负ID；StatValue12B，仅value／delta／countdown，物理行0..8按可绘资格。HolyMantle／Drop比例／低血闪隐等最终结果保留，P4六值不重复发 | 真实身体subject／use、动态HUD归组、Player／Run上下文、资源epoch及显示修订共同匹配；身体数不等于参与者数，两列StatHUD／两History owner分别承接 | 注册HUD根、24心／4主动／2饰品／4Pocket显示槽、动态列表／图像及预算、条件／资源校验；最终缓存来源／安装待接线，不靠Player Update重建、不恢复previous／threshold或获得史 |
+| PlayerHUD／StatHUD／History：[Presentation第2—3、8节](presentation-synchronization-review.md) | Heart为1—9B草稿，visible0只有首字节，overlay_animation受eternal条件限定；ActiveVisual12B、TrinketVisual15B（含1B tint_override）、Inventory／HistoryVisual6B且保留顺序／负ID；StatValue12B，仅value／delta／countdown，物理行0..8按可绘资格。HolyMantle／Drop比例／低血闪隐等最终结果保留，P4六值不重复发 | 真实身体subject／use、动态HUD归组、Player／Run上下文、资源epoch及显示修订共同匹配；身体数不等于参与者数，两列StatHUD／两History owner分别承接 | 版本58已登记HUD根及真实固定槽／列表，版本59已登记外层；后续落实条件／资源／用途校验；最终缓存来源／安装待接线，不靠Player Update重建、不恢复previous／threshold或获得史 |
 | HUD消息／Boss／共享UI／屏幕转场：[Presentation第2、5—6节](presentation-synchronization-review.md)、[资源／屏幕来源](presentation-resource-screen-sources.md) | 11消息物理槽各有存在性、streak／文字实际图像，fortune独立；Boss HUD保留真实负隐藏值／相位／分支；ItemOverlay、Prompt、暂停／死亡／RoomTransition／StageTransition／Nightmare及新识别BossOverlay按已核最终有序pass、资源和身体锚点表达。语义文本仅具名UI有界保留，字符串／文件名不替代程序图；StageTransition原生DWORD==5只作来源事实，线上只发最终遮罩而非DWORD或bool | 与同world显示修订、前后场景／结算owner和实际内容资源对应；本地菜单提交、视口／Options及原版Online面板不复制。前帧反馈需精确内容或完整recipe；versus与Nightmare按实际layer/slot主叠加记录，不能只取最后Sprite | 正式根／存在性／pass／序列和范围／上限尚待定稿。条件内容及BossOverlay来源已核，模式4为原版Deathmatch而排除，Pause只排除已核密码1B；其余后缀／对象内部和Mod shader STL ABI仍未知，不把来源已核当作报文已注册 |
 | D0展示时钟：[Random交接第3节](room-random-handoff.md)、[第8步8.2.1](8-run-presentation.md#821-绘制输入块-d0与逐用途随机结果) | 当前D0仅u32 manager_frame＋u8 paused=5B；subframe按paused及Manager相位派生。旧37B／13B与两seed／shift／guard不再下行，GameFrame仍由world帧头唯一承载 | 必须是正常Host该显示批次实际采用的Manager相位／暂停资格，不能把普通模拟后态和另次Render结果拼接；ManagerFrame不与GameFrame假定固定差 | 注册D0及其外层显示批次／状态关联、精确bool校验，接入帧借用和恢复；不恢复全局随机游标重放 |
-| 逐用途随机结果及Random边界：[Random交接第3节](room-random-handoff.md)、[Random职责](random-synchronization-review.md) | Pickup alt pedestal／Familiar颜色栈各取正常已产出alpha；标量为u8 state（0确认无覆盖，1随后f32），1/5B。保留实际f32舍入，不靠数学开区间误拒端点。玩法RNG／池／CRT／MT／Lua与音频选样本流不建网络记录；药丸揭示／实际名称与Loot有序预览由具名显示结果承接 | 结果需subject/use/shape、world state revision、presentation revision、member/resource epoch及pass／调用／递归身份；同GameFrame或本地遍历顺序不够。未产生、旧残值不能当state0或本次alpha | 正式结果布局、用途允许集、数量／字节预算、外层身份与缺口表达待注册；正常生产点缓存、颜色栈／CPU队列及显示adapter待接线，不额外Render／抽取 |
+| 逐用途随机结果及Random边界：[Random交接第3节](room-random-handoff.md)、[Random职责](random-synchronization-review.md) | Pickup alt pedestal／Familiar颜色栈各取正常已产出alpha；标量为u8 state（0确认无覆盖，1随后f32），1/5B。保留实际f32舍入，不靠数学开区间误拒端点。玩法RNG／池／CRT／MT／Lua与音频选样本流不建网络记录；药丸揭示／实际名称与Loot有序预览由具名显示结果承接 | 结果需subject/use/shape、world state revision、presentation revision、member/resource epoch及pass／调用／递归身份；同GameFrame或本地遍历顺序不够。未产生、旧残值不能当state0或本次alpha | 值布局357—361及公共外层已登记；用途允许集、整目标实际预算与缺口处理待接线；正常生产点缓存、颜色栈／CPU队列及显示adapter待接线，不额外Render／抽取 |
 | 地图Presentation：level.json的300—303、[显示资源设计第6节](room-display-resource-design.md#6-地图完整事实独立查看)、[两域核对](room-save-exploration-synchronization-review.md) | MapFocusResult300为present＋i32锚点＋u16描述成员，1/7B；MapFocusPair301分small／large两配置结果。MapBadgeList302显式count_type=u8、count0..7＋i8[count]，恰好1+count字节，非负ID仅0/1/2/4/5、负ID−1..−9，顺序保留。303承接2B nullable question_image；边框／icons／itemIcons资源与最终震动另由对应显示owner承接 | 与完整可显示L0—L3、challenge32真实锚点／描述、地图／成员／资源及显示修订一致；两配置焦点未证明相同不可共用，169不授权访问第169格。查看／长按／展开／视口／Options各端本地，徽标不是L2或Sprite最后帧 | 按已入源u8计数、枚举／条件长度及真实成员关系解码，补齐地图显示根／世界限制和外层修订；同world来源、独立地图adapter及资源就绪仍待接线。Gap不变空徽标或present0，不发Host窗口前缀／裁剪FBO |
 | 配置资源：room.json的263、[显示资源设计第3节](room-display-resource-design.md#3-配置资源发送显示投影不传生成配方) | RoomConfigVisual固定15B：i32 stage_id/type/subtype、i8 width/height、u8 shape(1..12)。原生shape先核再窄化；Data／OverrideData独立nullable u16资源引用，不发送Spawn／Merged图／权重，不以stage/type/variant拼唯一身份 | 不可变资源号关联真实owner/use与内容版本；同15B不证明同对象连续性，原位内容变化分配新号。地图Home隐藏条件为Data.StageId35且Type16；Door Light的StageId依赖按其已核消费者，不误写成Type35 | kind3完整表项分派消费已入源15B投影／尺寸／shape规则，引用随同world提交；本地只显示承载／owner待13步，不借配置加载、Merge或随机选房生成状态 |
-| 图像／ANM2／shader／surface：room.json的304—309、[动画资源复核](animation-resource-synchronization-review.md)、[typed资源设计第4节](room-display-resource-design.md#4-图像内容资源表和获取时点)、9.6 | 资源项7B头；kind0/1/2为u16长度＋路径，kind3配置15B，kind4固定SurfaceRecipe（16B头，Clear21B／Quad196B），kind5为16B像素描述。SourceQuad区分pixel／UV及padding；format0为精确RGBA8，不无声量化特殊格式。blob头14B，offset／bytes显式u32，非通用u16容器 | 一个run资源号只增不改；依赖无环，完整内容和本地图像安装后才ready。路径、实际Image及default／layer普通／champion shader选择独立，不把地址、GPU handle或名字当内容身份 | 已入源固定头／操作值之外，完整kind分派、recipe／shader允许集与blob消息仍待定稿；乘加／chunk冲突／闭包预算需落实：路径≤4096B、chunk≤256KiB、像素≤16MiB且每边≤2048、操作≤4096、深度≤16、待安装内容≤32MiB。图形ABI／缓存／物化接线待后续 |
-| Music／SFX／环境声：[当前同步职责](presentation-source-synchronization-review.md)、[音频具体来源](presentation-audio-sources.md) | world Start／明确retrigger／Stop及有范围退休事件；逻辑voice当前实际资源、最终Options前gain／pitch／必要pan／loop／world pause。crossfade保留所有有逻辑用途的并存声部，不发固定14空槽；mask／mix_mode／mul／权重／组current／ducking／全局pitch不与最终参数重复。FrameDelay不上线，来源clamp规则仍区分 | 资源／逻辑voice身份／代次、事件序号／水位与world关联；baseline不重播历史one-shot，未开始的实例不因控制补播。jingle使用本地SFX音量类别；个人设备失败／抢占不广播Stop，后端重试不自动Start。硬件游标／PCM队列非必需world状态；必要逻辑段／起点与可靠续接仍待来源 | 正式资源kind、voice／事件宽度／预算、去重／恢复封装待9／11／12步；全部音乐逻辑gain writer、world用途／退休、后端结果污染隔离、视频音轨与本地adapter待补证和10／13步。已核本地提交不等于world资格闭合，未知不补零 |
+| 图像／ANM2／shader／surface：room.json的304—309、[动画资源复核](animation-resource-synchronization-review.md)、[typed资源设计第4节](room-display-resource-design.md#4-图像内容资源表和获取时点)、9.6 | 原版本57资源项7B头已由59的8B显式table头替代；旧kind0/1/2路径草稿不是完整payload，kind3配置15B，kind4固定SurfaceRecipe（16B头，Clear21B／Quad196B），kind5为16B像素描述。SourceQuad区分pixel／UV及padding；format0为精确RGBA8，不无声量化特殊格式。blob头现15B含table，offset／bytes显式u32，非通用u16容器 | 一个run资源号只增不改；依赖无环，完整内容和本地图像安装后才ready。路径、实际Image及default／layer普通／champion shader选择独立，不把地址、GPU handle或名字当内容身份 | 已入源固定头／操作值之外，完整kind分派、recipe／shader允许集与blob消息仍待定稿；乘加／chunk冲突／闭包预算需落实：路径≤4096B、chunk≤256KiB、像素≤16MiB且每边≤2048、操作≤4096、深度≤16、待安装内容≤32MiB。图形ABI／缓存／物化接线待后续 |
+| Music／SFX／环境声：[当前同步职责](presentation-source-synchronization-review.md)、[音频具体来源](presentation-audio-sources.md) | world Start／明确retrigger／Stop及有范围退休事件；逻辑voice当前实际资源、最终Options前gain／pitch／必要pan／loop／world pause。crossfade保留所有有逻辑用途的并存声部，不发固定14空槽；mask／mix_mode／mul／权重／组current／ducking／全局pitch不与最终参数重复。FrameDelay不上线，来源clamp规则仍区分 | 资源／逻辑voice身份／代次、事件序号／水位与world关联；baseline不重播历史one-shot，未开始的实例不因控制补播。jingle使用本地SFX音量类别；个人设备失败／抢占不广播Stop，后端重试不自动Start。硬件游标／PCM队列非必需world状态；必要逻辑段／起点与可靠续接仍待来源 | 值布局381—383及版本59的40B事件外层／Clear范围已定；完整资源payload、去重／恢复运行实现仍待9／11／12步；全部音乐逻辑gain writer、world用途／退休、后端结果污染隔离、视频音轨与本地adapter待补证和10／13步。已核本地提交不等于world资格闭合，未知不补零 |
 
 #### 9.10.7 跨域版本依赖与本步剩余事项
 
-- **帧头已有字段与专用依赖分开登记**：9.3的26B草稿只有layout/member/resource/base/target/game_frame等字段，没有自动包含render_topology_revision、presentation revision、地图修订或pass／调用身份。P0等已入源字段沿正式源；尚未注册结果的外层布局、关联位置、取值宽度和预算在第9步定稿，不在本次文档整理中臆造编号或新增帧头字段。
-- **资源空间与kind分开登记**：字段的`wire.target`必须对应版本源声明的`anm2-animation-table`、`image-table`、`anm2-files`、`item-config`、`entity-configs`、`room-config-visual`或`shader-table`；同为u16不表示可以跨表替换。9.6的kind编号不自动等同这些表名或布局号，各空间与完整表项payload的对应、序号作用域及resource_epoch关联仍须在第9步定稿；Player条件效果的配置身份和shader的default／layer覆盖不能靠路径或整数相等猜测。
+- **公共上下文与专用依赖分开登记**：版本59的50B公共头／52B分段头已表达scope、来源／显示批次和Peer目标；414—417表达具名结果依赖、贡献与事件。P0/P6的u32拓扑仍取原字段，不重复发送；用途允许集和完整payload尚待本步后续，不能以通用封装替代来源闭合。
+- **资源空间与kind分开登记**：字段的`wire.target`必须对应版本源声明的`anm2-animation-table`、`image-table`、`anm2-files`、`item-config`、`entity-configs`、`room-config-visual`、`shader-table`或`audio-table`；同为u16不表示可以跨表替换。9.6的table编号与kind分开；公共空间／epoch语义已在正式合同定稿，完整payload分派仍须在本步后续登记；Player条件效果的配置身份和shader的default／layer覆盖不能靠路径或整数相等猜测。
 - **结构先行与内容就绪**：成员关系、配置／资源闭包和目标状态必须能对应同一合法事务；world的Room几何、描述拓扑、L2、地图焦点及必要显示批次共同提交。body仅遵循成员／资源与P0—P6的窄依赖，不因完整地图／显示资源等待而让Authority等待全员输入或ACK。
 - **确认含义不扩大**：解码成功、表epoch已安装、blob字节已收齐与原生应用成功是不同状态。必要内容／结果不全时不回复该目标AppliedAck，也不将Gap、Wait或失败替换为Null／零mask／空集合；合法已确认空值仍按各布局消费。旧批次只在其原world／use仍有效时可继续显示。
 - **失效与恢复必须有编码归属**：切房／换层、Maze交换／红房／维度、资源或双配置原位变化、Hourglass／Ascent／合法Continue及成员use/shape退休由对应结构／状态／资源事务承接；探索不要求单调增长。旧seed、ordinal、地址或ESSM ID不能续接新身份，不能用Save／Restore／Update／随机Refresh补Client状态。
-- **预算覆盖全部通道**：既有world32MiB／body64KiB及各类型／容器／资源预算分别检查；Context表、recipe、压缩blob、结构和Baseline均计入首次准备≤1MiB／≤10秒及三端总持续7.5Mbps目标，不能换通道漏计或截断／降质后宣称满足。具体组帧调度与实际效果待11／15步，本文不产生性能结论。
-- **当前仍待落实**：把表中待注册投影纳入唯一源并在实际变更时递增整数布局版本；完成线格式头／表／条件结果的同源生成、完整允许集与精确长度、外层身份／批次和失败语义；随后按10—14步接通运行链。第9步当前不因清单整理而标记实现完成，文末历史记录不作为兼容或执行依据。
+- **预算覆盖全部通道**：普通消息64KiB保护、旧可靠大消息32MiB解码保护与实际速率／突发预算分别检查，均不能充当常态发送额度；Context表、recipe、压缩blob、结构和Baseline均计入首次准备≤1MiB／≤10秒及三端总持续7.5Mbps目标，不能换通道漏计或截断／降质后宣称满足。具体组帧调度与实际效果待11／15步，本文不产生性能结论。
+- **当前仍待落实**：把表中待注册投影纳入唯一源并在实际变更时递增整数布局版本；在已生成公共固定头／外层语义上完成typed payload与用途完整允许集、严格接受规则及运行编解码；随后按10—14步接通运行链。第9步当前不因清单整理而标记实现完成，文末历史记录不作为兼容或执行依据。
 
 ## 改动范围
 
@@ -241,21 +209,21 @@ Run的`run.json`布局230—238已在版本56入源；同期版本57又在room�
 - **序号过早复用**：成员序号在旧帧还会被引用时就被复用，Client 把旧帧写到新成员上。
 - **资源序号复用**：同一序号被重新分配给另一路径。
 - **body 帧早于成员表**：成员表还没安装就接受了 body 帧，造成身体错配。
-- **版本回绕**：u32 版本号回绕。60 Hz 下大约 2.2 年才会回绕，但仍要在会话内检测，回绕前强制 Resync。
+- **版本回绕**：u32版本／epoch不允许静默回绕；将耗尽时退休旧复制代次并完整准备，普通Resync不能在同路由重置计数。
 - **压缩前后长度不符**：zstd 解压后的长度与声明不一致。沿用现有的解压长度检查。
 
 ## 完成内容
 
-- **本次文档整理（2026-11-10）**：9.10按全部相关域汇总来源、特殊编码、版本／提交依赖和待落实项；通用容器表述补上具名例外，历史版本提示集中保留。整理期间同步读取了已有版本57的Room／Level登记；本次自身未修改布局版本、源或运行实现。
-- **本步骤实现仍需交付**：以下两项是第9步的实现交付要求，尚未因本次整理而完成。
-- **单行表格**：状态帧头、记录头、成员表项、资源表项都由生成器输出单行表。
-- **接受规则**：校验和接受规则定稿。
+- **2026-11-11各域正文完成**：版本60新增BodyValueSource／有界编码解码、同源数字条件及校验计划、共享／计数组事实和根字段视图；337布局含空值类型统一处理，12B头与u32掩码保持。详见[正文实现](9-domain-body-codec.md)。
+- **2026-11-11第一项完成**：保留u32掩码和12B记录头，公共头／分段／表／结果组／贡献／事件／ACK／Resync结构及预算定稿；版本59新增408—421并更新304／306，固定头／常量及单行表同源生成。实施结果与边界见[正式合同](9-public-wire-contract.md)。
+- **后续交付**：完整typed资源payload与table/kind矩阵、各用途pass／shader／blend／sampler允许集、详细可执行接受规则和运行编解码。后续接线按10—14步，第15步唯一统一整体验收。
+- **旧工作事实**：2026-11-10的9.10整理只维护交接，未改当时版本57或运行实现；其后版本58完成第8步结果登记。本次不把新合同回写成当时已实现。
 
 ## 未决问题
 
-- body 序列按 Peer 计数，还是按 Peer×身体分别计数。
-- 帧头中 game_frame 是否需要 u64。
-- 9.10所列待注册结果的外层身份／显示批次、地图／资源修订关联和正式编号，以及各自精确边界／预算尚待第9步实施；已有源内语义不重新列为未知。
+- body按Peer确认、GameFrame u32、公共上下文／结果组／贡献／事件身份与Clear范围已定，不再列为未决。
+- typed资源完整payload、table/kind合法组合、用途／pass及图形允许集和实际编码调度仍待本步后续完成；已有来源Gap及UNKNOWN不变。
+- 正常目标的真实大小、有效峰值与积压时限还需按布局静态核算；仅内存保护容得下不代表满足10Mbps／频率／延迟目标。
 
 ## 历史修订提示
 
@@ -275,3 +243,5 @@ Run的`run.json`布局230—238已在版本56入源；同期版本57又在room�
 
 **2026-11-10 第7步版本57交接**：[实现说明](implementation-7-room-level.md)已登记Room／Level状态和ResourceEntryHeader304、Pixels305、BlobHeader306、Recipe307—309的固定typed值；资源空间新增room-config-visual／shader-table。完整payload分派／依赖闭包、blob与有序recipe编码、具体GPU枚举及运行接线仍归本步及后续，不能把固定头登记写成完整报文已实现。版本56当时未注册的事实保留原时点。
 
+
+**2026-11-11被替代草稿说明**：原26B帧头、38B成员项、7B资源头／14B blob头和body／GameFrame未决由[正式合同第11节](9-public-wire-contract.md#11-被本合同替代的草稿)说明；12B记录头与u32掩码未变。旧版本的生成／失败／UNKNOWN记录保持原事实。

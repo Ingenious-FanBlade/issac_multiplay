@@ -1,6 +1,6 @@
 # GridNonrandomLightDesc
 
-由唯一布局源生成。布局编号 224；布局版本 58；原生大小 0x20；未知 3B；完整：否。
+由唯一布局源生成。布局编号 224；布局版本 60；原生大小 0x20；未知 3B；完整：否。
 
 版本53：仅PressurePlate/Door内嵌描述，原生32B/UNKNOWN3B保持；线12B为type/variant/state。公共Desc198及其它Grid不变；Host种子与Init元数据不发，本地默认种子仍合法。
 

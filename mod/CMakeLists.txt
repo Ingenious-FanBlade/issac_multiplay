@@ -48,7 +48,7 @@ set(GENERATED "${CMAKE_CURRENT_BINARY_DIR}/generated")
 file(GLOB STATE_LAYOUT_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/binding/state/*.json")
 add_custom_command(OUTPUT "${GENERATED}/state_capture.inc" "${GENERATED}/state_wire.inc"
   "${GENERATED}/state_client.inc" "${GENERATED}/state_members.inc" "${GENERATED}/state_grid_view.inc"
-  "${GENERATED}/state_room_view.inc"
+  "${GENERATED}/state_room_view.inc" "${GENERATED}/state_body_codec.inc"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_state_layout.py"
     --out "${GENERATED}" --docs "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/binary-state/layouts"
   DEPENDS tools/gen_state_layout.py ${STATE_LAYOUT_SOURCES} binding/world_layout.json
@@ -57,9 +57,9 @@ add_custom_command(OUTPUT "${GENERATED}/state_capture.inc" "${GENERATED}/state_w
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/observation-expansion/grid-catalog.json"
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/observation-expansion/run-catalog.json"
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-21/stream-catalog.json" VERBATIM)
-add_library(isaac_cs_state STATIC src/state/layout.cpp src/state/nested.cpp src/state/owned_payload.cpp src/state/entity_extension.cpp src/state/entity_counters.cpp src/state/npc_presentation.cpp
+add_library(isaac_cs_state STATIC src/state/layout.cpp src/state/nested.cpp src/state/owned_payload.cpp src/state/entity_extension.cpp src/state/entity_counters.cpp src/state/npc_presentation.cpp src/state/body_codec.cpp
   "${GENERATED}/state_capture.inc" "${GENERATED}/state_wire.inc"
-  "${GENERATED}/state_client.inc" "${GENERATED}/state_members.inc")
+  "${GENERATED}/state_client.inc" "${GENERATED}/state_members.inc" "${GENERATED}/state_body_codec.inc")
 target_include_directories(isaac_cs_state PUBLIC src PRIVATE "${GENERATED}")
 target_compile_features(isaac_cs_state PUBLIC cxx_std_20)
 target_compile_options(isaac_cs_state PRIVATE /W4 /Zi /utf-8 /EHsc)

@@ -1,6 +1,6 @@
 # PlayerWeaponBombs
 
-由唯一布局源生成。布局编号 185；布局版本 58；原生大小 0x48；未知 16B；完整：否。
+由唯一布局源生成。布局编号 185；布局版本 60；原生大小 0x48；未知 16B；完整：否。
 
 Player P5专用动态view；2026-11-09只读J273 vtable[-1]→COL+0C→TypeDescriptor核定RTTI。真实factory/Init与窄Free由第13步owner接线。
 

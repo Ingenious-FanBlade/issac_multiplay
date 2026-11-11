@@ -1,5 +1,9 @@
 # 13：Client 原生应用
 
+**2026-11-11 第9步各域正文实现，版本60**：[正文实现与边界](9-domain-body-codec.md)、[同源数字计划](layouts/09-wire-format/body-codec-plan.md)。BodyView提供数字索引的根字段／块纯值视图，失效分支present=false，编码规范空主动槽和Null costume直接为零；decoder不执行原生写入。消费前仍须完成成员／资源／拓扑及投影闭包验证，并持有不可变缓冲；UNKNOWN／来源Gap及原生adapter尚未完成，不能按协议偏移写游戏地址。
+
+**2026-11-11 第9步公共合同，版本59**：[正式结构](9-public-wire-contract.md)。消费版本59明确分段／组／贡献及voice身份，双分段共同提交并一次确认两序列；body依赖相等P6拓扑，GameFrame仍u32。缓存引用必须来源有效，Scope退休不能借旧组；Clear仅作用明确C/S world voice范围。只有原生完整提交成功才AppliedAck，writer／adapter运行接线仍未实施。
+
 **第8步版本58交接**：[地图、各端HUD及具名结果](implementation-8-presentation.md)已登记。Minimap325复用完整L0—L3与300—303；各端依ControlGroupHudSelection364选择本组详细HUD，其他组公共HUD保留。357／358只借用已确认alpha，屏幕／转场消费完整有序贡献，音频消费Options前逻辑参数；所有缺结果规则和既有UNKNOWN保持，具体writer／资源物化仍须本步实现。
 
 **2026-11-10 各端HUD与显示批次定稿交接**：[用户确定的方案B](presentation-result-batches.md)要求各端History／Stat等详细HUD默认跟随本端控制组，双角色按实际组内身体显示，其他组保留公共多人HUD。原生两槽不是全部Peer容量；不得继续以roster第0身体充当本端主体，也不修改PlayerIndex／设备／Online状态获取本地性。按明确owner、贡献身份及依赖共同提交，缺结果不安装／不ACK；CPU消费后恢复临时借用。现有逐身体动态HUD仅为窄实现，完整选择／布局／adapter仍待实施，版本57不变，无构建或测试。

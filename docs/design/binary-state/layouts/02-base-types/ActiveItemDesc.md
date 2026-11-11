@@ -1,6 +1,6 @@
 # ActiveItemDesc
 
-由唯一布局源生成。布局编号 12；布局版本 58；原生大小 0x20；未知 0B；完整：是。
+由唯一布局源生成。布局编号 12；布局版本 60；原生大小 0x20；未知 0B；完整：是。
 
 REP ZHL 的 ActiveItemDesc +0x04 _unk 在 J273 AddCollectible 写入路径中已核为 item_pool；SDK 的 PartialCharge int 声明错误，J273 Lua closure 按 float 读写 +0x18。 版本39：item_pool／timed_recharge_cooldown留Host；HUD实际消费Item／Charge／BatteryCharge／SubCharge／PartialCharge／VarData共24B，四槽同时保留。
 

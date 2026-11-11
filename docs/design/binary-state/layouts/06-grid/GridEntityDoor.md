@@ -1,6 +1,6 @@
 # GridEntityDoor
 
-由唯一布局源生成。布局编号 228；布局版本 58；原生大小 0x2F0；未知 32B；完整：否。
+由唯一布局源生成。布局编号 228；布局版本 60；原生大小 0x2F0；未知 32B；完整：否。
 
 版本53：实际2F0h完整归属，SDK外最后4B为OpenLockedAnimation.capacity，不是独立未知尾字。UNKNOWN32B=Desc3+双ANM2各14+27F间隙1。主Sprite226/描述224，G0=20B，公共最小95B，GD4=10B，extra最小118B，根最小223B；保留target type/index、ExtraVisible/Light bit5，历史缓存/四字符串/current类型/slot/direction/busted/解锁/计数留Host。正式接线归第7/8/10/13步，第15步统一验收。
 

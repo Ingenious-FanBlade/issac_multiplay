@@ -1,6 +1,6 @@
 # SoundEffects
 
-由唯一布局源生成。布局编号 337；布局版本 58；原生大小 0x18；未知 0B；完整：是。
+由唯一布局源生成。布局编号 337；布局版本 60；原生大小 0x18；未知 0B；完整：是。
 
 SFXManager.zhl的size0是空壳声明；Manager+2A160..2A177实际SoundEffects18B，下一字段OptionsConfig+2A178。 修订4另核+14为modifier恢复步长；直属UNKNOWN4→0B。 原生字节事实保留；委派范围按本表具名结果承接，不按原生owner全量复制。
 

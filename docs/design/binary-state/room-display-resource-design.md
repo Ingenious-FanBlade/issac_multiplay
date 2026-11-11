@@ -1,5 +1,7 @@
 # 第7步：必要显示与资源设计补齐
 
+**2026-11-11 第9步公共合同，版本59**：[正式结构](9-public-wire-contract.md)。304资源固定头更新为8B显式table、306 blob头更新为15B；table/index与kind分离，已固定表的字段仍只传u16引用。旧7B／14B为版本57事实；完整typed payload、table/kind矩阵与物化仍待第9步后续。32MiB只作内存／解码保护，不能替代10Mbps总上行／7.5Mbps持续、首次准备1MiB／10秒的真实计费。
+
 2026-11-10；官方 REPENTOGON 1.1.3／Repentance+ v1.9.7.12.J273／Win32。本次完成第7步的**显示／资源设计**：配置投影、背景内容来源、小地图重建输入、水／光／波纹结果、资源依赖与失效、Client安全消费及后续接线职责。它不是生产布局或运行实现；整数布局版本仍56，未构建、启动游戏或测试。原生字节事实分别沿用 [Room](room-byte-ledger.md)、[Level](level-byte-ledger.md)、[Descriptor](room-descriptor-byte-ledger.md)、[Presentation](presentation-byte-ledger.md)；新增配置字节表见[机器设计表](room-display-resource-design.json)和本文第3节。UNKNOWN不借本次设计消除。
 
 ## 1. 资料与本轮纠错

@@ -117,6 +117,12 @@ struct PresentationContract {
 };
 // 数字布局依赖与上面的窄字段语义同源；不把类型依赖解释为整个布局所有块都必须等待。
 struct PresentationDependency { std::uint16_t result_layout, dependency_layout; };
+// 公共报文的编号、枚举与预算只读目录；来自wire.json，不代表运行网络已经接通。
+struct ProtocolConstant {
+  const char *domain, *name;
+  std::uint64_t value;
+  const char *semantics;
+};
 // 这组只读视图由同一次布局生成提供给后续采集、解码、写入和 E2E 对照。
 // 布局版本与第 9 步帧头 layout_version 同为 u16，两端按整数直接比较。
 std::uint16_t LayoutVersion() noexcept;
@@ -142,6 +148,8 @@ std::span<const CatalogAlias> CatalogAliases() noexcept;
 std::span<const LayoutBudget> LayoutBudgets() noexcept;
 std::span<const PresentationContract> PresentationContracts() noexcept;
 std::span<const PresentationDependency> PresentationDependencies() noexcept;
+// 后续发布／编解码注册时读取同源合同，热路径不按常量名查找。
+std::span<const ProtocolConstant> ProtocolConstants() noexcept;
 const Layout *FindLayout(std::uint16_t id) noexcept;
 // 接收布局号和布局内索引，只索引可信生成表；网络不能提供任意原生偏移或处理器地址。
 const Field *FindField(std::uint16_t layout, std::uint16_t index) noexcept;

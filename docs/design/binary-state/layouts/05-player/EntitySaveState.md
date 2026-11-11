@@ -1,6 +1,6 @@
 # EntitySaveState
 
-由唯一布局源生成。布局编号 176；布局版本 58；原生大小 0x78；未知 74B；完整：否。
+由唯一布局源生成。布局编号 176；布局版本 60；原生大小 0x78；未知 74B；完整：否。
 
 移动箱两处vector的真正元素。int/float/boolStorage虽有类型仍为UNKNOWN，不能误用更小的FriendBall EntityDesc替代。保存／离房容器的外部元素不计入根2EA0固定字节总数。
 

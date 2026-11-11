@@ -1,6 +1,6 @@
 # GridSprite
 
-由唯一布局源生成。布局编号 201；布局版本 58；原生大小 0x114；未知 14B；完整：否。
+由唯一布局源生成。布局编号 201；布局版本 60；原生大小 0x114；未知 14B；完整：否。
 
 版本50仅Grid公共主Sprite展示视图，原生0x114与14B递归UNKNOWN保留；默认动画名归Host，图层用GridLayerState200，实际资源/姿态/ColorMod/selector/播放插值保留。G1固定94B，含1B glitch最终纹理选择，原生地址/RNG不上线。其它通用Sprite及尚未实施的Grid附属Sprite不能自动视为已覆盖；实际采集/绘制adapter归第8/10/13步，见grid-common-synchronization-review.md。 冠军色仅复制前四float16B，载体后七值28B留Host；普通Sprite/Layer ColorMod仍完整11值。
 

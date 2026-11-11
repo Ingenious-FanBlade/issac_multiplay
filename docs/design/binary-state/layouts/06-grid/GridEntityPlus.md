@@ -1,6 +1,6 @@
 # GridEntityPlus
 
-由唯一布局源生成。布局编号 229；布局版本 58；原生大小 0xC；未知 0B；完整：是。
+由唯一布局源生成。布局编号 229；布局版本 60；原生大小 0xC；未知 0B；完整：是。
 
 版本54：仅登记官方1.1.3 DLL外部旁表元素的12B ABI，不是第19个Grid RTTI，不在Grid根范围内，不作为companion或独立下行记录。所有字节归属已核、0B UNKNOWN；没有任何发送块/字段。Grid199已有4B最终water_clip_flags承接真实展示需求，各Grid根UNKNOWN不变。官方六水面hook不含Lock，Client必须另补Lock最终输出覆盖点；实际Host绑定/reader及Clientwriter仍归第10/13步，第15步前无测试。
 

@@ -6401,7 +6401,11 @@
             "client": "saved_map_icon_payload_frame_bit0_install",
             "when": {
               "field": "icon_mask",
-              "predicate": "saved_map_icon_bit0"
+              "predicate": "saved_map_icon_bit0",
+              "test": {
+                "kind": "any-bits",
+                "value": 1
+              }
             }
           }
         },
@@ -6419,7 +6423,11 @@
             "client": "saved_map_icon_payload_frame_bit1_install",
             "when": {
               "field": "icon_mask",
-              "predicate": "saved_map_icon_bit1"
+              "predicate": "saved_map_icon_bit1",
+              "test": {
+                "kind": "any-bits",
+                "value": 2
+              }
             }
           }
         },
@@ -6437,7 +6445,11 @@
             "client": "saved_map_icon_payload_frame_bit3_install",
             "when": {
               "field": "icon_mask",
-              "predicate": "saved_map_icon_bit3"
+              "predicate": "saved_map_icon_bit3",
+              "test": {
+                "kind": "any-bits",
+                "value": 8
+              }
             }
           }
         },
@@ -6455,7 +6467,11 @@
             "client": "saved_map_icon_payload_frame_bit4_install",
             "when": {
               "field": "icon_mask",
-              "predicate": "saved_map_icon_bit4"
+              "predicate": "saved_map_icon_bit4",
+              "test": {
+                "kind": "any-bits",
+                "value": 16
+              }
             }
           }
         },
@@ -6473,7 +6489,11 @@
             "client": "saved_map_icon_payload_frame_bit7_install",
             "when": {
               "field": "icon_mask",
-              "predicate": "saved_map_icon_bit7"
+              "predicate": "saved_map_icon_bit7",
+              "test": {
+                "kind": "any-bits",
+                "value": 128
+              }
             }
           }
         },
@@ -6491,7 +6511,11 @@
             "client": "saved_map_icon_payload_frame_bit8_install",
             "when": {
               "field": "icon_mask",
-              "predicate": "saved_map_icon_bit8"
+              "predicate": "saved_map_icon_bit8",
+              "test": {
+                "kind": "any-bits",
+                "value": 256
+              }
             }
           }
         },
@@ -6509,7 +6533,11 @@
             "client": "saved_map_icon_payload_frame_bit9_install",
             "when": {
               "field": "icon_mask",
-              "predicate": "saved_map_icon_bit9"
+              "predicate": "saved_map_icon_bit9",
+              "test": {
+                "kind": "any-bits",
+                "value": 512
+              }
             }
           }
         },
@@ -6527,7 +6555,11 @@
             "client": "saved_map_icon_payload_frame_bit11_install",
             "when": {
               "field": "icon_mask",
-              "predicate": "saved_map_icon_bit11"
+              "predicate": "saved_map_icon_bit11",
+              "test": {
+                "kind": "any-bits",
+                "value": 2048
+              }
             }
           }
         },
@@ -6545,7 +6577,11 @@
             "client": "saved_map_icon_payload_frame_bit13_install",
             "when": {
               "field": "icon_mask",
-              "predicate": "saved_map_icon_bit13"
+              "predicate": "saved_map_icon_bit13",
+              "test": {
+                "kind": "any-bits",
+                "value": 8192
+              }
             }
           }
         }
@@ -6612,7 +6648,11 @@
           "client": "final_saved_map_icons_payload_install",
           "when": {
             "field": "present",
-            "predicate": "finalsavedmapicons_present_present"
+            "predicate": "finalsavedmapicons_present_present",
+            "test": {
+              "kind": "equal",
+              "value": 1
+            }
           }
         }
       ]
@@ -6788,7 +6828,11 @@
             "client": "map_focus_result_focus_safe_index_install",
             "when": {
               "field": "present",
-              "predicate": "mapfocusresult_present_present"
+              "predicate": "mapfocusresult_present_present",
+              "test": {
+                "kind": "equal",
+                "value": 1
+              }
             }
           }
         },
@@ -6807,7 +6851,11 @@
             "client": "map_focus_result_descriptor_member_install",
             "when": {
               "field": "present",
-              "predicate": "mapfocusresult_present_present"
+              "predicate": "mapfocusresult_present_present",
+              "test": {
+                "kind": "equal",
+                "value": 1
+              }
             }
           }
         }

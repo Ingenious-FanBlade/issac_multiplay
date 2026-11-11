@@ -1,6 +1,6 @@
 # RunDailyChallenge
 
-由唯一布局源生成。布局编号 233；布局版本 58；原生大小 0xB4；未知 22B；完整：否。
+由唯一布局源生成。布局编号 233；布局版本 60；原生大小 0xB4；未知 22B；完整：否。
 
 Game+25BA8的副本，不能拿Manager::GetDailyChallenge()替代；只发送1B is_daily，不发完整id，其他已知字段Host。
 

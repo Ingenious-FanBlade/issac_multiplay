@@ -534,7 +534,11 @@
             "type": "ANM2",
             "when": {
               "field": "wave_sprite_present",
-              "predicate": "room_wave_sprite_present_present"
+              "predicate": "room_wave_sprite_present_present",
+              "test": {
+                "kind": "equal",
+                "value": 1
+              }
             },
             "host": "room_shockwave_overlay_sprite_read",
             "client": "room_shockwave_overlay_sprite_install"
@@ -4215,7 +4219,11 @@
             "type": "ANM2",
             "when": {
               "field": "sprite_mask",
-              "predicate": "backdrop_sprite_bit0"
+              "predicate": "backdrop_sprite_bit0",
+              "test": {
+                "kind": "any-bits",
+                "value": 1
+              }
             },
             "host": "backdrop_floor_sprite_read",
             "client": "backdrop_floor_sprite_install"
@@ -4313,7 +4321,11 @@
             "type": "ANM2",
             "when": {
               "field": "sprite_mask",
-              "predicate": "backdrop_sprite_bit1"
+              "predicate": "backdrop_sprite_bit1",
+              "test": {
+                "kind": "any-bits",
+                "value": 2
+              }
             },
             "host": "backdrop_wall_detail_sprite_read",
             "client": "backdrop_wall_detail_sprite_install"
@@ -4333,7 +4345,11 @@
             "type": "ANM2",
             "when": {
               "field": "sprite_mask",
-              "predicate": "backdrop_sprite_bit2"
+              "predicate": "backdrop_sprite_bit2",
+              "test": {
+                "kind": "any-bits",
+                "value": 4
+              }
             },
             "host": "backdrop_controls_sprite_read",
             "client": "backdrop_controls_sprite_install"
@@ -4353,7 +4369,11 @@
             "type": "ANM2",
             "when": {
               "field": "sprite_mask",
-              "predicate": "backdrop_sprite_bit3"
+              "predicate": "backdrop_sprite_bit3",
+              "test": {
+                "kind": "any-bits",
+                "value": 8
+              }
             },
             "host": "backdrop_controls_buttons_sprite_read",
             "client": "backdrop_controls_buttons_sprite_install"
@@ -4999,7 +5019,11 @@
           "client": "f_x_layers_scene_install",
           "when": {
             "field": "loaded",
-            "predicate": "fxlayers_loaded_present"
+            "predicate": "fxlayers_loaded_present",
+            "test": {
+              "kind": "equal",
+              "value": 1
+            }
           }
         }
       ],
@@ -6485,7 +6509,11 @@
             "type": "ANM2",
             "when": {
               "field": "active",
-              "predicate": "roomhellbackdrop_active_present"
+              "predicate": "roomhellbackdrop_active_present",
+              "test": {
+                "kind": "equal",
+                "value": 1
+              }
             },
             "host": "room_hell_backdrop_sprite_read",
             "client": "room_hell_backdrop_sprite_install"
@@ -6534,7 +6562,11 @@
             "client": "room_hell_backdrop_display_offset_install",
             "when": {
               "field": "active",
-              "predicate": "roomhellbackdrop_active_present"
+              "predicate": "roomhellbackdrop_active_present",
+              "test": {
+                "kind": "equal",
+                "value": 1
+              }
             }
           },
           "read_requires": "qualified-main-thread-stable-world-owner-and-current-use"
@@ -9702,7 +9734,8 @@
             "type": "u16",
             "target": "image-table",
             "host": "backdrop_binding_entry_resource_read",
-            "client": "backdrop_binding_entry_resource_install"
+            "client": "backdrop_binding_entry_resource_install",
+            "value_rule": "non-null"
           }
         }
       ]
@@ -10045,7 +10078,11 @@
           "client": "water_visual_payload_install",
           "when": {
             "field": "present",
-            "predicate": "watervisual_present_present"
+            "predicate": "watervisual_present_present",
+            "test": {
+              "kind": "equal",
+              "value": 1
+            }
           }
         }
       ]
@@ -10129,7 +10166,11 @@
             "client": "room_lighting_result_lighting_alpha_install",
             "when": {
               "field": "mask",
-              "predicate": "room_lighting_bit2"
+              "predicate": "room_lighting_bit2",
+              "test": {
+                "kind": "any-bits",
+                "value": 4
+              }
             }
           }
         },
@@ -10147,7 +10188,11 @@
             "client": "room_lighting_result_special_background_install",
             "when": {
               "field": "mask",
-              "predicate": "room_lighting_bit3"
+              "predicate": "room_lighting_bit3",
+              "test": {
+                "kind": "any-bits",
+                "value": 8
+              }
             }
           }
         }
@@ -10163,7 +10208,11 @@
           "client": "room_lighting_result_shadow_fill_install",
           "when": {
             "field": "mask",
-            "predicate": "room_lighting_bit0"
+            "predicate": "room_lighting_bit0",
+            "test": {
+              "kind": "any-bits",
+              "value": 1
+            }
           }
         },
         {
@@ -10176,7 +10225,11 @@
           "client": "room_lighting_result_light_tint_install",
           "when": {
             "field": "mask",
-            "predicate": "room_lighting_bit1"
+            "predicate": "room_lighting_bit1",
+            "test": {
+              "kind": "any-bits",
+              "value": 2
+            }
           }
         }
       ],
@@ -10300,7 +10353,11 @@
             "client": "room_wave_result_a_world_center_install",
             "when": {
               "field": "active_mask",
-              "predicate": "room_wave_bit0"
+              "predicate": "room_wave_bit0",
+              "test": {
+                "kind": "any-bits",
+                "value": 1
+              }
             }
           }
         },
@@ -10318,7 +10375,11 @@
             "client": "room_wave_result_a_radius_used_install",
             "when": {
               "field": "active_mask",
-              "predicate": "room_wave_bit0"
+              "predicate": "room_wave_bit0",
+              "test": {
+                "kind": "any-bits",
+                "value": 1
+              }
             }
           }
         },
@@ -10336,7 +10397,11 @@
             "client": "room_wave_result_a_gain_used_install",
             "when": {
               "field": "active_mask",
-              "predicate": "room_wave_bit0"
+              "predicate": "room_wave_bit0",
+              "test": {
+                "kind": "any-bits",
+                "value": 1
+              }
             }
           }
         },
@@ -10354,7 +10419,11 @@
             "client": "room_wave_result_b_world_center_install",
             "when": {
               "field": "active_mask",
-              "predicate": "room_wave_bit1"
+              "predicate": "room_wave_bit1",
+              "test": {
+                "kind": "any-bits",
+                "value": 2
+              }
             }
           }
         },
@@ -10372,7 +10441,11 @@
             "client": "room_wave_result_b_radius_used_install",
             "when": {
               "field": "active_mask",
-              "predicate": "room_wave_bit1"
+              "predicate": "room_wave_bit1",
+              "test": {
+                "kind": "any-bits",
+                "value": 2
+              }
             }
           }
         },
@@ -10390,7 +10463,11 @@
             "client": "room_wave_result_b_gain_used_install",
             "when": {
               "field": "active_mask",
-              "predicate": "room_wave_bit1"
+              "predicate": "room_wave_bit1",
+              "test": {
+                "kind": "any-bits",
+                "value": 2
+              }
             }
           }
         }
@@ -10463,7 +10540,11 @@
             "client": "forced_camera_focus_focus_install",
             "when": {
               "field": "present",
-              "predicate": "forcedcamerafocus_present_present"
+              "predicate": "forcedcamerafocus_present_present",
+              "test": {
+                "kind": "equal",
+                "value": 1
+              }
             }
           }
         }
@@ -10530,7 +10611,11 @@
           "client": "selected_ray_group_group_install",
           "when": {
             "field": "present",
-            "predicate": "selectedraygroup_present_present"
+            "predicate": "selectedraygroup_present_present",
+            "test": {
+              "kind": "equal",
+              "value": 1
+            }
           }
         }
       ]
@@ -10695,7 +10780,11 @@
           "client": "poop_visual_payload_install",
           "when": {
             "field": "present",
-            "predicate": "poopvisual_present_present"
+            "predicate": "poopvisual_present_present",
+            "test": {
+              "kind": "equal",
+              "value": 1
+            }
           }
         }
       ]
@@ -10848,7 +10937,11 @@
           "client": "vein_graph_visual_payload_install",
           "when": {
             "field": "present",
-            "predicate": "veingraphvisual_present_present"
+            "predicate": "veingraphvisual_present_present",
+            "test": {
+              "kind": "equal",
+              "value": 1
+            }
           }
         }
       ]
@@ -10988,6 +11081,7 @@
           "name": "ResourceEntryHeader当前结果",
           "sequence": "world",
           "fields": [
+            "table",
             "index",
             "kind",
             "payload_bytes"
@@ -10997,25 +11091,41 @@
       "conversions": {
         "resource_entry_header_index_read": "不可变会话资源项，不得FFFF；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
         "resource_entry_header_index_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；不可变会话资源项，不得FFFF；不调用Update／Init／Restore或写访客进度。",
-        "resource_entry_header_kind_read": "0 ANM2/1文件图像/2内置shader/3配置/4recipe/5像素；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
-        "resource_entry_header_kind_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；0 ANM2/1文件图像/2内置shader/3配置/4recipe/5像素；不调用Update／Init／Restore或写访客进度。",
+        "resource_entry_header_kind_read": "按wire.json的resource_kind分派；完整payload未登记前不得接受，仅公共tag范围0—9已确定。",
+        "resource_entry_header_kind_install": "按wire.json的resource_kind分派；完整payload未登记前不得接受，仅公共tag范围0—9已确定。",
         "resource_entry_header_payload_bytes_read": "后续typed payload精确长度；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
-        "resource_entry_header_payload_bytes_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；后续typed payload精确长度；不调用Update／Init／Restore或写访客进度。"
+        "resource_entry_header_payload_bytes_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；后续typed payload精确长度；不调用Update／Init／Restore或写访客进度。",
+        "resource_entry_header_table_read": "从不可变typed资源声明取明确空间；显式资源表空间0—7；与u16 index共同定位，不因整数相等跨表替换",
+        "resource_entry_header_table_install": "核对已登记空间及kind对应后解码；显式资源表空间0—7；与u16 index共同定位，不因整数相等跨表替换"
       },
       "validators": {
         "kind": {
           "kind": "range",
           "scalar": "u8",
           "min": 0,
-          "max": 5
+          "max": 9
+        },
+        "table": {
+          "kind": "range",
+          "scalar": "u8",
+          "min": 0,
+          "max": 7
         }
       },
       "members": [],
       "public_owners": [],
-      "notes": "只登记7B固定头；payload消费与依赖闭包归第9步，不是完整资源记录。",
+      "notes": "第9步公共合同将旧7B头改为8B：table/index/kind/payload_bytes。布局304保留；完整typed payload和允许集尚待本步后续，不代表资源可接受报文已实现。",
       "extent": "protocol",
       "layout": 304,
       "synthetic_fields": [
+        {
+          "name": "table",
+          "type": "u8",
+          "semantics": "显式资源表空间0—7；与u16 index共同定位，不因整数相等跨表替换",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "resource_entry_header_table_read",
+          "client": "resource_entry_header_table_install"
+        },
         {
           "name": "index",
           "type": "u16",
@@ -11027,7 +11137,7 @@
         {
           "name": "kind",
           "type": "u8",
-          "semantics": "0 ANM2/1文件图像/2内置shader/3配置/4recipe/5像素",
+          "semantics": "公共resource_kind编号0—9；具体table/kind允许集及完整payload待第9步后续登记",
           "evidence": "docs/design/binary-state/7-room-level.md；room-display-resource-design.md及对应原生账本",
           "host": "resource_entry_header_kind_read",
           "client": "resource_entry_header_kind_install"
@@ -11241,6 +11351,7 @@
           "sequence": "world",
           "fields": [
             "resource_epoch",
+            "table",
             "index",
             "offset",
             "bytes"
@@ -11255,7 +11366,9 @@
         "resource_blob_chunk_header_offset_read": "完整blob字节偏移；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
         "resource_blob_chunk_header_offset_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；完整blob字节偏移；不调用Update／Init／Restore或写访客进度。",
         "resource_blob_chunk_header_bytes_read": "本块实际后随长度；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
-        "resource_blob_chunk_header_bytes_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；本块实际后随长度；不调用Update／Init／Restore或写访客进度。"
+        "resource_blob_chunk_header_bytes_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；本块实际后随长度；不调用Update／Init／Restore或写访客进度。",
+        "resource_blob_chunk_header_table_read": "从不可变typed资源声明取明确空间；显式资源表空间0—7；与u16 index共同定位，不因整数相等跨表替换",
+        "resource_blob_chunk_header_table_install": "核对已登记空间及kind对应后解码；显式资源表空间0—7；与u16 index共同定位，不因整数相等跨表替换"
       },
       "validators": {
         "bytes": {
@@ -11263,11 +11376,17 @@
           "scalar": "u32",
           "min": 1,
           "max": 262144
+        },
+        "table": {
+          "kind": "range",
+          "scalar": "u8",
+          "min": 0,
+          "max": 7
         }
       },
       "members": [],
       "public_owners": [],
-      "notes": "只登记14B头；后续自有字节不能作为原生对象读取，完整范围与总预算由第9步执行。",
+      "notes": "第9步公共合同将旧14B头改为15B：resource_epoch/table/index/offset/bytes；完整范围、内容冲突、资源就绪和总预算仍须后续编解码执行。",
       "extent": "protocol",
       "layout": 306,
       "synthetic_fields": [
@@ -11278,6 +11397,14 @@
           "evidence": "docs/design/binary-state/7-room-level.md；room-display-resource-design.md及对应原生账本",
           "host": "resource_blob_chunk_header_resource_epoch_read",
           "client": "resource_blob_chunk_header_resource_epoch_install"
+        },
+        {
+          "name": "table",
+          "type": "u8",
+          "semantics": "显式资源表空间0—7；与u16 index共同定位，不因整数相等跨表替换",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "resource_blob_chunk_header_table_read",
+          "client": "resource_blob_chunk_header_table_install"
         },
         {
           "name": "index",

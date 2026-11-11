@@ -1,6 +1,6 @@
 # GridEntityPressurePlate
 
-由唯一布局源生成。布局编号 227；布局版本 58；原生大小 0x27C；未知 31B；完整：否。
+由唯一布局源生成。布局编号 227；布局版本 60；原生大小 0x27C；未知 31B；完整：否。
 
 版本53：实际27Ch全范围归属，尾部276B TimerPlate+4B const-char*+16B RNG。主Sprite202/描述224，G0=20B，根最小212B（公共94+TimerPlate118）；UNKNOWN31B=Desc3+双ANM2各14。文字上下文归第7/8步，正式来源/安装归第10/13步，第15步统一验收。
 

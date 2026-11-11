@@ -2001,7 +2001,11 @@
             "client": "install_grid_rock_layer_position",
             "when": {
               "field": "has_position",
-              "predicate": "grid_rock_position_present"
+              "predicate": "grid_rock_position_present",
+              "test": {
+                "kind": "equal",
+                "value": 1
+              }
             }
           }
         },
@@ -2245,7 +2249,11 @@
             "client": "install_grid_rock_main_pose",
             "when": {
               "field": "has_main_pose",
-              "predicate": "grid_rock_main_pose_present"
+              "predicate": "grid_rock_main_pose_present",
+              "test": {
+                "kind": "equal",
+                "value": 1
+              }
             }
           }
         },

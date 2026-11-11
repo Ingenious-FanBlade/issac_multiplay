@@ -30,6 +30,7 @@ std::span<const CatalogAlias> CatalogAliases() noexcept { return kStateCatalogAl
 std::span<const LayoutBudget> LayoutBudgets() noexcept { return kStateBudgets; }
 std::span<const PresentationContract> PresentationContracts() noexcept { return kStatePresentationContracts; }
 std::span<const PresentationDependency> PresentationDependencies() noexcept { return kStatePresentationDependencies; }
+std::span<const ProtocolConstant> ProtocolConstants() noexcept { return kStateProtocolConstants; }
 // 布局号可能来自线上数据：先对生成的直接索引做边界检查再取表项，常数时间且不分配。
 const Layout *FindLayout(std::uint16_t id) noexcept {
   if (id >= kStateLayoutSlots.size()) return nullptr;

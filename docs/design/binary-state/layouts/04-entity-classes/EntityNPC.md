@@ -1,6 +1,6 @@
 # EntityNPC
 
-由唯一布局源生成。布局编号 142；布局版本 58；原生大小 0xF60；未知 586B；完整：否。
+由唯一布局源生成。布局编号 142；布局版本 60；原生大小 0xF60；未知 586B；完整：否。
 
 第4步版本46。Delirium的BD8—BDF与BE0—BE7为两个Host u64打包存储，官方AttackID/Cycle仍u32、Angle仍u8；BD4的4B仍未知，根590B，普通NPC根586B。非412臂不读取可能的companion AI值或池槽残留，静态可达不冒称实测。BE8的两条登记路径与独立成员展示已核，继续留Host；BossType/Variant不触发shape，17/18空预留，OverlayEffect Scale派生。受控UI只读F1C输出0/2并拒绝1，不读取原版NetplayManager；其他UNKNOWN/SDK边界保持。正式窗口/绘制接线仍归第10/13步，第15步统一验收。
 

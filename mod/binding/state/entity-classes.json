@@ -783,7 +783,8 @@
             "kind": "convert",
             "type": "u64",
             "host": "fire_cooldown_to_anchor",
-            "client": "fire_cooldown_from_anchor"
+            "client": "fire_cooldown_from_anchor",
+            "value_rule": "entity-counter"
           },
           "read_requires": "entity-current-window-and-confirmed-subclass-counter-clock"
         },
@@ -4197,7 +4198,8 @@
             "kind": "convert",
             "type": "u64",
             "host": "pickup_drop_delay_to_anchor",
-            "client": "pickup_drop_delay_from_anchor"
+            "client": "pickup_drop_delay_from_anchor",
+            "value_rule": "countdown"
           },
           "read_requires": "entity-current-window-and-confirmed-subclass-counter-clock"
         },

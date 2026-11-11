@@ -1,5 +1,7 @@
 # 第8步：显示结果批次、归属与各端多角色HUD定稿
 
+**2026-11-11 第9步公共合同，版本59**：[正式结构](9-public-wire-contract.md)。结果组42B、具名依赖32B、贡献定位16B、音频事件40B及公共source／batch上下文已按版本59入源；保持方案B的world/body两序列、各端本组详细HUD与缺结果不安装／不ACK。精确用途／资源payload允许集和运行来源／adapter仍待后续，不消除原UNKNOWN／Gap。
+
 **2026-11-10 正式布局交接，版本58**：[第8步实现](implementation-8-presentation.md)已登记各具名结果、28条来源／主体／窄依赖／失效合同及ControlGroupHudSelection364。固定贡献元素为365／366，外层批次／贡献／事件身份仍由第9步封装；全部控制组合法来源、运行缓存与adapter仍待接线。下方版本57为本合同定稿时点，不回改为已实现运行功能。
 
 2026-11-10，用户在本轮讨论中确认方案，并追加要求明确保留上一轮选择：**“选 B；采用上述归属划分、明确贡献身份，并保持当前缺结果处理规则”。** 本文是该决定及各端详细HUD选择的正式设计合同。上级：[第8步](8-run-presentation.md)；结果内容的裁剪仍按[来源同步职责复核](presentation-source-synchronization-review.md)，既有资源与地图合同见[第7步显示设计](room-display-resource-design.md)。

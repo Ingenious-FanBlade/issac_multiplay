@@ -1,6 +1,6 @@
 # GridFloorSprite
 
-由唯一布局源生成。布局编号 202；布局版本 58；原生大小 0x114；未知 14B；完整：否。
+由唯一布局源生成。布局编号 202；布局版本 60；原生大小 0x114；未知 14B；完整：否。
 
 版本51：仅供五个实际必覆写地板色的Grid主Sprite；native ANM2字节和14B UNKNOWN保持，外观50B、最小74B。保留图层ColorMod、冠军前四值和每Sprite独立glitch选择；不推广到Wall/Teleporter/Fire。实际owner与绘制恢复待第10/13步。
 

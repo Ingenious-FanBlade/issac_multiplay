@@ -8,6 +8,7 @@ import copy
 import json
 import posixpath
 import re
+import struct
 import sys
 from pathlib import Path
 
@@ -31,6 +32,7 @@ DOC_STEPS = {
     '06-grid': ('6：GridEntity', '6-grid.md'),
     '07-room-level': ('7：Room、Level、RoomSave 与 Exploration', '7-room-level.md'),
     '08-run-presentation': ('8：Run、Presentation 与 Random', '8-run-presentation.md'),
+    '09-wire-format': ('9：公共报文结构', '9-wire-format.md'),
 }
 DOC_DOMAIN_STEPS = {
     'base.json': '02-base-types', 'entity.json': '03-entity-common',
@@ -40,6 +42,7 @@ DOC_DOMAIN_STEPS = {
     'room.json': '07-room-level', 'level.json': '07-room-level',
     'run.json': '08-run-presentation', 'presentation.json': '08-run-presentation',
     'random.json': '08-run-presentation',
+    'wire.json': '09-wire-format',
 }
 # 正式布局源中的历史证据仍引用这两个旧路径，保留跳转页，不改写证据或布局版本。
 DOC_LEGACY_PATHS = {'EntitySaveState': '05-player', 'GridEntityDesc': '06-grid'}
@@ -161,11 +164,19 @@ class Compiler:
         self.resource_tables = set(resource_tables)
         self.types = {}
         self.doc_steps = {}
+        # 公共报文编号、枚举和预算与布局同源生成；这里只登记合同，不启用网络消息。
+        self.protocol_constants = []
+        constant_keys = set()
         schema = read_json(source / 'schema.json')
         for domain in self.version['domains']:
             require(re.fullmatch(r'[a-z][a-z0-9_-]*\.json', domain), domain, '非法域文件名')
             data = read_json(source / domain)
             schema_check(data, schema, schema['$defs'], domain)
+            for constant in data.get('protocol_constants', []):
+                key = (constant['domain'], constant['name'])
+                require(key not in constant_keys, domain, '公共协议常量重名')
+                constant_keys.add(key)
+                self.protocol_constants.append(constant)
             for entry in data['types']:
                 name = entry['type']
                 require(re.fullmatch(r'[A-Za-z_][A-Za-z_0-9]*', name), name, '非法类型名')
@@ -976,11 +987,142 @@ def emit_room_description(compiler, plans, out):
     write(out / 'state_room_view.inc', ''.join(body))
 
 
+def emit_body_codec(compiler, plans, out, docs):
+    """将标量、条件和计数组编译为数字表；正文热路径不解析名称或语义字符串。"""
+    fields, validators, enum_values, rules = [], [('Validation::None', 'ScalarKind::U8', 0, 0, 0, 0)], [], []
+    storage_names = {'': 'None', 'vector': 'Vector', 'string': 'String', 'array': 'Array',
+                     'deque': 'Deque', 'c-string': 'CString', 'ordered-map': 'OrderedMap',
+                     'set': 'Set', 'aggregate': 'Aggregate', 'shared-owner': 'SharedOwner', 'slots-mask': 'SlotsMask'}
+    predicate_names = {'equal': 'Equal', 'not-equal': 'NotEqual', 'any-bits': 'AnyBits',
+                       'one-of': 'OneOf', 'item-config': 'ItemConfig'}
+    resource_ids = {c['name']: c['value'] for c in compiler.protocol_constants if c['domain'] == 'resource_table'}
+
+    def scalar(name):
+        match = re.fullmatch(r'(u8|i8|u16|i16|u32|i32|u64|i64|f32|f64|bool|bytes)(?:\[(\d+)\])?', name)
+        if not match:
+            return 'None', 0
+        return {'bool': 'U8', 'bytes': 'U8'}.get(match[1], match[1].upper()), int(match[2] or 1)
+
+    def bits(value, name):
+        if name in {'f32', 'f64'}:
+            return int.from_bytes(struct.pack('<f' if name == 'f32' else '<d', value), 'little')
+        width = 8 * SCALARS[name]
+        signed = name.startswith('i')
+        low, high = (-(1 << (width-1)), (1 << (width-1))-1) if signed else (0, (1 << width)-1)
+        require(isinstance(value, int) and low <= value <= high, 'body validator', '整数校验边界超出标量宽度')
+        return int(value) & ((1 << (8 * SCALARS[name])) - 1)
+
+    for p in plans:
+        entry = p['entry']
+        canonical = {}
+        for f in p['fields']:
+            canonical.setdefault(f['name'].split('#', 1)[0], f['index'])
+        constraints = {c['field']: c for c in p['count_constraints']}
+        for f in p['fields']:
+            atom, components = scalar(f['type']) if not f['nested_layout'] else ('None', 0)
+            require(atom != 'None' or f['nested_layout'] or f['operation'] == 'Choice', entry['type'], '正文标量类型未登记')
+            require(components <= 65535, entry['type'], '单字段固定标量数组超过当前数字计划容量')
+            require(f['operation'] != 'Resource' or f['target'] in resource_ids, entry['type'], '资源字段缺少公共空间编号')
+            if f['storage'] == 'set':
+                require(components == 1 and atom not in {'None', 'F32', 'F64'}, entry['type'], 'set必须是有序整数纯值')
+            if f['storage'] == 'ordered-map':
+                require(f['nested_layout'] and f['nested_block'] == 255, entry['type'], '有序map须包含完整key/value元素')
+            validation = 0
+            v = entry['validators'].get(f['name'])
+            if v:
+                require(atom != 'None' or v['kind'] == 'finite', entry['type'], '嵌套字段的非有限值校验须下沉到真实标量')
+                validation = len(validators)
+                first = len(enum_values)
+                enum_values.extend(bits(value, v['scalar']) for value in v.get('values', []))
+                validators.append(('Validation::' + v['kind'].title(), 'ScalarKind::' + scalar(v['scalar'])[0],
+                                   bits(v.get('min', 0), v['scalar']), bits(v.get('max', 0), v['scalar']), first, len(enum_values) - first))
+            selector, predicate, value, mask = 65535, 'None', 0, 0
+            if f['condition']:
+                c = f['condition']
+                selector = next(n['index'] for n in p['fields'] if n['name'] == c['field'])
+                selector_plan = p['fields'][selector]
+                selector_scalar, selector_components = scalar(selector_plan['type'])
+                require(0 < selector_plan['max_size'] <= 8 and not selector_plan['nested_layout'] and selector_components == 1 and
+                        selector_scalar not in {'None', 'F32', 'F64'}, entry['type'], '条件选择器须为先行整数标量')
+                test = c['test']
+                predicate = predicate_names[test['kind']]
+                value = test.get('value', 0)
+                mask = sum(1 << n for n in test.get('values', []))
+                require((predicate in {'OneOf', 'ItemConfig'}) == bool(test.get('values')), entry['type'], '条件集合与操作不匹配')
+                require(predicate in {'OneOf'} or 'value' in test, entry['type'], '条件缺少操作数')
+                if predicate == 'ItemConfig':
+                    s = p['fields'][selector]
+                    require(s['operation'] == 'Resource' and s['target'] == 'item-config', entry['type'], '配置条件须绑定真实item-config资源')
+            constraint = constraints.get(f['index'])
+            group = slot = 65535
+            limit = copies = slots = 0
+            if constraint:
+                group, slot, limit = constraint['group'], constraint['slot'], constraint['limit']
+                copies = sum(c['group'] == group and c['slot'] == slot for c in p['count_constraints'])
+                slots = len({c['slot'] for c in p['count_constraints'] if c['group'] == group})
+            rule = {'non-null': 'NonNull', 'nullable-water': 'NullableWater',
+                    'entity-counter': 'EntityCounter', 'countdown': 'Countdown'}.get(f['source']['wire'].get('value_rule'), 'None')
+            require(rule == 'None' or (components == 1 and atom == ('U16' if rule == 'NonNull' else 'U64')),
+                    entry['type'], '具名线上编码规则的标量宽度不匹配')
+            fields.append((atom, components, storage_names[f['storage']], resource_ids.get(f['target'], 255),
+                           canonical[f['name'].split('#', 1)[0]], selector, predicate, value, mask, rule, validation,
+                           group, slot, limit, copies, slots))
+        body_rule = entry.get('body_rule')
+        if body_rule:
+            first = 'item_id' if body_rule == 'empty-active-zero' else 'index'
+            second = 'layer_id' if body_rule == 'null-costume-layer-zero' else None
+            rules.append((entry['layout'], 'EmptyActiveZero' if not second else 'NullCostumeLayerZero',
+                          next(f['index'] for f in p['fields'] if f['name'] == first),
+                          next(f['index'] for f in p['fields'] if f['name'] == second) if second else 65535))
+            selector_index = rules[-1][2]
+            targets = [f for f in p['fields'] if f['index'] != selector_index] if not second else [p['fields'][rules[-1][3]]]
+            require(all(f['index'] > selector_index and f['block'] == p['fields'][selector_index]['block'] and
+                        f['min_size'] == f['max_size'] and scalar(f['type'])[0] != 'None' for f in targets),
+                    entry['type'], '规范零负载须在同块选择器之后且为定长纯值')
+    body = ['// 同源生成的正文计划；所有名称仅供诊断，不参与热分派。\n',
+            f'constexpr std::size_t kBodyMaxFields = {max(len(p["fields"]) for p in plans)};\n',
+            array('BodyFieldPlan', 'kBodyFieldPlans', len(fields))]
+    for atom, components, storage, table_id, canonical, selector, predicate, value, mask, rule, validation, group, slot, limit, copies, slots in fields:
+        body.append(f'  {{ScalarKind::{atom}, {components}, BodyStorage::{storage}, {table_id}, {canonical}, {selector}, PredicateKind::{predicate}, {value}ull, {mask}ull, ValueRule::{rule}, {validation}, {group}, {slot}, {limit}, {copies}, {slots}}},\n')
+    body += ['}};\n', array('BodyValidator', 'kBodyValidators', len(validators))]
+    for kind, atom, low, high, first, count in validators:
+        body.append(f'  {{{kind}, {atom}, {low}ull, {high}ull, {first}, {count}}},\n')
+    body += ['}};\n', array('std::uint64_t', 'kBodyEnumValues', len(enum_values)),
+             ','.join(f'{n}ull' for n in enum_values) + '\n', '}};\n', array('BodyLayoutRule', 'kBodyLayoutRules', len(rules))]
+    for layout, kind, selector, other in rules:
+        body.append(f'  {{{layout}, LayoutRuleKind::{kind}, {selector}, {other}}},\n')
+    body.append('}};\n')
+    write(out / 'state_body_codec.inc', ''.join(body))
+    summary = f'# 各域正文数字编解码计划\n\n布局版本 {compiler.version["version"]}；由同一布局源生成，不是运行测试报告。\n\n'
+    maximum_fields = max(len(p['fields']) for p in plans)
+    summary += f'共{len(plans)}种布局、{len(fields)}个字段计划、{sum(f[6] != "None" for f in fields)}个条件字段；最大根字段数{maximum_fields}。无负载的Host权威类型只登记空值布局，不补造状态。\n\n'
+    summary += '条件、资源空间、整数／浮点校验、计数组和规范零负载在构建时转成数字规则；正文热路径不按名称解释。字段／引用的图关系、资源ready和原生应用成功仍由完整目标处理。\n\n'
+    summary += '| 域源 | 布局数（含继承／变体） | 字段数 |\n|---|---|---|\n'
+    for domain, step in DOC_DOMAIN_STEPS.items():
+        # 同一步有多份域源；直接按原始类型与展开的variant_base定位，不按目录重复计数。
+        names = {e['type'] for e in read_json(compiler.source / domain)['types']}
+        selected = [p for p in plans if p['entry']['type'] in names or
+                    (p['entry'].get('variant_base') and any(compiler.expanded[n]['layout'] == p['entry']['variant_base'] for n in names))]
+        summary += f'| {domain} | {len(selected)} | {sum(len(p["fields"]) for p in selected)} |\n'
+    summary += '\n## 条件数字规则\n\n集合mask的第n位表示允许值n；item-config的mask表示配置type集合，operand表示配置id。\n\n'
+    summary += '| 布局／字段 | 先行selector | 操作 | operand | 集合mask |\n|---|---|---|---|---|\n'
+    for p in plans:
+        for f in p['fields']:
+            if not f['condition']:
+                continue
+            test = f['condition']['test']
+            selector = next(v['index'] for v in p['fields'] if v['name'] == f['condition']['field'])
+            mask = sum(1 << n for n in test.get('values', []))
+            summary += f'| {p["entry"]["layout"]}/{f["index"]} {f["name"]} | {selector} | {test["kind"]} | {test.get("value", 0)} | {mask} |\n'
+    write(docs / '09-wire-format/body-codec-plan.md', summary)
+
+
 def emit(compiler, plans, out, docs):
     """四份 .inc 共享相同字段索引；代码表、协议偏移与文档在一次构建内同时更新。"""
     header = '// 由 gen_state_layout.py 生成；只修改 mod/binding/state/*.json。\n'
     emit_grid_description(compiler, plans, out)
     emit_room_description(compiler, plans, out)
+    emit_body_codec(compiler, plans, out, docs)
     count_fields = sum(len(p['fields']) for p in plans)
     wire = [header, f"constexpr std::uint16_t kStateLayoutVersion ={integer(compiler.version['version'])};\n", array('Layout', 'kStateLayouts', len(plans))]
     capture = [header, array('CopyRange', 'kStateCopyRanges', sum(len(p['copies']) for p in plans))]
@@ -989,6 +1131,7 @@ def emit(compiler, plans, out, docs):
     first_field, first_block, first_copy = 0, 0, 0
     for p in plans:
         e, lid = p['entry'], p['entry']['layout']
+        public_header = compiler.doc_steps[e['type']] == '09-wire-format'
         parent = compiler.expanded[e['parent']]['layout'] if e.get('parent') else 0
         prefix = e.get('extent', 'object') == 'base_prefix'
         protocol = e.get('extent') == 'protocol'
@@ -1022,12 +1165,18 @@ def emit(compiler, plans, out, docs):
         if e.get('variant_values'):
             body += f'变体选择字段 `{e["variant_selector"]}`，取值：{e["variant_values"]}。\n\n'
         body += '原生字节归属：\n\n' + table(native_cells or ['纯C/S协议记录：没有原生对象字节，不得向游戏地址加偏移']) + '\n'
-        body += f'状态二进制布局（总计 {p["min"]}—{p["max"]}B，不含第 9 步记录头）：\n\n'
+        if public_header:
+            body += f'公共封装布局（总计 {p["min"]}—{p["max"]}B，不再附加12B状态记录头）：\n\n'
+        else:
+            body += f'状态二进制布局（总计 {p["min"]}—{p["max"]}B，不含第 9 步记录头）：\n\n'
         if not p['blocks']:
             body += table(['无发送字节：该类型没有可复制状态']) + '\n'
         for b in p['blocks']:
             sequence = 'world；Player 为 body' if b['player_body'] else 'body' if b['body'] else 'world'
-            body += f'块 {b["id"]}：{b["name"]}（{sequence}，{b["min"]}—{b["max"]}B）：\n\n'
+            if public_header:
+                body += f'固定封装（{b["min"]}—{b["max"]}B；块表中的world仅为生成占位，不限制承运通道或所属序列）：\n\n'
+            else:
+                body += f'块 {b["id"]}：{b["name"]}（{sequence}，{b["min"]}—{b["max"]}B）：\n\n'
             cells = []
             for f in p['fields']:
                 if f['block'] != b['id']:
@@ -1140,6 +1289,10 @@ def emit(compiler, plans, out, docs):
         for dependency in p['entry']['presentation_contract']['dependency_types']:
             wire.append(f'  {{{p["entry"]["layout"]}, {compiler.expanded[dependency]["layout"]}}},\n')
     wire.append('}};\n')
+    wire.append(array('ProtocolConstant', 'kStateProtocolConstants', len(compiler.protocol_constants)))
+    for c in compiler.protocol_constants:
+        wire.append(f'  {{{quote(c["domain"])}, {quote(c["name"])}, {c["value"]}ull, {quote(c["semantics"])}}},\n')
+    wire.append('}};\n')
     capture.append('}};\n')
     client += ['}};\n// 处理器名只在注册时绑定，热路径不比较成员名。\n', array('ClientField', 'kStateClientFields', count_fields)]
     for p in plans:
@@ -1175,7 +1328,7 @@ def emit(compiler, plans, out, docs):
     index += '上级：[二进制重构总计划](../README.md#7-步骤)。按总计划步骤号阅读，步骤号与布局编号分别管理；各步骤内按布局编号排列。\n\n'
     index += '布局内容只修改 `mod/binding/state/`；目录与索引由 `mod/tools/gen_state_layout.py` 同源生成。未知和未核声明照实保留，不能据本表宣称原生同步已可用。\n\n'
     index += '以布局源所属步骤归类，变体与附属类型随所属域；共享类型只保存一份。第7步已登记的显示／资源结构仍随第7步，后续协议与运行职责见对应计划，不以目录位置宣称已实现。\n\n'
-    index += '第0—1步负责起点与生成机制，没有单独类型表；第9—15步的线格式、采集、发布、解码、应用、退役与验收文档见总计划，当前不创建空目录。\n\n'
+    index += '第0—1步负责起点与生成机制，没有单独类型表；第9步登记公共报文固定头与常量，第10—15步的运行接线和验收仍见总计划。\n\n'
     index += '| 总计划步骤 | 布局表数 | 公开目录表数 |\n|---|---|---|\n'
     step_indexes = {}
     catalog_counts = {step: 0 for step in DOC_STEPS}
@@ -1215,6 +1368,14 @@ def emit(compiler, plans, out, docs):
             body += '| ' + ' | '.join(v.replace('|', '\\|').replace('\n', ' ') for v in cells) + ' |\n'
         write(docs / step / filename, body)
         step_indexes[step] += f'\n公开目录：[{Path(catalog).stem} {domain + "域" if domain else ""}全部 {len(rows)} 行]({filename})。\n'
+    if compiler.protocol_constants:
+        body = f'# 公共协议常量\n\n布局版本 {compiler.version["version"]}；由唯一布局源生成。数值登记不表示运行编解码已经接通。\n\n'
+        body += '| 分类 | 名称 | 数值 | 语义 |\n|---|---|---|---|\n'
+        for c in compiler.protocol_constants:
+            body += '| ' + ' | '.join(str(c[k]).replace('|', '\\|') for k in ('domain', 'name', 'value', 'semantics')) + ' |\n'
+        write(docs / '09-wire-format/protocol-constants.md', body)
+        step_indexes['09-wire-format'] += '\n[公共报文编号、枚举与预算](protocol-constants.md)。\n'
+    step_indexes['09-wire-format'] += '\n[各域正文数字编解码计划](body-codec-plan.md)。\n'
     for step, body in step_indexes.items():
         write(docs / step / 'README.md', body)
     index += '\n旧证据路径仅保留 [EntitySaveState](EntitySaveState.md) 和 [GridEntityDesc](GridEntityDesc.md) 两个跳转页，正式表见对应步骤目录。\n'

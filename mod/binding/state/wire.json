@@ -1,0 +1,2017 @@
+{
+  "types": [
+    {
+      "type": "StateCommonHeader",
+      "layout": 408,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "纯C/S公共报文固定头，无原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "StateCommonHeader固定头（封装，不是world状态块）",
+          "sequence": "world",
+          "fields": [
+            "layout_version",
+            "session",
+            "run",
+            "floor",
+            "dimension",
+            "room",
+            "scene"
+          ]
+        }
+      ],
+      "conversions": {
+        "statecommonheader_layout_version_encode": "从已封存自有纯值编码：唯一布局整数版本，必须与本地相等；不读取原生对象或调用Lua。",
+        "statecommonheader_layout_version_decode": "按公共合同有界解码：唯一布局整数版本，必须与本地相等；这里只登记处理器名，不安装世界或提前ACK。",
+        "statecommonheader_session_encode": "从已封存自有纯值编码：现有WorldScope的session稳定身份／代次，非索引或地址；不读取原生对象或调用Lua。",
+        "statecommonheader_session_decode": "按公共合同有界解码：现有WorldScope的session稳定身份／代次，非索引或地址；这里只登记处理器名，不安装世界或提前ACK。",
+        "statecommonheader_run_encode": "从已封存自有纯值编码：现有WorldScope的run稳定身份／代次，非索引或地址；不读取原生对象或调用Lua。",
+        "statecommonheader_run_decode": "按公共合同有界解码：现有WorldScope的run稳定身份／代次，非索引或地址；这里只登记处理器名，不安装世界或提前ACK。",
+        "statecommonheader_floor_encode": "从已封存自有纯值编码：现有WorldScope的floor稳定身份／代次，非索引或地址；不读取原生对象或调用Lua。",
+        "statecommonheader_floor_decode": "按公共合同有界解码：现有WorldScope的floor稳定身份／代次，非索引或地址；这里只登记处理器名，不安装世界或提前ACK。",
+        "statecommonheader_dimension_encode": "从已封存自有纯值编码：现有WorldScope的dimension稳定身份／代次，非索引或地址；不读取原生对象或调用Lua。",
+        "statecommonheader_dimension_decode": "按公共合同有界解码：现有WorldScope的dimension稳定身份／代次，非索引或地址；这里只登记处理器名，不安装世界或提前ACK。",
+        "statecommonheader_room_encode": "从已封存自有纯值编码：现有WorldScope的room稳定身份／代次，非索引或地址；不读取原生对象或调用Lua。",
+        "statecommonheader_room_decode": "按公共合同有界解码：现有WorldScope的room稳定身份／代次，非索引或地址；这里只登记处理器名，不安装世界或提前ACK。",
+        "statecommonheader_scene_encode": "从已封存自有纯值编码：现有WorldScope的scene稳定身份／代次，非索引或地址；不读取原生对象或调用Lua。",
+        "statecommonheader_scene_decode": "按公共合同有界解码：现有WorldScope的scene稳定身份／代次，非索引或地址；这里只登记处理器名，不安装世界或提前ACK。"
+      },
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "synthetic_fields": [
+        {
+          "name": "layout_version",
+          "type": "u16",
+          "semantics": "唯一布局整数版本，必须与本地相等",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statecommonheader_layout_version_encode",
+          "client": "statecommonheader_layout_version_decode"
+        },
+        {
+          "name": "session",
+          "type": "u64",
+          "semantics": "现有WorldScope的session稳定身份／代次，非索引或地址",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statecommonheader_session_encode",
+          "client": "statecommonheader_session_decode"
+        },
+        {
+          "name": "run",
+          "type": "u64",
+          "semantics": "现有WorldScope的run稳定身份／代次，非索引或地址",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statecommonheader_run_encode",
+          "client": "statecommonheader_run_decode"
+        },
+        {
+          "name": "floor",
+          "type": "u64",
+          "semantics": "现有WorldScope的floor稳定身份／代次，非索引或地址",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statecommonheader_floor_encode",
+          "client": "statecommonheader_floor_decode"
+        },
+        {
+          "name": "dimension",
+          "type": "u64",
+          "semantics": "现有WorldScope的dimension稳定身份／代次，非索引或地址",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statecommonheader_dimension_encode",
+          "client": "statecommonheader_dimension_decode"
+        },
+        {
+          "name": "room",
+          "type": "u64",
+          "semantics": "现有WorldScope的room稳定身份／代次，非索引或地址",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statecommonheader_room_encode",
+          "client": "statecommonheader_room_decode"
+        },
+        {
+          "name": "scene",
+          "type": "u64",
+          "semantics": "现有WorldScope的scene稳定身份／代次，非索引或地址",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statecommonheader_scene_encode",
+          "client": "statecommonheader_scene_decode"
+        }
+      ],
+      "notes": "50B；消息种类／长度／连接／路由复用既有信封。 本表仅定义固定封装字节；不再包12B状态记录头，也不表示完整消息编解码已实现。"
+    },
+    {
+      "type": "StateFrameHeader",
+      "layout": 409,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "纯C/S公共报文固定头，无原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "StateFrameHeader固定头（封装，不是world状态块）",
+          "sequence": "world",
+          "fields": [
+            "section_count",
+            "flags"
+          ]
+        }
+      ],
+      "conversions": {
+        "stateframeheader_section_count_encode": "从已封存自有纯值编码：1单序列，2为world随后body的共同提交；不读取原生对象或调用Lua。",
+        "stateframeheader_section_count_decode": "按公共合同有界解码：1单序列，2为world随后body的共同提交；这里只登记处理器名，不安装世界或提前ACK。",
+        "stateframeheader_flags_encode": "从已封存自有纯值编码：bit0共同提交；单分段为0、双分段为1；不读取原生对象或调用Lua。",
+        "stateframeheader_flags_decode": "按公共合同有界解码：bit0共同提交；单分段为0、双分段为1；这里只登记处理器名，不安装世界或提前ACK。"
+      },
+      "validators": {
+        "section_count": {
+          "kind": "enum",
+          "scalar": "u8",
+          "values": [
+            1,
+            2
+          ]
+        },
+        "flags": {
+          "kind": "enum",
+          "scalar": "u8",
+          "values": [
+            0,
+            1
+          ]
+        }
+      },
+      "members": [],
+      "public_owners": [],
+      "synthetic_fields": [
+        {
+          "name": "section_count",
+          "type": "u8",
+          "semantics": "1单序列，2为world随后body的共同提交",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateframeheader_section_count_encode",
+          "client": "stateframeheader_section_count_decode"
+        },
+        {
+          "name": "flags",
+          "type": "u8",
+          "semantics": "bit0共同提交；单分段为0、双分段为1",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateframeheader_flags_encode",
+          "client": "stateframeheader_flags_decode"
+        }
+      ],
+      "notes": "2B；位于公共头之后。 本表仅定义固定封装字节；不再包12B状态记录头，也不表示完整消息编解码已实现。"
+    },
+    {
+      "type": "StateSectionHeader",
+      "layout": 410,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "纯C/S公共报文固定头，无原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "StateSectionHeader固定头（封装，不是world状态块）",
+          "sequence": "world",
+          "fields": [
+            "stream",
+            "flags",
+            "member_epoch",
+            "resource_epoch",
+            "base_version",
+            "target_version",
+            "source_revision",
+            "presentation_batch",
+            "game_frame",
+            "record_count",
+            "group_count",
+            "event_count",
+            "event_watermark"
+          ]
+        }
+      ],
+      "conversions": {
+        "statesectionheader_stream_encode": "从已封存自有纯值编码：0 world、1按Peer统一body序列；不读取原生对象或调用Lua。",
+        "statesectionheader_stream_decode": "按公共合同有界解码：0 world、1按Peer统一body序列；这里只登记处理器名，不安装世界或提前ACK。",
+        "statesectionheader_flags_encode": "从已封存自有纯值编码：bit0 baseline，当且仅当base_version为0；不读取原生对象或调用Lua。",
+        "statesectionheader_flags_decode": "按公共合同有界解码：bit0 baseline，当且仅当base_version为0；这里只登记处理器名，不安装世界或提前ACK。",
+        "statesectionheader_member_epoch_encode": "从已封存自有纯值编码：引用成员表的精确快照版本；不读取原生对象或调用Lua。",
+        "statesectionheader_member_epoch_decode": "按公共合同有界解码：引用成员表的精确快照版本；这里只登记处理器名，不安装世界或提前ACK。",
+        "statesectionheader_resource_epoch_encode": "从已封存自有纯值编码：引用资源表的精确快照版本；不读取原生对象或调用Lua。",
+        "statesectionheader_resource_epoch_decode": "按公共合同有界解码：引用资源表的精确快照版本；这里只登记处理器名，不安装世界或提前ACK。",
+        "statesectionheader_base_version_encode": "从已封存自有纯值编码：本Peer本序列已确认继承起点，0完整重建；不读取原生对象或调用Lua。",
+        "statesectionheader_base_version_decode": "按公共合同有界解码：本Peer本序列已确认继承起点，0完整重建；这里只登记处理器名，不安装世界或提前ACK。",
+        "statesectionheader_target_version_encode": "从已封存自有纯值编码：本Peer本序列目标，单调非零，不回绕；不读取原生对象或调用Lua。",
+        "statesectionheader_target_version_decode": "按公共合同有界解码：本Peer本序列目标，单调非零，不回绕；这里只登记处理器名，不安装世界或提前ACK。",
+        "statesectionheader_source_revision_encode": "从已封存自有纯值编码：Host封存的本序列来源修订，先于Peer目标版本存在；不读取原生对象或调用Lua。",
+        "statesectionheader_source_revision_decode": "按公共合同有界解码：Host封存的本序列来源修订，先于Peer目标版本存在；这里只登记处理器名，不安装世界或提前ACK。",
+        "statesectionheader_presentation_batch_encode": "从已封存自有纯值编码：配对显示批次身份；不是第三条确认序列；不读取原生对象或调用Lua。",
+        "statesectionheader_presentation_batch_decode": "按公共合同有界解码：配对显示批次身份；不是第三条确认序列；这里只登记处理器名，不安装世界或提前ACK。",
+        "statesectionheader_game_frame_encode": "从已封存自有纯值编码：Host原生GameFrame位模式，不能代替来源身份；不读取原生对象或调用Lua。",
+        "statesectionheader_game_frame_decode": "按公共合同有界解码：Host原生GameFrame位模式，不能代替来源身份；这里只登记处理器名，不安装世界或提前ACK。",
+        "statesectionheader_record_count_encode": "从已封存自有纯值编码：后随12B头的成员记录数；不读取原生对象或调用Lua。",
+        "statesectionheader_record_count_decode": "按公共合同有界解码：后随12B头的成员记录数；这里只登记处理器名，不安装世界或提前ACK。",
+        "statesectionheader_group_count_encode": "从已封存自有纯值编码：后随具名结果组数；不读取原生对象或调用Lua。",
+        "statesectionheader_group_count_decode": "按公共合同有界解码：后随具名结果组数；这里只登记处理器名，不安装世界或提前ACK。",
+        "statesectionheader_event_count_encode": "从已封存自有纯值编码：后随音频事件数；body必须为0；不读取原生对象或调用Lua。",
+        "statesectionheader_event_count_decode": "按公共合同有界解码：后随音频事件数；body必须为0；这里只登记处理器名，不安装世界或提前ACK。",
+        "statesectionheader_event_watermark_encode": "从已封存自有纯值编码：world目标覆盖的连续事件水位；body必须为0；不读取原生对象或调用Lua。",
+        "statesectionheader_event_watermark_decode": "按公共合同有界解码：world目标覆盖的连续事件水位；body必须为0；这里只登记处理器名，不安装世界或提前ACK。"
+      },
+      "validators": {
+        "stream": {
+          "kind": "enum",
+          "scalar": "u8",
+          "values": [
+            0,
+            1
+          ]
+        },
+        "flags": {
+          "kind": "enum",
+          "scalar": "u8",
+          "values": [
+            0,
+            1
+          ]
+        }
+      },
+      "members": [],
+      "public_owners": [],
+      "synthetic_fields": [
+        {
+          "name": "stream",
+          "type": "u8",
+          "semantics": "0 world、1按Peer统一body序列",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statesectionheader_stream_encode",
+          "client": "statesectionheader_stream_decode"
+        },
+        {
+          "name": "flags",
+          "type": "u8",
+          "semantics": "bit0 baseline，当且仅当base_version为0",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statesectionheader_flags_encode",
+          "client": "statesectionheader_flags_decode"
+        },
+        {
+          "name": "member_epoch",
+          "type": "u32",
+          "semantics": "引用成员表的精确快照版本",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statesectionheader_member_epoch_encode",
+          "client": "statesectionheader_member_epoch_decode"
+        },
+        {
+          "name": "resource_epoch",
+          "type": "u32",
+          "semantics": "引用资源表的精确快照版本",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statesectionheader_resource_epoch_encode",
+          "client": "statesectionheader_resource_epoch_decode"
+        },
+        {
+          "name": "base_version",
+          "type": "u32",
+          "semantics": "本Peer本序列已确认继承起点，0完整重建",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statesectionheader_base_version_encode",
+          "client": "statesectionheader_base_version_decode"
+        },
+        {
+          "name": "target_version",
+          "type": "u32",
+          "semantics": "本Peer本序列目标，单调非零，不回绕",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statesectionheader_target_version_encode",
+          "client": "statesectionheader_target_version_decode"
+        },
+        {
+          "name": "source_revision",
+          "type": "u64",
+          "semantics": "Host封存的本序列来源修订，先于Peer目标版本存在",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statesectionheader_source_revision_encode",
+          "client": "statesectionheader_source_revision_decode"
+        },
+        {
+          "name": "presentation_batch",
+          "type": "u64",
+          "semantics": "配对显示批次身份；不是第三条确认序列",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statesectionheader_presentation_batch_encode",
+          "client": "statesectionheader_presentation_batch_decode"
+        },
+        {
+          "name": "game_frame",
+          "type": "u32",
+          "semantics": "Host原生GameFrame位模式，不能代替来源身份",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statesectionheader_game_frame_encode",
+          "client": "statesectionheader_game_frame_decode"
+        },
+        {
+          "name": "record_count",
+          "type": "u16",
+          "semantics": "后随12B头的成员记录数",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statesectionheader_record_count_encode",
+          "client": "statesectionheader_record_count_decode"
+        },
+        {
+          "name": "group_count",
+          "type": "u16",
+          "semantics": "后随具名结果组数",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statesectionheader_group_count_encode",
+          "client": "statesectionheader_group_count_decode"
+        },
+        {
+          "name": "event_count",
+          "type": "u16",
+          "semantics": "后随音频事件数；body必须为0",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statesectionheader_event_count_encode",
+          "client": "statesectionheader_event_count_decode"
+        },
+        {
+          "name": "event_watermark",
+          "type": "u64",
+          "semantics": "world目标覆盖的连续事件水位；body必须为0",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statesectionheader_event_watermark_encode",
+          "client": "statesectionheader_event_watermark_decode"
+        }
+      ],
+      "notes": "52B；其后顺序为记录、结果组、事件。 本表仅定义固定封装字节；不再包12B状态记录头，也不表示完整消息编解码已实现。"
+    },
+    {
+      "type": "StateRecordHeader",
+      "layout": 411,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "纯C/S公共报文固定头，无原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "StateRecordHeader固定头（封装，不是world状态块）",
+          "sequence": "world",
+          "fields": [
+            "member",
+            "layout",
+            "block_mask",
+            "record_bytes"
+          ]
+        }
+      ],
+      "conversions": {
+        "staterecordheader_member_encode": "从已封存自有纯值编码：非FFFF成员序号；不读取原生对象或调用Lua。",
+        "staterecordheader_member_decode": "按公共合同有界解码：非FFFF成员序号；这里只登记处理器名，不安装世界或提前ACK。",
+        "staterecordheader_layout_encode": "从已封存自有纯值编码：与指定成员快照一致的布局号；不读取原生对象或调用Lua。",
+        "staterecordheader_layout_decode": "按公共合同有界解码：与指定成员快照一致的布局号；这里只登记处理器名，不安装世界或提前ACK。",
+        "staterecordheader_block_mask_encode": "从已封存自有纯值编码：块号0—31；未知位与空预留块置位均拒绝；不读取原生对象或调用Lua。",
+        "staterecordheader_block_mask_decode": "按公共合同有界解码：块号0—31；未知位与空预留块置位均拒绝；这里只登记处理器名，不安装世界或提前ACK。",
+        "staterecordheader_record_bytes_encode": "从已封存自有纯值编码：仅后随块正文的精确长度，不含本12B头；不读取原生对象或调用Lua。",
+        "staterecordheader_record_bytes_decode": "按公共合同有界解码：仅后随块正文的精确长度，不含本12B头；这里只登记处理器名，不安装世界或提前ACK。"
+      },
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "synthetic_fields": [
+        {
+          "name": "member",
+          "type": "u16",
+          "semantics": "非FFFF成员序号",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "staterecordheader_member_encode",
+          "client": "staterecordheader_member_decode"
+        },
+        {
+          "name": "layout",
+          "type": "u16",
+          "semantics": "与指定成员快照一致的布局号",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "staterecordheader_layout_encode",
+          "client": "staterecordheader_layout_decode"
+        },
+        {
+          "name": "block_mask",
+          "type": "u32",
+          "semantics": "块号0—31；未知位与空预留块置位均拒绝",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "staterecordheader_block_mask_encode",
+          "client": "staterecordheader_block_mask_decode"
+        },
+        {
+          "name": "record_bytes",
+          "type": "u32",
+          "semantics": "仅后随块正文的精确长度，不含本12B头",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "staterecordheader_record_bytes_encode",
+          "client": "staterecordheader_record_bytes_decode"
+        }
+      ],
+      "notes": "保留12B头与u32掩码；块数不是对象数量或每帧记录上限。 本表仅定义固定封装字节；不再包12B状态记录头，也不表示完整消息编解码已实现。"
+    },
+    {
+      "type": "StateTableHeader",
+      "layout": 412,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "纯C/S公共报文固定头，无原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "StateTableHeader固定头（封装，不是world状态块）",
+          "sequence": "world",
+          "fields": [
+            "epoch",
+            "previous_epoch",
+            "entry_count"
+          ]
+        }
+      ],
+      "conversions": {
+        "statetableheader_epoch_encode": "从已封存自有纯值编码：本次不可变表快照版本，非零；不读取原生对象或调用Lua。",
+        "statetableheader_epoch_decode": "按公共合同有界解码：本次不可变表快照版本，非零；这里只登记处理器名，不安装世界或提前ACK。",
+        "statetableheader_previous_epoch_encode": "从已封存自有纯值编码：0全量表，否则精确的前一快照版本；不读取原生对象或调用Lua。",
+        "statetableheader_previous_epoch_decode": "按公共合同有界解码：0全量表，否则精确的前一快照版本；这里只登记处理器名，不安装世界或提前ACK。",
+        "statetableheader_entry_count_encode": "从已封存自有纯值编码：后随表项数；不读取原生对象或调用Lua。",
+        "statetableheader_entry_count_decode": "按公共合同有界解码：后随表项数；这里只登记处理器名，不安装世界或提前ACK。"
+      },
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "synthetic_fields": [
+        {
+          "name": "epoch",
+          "type": "u32",
+          "semantics": "本次不可变表快照版本，非零",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statetableheader_epoch_encode",
+          "client": "statetableheader_epoch_decode"
+        },
+        {
+          "name": "previous_epoch",
+          "type": "u32",
+          "semantics": "0全量表，否则精确的前一快照版本",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statetableheader_previous_epoch_encode",
+          "client": "statetableheader_previous_epoch_decode"
+        },
+        {
+          "name": "entry_count",
+          "type": "u16",
+          "semantics": "后随表项数",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statetableheader_entry_count_encode",
+          "client": "statetableheader_entry_count_decode"
+        }
+      ],
+      "notes": "10B；成员／资源表共用。 本表仅定义固定封装字节；不再包12B状态记录头，也不表示完整消息编解码已实现。"
+    },
+    {
+      "type": "StateMemberEntry",
+      "layout": 413,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "纯C/S公共报文固定头，无原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "StateMemberEntry固定头（封装，不是world状态块）",
+          "sequence": "world",
+          "fields": [
+            "member",
+            "op",
+            "space",
+            "layout",
+            "id",
+            "use",
+            "shape"
+          ]
+        }
+      ],
+      "conversions": {
+        "statememberentry_member_encode": "从已封存自有纯值编码：成员序号，不能FFFF；不读取原生对象或调用Lua。",
+        "statememberentry_member_decode": "按公共合同有界解码：成员序号，不能FFFF；这里只登记处理器名，不安装世界或提前ACK。",
+        "statememberentry_op_encode": "从已封存自有纯值编码：0加入、1形态变化、2离开；全量只允许加入；不读取原生对象或调用Lua。",
+        "statememberentry_op_decode": "按公共合同有界解码：0加入、1形态变化、2离开；全量只允许加入；这里只登记处理器名，不安装世界或提前ACK。",
+        "statememberentry_space_encode": "从已封存自有纯值编码：完整身份空间；只接受本地已登记空间；不读取原生对象或调用Lua。",
+        "statememberentry_space_decode": "按公共合同有界解码：完整身份空间；只接受本地已登记空间；这里只登记处理器名，不安装世界或提前ACK。",
+        "statememberentry_layout_encode": "从已封存自有纯值编码：本成员当前／退休布局号；不读取原生对象或调用Lua。",
+        "statememberentry_layout_decode": "按公共合同有界解码：本成员当前／退休布局号；这里只登记处理器名，不安装世界或提前ACK。",
+        "statememberentry_id_encode": "从已封存自有纯值编码：稳定对象身份id；不读取原生对象或调用Lua。",
+        "statememberentry_id_decode": "按公共合同有界解码：稳定对象身份id；这里只登记处理器名，不安装世界或提前ACK。",
+        "statememberentry_use_encode": "从已封存自有纯值编码：实例使用代次，不能用原生地址替代；不读取原生对象或调用Lua。",
+        "statememberentry_use_decode": "按公共合同有界解码：实例使用代次，不能用原生地址替代；这里只登记处理器名，不安装世界或提前ACK。",
+        "statememberentry_shape_encode": "从已封存自有纯值编码：形态代次；不读取原生对象或调用Lua。",
+        "statememberentry_shape_decode": "按公共合同有界解码：形态代次；这里只登记处理器名，不安装世界或提前ACK。"
+      },
+      "validators": {
+        "op": {
+          "kind": "enum",
+          "scalar": "u8",
+          "values": [
+            0,
+            1,
+            2
+          ]
+        }
+      },
+      "members": [],
+      "public_owners": [],
+      "synthetic_fields": [
+        {
+          "name": "member",
+          "type": "u16",
+          "semantics": "成员序号，不能FFFF",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statememberentry_member_encode",
+          "client": "statememberentry_member_decode"
+        },
+        {
+          "name": "op",
+          "type": "u8",
+          "semantics": "0加入、1形态变化、2离开；全量只允许加入",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statememberentry_op_encode",
+          "client": "statememberentry_op_decode"
+        },
+        {
+          "name": "space",
+          "type": "u32",
+          "semantics": "完整身份空间；只接受本地已登记空间",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statememberentry_space_encode",
+          "client": "statememberentry_space_decode"
+        },
+        {
+          "name": "layout",
+          "type": "u16",
+          "semantics": "本成员当前／退休布局号",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statememberentry_layout_encode",
+          "client": "statememberentry_layout_decode"
+        },
+        {
+          "name": "id",
+          "type": "u64",
+          "semantics": "稳定对象身份id",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statememberentry_id_encode",
+          "client": "statememberentry_id_decode"
+        },
+        {
+          "name": "use",
+          "type": "u64",
+          "semantics": "实例使用代次，不能用原生地址替代",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statememberentry_use_encode",
+          "client": "statememberentry_use_decode"
+        },
+        {
+          "name": "shape",
+          "type": "u64",
+          "semantics": "形态代次",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statememberentry_shape_encode",
+          "client": "statememberentry_shape_decode"
+        }
+      ],
+      "notes": "33B；run从公共头继承，完整Key仍为run/space/id。 本表仅定义固定封装字节；不再包12B状态记录头，也不表示完整消息编解码已实现。"
+    },
+    {
+      "type": "StateResultGroupHeader",
+      "layout": 414,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "纯C/S公共报文固定头，无原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "StateResultGroupHeader固定头（封装，不是world状态块）",
+          "sequence": "world",
+          "fields": [
+            "op",
+            "flags",
+            "owner_member",
+            "subject_member",
+            "purpose",
+            "layout",
+            "owner_instance",
+            "owner_generation",
+            "produced_revision",
+            "dependency_count",
+            "contribution_count",
+            "payload_bytes"
+          ]
+        }
+      ],
+      "conversions": {
+        "stateresultgroupheader_op_encode": "从已封存自有纯值编码：0完整替换、1显式引用合法不可变缓存、2退休；不读取原生对象或调用Lua。",
+        "stateresultgroupheader_op_decode": "按公共合同有界解码：0完整替换、1显式引用合法不可变缓存、2退休；这里只登记处理器名，不安装世界或提前ACK。",
+        "stateresultgroupheader_flags_encode": "从已封存自有纯值编码：当前必须0；不读取原生对象或调用Lua。",
+        "stateresultgroupheader_flags_decode": "按公共合同有界解码：当前必须0；这里只登记处理器名，不安装世界或提前ACK。",
+        "stateresultgroupheader_owner_member_encode": "从已封存自有纯值编码：真实owner成员；FFFF为当前公共world/run根；不读取原生对象或调用Lua。",
+        "stateresultgroupheader_owner_member_decode": "按公共合同有界解码：真实owner成员；FFFF为当前公共world/run根；这里只登记处理器名，不安装世界或提前ACK。",
+        "stateresultgroupheader_subject_member_encode": "从已封存自有纯值编码：真实subject成员；FFFF只用于合同允许的world结果；不读取原生对象或调用Lua。",
+        "stateresultgroupheader_subject_member_decode": "按公共合同有界解码：真实subject成员；FFFF只用于合同允许的world结果；这里只登记处理器名，不安装世界或提前ACK。",
+        "stateresultgroupheader_purpose_encode": "从已封存自有纯值编码：固定用途编号，按生成用途目录解释；不读取原生对象或调用Lua。",
+        "stateresultgroupheader_purpose_decode": "按公共合同有界解码：固定用途编号，按生成用途目录解释；这里只登记处理器名，不安装世界或提前ACK。",
+        "stateresultgroupheader_layout_encode": "从已封存自有纯值编码：已有具名结果payload布局，非任意函数／字典；不读取原生对象或调用Lua。",
+        "stateresultgroupheader_layout_decode": "按公共合同有界解码：已有具名结果payload布局，非任意函数／字典；这里只登记处理器名，不安装世界或提前ACK。",
+        "stateresultgroupheader_owner_instance_encode": "从已封存自有纯值编码：Host分配显示实例id；绝不发送原生地址；不读取原生对象或调用Lua。",
+        "stateresultgroupheader_owner_instance_decode": "按公共合同有界解码：Host分配显示实例id；绝不发送原生地址；这里只登记处理器名，不安装世界或提前ACK。",
+        "stateresultgroupheader_owner_generation_encode": "从已封存自有纯值编码：显示owner实例代次；不读取原生对象或调用Lua。",
+        "stateresultgroupheader_owner_generation_decode": "按公共合同有界解码：显示owner实例代次；这里只登记处理器名，不安装世界或提前ACK。",
+        "stateresultgroupheader_produced_revision_encode": "从已封存自有纯值编码：实际初次生产的来源修订；缓存引用不能重贴新修订；不读取原生对象或调用Lua。",
+        "stateresultgroupheader_produced_revision_decode": "按公共合同有界解码：实际初次生产的来源修订；缓存引用不能重贴新修订；这里只登记处理器名，不安装世界或提前ACK。",
+        "stateresultgroupheader_dependency_count_encode": "从已封存自有纯值编码：32B具名依赖条目数；不读取原生对象或调用Lua。",
+        "stateresultgroupheader_dependency_count_decode": "按公共合同有界解码：32B具名依赖条目数；这里只登记处理器名，不安装世界或提前ACK。",
+        "stateresultgroupheader_contribution_count_encode": "从已封存自有纯值编码：16B贡献定位条目数；不读取原生对象或调用Lua。",
+        "stateresultgroupheader_contribution_count_decode": "按公共合同有界解码：16B贡献定位条目数；这里只登记处理器名，不安装世界或提前ACK。",
+        "stateresultgroupheader_payload_bytes_encode": "从已封存自有纯值编码：后随依赖、贡献定位及typed结果正文总长度；不读取原生对象或调用Lua。",
+        "stateresultgroupheader_payload_bytes_decode": "按公共合同有界解码：后随依赖、贡献定位及typed结果正文总长度；这里只登记处理器名，不安装世界或提前ACK。"
+      },
+      "validators": {
+        "op": {
+          "kind": "enum",
+          "scalar": "u8",
+          "values": [
+            0,
+            1,
+            2
+          ]
+        },
+        "flags": {
+          "kind": "enum",
+          "scalar": "u8",
+          "values": [
+            0
+          ]
+        }
+      },
+      "members": [],
+      "public_owners": [],
+      "synthetic_fields": [
+        {
+          "name": "op",
+          "type": "u8",
+          "semantics": "0完整替换、1显式引用合法不可变缓存、2退休",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateresultgroupheader_op_encode",
+          "client": "stateresultgroupheader_op_decode"
+        },
+        {
+          "name": "flags",
+          "type": "u8",
+          "semantics": "当前必须0",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateresultgroupheader_flags_encode",
+          "client": "stateresultgroupheader_flags_decode"
+        },
+        {
+          "name": "owner_member",
+          "type": "u16",
+          "semantics": "真实owner成员；FFFF为当前公共world/run根",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateresultgroupheader_owner_member_encode",
+          "client": "stateresultgroupheader_owner_member_decode"
+        },
+        {
+          "name": "subject_member",
+          "type": "u16",
+          "semantics": "真实subject成员；FFFF只用于合同允许的world结果",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateresultgroupheader_subject_member_encode",
+          "client": "stateresultgroupheader_subject_member_decode"
+        },
+        {
+          "name": "purpose",
+          "type": "u16",
+          "semantics": "固定用途编号，按生成用途目录解释",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateresultgroupheader_purpose_encode",
+          "client": "stateresultgroupheader_purpose_decode"
+        },
+        {
+          "name": "layout",
+          "type": "u16",
+          "semantics": "已有具名结果payload布局，非任意函数／字典",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateresultgroupheader_layout_encode",
+          "client": "stateresultgroupheader_layout_decode"
+        },
+        {
+          "name": "owner_instance",
+          "type": "u64",
+          "semantics": "Host在同session/run内唯一分配给用途实例的id；不能改绑其他subject，不是地址",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateresultgroupheader_owner_instance_encode",
+          "client": "stateresultgroupheader_owner_instance_decode"
+        },
+        {
+          "name": "owner_generation",
+          "type": "u64",
+          "semantics": "显示owner实例代次",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateresultgroupheader_owner_generation_encode",
+          "client": "stateresultgroupheader_owner_generation_decode"
+        },
+        {
+          "name": "produced_revision",
+          "type": "u64",
+          "semantics": "实际初次生产的来源修订；缓存引用不能重贴新修订",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateresultgroupheader_produced_revision_encode",
+          "client": "stateresultgroupheader_produced_revision_decode"
+        },
+        {
+          "name": "dependency_count",
+          "type": "u16",
+          "semantics": "32B具名依赖条目数",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateresultgroupheader_dependency_count_encode",
+          "client": "stateresultgroupheader_dependency_count_decode"
+        },
+        {
+          "name": "contribution_count",
+          "type": "u16",
+          "semantics": "16B贡献定位条目数",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateresultgroupheader_contribution_count_encode",
+          "client": "stateresultgroupheader_contribution_count_decode"
+        },
+        {
+          "name": "payload_bytes",
+          "type": "u32",
+          "semantics": "后随依赖、贡献定位及typed结果正文总长度",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateresultgroupheader_payload_bytes_encode",
+          "client": "stateresultgroupheader_payload_bytes_decode"
+        }
+      ],
+      "notes": "42B；subject的Key/use/shape从member_epoch解析，不重复编码。 本表仅定义固定封装字节；不再包12B状态记录头，也不表示完整消息编解码已实现。"
+    },
+    {
+      "type": "StateDependencyEntry",
+      "layout": 415,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "纯C/S公共报文固定头，无原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "StateDependencyEntry固定头（封装，不是world状态块）",
+          "sequence": "world",
+          "fields": [
+            "kind",
+            "table",
+            "member",
+            "purpose",
+            "index",
+            "revision",
+            "instance",
+            "generation"
+          ]
+        }
+      ],
+      "conversions": {
+        "statedependencyentry_kind_encode": "从已封存自有纯值编码：0成员、1资源、2Player拓扑、3结果组、4配对序列目标；不读取原生对象或调用Lua。",
+        "statedependencyentry_kind_decode": "按公共合同有界解码：0成员、1资源、2Player拓扑、3结果组、4配对序列目标；这里只登记处理器名，不安装世界或提前ACK。",
+        "statedependencyentry_table_encode": "从已封存自有纯值编码：资源空间；非资源必须FF；不读取原生对象或调用Lua。",
+        "statedependencyentry_table_decode": "按公共合同有界解码：资源空间；非资源必须FF；这里只登记处理器名，不安装世界或提前ACK。",
+        "statedependencyentry_member_encode": "从已封存自有纯值编码：成员／组owner；不适用FFFF；不读取原生对象或调用Lua。",
+        "statedependencyentry_member_decode": "按公共合同有界解码：成员／组owner；不适用FFFF；这里只登记处理器名，不安装世界或提前ACK。",
+        "statedependencyentry_purpose_encode": "从已封存自有纯值编码：结果组用途；不适用FFFF；不读取原生对象或调用Lua。",
+        "statedependencyentry_purpose_decode": "按公共合同有界解码：结果组用途；不适用FFFF；这里只登记处理器名，不安装世界或提前ACK。",
+        "statedependencyentry_index_encode": "从已封存自有纯值编码：资源序号或配对stream；不适用FFFF；不读取原生对象或调用Lua。",
+        "statedependencyentry_index_decode": "按公共合同有界解码：资源序号或配对stream；不适用FFFF；这里只登记处理器名，不安装世界或提前ACK。",
+        "statedependencyentry_revision_encode": "从已封存自有纯值编码：拓扑u32／来源修订／Peer目标u32；只按kind解释；不读取原生对象或调用Lua。",
+        "statedependencyentry_revision_decode": "按公共合同有界解码：拓扑u32／来源修订／Peer目标u32；只按kind解释；这里只登记处理器名，不安装世界或提前ACK。",
+        "statedependencyentry_instance_encode": "从已封存自有纯值编码：结果组owner实例；不适用0；不读取原生对象或调用Lua。",
+        "statedependencyentry_instance_decode": "按公共合同有界解码：结果组owner实例；不适用0；这里只登记处理器名，不安装世界或提前ACK。",
+        "statedependencyentry_generation_encode": "从已封存自有纯值编码：结果组owner代次；不适用0；不读取原生对象或调用Lua。",
+        "statedependencyentry_generation_decode": "按公共合同有界解码：结果组owner代次；不适用0；这里只登记处理器名，不安装世界或提前ACK。"
+      },
+      "validators": {
+        "kind": {
+          "kind": "enum",
+          "scalar": "u8",
+          "values": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        }
+      },
+      "members": [],
+      "public_owners": [],
+      "synthetic_fields": [
+        {
+          "name": "kind",
+          "type": "u8",
+          "semantics": "0成员、1资源、2Player拓扑、3结果组、4配对序列目标",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statedependencyentry_kind_encode",
+          "client": "statedependencyentry_kind_decode"
+        },
+        {
+          "name": "table",
+          "type": "u8",
+          "semantics": "资源空间；非资源必须FF",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statedependencyentry_table_encode",
+          "client": "statedependencyentry_table_decode"
+        },
+        {
+          "name": "member",
+          "type": "u16",
+          "semantics": "成员／组owner；不适用FFFF",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statedependencyentry_member_encode",
+          "client": "statedependencyentry_member_decode"
+        },
+        {
+          "name": "purpose",
+          "type": "u16",
+          "semantics": "结果组用途；不适用FFFF",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statedependencyentry_purpose_encode",
+          "client": "statedependencyentry_purpose_decode"
+        },
+        {
+          "name": "index",
+          "type": "u16",
+          "semantics": "资源序号或配对stream；不适用FFFF",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statedependencyentry_index_encode",
+          "client": "statedependencyentry_index_decode"
+        },
+        {
+          "name": "revision",
+          "type": "u64",
+          "semantics": "拓扑u32／来源修订／Peer目标u32；只按kind解释",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statedependencyentry_revision_encode",
+          "client": "statedependencyentry_revision_decode"
+        },
+        {
+          "name": "instance",
+          "type": "u64",
+          "semantics": "结果组owner实例；不适用0",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statedependencyentry_instance_encode",
+          "client": "statedependencyentry_instance_decode"
+        },
+        {
+          "name": "generation",
+          "type": "u64",
+          "semantics": "结果组owner代次；不适用0",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statedependencyentry_generation_encode",
+          "client": "statedependencyentry_generation_decode"
+        }
+      ],
+      "notes": "32B固定tagged依赖；非本kind字段必须规范空值。种类不授权任意GPU／getter调用。 本表仅定义固定封装字节；不再包12B状态记录头，也不表示完整消息编解码已实现。"
+    },
+    {
+      "type": "StateContributionEntry",
+      "layout": 416,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "纯C/S公共报文固定头，无原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "StateContributionEntry固定头（封装，不是world状态块）",
+          "sequence": "world",
+          "fields": [
+            "contribution_id",
+            "parent_id",
+            "pass",
+            "field",
+            "element",
+            "flags"
+          ]
+        }
+      ],
+      "conversions": {
+        "statecontributionentry_contribution_id_encode": "从已封存自有纯值编码：本组稠密Host贡献身份，从0开始；不读取原生对象或调用Lua。",
+        "statecontributionentry_contribution_id_decode": "按公共合同有界解码：本组稠密Host贡献身份，从0开始；这里只登记处理器名，不安装世界或提前ACK。",
+        "statecontributionentry_parent_id_encode": "从已封存自有纯值编码：父贡献id，FFFFFFFF为组根；非根必须先于本项；不读取原生对象或调用Lua。",
+        "statecontributionentry_parent_id_decode": "按公共合同有界解码：父贡献id，FFFFFFFF为组根；非根必须先于本项；这里只登记处理器名，不安装世界或提前ACK。",
+        "statecontributionentry_pass_encode": "从已封存自有纯值编码：固定用途允许的pass编号，不按Client访问计数；不读取原生对象或调用Lua。",
+        "statecontributionentry_pass_decode": "按公共合同有界解码：固定用途允许的pass编号，不按Client访问计数；这里只登记处理器名，不安装世界或提前ACK。",
+        "statecontributionentry_field_encode": "从已封存自有纯值编码：父节点生成布局的字段索引；FFFF表示当前根值；不读取原生对象或调用Lua。",
+        "statecontributionentry_field_decode": "按公共合同有界解码：父节点生成布局的字段索引；FFFF表示当前根值；这里只登记处理器名，不安装世界或提前ACK。",
+        "statecontributionentry_element_encode": "从已封存自有纯值编码：原有有序容器元素索引；FFFF为非容器值；不读取原生对象或调用Lua。",
+        "statecontributionentry_element_decode": "按公共合同有界解码：原有有序容器元素索引；FFFF为非容器值；这里只登记处理器名，不安装世界或提前ACK。",
+        "statecontributionentry_flags_encode": "从已封存自有纯值编码：当前必须0；不读取原生对象或调用Lua。",
+        "statecontributionentry_flags_decode": "按公共合同有界解码：当前必须0；这里只登记处理器名，不安装世界或提前ACK。"
+      },
+      "validators": {
+        "flags": {
+          "kind": "enum",
+          "scalar": "u16",
+          "values": [
+            0
+          ]
+        }
+      },
+      "members": [],
+      "public_owners": [],
+      "synthetic_fields": [
+        {
+          "name": "contribution_id",
+          "type": "u32",
+          "semantics": "本组稠密Host贡献身份，从0开始",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statecontributionentry_contribution_id_encode",
+          "client": "statecontributionentry_contribution_id_decode"
+        },
+        {
+          "name": "parent_id",
+          "type": "u32",
+          "semantics": "父贡献id，FFFFFFFF为组根；非根必须先于本项",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statecontributionentry_parent_id_encode",
+          "client": "statecontributionentry_parent_id_decode"
+        },
+        {
+          "name": "pass",
+          "type": "u16",
+          "semantics": "固定用途允许的pass编号，不按Client访问计数",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statecontributionentry_pass_encode",
+          "client": "statecontributionentry_pass_decode"
+        },
+        {
+          "name": "field",
+          "type": "u16",
+          "semantics": "父节点生成布局的字段索引；FFFF表示当前根值",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statecontributionentry_field_encode",
+          "client": "statecontributionentry_field_decode"
+        },
+        {
+          "name": "element",
+          "type": "u16",
+          "semantics": "原有有序容器元素索引；FFFF为非容器值",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statecontributionentry_element_encode",
+          "client": "statecontributionentry_element_decode"
+        },
+        {
+          "name": "flags",
+          "type": "u16",
+          "semantics": "当前必须0",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statecontributionentry_flags_encode",
+          "client": "statecontributionentry_flags_decode"
+        }
+      ],
+      "notes": "16B定位已有typed payload的贡献；365/366已有branch/layer/track不重复发送。 本表仅定义固定封装字节；不再包12B状态记录头，也不表示完整消息编解码已实现。"
+    },
+    {
+      "type": "StateAudioEventHeader",
+      "layout": 417,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "纯C/S公共报文固定头，无原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "StateAudioEventHeader固定头（封装，不是world状态块）",
+          "sequence": "world",
+          "fields": [
+            "event_sequence",
+            "logical_frame",
+            "owner_member",
+            "purpose",
+            "voice_id",
+            "voice_generation",
+            "clear_scope",
+            "flags",
+            "layout",
+            "payload_bytes"
+          ]
+        }
+      ],
+      "conversions": {
+        "stateaudioeventheader_event_sequence_encode": "从已封存自有纯值编码：同session/run稳定事件号，重复发送不重新分配；不读取原生对象或调用Lua。",
+        "stateaudioeventheader_event_sequence_decode": "按公共合同有界解码：同session/run稳定事件号，重复发送不重新分配；这里只登记处理器名，不安装世界或提前ACK。",
+        "stateaudioeventheader_logical_frame_encode": "从已封存自有纯值编码：原生逻辑时点，非硬件游标；不读取原生对象或调用Lua。",
+        "stateaudioeventheader_logical_frame_decode": "按公共合同有界解码：原生逻辑时点，非硬件游标；这里只登记处理器名，不安装世界或提前ACK。",
+        "stateaudioeventheader_owner_member_encode": "从已封存自有纯值编码：voice所属owner成员；FFFF为world/run根；不读取原生对象或调用Lua。",
+        "stateaudioeventheader_owner_member_decode": "按公共合同有界解码：voice所属owner成员；FFFF为world/run根；这里只登记处理器名，不安装世界或提前ACK。",
+        "stateaudioeventheader_purpose_encode": "从已封存自有纯值编码：已登记音频用途，不允许隐式全局Clear；不读取原生对象或调用Lua。",
+        "stateaudioeventheader_purpose_decode": "按公共合同有界解码：已登记音频用途，不允许隐式全局Clear；这里只登记处理器名，不安装世界或提前ACK。",
+        "stateaudioeventheader_voice_id_encode": "从已封存自有纯值编码：稳定voice实例，非SoundID或后端handle；不读取原生对象或调用Lua。",
+        "stateaudioeventheader_voice_id_decode": "按公共合同有界解码：稳定voice实例，非SoundID或后端handle；这里只登记处理器名，不安装世界或提前ACK。",
+        "stateaudioeventheader_voice_generation_encode": "从已封存自有纯值编码：voice代次；不读取原生对象或调用Lua。",
+        "stateaudioeventheader_voice_generation_decode": "按公共合同有界解码：voice代次；这里只登记处理器名，不安装世界或提前ACK。",
+        "stateaudioeventheader_clear_scope_encode": "从已封存自有纯值编码：0精确voice、1owner用途、2当前world用途、3当前run用途；不读取原生对象或调用Lua。",
+        "stateaudioeventheader_clear_scope_decode": "按公共合同有界解码：0精确voice、1owner用途、2当前world用途、3当前run用途；这里只登记处理器名，不安装世界或提前ACK。",
+        "stateaudioeventheader_flags_encode": "从已封存自有纯值编码：当前必须0；不读取原生对象或调用Lua。",
+        "stateaudioeventheader_flags_decode": "按公共合同有界解码：当前必须0；这里只登记处理器名，不安装世界或提前ACK。",
+        "stateaudioeventheader_layout_encode": "从已封存自有纯值编码：必须383 AudioWorldEvent；不读取原生对象或调用Lua。",
+        "stateaudioeventheader_layout_decode": "按公共合同有界解码：必须383 AudioWorldEvent；这里只登记处理器名，不安装世界或提前ACK。",
+        "stateaudioeventheader_payload_bytes_encode": "从已封存自有纯值编码：后随既有AudioWorldEvent精确长度；不读取原生对象或调用Lua。",
+        "stateaudioeventheader_payload_bytes_decode": "按公共合同有界解码：后随既有AudioWorldEvent精确长度；这里只登记处理器名，不安装世界或提前ACK。"
+      },
+      "validators": {
+        "clear_scope": {
+          "kind": "enum",
+          "scalar": "u8",
+          "values": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        "flags": {
+          "kind": "enum",
+          "scalar": "u8",
+          "values": [
+            0
+          ]
+        }
+      },
+      "members": [],
+      "public_owners": [],
+      "synthetic_fields": [
+        {
+          "name": "event_sequence",
+          "type": "u64",
+          "semantics": "同session/run稳定事件号，重复发送不重新分配",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateaudioeventheader_event_sequence_encode",
+          "client": "stateaudioeventheader_event_sequence_decode"
+        },
+        {
+          "name": "logical_frame",
+          "type": "u32",
+          "semantics": "原生逻辑时点，非硬件游标",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateaudioeventheader_logical_frame_encode",
+          "client": "stateaudioeventheader_logical_frame_decode"
+        },
+        {
+          "name": "owner_member",
+          "type": "u16",
+          "semantics": "voice所属owner成员；FFFF为world/run根",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateaudioeventheader_owner_member_encode",
+          "client": "stateaudioeventheader_owner_member_decode"
+        },
+        {
+          "name": "purpose",
+          "type": "u16",
+          "semantics": "已登记音频用途，不允许隐式全局Clear",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateaudioeventheader_purpose_encode",
+          "client": "stateaudioeventheader_purpose_decode"
+        },
+        {
+          "name": "voice_id",
+          "type": "u64",
+          "semantics": "稳定voice实例，非SoundID或后端handle",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateaudioeventheader_voice_id_encode",
+          "client": "stateaudioeventheader_voice_id_decode"
+        },
+        {
+          "name": "voice_generation",
+          "type": "u64",
+          "semantics": "voice代次",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateaudioeventheader_voice_generation_encode",
+          "client": "stateaudioeventheader_voice_generation_decode"
+        },
+        {
+          "name": "clear_scope",
+          "type": "u8",
+          "semantics": "0精确voice、1owner用途、2当前world用途、3当前run用途",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateaudioeventheader_clear_scope_encode",
+          "client": "stateaudioeventheader_clear_scope_decode"
+        },
+        {
+          "name": "flags",
+          "type": "u8",
+          "semantics": "当前必须0",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateaudioeventheader_flags_encode",
+          "client": "stateaudioeventheader_flags_decode"
+        },
+        {
+          "name": "layout",
+          "type": "u16",
+          "semantics": "必须383 AudioWorldEvent",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateaudioeventheader_layout_encode",
+          "client": "stateaudioeventheader_layout_decode"
+        },
+        {
+          "name": "payload_bytes",
+          "type": "u32",
+          "semantics": "后随既有AudioWorldEvent精确长度",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateaudioeventheader_payload_bytes_encode",
+          "client": "stateaudioeventheader_payload_bytes_decode"
+        }
+      ],
+      "notes": "40B；只有kind3 Clear允许非零clear_scope，其余事件必须精确voice。 本表仅定义固定封装字节；不再包12B状态记录头，也不表示完整消息编解码已实现。"
+    },
+    {
+      "type": "StateContextReady",
+      "layout": 418,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "纯C/S公共报文固定头，无原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "StateContextReady固定头（封装，不是world状态块）",
+          "sequence": "world",
+          "fields": [
+            "member_epoch",
+            "resource_epoch"
+          ]
+        }
+      ],
+      "conversions": {
+        "statecontextready_member_epoch_encode": "从已封存自有纯值编码：可解析的成员表版本；不读取原生对象或调用Lua。",
+        "statecontextready_member_epoch_decode": "按公共合同有界解码：可解析的成员表版本；这里只登记处理器名，不安装世界或提前ACK。",
+        "statecontextready_resource_epoch_encode": "从已封存自有纯值编码：可解析的资源表版本；不代表每项资源已物化；不读取原生对象或调用Lua。",
+        "statecontextready_resource_epoch_decode": "按公共合同有界解码：可解析的资源表版本；不代表每项资源已物化；这里只登记处理器名，不安装世界或提前ACK。"
+      },
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "synthetic_fields": [
+        {
+          "name": "member_epoch",
+          "type": "u32",
+          "semantics": "可解析的成员表版本",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statecontextready_member_epoch_encode",
+          "client": "statecontextready_member_epoch_decode"
+        },
+        {
+          "name": "resource_epoch",
+          "type": "u32",
+          "semantics": "可解析的资源表版本；不代表每项资源已物化",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "statecontextready_resource_epoch_encode",
+          "client": "statecontextready_resource_epoch_decode"
+        }
+      ],
+      "notes": "8B；公共头后直接编码；不等于AppliedAck。 本表仅定义固定封装字节；不再包12B状态记录头，也不表示完整消息编解码已实现。"
+    },
+    {
+      "type": "StateAppliedAckHeader",
+      "layout": 419,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "纯C/S公共报文固定头，无原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "StateAppliedAckHeader固定头（封装，不是world状态块）",
+          "sequence": "world",
+          "fields": [
+            "entry_count",
+            "flags"
+          ]
+        }
+      ],
+      "conversions": {
+        "stateappliedackheader_entry_count_encode": "从已封存自有纯值编码：确认项数1或2；共同提交回报两项；不读取原生对象或调用Lua。",
+        "stateappliedackheader_entry_count_decode": "按公共合同有界解码：确认项数1或2；共同提交回报两项；这里只登记处理器名，不安装世界或提前ACK。",
+        "stateappliedackheader_flags_encode": "从已封存自有纯值编码：bit0共同提交，必须与原发送帧对应；不读取原生对象或调用Lua。",
+        "stateappliedackheader_flags_decode": "按公共合同有界解码：bit0共同提交，必须与原发送帧对应；这里只登记处理器名，不安装世界或提前ACK。"
+      },
+      "validators": {
+        "entry_count": {
+          "kind": "enum",
+          "scalar": "u8",
+          "values": [
+            1,
+            2
+          ]
+        },
+        "flags": {
+          "kind": "enum",
+          "scalar": "u8",
+          "values": [
+            0,
+            1
+          ]
+        }
+      },
+      "members": [],
+      "public_owners": [],
+      "synthetic_fields": [
+        {
+          "name": "entry_count",
+          "type": "u8",
+          "semantics": "确认项数1或2；共同提交回报两项",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateappliedackheader_entry_count_encode",
+          "client": "stateappliedackheader_entry_count_decode"
+        },
+        {
+          "name": "flags",
+          "type": "u8",
+          "semantics": "bit0共同提交，必须与原发送帧对应",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateappliedackheader_flags_encode",
+          "client": "stateappliedackheader_flags_decode"
+        }
+      ],
+      "notes": "2B；随后每序列21B确认项。 本表仅定义固定封装字节；不再包12B状态记录头，也不表示完整消息编解码已实现。"
+    },
+    {
+      "type": "StateAppliedAckEntry",
+      "layout": 420,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "纯C/S公共报文固定头，无原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "StateAppliedAckEntry固定头（封装，不是world状态块）",
+          "sequence": "world",
+          "fields": [
+            "stream",
+            "target_version",
+            "member_epoch",
+            "resource_epoch",
+            "event_watermark"
+          ]
+        }
+      ],
+      "conversions": {
+        "stateappliedackentry_stream_encode": "从已封存自有纯值编码：0 world、1 body；不读取原生对象或调用Lua。",
+        "stateappliedackentry_stream_decode": "按公共合同有界解码：0 world、1 body；这里只登记处理器名，不安装世界或提前ACK。",
+        "stateappliedackentry_target_version_encode": "从已封存自有纯值编码：已完成原生提交且确实由Host发送的目标；不读取原生对象或调用Lua。",
+        "stateappliedackentry_target_version_decode": "按公共合同有界解码：已完成原生提交且确实由Host发送的目标；这里只登记处理器名，不安装世界或提前ACK。",
+        "stateappliedackentry_member_epoch_encode": "从已封存自有纯值编码：该目标使用的成员快照；不读取原生对象或调用Lua。",
+        "stateappliedackentry_member_epoch_decode": "按公共合同有界解码：该目标使用的成员快照；这里只登记处理器名，不安装世界或提前ACK。",
+        "stateappliedackentry_resource_epoch_encode": "从已封存自有纯值编码：该目标使用的资源快照；不读取原生对象或调用Lua。",
+        "stateappliedackentry_resource_epoch_decode": "按公共合同有界解码：该目标使用的资源快照；这里只登记处理器名，不安装世界或提前ACK。",
+        "stateappliedackentry_event_watermark_encode": "从已封存自有纯值编码：world已提交连续事件水位；body为0；不读取原生对象或调用Lua。",
+        "stateappliedackentry_event_watermark_decode": "按公共合同有界解码：world已提交连续事件水位；body为0；这里只登记处理器名，不安装世界或提前ACK。"
+      },
+      "validators": {
+        "stream": {
+          "kind": "enum",
+          "scalar": "u8",
+          "values": [
+            0,
+            1
+          ]
+        }
+      },
+      "members": [],
+      "public_owners": [],
+      "synthetic_fields": [
+        {
+          "name": "stream",
+          "type": "u8",
+          "semantics": "0 world、1 body",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateappliedackentry_stream_encode",
+          "client": "stateappliedackentry_stream_decode"
+        },
+        {
+          "name": "target_version",
+          "type": "u32",
+          "semantics": "已完成原生提交且确实由Host发送的目标",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateappliedackentry_target_version_encode",
+          "client": "stateappliedackentry_target_version_decode"
+        },
+        {
+          "name": "member_epoch",
+          "type": "u32",
+          "semantics": "该目标使用的成员快照",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateappliedackentry_member_epoch_encode",
+          "client": "stateappliedackentry_member_epoch_decode"
+        },
+        {
+          "name": "resource_epoch",
+          "type": "u32",
+          "semantics": "该目标使用的资源快照",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateappliedackentry_resource_epoch_encode",
+          "client": "stateappliedackentry_resource_epoch_decode"
+        },
+        {
+          "name": "event_watermark",
+          "type": "u64",
+          "semantics": "world已提交连续事件水位；body为0",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateappliedackentry_event_watermark_encode",
+          "client": "stateappliedackentry_event_watermark_decode"
+        }
+      ],
+      "notes": "21B；ACK不能跨scope/route或把解码成功当安装成功。 本表仅定义固定封装字节；不再包12B状态记录头，也不表示完整消息编解码已实现。"
+    },
+    {
+      "type": "StateResyncHeader",
+      "layout": 421,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "纯C/S公共报文固定头，无原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "StateResyncHeader固定头（封装，不是world状态块）",
+          "sequence": "world",
+          "fields": [
+            "stream_mask",
+            "reason",
+            "installed_world",
+            "installed_body"
+          ]
+        }
+      ],
+      "conversions": {
+        "stateresyncheader_stream_mask_encode": "从已封存自有纯值编码：bit0 world、bit1 body，不能0；不读取原生对象或调用Lua。",
+        "stateresyncheader_stream_mask_decode": "按公共合同有界解码：bit0 world、bit1 body，不能0；这里只登记处理器名，不安装世界或提前ACK。",
+        "stateresyncheader_reason_encode": "从已封存自有纯值编码：1基线不符、2表、3依赖、4预算、5应用失败、6事件缺口、7生命周期／时钟；不读取原生对象或调用Lua。",
+        "stateresyncheader_reason_decode": "按公共合同有界解码：1基线不符、2表、3依赖、4预算、5应用失败、6事件缺口、7生命周期／时钟；这里只登记处理器名，不安装世界或提前ACK。",
+        "stateresyncheader_installed_world_encode": "从已封存自有纯值编码：本端已成功安装world版本，尚无为0；不读取原生对象或调用Lua。",
+        "stateresyncheader_installed_world_decode": "按公共合同有界解码：本端已成功安装world版本，尚无为0；这里只登记处理器名，不安装世界或提前ACK。",
+        "stateresyncheader_installed_body_encode": "从已封存自有纯值编码：本端已成功安装body版本，尚无为0；不读取原生对象或调用Lua。",
+        "stateresyncheader_installed_body_decode": "按公共合同有界解码：本端已成功安装body版本，尚无为0；这里只登记处理器名，不安装世界或提前ACK。"
+      },
+      "validators": {
+        "stream_mask": {
+          "kind": "enum",
+          "scalar": "u8",
+          "values": [
+            1,
+            2,
+            3
+          ]
+        },
+        "reason": {
+          "kind": "enum",
+          "scalar": "u16",
+          "values": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ]
+        }
+      },
+      "members": [],
+      "public_owners": [],
+      "synthetic_fields": [
+        {
+          "name": "stream_mask",
+          "type": "u8",
+          "semantics": "bit0 world、bit1 body，不能0",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateresyncheader_stream_mask_encode",
+          "client": "stateresyncheader_stream_mask_decode"
+        },
+        {
+          "name": "reason",
+          "type": "u16",
+          "semantics": "1基线不符、2表、3依赖、4预算、5应用失败、6事件缺口、7生命周期／时钟",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateresyncheader_reason_encode",
+          "client": "stateresyncheader_reason_decode"
+        },
+        {
+          "name": "installed_world",
+          "type": "u32",
+          "semantics": "本端已成功安装world版本，尚无为0",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateresyncheader_installed_world_encode",
+          "client": "stateresyncheader_installed_world_decode"
+        },
+        {
+          "name": "installed_body",
+          "type": "u32",
+          "semantics": "本端已成功安装body版本，尚无为0",
+          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "host": "stateresyncheader_installed_body_encode",
+          "client": "stateresyncheader_installed_body_decode"
+        }
+      ],
+      "notes": "11B；普通恢复不重置Host目标计数或直接解决回绕。 本表仅定义固定封装字节；不再包12B状态记录头，也不表示完整消息编解码已实现。"
+    }
+  ],
+  "protocol_constants": [
+    {
+      "domain": "message",
+      "name": "ContextReady",
+      "value": 8,
+      "semantics": "公共协议Kind编号；仅合同登记，运行stream_codec尚未接通"
+    },
+    {
+      "domain": "message",
+      "name": "AppliedAck",
+      "value": 9,
+      "semantics": "公共协议Kind编号；仅合同登记，运行stream_codec尚未接通"
+    },
+    {
+      "domain": "message",
+      "name": "Resync",
+      "value": 10,
+      "semantics": "公共协议Kind编号；仅合同登记，运行stream_codec尚未接通"
+    },
+    {
+      "domain": "message",
+      "name": "StateFrame",
+      "value": 21,
+      "semantics": "公共协议Kind编号；仅合同登记，运行stream_codec尚未接通"
+    },
+    {
+      "domain": "message",
+      "name": "MemberTable",
+      "value": 22,
+      "semantics": "公共协议Kind编号；仅合同登记，运行stream_codec尚未接通"
+    },
+    {
+      "domain": "message",
+      "name": "ResourceTable",
+      "value": 23,
+      "semantics": "公共协议Kind编号；仅合同登记，运行stream_codec尚未接通"
+    },
+    {
+      "domain": "message",
+      "name": "ResourceBlobChunk",
+      "value": 24,
+      "semantics": "公共协议Kind编号；仅合同登记，运行stream_codec尚未接通"
+    },
+    {
+      "domain": "resource_table",
+      "name": "anm2-animation-table",
+      "value": 0,
+      "semantics": "显式u8资源空间；不能因序号相等跨表替换"
+    },
+    {
+      "domain": "resource_table",
+      "name": "image-table",
+      "value": 1,
+      "semantics": "显式u8资源空间；不能因序号相等跨表替换"
+    },
+    {
+      "domain": "resource_table",
+      "name": "anm2-files",
+      "value": 2,
+      "semantics": "显式u8资源空间；不能因序号相等跨表替换"
+    },
+    {
+      "domain": "resource_table",
+      "name": "item-config",
+      "value": 3,
+      "semantics": "显式u8资源空间；不能因序号相等跨表替换"
+    },
+    {
+      "domain": "resource_table",
+      "name": "entity-configs",
+      "value": 4,
+      "semantics": "显式u8资源空间；不能因序号相等跨表替换"
+    },
+    {
+      "domain": "resource_table",
+      "name": "room-config-visual",
+      "value": 5,
+      "semantics": "显式u8资源空间；不能因序号相等跨表替换"
+    },
+    {
+      "domain": "resource_table",
+      "name": "shader-table",
+      "value": 6,
+      "semantics": "显式u8资源空间；不能因序号相等跨表替换"
+    },
+    {
+      "domain": "resource_table",
+      "name": "audio-table",
+      "value": 7,
+      "semantics": "显式u8资源空间；不能因序号相等跨表替换"
+    },
+    {
+      "domain": "resource_kind",
+      "name": "ANM2File",
+      "value": 0,
+      "semantics": "typed payload分派编号；完整payload及table/kind允许集由第9步后续登记"
+    },
+    {
+      "domain": "resource_kind",
+      "name": "ImageFile",
+      "value": 1,
+      "semantics": "typed payload分派编号；完整payload及table/kind允许集由第9步后续登记"
+    },
+    {
+      "domain": "resource_kind",
+      "name": "BuiltinShader",
+      "value": 2,
+      "semantics": "typed payload分派编号；完整payload及table/kind允许集由第9步后续登记"
+    },
+    {
+      "domain": "resource_kind",
+      "name": "RoomConfigVisual",
+      "value": 3,
+      "semantics": "typed payload分派编号；完整payload及table/kind允许集由第9步后续登记"
+    },
+    {
+      "domain": "resource_kind",
+      "name": "SurfaceRecipe",
+      "value": 4,
+      "semantics": "typed payload分派编号；完整payload及table/kind允许集由第9步后续登记"
+    },
+    {
+      "domain": "resource_kind",
+      "name": "SurfacePixels",
+      "value": 5,
+      "semantics": "typed payload分派编号；完整payload及table/kind允许集由第9步后续登记"
+    },
+    {
+      "domain": "resource_kind",
+      "name": "AnimationTable",
+      "value": 6,
+      "semantics": "typed payload分派编号；完整payload及table/kind允许集由第9步后续登记"
+    },
+    {
+      "domain": "resource_kind",
+      "name": "ItemConfig",
+      "value": 7,
+      "semantics": "typed payload分派编号；完整payload及table/kind允许集由第9步后续登记"
+    },
+    {
+      "domain": "resource_kind",
+      "name": "EntityConfig",
+      "value": 8,
+      "semantics": "typed payload分派编号；完整payload及table/kind允许集由第9步后续登记"
+    },
+    {
+      "domain": "resource_kind",
+      "name": "Audio",
+      "value": 9,
+      "semantics": "typed payload分派编号；完整payload及table/kind允许集由第9步后续登记"
+    },
+    {
+      "domain": "stream",
+      "name": "World",
+      "value": 0,
+      "semantics": "具名公共封装枚举；组合约束见正式合同"
+    },
+    {
+      "domain": "stream",
+      "name": "Body",
+      "value": 1,
+      "semantics": "具名公共封装枚举；组合约束见正式合同"
+    },
+    {
+      "domain": "group_op",
+      "name": "Replace",
+      "value": 0,
+      "semantics": "具名公共封装枚举；组合约束见正式合同"
+    },
+    {
+      "domain": "group_op",
+      "name": "Reference",
+      "value": 1,
+      "semantics": "具名公共封装枚举；组合约束见正式合同"
+    },
+    {
+      "domain": "group_op",
+      "name": "Retire",
+      "value": 2,
+      "semantics": "具名公共封装枚举；组合约束见正式合同"
+    },
+    {
+      "domain": "dependency",
+      "name": "Member",
+      "value": 0,
+      "semantics": "具名公共封装枚举；组合约束见正式合同"
+    },
+    {
+      "domain": "dependency",
+      "name": "Resource",
+      "value": 1,
+      "semantics": "具名公共封装枚举；组合约束见正式合同"
+    },
+    {
+      "domain": "dependency",
+      "name": "PlayerTopology",
+      "value": 2,
+      "semantics": "具名公共封装枚举；组合约束见正式合同"
+    },
+    {
+      "domain": "dependency",
+      "name": "ResultGroup",
+      "value": 3,
+      "semantics": "具名公共封装枚举；组合约束见正式合同"
+    },
+    {
+      "domain": "dependency",
+      "name": "PairedTarget",
+      "value": 4,
+      "semantics": "具名公共封装枚举；组合约束见正式合同"
+    },
+    {
+      "domain": "clear_scope",
+      "name": "Voice",
+      "value": 0,
+      "semantics": "具名公共封装枚举；组合约束见正式合同"
+    },
+    {
+      "domain": "clear_scope",
+      "name": "OwnerPurpose",
+      "value": 1,
+      "semantics": "具名公共封装枚举；组合约束见正式合同"
+    },
+    {
+      "domain": "clear_scope",
+      "name": "WorldPurpose",
+      "value": 2,
+      "semantics": "具名公共封装枚举；组合约束见正式合同"
+    },
+    {
+      "domain": "clear_scope",
+      "name": "RunPurpose",
+      "value": 3,
+      "semantics": "具名公共封装枚举；组合约束见正式合同"
+    },
+    {
+      "domain": "budget",
+      "name": "total_link_bits_per_second",
+      "value": 10000000,
+      "semantics": "Host向三端总上行链路预算，非每Peer额度"
+    },
+    {
+      "domain": "budget",
+      "name": "total_mod_bytes_per_second",
+      "value": 937500,
+      "semantics": "三端模组持续7.5Mbps；包含全部通道／重传／封装"
+    },
+    {
+      "domain": "budget",
+      "name": "peer_bytes_per_second",
+      "value": 312500,
+      "semantics": "默认每Peer持续额度，三端合计不得越过总额"
+    },
+    {
+      "domain": "budget",
+      "name": "world_bytes_per_second",
+      "value": 120000,
+      "semantics": "每Peer world额度；30Hz平均4000B，不是每帧固定大小"
+    },
+    {
+      "domain": "budget",
+      "name": "body_bytes_per_second",
+      "value": 120000,
+      "semantics": "每Peer body额度；60Hz平均2000B"
+    },
+    {
+      "domain": "budget",
+      "name": "control_bytes_per_second",
+      "value": 25000,
+      "semantics": "每Peer控制额度"
+    },
+    {
+      "domain": "budget",
+      "name": "reliable_bytes_per_second",
+      "value": 47500,
+      "semantics": "每Peer可靠表／资源／准备／恢复额度"
+    },
+    {
+      "domain": "budget",
+      "name": "total_burst_bytes",
+      "value": 24576,
+      "semantics": "总突发上限，仍逐实际发送扣费"
+    },
+    {
+      "domain": "budget",
+      "name": "peer_burst_bytes",
+      "value": 8192,
+      "semantics": "逐Peer突发上限，不能借共享编码漏计三端发送"
+    },
+    {
+      "domain": "budget",
+      "name": "world_burst_bytes",
+      "value": 4096,
+      "semantics": "world桶突发上限，大逻辑消息可分片跨轮次发送"
+    },
+    {
+      "domain": "budget",
+      "name": "body_burst_bytes",
+      "value": 4096,
+      "semantics": "body桶突发上限"
+    },
+    {
+      "domain": "budget",
+      "name": "ordinary_message_protection_bytes",
+      "value": 65536,
+      "semantics": "既有非可靠路径未压缩逻辑消息保护上限，绝非常态发送额度"
+    },
+    {
+      "domain": "budget",
+      "name": "first_preparation_wire_bytes",
+      "value": 1048576,
+      "semantics": "每Peer首次准备状态／表／资源及协议封装合计最多1MiB，三端照实计费"
+    },
+    {
+      "domain": "budget",
+      "name": "first_preparation_ms",
+      "value": 10000,
+      "semantics": "从发起到画面就绪最多10秒"
+    },
+    {
+      "domain": "budget",
+      "name": "legacy_decode_protection_bytes",
+      "value": 33554432,
+      "semantics": "既有可靠大消息／解码内存保护；不得作为正常world发送许可"
+    },
+    {
+      "domain": "budget",
+      "name": "max_blocks_per_layout",
+      "value": 32,
+      "semantics": "单个对象布局块号0—31，不限制同帧对象数"
+    },
+    {
+      "domain": "budget",
+      "name": "max_sections",
+      "value": 2,
+      "semantics": "仅world/body两条确认序列"
+    },
+    {
+      "domain": "budget",
+      "name": "max_contribution_depth",
+      "value": 16,
+      "semantics": "有界贡献父链；不得用递归溢出绕过payload预算"
+    },
+    {
+      "domain": "result_purpose",
+      "name": "PlayerHUD",
+      "value": 315,
+      "semantics": "用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分"
+    },
+    {
+      "domain": "result_purpose",
+      "name": "StatHUDPlayer",
+      "value": 317,
+      "semantics": "用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分"
+    },
+    {
+      "domain": "result_purpose",
+      "name": "StatHUD",
+      "value": 318,
+      "semantics": "用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分"
+    },
+    {
+      "domain": "result_purpose",
+      "name": "HistoryHUDPlayer",
+      "value": 321,
+      "semantics": "用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分"
+    },
+    {
+      "domain": "result_purpose",
+      "name": "HUD",
+      "value": 323,
+      "semantics": "用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分"
+    },
+    {
+      "domain": "result_purpose",
+      "name": "Minimap",
+      "value": 325,
+      "semantics": "用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分"
+    },
+    {
+      "domain": "result_purpose",
+      "name": "PresentationDrawClock",
+      "value": 356,
+      "semantics": "用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分"
+    },
+    {
+      "domain": "result_purpose",
+      "name": "PickupRandomAlphaResult",
+      "value": 357,
+      "semantics": "用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分"
+    },
+    {
+      "domain": "result_purpose",
+      "name": "FamiliarRandomAlphaResult",
+      "value": 358,
+      "semantics": "用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分"
+    },
+    {
+      "domain": "result_purpose",
+      "name": "PillDisplayResult",
+      "value": 359,
+      "semantics": "用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分"
+    },
+    {
+      "domain": "result_purpose",
+      "name": "PickupPreviewResult",
+      "value": 361,
+      "semantics": "用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分"
+    },
+    {
+      "domain": "result_purpose",
+      "name": "PlayerDrawImageBindings",
+      "value": 362,
+      "semantics": "用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分"
+    },
+    {
+      "domain": "result_purpose",
+      "name": "ControlGroupHudSelection",
+      "value": 364,
+      "semantics": "用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分"
+    },
+    {
+      "domain": "result_purpose",
+      "name": "ScreenBloomResult",
+      "value": 367,
+      "semantics": "用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分"
+    },
+    {
+      "domain": "result_purpose",
+      "name": "ScreenPixelationResult",
+      "value": 368,
+      "semantics": "用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分"
+    },
+    {
+      "domain": "result_purpose",
+      "name": "ScreenRetrovisionResult",
+      "value": 369,
+      "semantics": "用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分"
+    },
+    {
+      "domain": "result_purpose",
+      "name": "ScreenHallucinationResult",
+      "value": 370,
+      "semantics": "用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分"
+    },
+    {
+      "domain": "result_purpose",
+      "name": "RoomGlitchResult",
+      "value": 371,
+      "semantics": "用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分"
+    },
+    {
+      "domain": "result_purpose",
+      "name": "ScreenEffectsResult",
+      "value": 373,
+      "semantics": "用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分"
+    },
+    {
+      "domain": "result_purpose",
+      "name": "RoomTransitionResult",
+      "value": 374,
+      "semantics": "用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分"
+    },
+    {
+      "domain": "result_purpose",
+      "name": "NightmareSceneResult",
+      "value": 375,
+      "semantics": "用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分"
+    },
+    {
+      "domain": "result_purpose",
+      "name": "GameOverResult",
+      "value": 376,
+      "semantics": "用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分"
+    },
+    {
+      "domain": "result_purpose",
+      "name": "StageTransitionResult",
+      "value": 377,
+      "semantics": "用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分"
+    },
+    {
+      "domain": "result_purpose",
+      "name": "ItemOverlayResult",
+      "value": 378,
+      "semantics": "用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分"
+    },
+    {
+      "domain": "result_purpose",
+      "name": "BossOverlayResult",
+      "value": 379,
+      "semantics": "用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分"
+    },
+    {
+      "domain": "result_purpose",
+      "name": "GenericPromptResult",
+      "value": 380,
+      "semantics": "用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分"
+    },
+    {
+      "domain": "result_purpose",
+      "name": "AudioVoiceState",
+      "value": 382,
+      "semantics": "用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分"
+    },
+    {
+      "domain": "result_purpose",
+      "name": "AudioWorldEvent",
+      "value": 383,
+      "semantics": "用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分"
+    },
+    {
+      "domain": "flag",
+      "name": "Joint",
+      "value": 1,
+      "semantics": "Frame和AppliedAck bit0；双分段共同提交"
+    },
+    {
+      "domain": "flag",
+      "name": "Baseline",
+      "value": 1,
+      "semantics": "Section bit0，当且仅当base_version=0"
+    }
+  ]
+}

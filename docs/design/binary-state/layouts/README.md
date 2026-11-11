@@ -6,7 +6,7 @@
 
 以布局源所属步骤归类，变体与附属类型随所属域；共享类型只保存一份。第7步已登记的显示／资源结构仍随第7步，后续协议与运行职责见对应计划，不以目录位置宣称已实现。
 
-第0—1步负责起点与生成机制，没有单独类型表；第9—15步的线格式、采集、发布、解码、应用、退役与验收文档见总计划，当前不创建空目录。
+第0—1步负责起点与生成机制，没有单独类型表；第9步登记公共报文固定头与常量，第10—15步的运行接线和验收仍见总计划。
 
 | 总计划步骤 | 布局表数 | 公开目录表数 |
 |---|---|---|
@@ -17,5 +17,6 @@
 | [6：GridEntity](06-grid/README.md) | 32 | 1 |
 | [7：Room、Level、RoomSave 与 Exploration](07-room-level/README.md) | 71 | 4 |
 | [8：Run、Presentation 与 Random](08-run-presentation/README.md) | 107 | 3 |
+| [9：公共报文结构](09-wire-format/README.md) | 14 | 0 |
 
 旧证据路径仅保留 [EntitySaveState](EntitySaveState.md) 和 [GridEntityDesc](GridEntityDesc.md) 两个跳转页，正式表见对应步骤目录。
