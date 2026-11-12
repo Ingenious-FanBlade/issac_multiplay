@@ -10,6 +10,8 @@
 - `Room+0x11F0` 按 Host 原值安装。RE-3 已核：它是 Room::Init 写入的入房基准，不逐帧自增。
 - **当前房间描述的 SpawnSeed（Q9，同日 RE-4 审阅后追加）**：同步 Host 当前值（`+0x5C`，u32），按变化更新。原因是放行的原生 Render 在房间年龄 30 时读它，为 0 即 `int3`。DecorSeed 等其他 seed、其他房间描述的 seed 和全局 RNG 游标仍留 Host；写入不授权 Client 运行补货、出生、奖励等生成路径。下方“种子”条款及 D1 条目中“原 SpawnSeed 留 Host”的部分由此取代；D1 的 1B 谓词在布局收缩时评估退役，不与完整 seed 双发。见修改方案第 5 节表后说明。
 - 切房走原生过渡（Q5）：Client 按 Host 参数回放转场，换房点由 Client 构建新房间目标，见修改方案 4.5。
+  - **Q11（2026-11-12 审阅后用户决定）**：Client 不回放 Start，转场显示字段按 Host 当前值随 world 安装（字段归第 10 步 Run）；新房间目标仍按本步的 NativeBuild／NativeApply 冷构建，旧／新 surface 在安装事务前后由 Client 本地捕获。
+- **raw 诅咒（2026-11-12 审阅后追加）**：现有 `LevelGamePrefix.effective_curses` 改为同步 raw `Level+0xC`，与第 10 步的 `Game+0x25AC8` 同一事务安装；原生有效 getter `0x742450` 在 Client 上按已同步的种子效果、stage、挑战和难度算出与 Host 相同的有效值。不再注入有效值，不调用 AddCurse／RemoveCurses，见修改方案 6.3。
 - 见[修改方案](client-display-delegation.md)第 5、7 节。
 
 本次只修订文档，未改代码，未运行测试。

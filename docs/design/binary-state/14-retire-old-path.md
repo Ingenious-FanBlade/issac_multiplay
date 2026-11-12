@@ -15,6 +15,8 @@
 - 绘制前安装 Game 颜色、闪电、暗度当前值的代码：迁入 world 安装（Q8）。
 - Backdrop 构图与生成隔离：`client_backdrop_graphics`、`client_backdrop_wall`、`client_backdrop_effects` 和 byte patch `client_backdrop_effect_1`／`_2`。
 - `client_entity_draw_projectile`（RE-5 审阅后追加，Q10）：改作 Projectile PositionOffset `+0x350` 的保存／恢复作用域，只退役其中提供绘制输入的部分。
+- `client_entity_draw_paused`（RE-1 补遗审阅后追加，Q12）：挂在 `Game::IsPaused` `0x6F92A0` 上，改为返回 Host 同步的 paused 位；原生 53 个调用者（含 `Room::Render`）依赖它，只退役旧 D0 绘制输入部分。
+- `client_door_update`／`RoomTransition::ChangeRoom` 拦截（Q11）：Client 不运行转场 FSM，二者作为守卫保留。
 - 见修改方案 9.1、9.2。
 
 **RoomDescriptor D1 谓词（RE-4 审阅后追加，Q9）**：当前房间描述的 SpawnSeed 改为同步后，下方 RoomDescriptor 退役补充中“不留本地 SpawnSeed 旁路”的前提已变。D1 的 1B `error_is_modeling_clay` 在布局收缩时评估退役，Error 饰品颜色可由官方纯函数按已同步的 seed 算出；不与完整 seed 双发同一信息。

@@ -1,11 +1,15 @@
+**2026-11-12 RE-1 补遗与 RE-7—RE-9 审阅，仅文档**：经 IDA J273 复核后，用户决定 Q11（RoomTransition 显示字段同步 Host 当前值，Client 不运行转场 FSM，取代 RE-9 的自有显示驱动）、Q12（保留 `client_entity_draw_paused`，Host 每个 world 帧发送 paused 位与终结分支枚举），并新开 RE-10（Manager::Update 尾部非 Game 调用分类，至少音乐／SFX tick 须在显示推进根运行，待做）。同时采纳审阅建议：`Game+0x22E90` 即 HUD `_isVisible` 按 Q8 同步、诅咒同步 raw `Level+0xC`／`Game+0x25AC8`、SFX 回放 FrameDelay=0、Pα 由已安装 alpha 判定、“阶段 19”更正为 animation 19（MINECART）。见[修改方案](design/binary-state/client-display-delegation.md) 4.5、6.2—6.4、第 12—13 节；地图拾取图标的 Client 接法待定。未改代码，未测试。
+
+**2026-11-12 RE-7—RE-9 静态研究完成**：优先查本地 Wiki／REPENTOGON SDK 后补 J273 静态证据，完成[不可算值注入](design/binary-state/client-display-delegation/RE-7/README.md)、[音频／文字／演出](design/binary-state/client-display-delegation/RE-8/README.md)及[原生转场](design/binary-state/client-display-delegation/RE-9/README.md)。补齐天使占比 XMM0 ABI、药丸反识别、混合 setter 限制、音效实际来源作用域、文字原生容器和转场显示拆分；完整转场 Start／Update 继续拦截。仅文档，未改运行代码／wire／版本，未测试；原生 adapter 与第15步验收仍待实施。
+
 **2026-11-12 RE-5／RE-6 静态研究完成**：[原生 Render 覆盖与已知写集](design/binary-state/client-display-delegation/RE-5/README.md)确认 Minimap／ItemOverlay 已在 Game::Render 树内；定稿本地缓存与同步字段的暂存恢复／漂移范围，并补正旧 Tear 偏移误记。RE-6 已并入 RE-5；其余写集交第 15 步 E28。本次只补静态资料及布局源说明，未改 wire／版本／运行代码，未测试。
 
 **2026-11-12 二进制状态同步方向调整，仅文档**：[客机显示委托与按需采集修改方案](design/binary-state/client-display-delegation.md)：Host 只采集客机需要的状态，Client 包装原生 `Game::Render` 本地显示，帧号用方案B。
 
-- Q1—Q4 已按推荐确认；同日追加 Q5（切房走原生过渡）、Q6（放行回调分派）、Q7（音效按来源去重）和 Q8（内联显示标量同步当前值）。RE-3—RE-5 审阅后追加 Q9（同步当前房间描述的 SpawnSeed）和 Q10（保留 `client_entity_draw_projectile` 作恢复作用域），并补入关闭插值时的相机节奏与验收 E40。
+- Q1—Q4 已按推荐确认；同日追加 Q5（切房走原生过渡）、Q6（放行回调分派）、Q7（音效按来源去重）和 Q8（内联显示标量同步当前值）。RE-3—RE-5 审阅后追加 Q9（同步当前房间描述的 SpawnSeed）和 Q10（保留 `client_entity_draw_projectile` 作恢复作用域），并补入关闭插值时的相机节奏与验收 E40。RE-1 补遗与 RE-7—RE-9 审阅后追加 Q11（转场状态同步 Host 当前值）和 Q12（paused 位与终结分支枚举），新开 RE-10（Manager 尾部调用分类，待做）。
 - 改动前的快照为 `3977b46e`。
 - [规范第 17 节](refactor/project-conventions.md#17-原生二进制状态同步重构)、`AGENTS.md`、总计划、第 0—15 步文档和被取代的文档已修订或加标注。
-- 未改运行代码，未运行测试。逆向 RE-1—RE-4 原任务及收窄后的 RE-5／RE-6 已完成静态研究，见[逆向成果](design/binary-state/client-display-delegation/README.md)；显示推进根改挂 Manager 边界（方案 4.1、6.2）。剩余 RE-1 补遗（提前返回分支表）、RE-7—RE-9；RE-6 已并入 RE-5，其余写集交第 15 步 E28，借鉴 isaac-lan 排除的点见方案 6.1。
+- 未改运行代码，未运行测试。逆向 RE-1—RE-9 及 RE-1 新增补遗均已完成本轮静态研究，见[逆向成果](design/binary-state/client-display-delegation/README.md)；显示推进根改挂 Manager 边界（方案 4.1、6.2），转场保留具名显示拆分（后被 Q11 取代：转场字段同步当前值，Client 不运行转场 FSM）。RE-6 已并入 RE-5，其余写集交第 15 步 E28，借鉴 isaac-lan 排除的点见方案 6.1。采集／布局收缩／原生安装尚待对应实施步骤。
 
 **2026-11-12 HUD布局与纯值模块，版本70**：[实施说明](design/binary-state/hud-local-implementation.md)记录正式布局迁移、独立显示时钟、普通／特殊图标边界与Client纯值模块。正常采集、正式发布和原生资源／绘制尚未接通；产品DLL纯编译／链接完成，无测试，第15步唯一统一验收。
 

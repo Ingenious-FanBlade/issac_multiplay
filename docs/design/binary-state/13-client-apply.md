@@ -207,7 +207,7 @@ Client 的原生对象可能偏离影子状态。Client 不运行原生 Update�
 
 ### 13.8 显示边界、帧号写入、注入与事件播放（2026-11-12）
 
-依据：用户 2026-11-12 的决定和[修改方案](client-display-delegation.md)。逆向任务 RE-1—RE-7 归入本步，RE-8 归入第 8 步。
+依据：用户 2026-11-12 的决定和[修改方案](client-display-delegation.md)。逆向任务 RE-1—RE-7 归入本步，RE-8 归入第 8 步。RE-10（2026-11-12 审阅新开，待做）归入本步，须在接线显示推进根之前完成。
 
 **显示边界**：
 
@@ -217,9 +217,12 @@ Client 的原生对象可能偏离影子状态。Client 不运行原生 Update�
 - **RE-1／RE-3／RE-4 核定的阶段（2026-11-12）**：
   - Client 忙时 `ClientManagerBoundary` 整体跳过 Manager 原链，`Game::Update` 不会被调用，`client_game_update` 只作为拦截守卫。相机也在 Manager 尾部。
   - 显示推进根挂在 Manager 边界、world 安装之后。本机 `Manager+0x4A8B8` 由它推进（RE-3）。
-  - **30Hz 批次**（本机 Manager 偶数帧）：`HUD::Update` → 转场活跃时 `RoomTransition::Update` → `Minimap::Update` → `HUD::PostUpdate` 后结束；普通分支为 `Minimap::Update`（必要时 `Minimap::Refresh`）→ 自有 renderEL 全排 → FXLayers `0x56BF40(false)` → Room 内 ANM2 动画 → `HUD::PostUpdate`。`PlayerHUD::Update` 嵌在 PostUpdate 内，外层不再单独调用。
-  - **相机阶段**（每个 Manager 帧）：按本机 CameraStyle 二选一，2 调 `UpdateDrag2`，其他调 `UpdateUltrasmooth(本机半帧奇偶)`。本机关闭插值（`Manager+0x2A1FB` 为 false）时，原生 Manager 在奇数帧写 M+1 后提前返回（`0x92E441`），Client 按同一条件跳过这类奇数帧的相机阶段（RE-3 审阅后补充）。
-  - 暂停、演出、GameOver 等提前返回分支待 RE-1 补遗的分支表，补齐前不按普通分支外推。同一补遗另查本机关闭插值的奇数帧原生是否仍调用 Render。
+  - **30Hz 批次**（本机 Manager 偶数帧）：`HUD::Update` → 转场活跃时运行具名转场显示拆分 → `Minimap::Update` → `HUD::PostUpdate` 后结束；普通分支为 `Minimap::Update`（必要时 `Minimap::Refresh`）→ 自有 renderEL 全排 → FXLayers `0x56BF40(false)` → Room 内 ANM2 动画 → `HUD::PostUpdate`。`PlayerHUD::Update` 嵌在 PostUpdate 内，外层不再单独调用。RE-9已核完整RoomTransition::Update含直接玩法写入，拆分接通前保持拦截。**Q11 后**转场分支不再运行“具名转场显示拆分”，改为本地显示工作：Boss 标记非零时推进 versus／肖像 ANM2，按已安装 mode2／3 提出 HUD 刷新请求（`Game+0x22E94/+0x22E9C`=2）；mode／counter／progress 随 world 安装，`RoomTransition::Update` 完整拦截。
+  - **相机阶段**（每个 Manager 帧有调度机会）：按本机 CameraStyle 二选一，2 调 `UpdateDrag2`，其他调 `UpdateUltrasmooth(本机半帧奇偶)`。本机关闭插值（`Manager+0x2A1FB` 为 false）且更新前 M 为奇数时先快返，不运行相机；一般写 M+1，但 `Manager+0x4A8C0!=0 && +0x4A8C1==0` 时保持 M。主循环随后仍调用 Manager::Render，绘制体按本机 `I || (Mpost&1)` 判定，保持奇数的例外仍可绘制，见[RE-1 补遗真值表](client-display-delegation/RE-1/manager-render-cadence.md)。
+  - **RE-1 补遗静态完成**：[提前返回分支表](client-display-delegation/RE-1/early-return-branches.md)已列优先级和 U／P／M 调用，不能以一个 paused 选择普通分支。fade 前段的 Pα 可与终结分支的 P 同次出现；Q8 不运行生产段，第 13 步明确其当前显示资格／合并策略。[条件需求交接](client-display-delegation/RE-1/branch-demand-handoff.md)列出需在第 7／8 步落实的窄谓词；旧 UNKNOWN owner 占位和 D0.paused 不算新方案已经接通。
+  - **终结分支与暂停（Q12，2026-11-12 用户决定）**：Client 按 Host 每个 world 帧发送的终结分支枚举选 30Hz 批次序列，不在本机重算分支谓词；paused 位供相机阶段（Host 暂停时跳过，转场 mode 非零且 animation `Game+0x1B858`=19 MINECART 例外）和保留的 `client_entity_draw_paused`（向 IsPaused 的 53 个原生调用者返回该位）。本地菜单／控制台阻断与 Host 分支的合并由本步实施时确定并写入本节。
+  - **Pα**：已安装 primary alpha `Game+0x25B28 > 0` 时在 Pα 位置调用 `HUD::PostUpdate`，同批可与终结分支的 P 各调一次；alpha 恰在某 Host 帧归零的一帧差异按 Q4 接受。
+  - **Manager 尾部音频 tick（RE-10，待核）**：音乐逐帧 tick `0x7D7DA0`（原生 `0x92EB49`）与 `0x908340`（`0x92EB3E`，疑为 SFX tick）在显示推进根中按 Manager 尾部的位置运行，与相机同属每个 Manager 帧的尾部；其余约 50 个尾部调用按 RE-10 分类，分类前不新增放行。
   - 完整阶段表见[修改方案 6.2 节](client-display-delegation.md#62-显示推进的白名单与调用顺序re-1)的“J273 核定后的显示推进”。
 - `ItemOverlay::Update` 不进白名单：它会治疗玩家、切房，并在动画标记处放音效。全屏演出按状态同步，由原生 `ItemOverlay::Render` 绘制。
 - 只有某项显示工作内联在玩法函数中、无法单独调用时，才对那个函数改用拆分。`Game::Update`／`Room::Update` 的内联显示标量不拆分，按 Q8 在安装点写入 Host 当前值（见下方安装点顺序和修改方案 4.6）。
@@ -236,7 +239,9 @@ Client 的原生对象可能偏离影子状态。Client 不运行原生 Update�
 
 1. 把 `Game+0x25A70` 写成帧头的 game_frame；
 2. 按新帧号还原 Effect Timeout 等计数；
-3. 写入注入值，顺序为库存与 Player → 诅咒 → 其余注入值（修改方案 6.3）。
+3. 写入注入值，顺序为库存与 Player → 诅咒 → 其余注入值（修改方案 6.3）。（2026-11-12 审阅后诅咒改为 raw `Level+0xC`／`Game+0x25AC8` 随 world 安装，不再是注入步骤；其余顺序不变。）
+
+**转场安装（Q11，2026-11-12 追加）**：RoomTransition 的 mode、counter、duration、progress、direction、roomIndex、dimension、animation、Boss 标记与 world 同一事务安装。若即将安装的 world 帧当前房间身份与已安装 world 不同，先用仍完整的旧 world 捕获旧 surface（`Room::PreRender`→`Room::Render` 写 `+0x28`），再安装；提交成功后捕获新 surface（`+0x30`），并按本地相机与两房几何计算 `+0x22C/+0x230`。不调用完整 ChangeRoom。HUD 可见性 `Game+0x22E90` 作为 Q8 标量随同安装。
 
 **内联显示标量（Q8，2026-11-12 追加）**：
 
@@ -252,26 +257,30 @@ Client 的原生对象可能偏离影子状态。Client 不运行原生 Update�
 - 只有 Client 上没有对应存储，或者值依赖 Host 专属状态时，才挂 getter 并返回已同步的值。
 - 同一个值不能同时由字段和 getter 两处提供。
 - 各值的方式与 J273 现状见[修改方案 6.3 节](client-display-delegation.md#63-不可算值的注入方式re-7)。getter hook 只在 Client 会话期间返回同步值。
+- **RE-7静态交接（2026-11-12）**：[注入表](client-display-delegation/RE-7/injection-table.md)已核天使占比`0x7EF590`经XMM0返回，不能用普通float ABI；药丸识别15B在ItemPool+7E0，官方已有UnidentifyPill Lua扩展，正式安装复用其有界C++写法。诅咒使用Host有效值（审阅后改为同步 raw `Level+0xC`／`Game+0x25AC8`，原生 getter 在 Client 上即可算出相同有效值，见修改方案 6.3），Add／Remove混合setter不作任意最终值安装；价格保留Host最终Price／Sprite，不调用含Random／Spawn的SetPrice。地图摘要、程序道具配置／资源及进度查询的具体owner接线仍待实施，不能因来源已定位就宣称Client已支持。地图拾取图标的 Client 接法（镜像最小 SavedEntities 条目，或构建后修补缓存）在本步实施前选定。
 
 **事件播放**：
 
 - 事件队列由第 12 步接收。Client 在帧号到达事件帧时，在主线程播放音效、音乐和文字。
 - 落后超过限定帧数的纯外观事件直接丢弃。
 - 事件只驱动本地播放，不修改已同步状态。
-- **表现状态**（2026-11-12 追加）：房间音乐请求、正在播放的循环音效集合、各控制器的 ItemOverlay 状态按状态安装，不走事件。音乐按请求调用原生，并拦截 Client 房间初始化里的原生选曲；循环音效按集合启停；ItemOverlay 在 id 变化时先调原生 `Show`，再写状态。
+- **表现状态**（2026-11-12 追加，RE-8核对）：房间音乐请求、循环音效集合、各控制器ItemOverlay按状态安装。音乐按请求版本／播放代次调用原生，含Queue，不在未变状态包上重播；Client房间／Boss自选曲保持隔离。循环声保留实例／显式Stop与用途，IsPlaying不是完整baseline。ItemOverlay在**新演出代次**先Show再装state／delay／姿态，相同id重播也处理；包含id45的第二份MegaMush Sprite，Player引用交原生owner。
 - **音效去重（Q7）**：Client 放行的原生显示代码发出的音效直接本地播放；Host 只把显示作用域外的玩法路径音效作为事件发送。回放事件调用 `SFXManager::Play` 时带“回放”标志。来源判定见[修改方案 6.4 节](client-display-delegation.md#64-事件与状态re-8)。
 - 道具横幅和 fortune 按本地化键在本机语言下解析。
+- **RE-8静态交接**：[采集与载荷](client-display-delegation/RE-8/sources-and-payloads.md)及[Q7作用域](client-display-delegation/RE-8/audio-scopes.md)已完成；fortune用兼容MSVC list构造，不能强转网络数组。回放标志位于C/S主线程栈式上下文，不给原生Play增加参数；FrameDelay是重播间隔。RoomTransition混合根不整体进入显示作用域，只标记Client实际执行的显示子段，其他声音来源继续正常采集。**审阅后追加**：回放调用 Play 时 FrameDelay 传 0（节流 `0x907D2F—0x907D5A` 只在 `now < next` 且 `next ≥ 0` 时跳过）；Q11 后 Client 不运行 Start／Update 的任何部分，转场内三个声音点全部作为 Host 事件；BossReplay 隔离选曲 `0x823D8C` 与环境声清除 `0x823D9D`，`Game+0x22E90` 写入由下一次 Q8 安装覆盖。
 
 **原生切房过渡（Q5）**：
 
-- 转场事件到达后，Client 用 Host 参数调用原生转场启动入口回放，不重新选路。
-- `RoomTransition::Update` 由“显示推进”调用。
-- `RoomTransition::ChangeRoom` 拦截原函数，改由 NativeBuild／NativeApply 安装 Host 的新房间目标。目标未就绪时，转场停在换房点。
+- 转场事件关联Host接受后的启动与真实换房后的最终目标；Start=`0x823990`的五参数是请求来源，Maze仍可能在Level里重选，不能当最终world身份。
+- 原生Start／Update均为混合根，保持拦截；~~显示推进在相同顺序位置运行具名显示拆分，复用原生对象／Render／本地surface。窄显示驱动是RE-9实施建议，尚未接线。~~
+- ~~`RoomTransition::ChangeRoom`完整原函数继续拦截，NativeBuild／NativeApply安装同token完整目标。目标未就绪时，在上层显示阶段冻结mode／counter／progress，不让void ChangeRoom空返回后原FSM继续；新surface只在目标提交后捕获。~~
+- **Q11（2026-11-12 用户决定，取代上两条中的拆分与冻结）**：Client 不运行 Start／Update，也不写自有 FSM 驱动。转场显示字段随 world 原子安装（见上方“转场安装”），新房间 world 晚到时画面天然停在旧房与 Host 当前进度。`RoomTransition::ChangeRoom` 仍拦截，只作守卫；新房间目标由 NativeBuild／NativeApply 安装，新 surface 在提交后捕获。Client 本地只做 surface 捕获、滚动补偿、versus／肖像 ANM2、HUD 刷新请求和原生 Render。
 - 细节与 RE-9 见[修改方案 4.5 节](client-display-delegation.md#45-原生切房过渡q5)。
+- [RE-9五项静态成果](client-display-delegation/RE-9/README.md)已记录Start／Update／Boss完成／ChangeRoom玩法写入、最终目标关联、resize／Render写集及E39恢复事项。完整RoomInit、额外RoomUpdate、Player模拟、进房选曲、进度与显式present不因原生过渡方向而获得执行资格。
 
 **回调分派（Q6）**：Client 放行路径上的 Lua 回调分派一律放行，不逐个白名单。仍拦截的玩法路径不运行，其中的回调自然不触发。
 
-**失败方式**：见[修改方案](client-display-delegation.md)第 12 节第 1—9、13—37 条。
+**失败方式**：见[修改方案](client-display-delegation.md)第 12 节第 1—9、13—37 条，以及审阅后追加的第 44—65 条。
 
 ## 改动范围
 

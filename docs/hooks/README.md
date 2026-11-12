@@ -1,3 +1,7 @@
+**2026-11-12 RE-7—RE-9 静态补充**：[注入来源](../design/binary-state/client-display-delegation/RE-7/README.md)登记天使占比 `VA 0x7EF590` 的 XMM0 返回 ABI 及混合 setter；[音频／文字／演出](../design/binary-state/client-display-delegation/RE-8/README.md)登记采集／回放入口和实际显示作用域；[原生转场](../design/binary-state/client-display-delegation/RE-9/README.md)定位 Start `VA 0x823990`（thiscall、五栈参数、retn 0x14），确认 Start／Update 需具名显示拆分。仅文档与静态取证，未安装新 Hook／改机器索引／运行测试，统一清单接线留后续实施。
+
+**2026-11-12 审阅后（Q11／Q12／RE-10）**：Q11 后 Client 不运行 RoomTransition Start／Update，`client_door_update` 与 ChangeRoom 拦截只作守卫，不再拆分；Q12 保留 `client_entity_draw_paused`（`Game::IsPaused` `VA 0x6F92A0`，53 个原生调用者，含 `Room::Render` 的 `0x807775`／`0x807CB0`），改为返回 Host 同步的 paused 位；RE-10 待核 Manager::Update 尾部的音乐 tick `VA 0x7D7DA0`（caller `0x92EB49`）与 `VA 0x908340`（caller `0x92EB3E`，疑为 SFX tick）。SFX 节流位于 `0x907D2F—0x907D5A`，回放传 FrameDelay=0。见[修改方案 9.1](../design/binary-state/client-display-delegation.md#91-hook)。
+
 > **2026-11-10 当前范围**：[原生二进制重构](../design/binary-state/README.md)先跑通原版内容，官方 REPENTOGON／J273 路线保持；第三方 Mod／StageAPI 适配已迁至[独立后续方案](../design/mod-adaptation.md)，不作为当前实现或验收条件。下方历史点位与观察保留原时点。
 
 二进制布局版本43（2026-11-09）：[NPC受控UI来源闭合](../design/binary-state/npc-control-ui-evidence.md)以Manager.zhl／NetplayManager.zhl／官方Player.IsLocalPlayer确认8E7550身份，纠正本地设备解释。源仅取NPC F1C哨兵并输出0/2；记录两处UI及Spawner淡出整段绕行要求，没有安装Hook或触及原版Online运行状态。

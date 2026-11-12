@@ -2,6 +2,8 @@
 
 返回：[成果总览](README.md)。本文件的地址均为 J273 VA；`J273_STATIC` 与后续 `DESIGN` 调度分开。
 
+> **2026-11-12 补遗完成后的口径**：完整优先级、条件和各分支调用见[提前返回分支表](early-return-branches.md)；关闭插值的相机快返与 Render 的 Mpost 判定见[绘制节拍](manager-render-cadence.md)。本文件原提案中“本地推进内联标量”的建议已被 Q8 取代；排序使用自有 FullSort，原生 render_sort 保持拒绝。下文原始调用与副作用事实保留。
+
 ## 1. 原生实际顺序
 
 ### 1.1 普通主更新
@@ -55,7 +57,7 @@ return
 
 1. ManagerFrame 偶数时 `0x92E911` 调 `Game::Update`；奇数条件分支 `0x92E921` 调 Odd helper。
 2. `0x92E926—0x92E946` 取本地 `Manager+0x4A8B8 & 1`，并重新从当前 `Game.Room+0x11F8` 取 Camera。
-3. `0x92E94A→Game::IsPaused 0x6F92A0`；暂停时通常跳过相机，RoomTransition 的特定状态 `Game+0x1B858 == 19` 是原生例外。
+3. `0x92E94A→Game::IsPaused 0x6F92A0`；暂停时通常跳过相机，RoomTransition 的特定状态 `Game+0x1B858 == 19` 是原生例外（2026-11-12 审阅更正：该字段是 RoomTransition `+0x1C` animation，19 为 MINECART）。
 4. `Options.cameraStyle == 2`：`0x92E980→UpdateDrag2`；否则 `0x92E998→UpdateUltrasmooth(parity)`。
 5. `UpdateUltrasmooth` 后总在 `0x92E99D` 清 `Camera+0x8C`；Drag 分支只有 parity 非零时走此清除点。
 

@@ -31,6 +31,10 @@
 
 **2026-11-10 各域交接统一整理**：现行入口为15.5“各域统一验收交接清单”，按来源、特殊约束、版本依赖与待落实项登记全部相关域。本次静态审阅的布局源为57；布局入源、运行接线和第15步验收分别说明。本次只改本文档，不修改实现／布局源／生成表，不构建、不运行测试。
 
+**2026-11-12 RE-7—RE-9静态交接**：[RE-7](client-display-delegation/RE-7/README.md)、[RE-8](client-display-delegation/RE-8/README.md)、[RE-9](client-display-delegation/RE-9/README.md)仅完成来源／ABI／风险与实施交接，没有执行验收。E37补同曲重播／Queue、同id新演出、fortune list／跨语言、循环多实例与world Stop／设备失效区分、转场显示／玩法声音来源；E38补天使XMM0 ABI、药丸识别往返、有效诅咒／混合setter隔离、Host最终多人价格、地图摘要／挑战32与程序道具资源；E39补Start请求与Maze最终目的地关联、三个换房点、目标迟到时上层冻结、Boss完成直接写入隔离、resize丢失旧surface内容、断线／连续转场和像素化RenderTarget正常退休。具体失败方式见各成果，不提前测试。
+
+**2026-11-12 RE-1补遗与RE-7—RE-9审阅后（Q11／Q12／RE-10）**：按[修改方案](client-display-delegation.md)第 10 节修订 E36—E39，失败方式见修改方案第 12 节第 44—65 条。E36 补 Host 终结分支枚举选序列、paused 位经 `client_entity_draw_paused` 供给 IsPaused 的 53 个调用者、相机 MINECART（animation 19）例外、本地菜单合并、Pα 按已安装 alpha；E37 补 Manager 尾部音乐／SFX tick（RE-10）、回放 FrameDelay=0、转场声音全部经事件；E38 补 raw 诅咒同步后有效 getter 与直接读 raw 的消费者一致；E39 按 Q11 改为转场字段随 world 原子安装、旧 surface 在新房 world 安装前捕获、新 surface 在安装后捕获、新房晚到时停在旧房与 Host 当前进度、滚动补偿本地计算、Boss 结束后 HUD 可见性一致。上文 E39 的“目标迟到时上层冻结”“Boss完成直接写入隔离”由 Q11 取代：Client 不运行 FSM，不需要冻结或隔离。仅修订文档，未测试。
+
 ## 目标
 
 本步做三件事：
@@ -98,10 +102,10 @@
 | E33 | **2026-11-12 修订**：帧号方案B：静止场景中 Host 每次采集仍发帧，Client 的 `Game+0x25A70` 随帧头 game_frame 前进；构造 record_count=0 的空帧，确认它被接受、确认并推进帧号（不再借助屏蔽 D0）。<br>原条目：展示时钟与空帧（第 11 步 11.3、第 13 步 13.6）：静止场景中 Host 每次采集仍发出帧，Client 展示时钟随帧头 game_frame 前进。另在 E2E 构建中临时屏蔽 D0，构造 record_count=0 的空帧，确认它被接受、确认并推进时钟 |
 | E34 | **2026-11-12 修订**：帧号方案B：锚点 `+0x328`、`+0x11F0` 直接安装 Host 原值，Client 的 FrameCount 和 `Room:GetFrameCount()` 与 Host 一致；Effect Timeout 等计数在安装点按 `Game+0x25A70` 还原；加测跳帧、停顿和安装失败时帧号不前进。<br>原条目：帧锚点（第 3、4、7 步）：静止和移动场景中，Client 的 Entity FrameCount（`+0x328`）、`Room:GetFrameCount()`（`+0x11F0`）、Effect Timeout 按展示时钟换算后与 Host 一致；仅在已核的线性计时区间要求锚点不变；Effect负值／停走／101双减／141刷新等按真实A变化重发并同帧还原，静止位置不保证锚点不变 |
 | E35（2026-11-12 删除） | D0 与随机 alpha 退役，本条不再执行。<br>原条目：绘制上下文与随机结果（第8步8.2.1）：5B D0仅Manager相位／paused，与正常Host结果批次及真实world／presentation修订绑定；逐subject/use/shape/pass/重复调用的alpha／资格不按Client全局顺序分配，两个seed／shift／guard不下行。覆盖暂停／重复／不同成员顺序／可见分支／递归、缺源不填0、旧资源／world拒绝、Pickup临时Sprite与Familiar颜色栈在CPU消费后完整恢复 |
-| E36（2026-11-12 新增） | 显示边界隔离：放行的显示推进和原生 Render 不产生玩法写入、玩法随机推进、保存或解锁；默认拒绝入口的计数为 0 或已逐项解释（第 13 步 13.8）；Q6 放行的回调分派不计入拒绝入口，只检查它们没有引起玩法写入或持久副作用。显示推进由 Manager 边界调度（同日 RE-1／RE-3 后追加）：30Hz 批次与相机阶段在 Client 上实际运行，本机 Manager 帧前进；暂停、演出等提前返回分支按分支表执行，不运行原生不会运行的显示更新 |
-| E37（2026-11-12 新增） | 事件队列：顺序、去重、有界、溢出计数、过期丢弃，重连后不重放旧事件；事件引用的成员已移除或资源未就绪时安全跳过。表现状态：音乐、循环音效和全屏演出（ItemOverlay）在丢包、切房和重连后收敛到 Host。音效去重（Q7）：显示代码的音效（如 HUD 滑入 252）只在 Client 本地响一次，玩法音效只经事件响一次，不双响也不缺失。道具横幅和 fortune 在两端语言不同时按本机语言显示 |
-| E38（2026-11-12 新增） | 注入值（修改方案 6.3）：恶魔房／天使房几率、药丸效果与识别、诅咒、贪婪波次、价格（含 Keeper）、故障道具和地图拾取图标与 Host 一致，变化后收敛；同一个值不会同时由字段和 getter 两处提供；getter hook 在 Client 会话外不生效 |
-| E39（2026-11-12 新增） | 原生切房过渡（Q5，修改方案 4.5）：各种门方向、动画与维度按 Host 参数回放，不重新选路、不消耗随机；目标未就绪时停在换房点，不显示半套房间；换房后背景、门与相机正确；连续快速切房、转场中断线与恢复不会卡死 |
+| E36（2026-11-12 新增） | 显示边界隔离：放行的显示推进和原生 Render 不产生玩法写入、玩法随机推进、保存或解锁；默认拒绝入口的计数为 0 或已逐项解释（第 13 步 13.8）；Q6 放行的回调分派不计入拒绝入口，只检查它们没有引起玩法写入或持久副作用。显示推进由 Manager 边界调度（同日 RE-1／RE-3 后追加）：30Hz 批次与相机阶段在 Client 上实际运行，本机 Manager 帧前进；暂停、演出等提前返回分支按分支表执行，不运行原生不会运行的显示更新。Q12（审阅后追加）：Client 按 Host 终结分支枚举选序列，覆盖 GameOver、Leaderboard、StageTransition、ItemOverlay＋暂停组合、Prompt、次级 fade、PauseScreen；Host 暂停时 IsPaused 的 53 个调用者（含 `Room::Render`）经 `client_entity_draw_paused` 读到同步 paused 位；相机按 paused 位与 MINECART 例外运行；本地菜单合并符合第 13 步；Pα 只在已安装 primary alpha >0 时调用 |
+| E37（2026-11-12 新增） | 事件队列：顺序、去重、有界、溢出计数、过期丢弃，重连后不重放旧事件；事件引用的成员已移除或资源未就绪时安全跳过。表现状态：音乐、循环音效和全屏演出（ItemOverlay）在丢包、切房和重连后收敛到 Host。音效去重（Q7）：显示代码的音效（如 HUD 滑入 252）只在 Client 本地响一次，玩法音效只经事件响一次，不双响也不缺失。道具横幅和 fortune 在两端语言不同时按本机语言显示。审阅后追加：Manager 尾部音乐／SFX tick（RE-10）在 Client 运行，音乐淡入淡出、Crossfade、Queue 能走完；回放以 FrameDelay=0 播放，短间隔的同 id Host 事件不被本机节流；转场内 608／609、sound 1、sound 214 各经事件只响一次（Q11） |
+| E38（2026-11-12 新增） | 注入值（修改方案 6.3）：恶魔房／天使房几率、药丸效果与识别、诅咒、贪婪波次、价格（含 Keeper）、故障道具和地图拾取图标与 Host 一致，变化后收敛；同一个值不会同时由字段和 getter 两处提供；getter hook 在 Client 会话外不生效。审阅后追加：诅咒按 raw `Level+0xC`／`Game+0x25AC8` 同步后，原生有效 getter 与直接读 raw 的消费者都与 Host 一致，含种子效果与挑战强制诅咒 |
+| E39（2026-11-12 新增） | 原生切房过渡（Q5，修改方案 4.5）：各种门方向、动画与维度按 Host 参数回放，不重新选路、不消耗随机；目标未就绪时停在换房点，不显示半套房间；换房后背景、门与相机正确；连续快速切房、转场中断线与恢复不会卡死。Q11（审阅后修订）：转场字段随 world 帧原子安装，Client 不运行 Start／Update；旧 surface 在新房 world 安装前捕获、新 surface 在安装后捕获，mode1 与换房同帧发生时也不缺旧画面；新房 world 晚到时停在旧房与 Host 当前进度；滚动补偿按本地相机计算；Boss 开场 versus／肖像正常推进，结束后 HUD 可见性与 Host 一致；同房转场（animation 11／16）、Hourglass、MINECART 与活跃转场中 resize 均有明确结果 |
 | E40（2026-11-12 新增） | 帧号消费者（[RE-4 第15步覆盖](client-display-delegation/RE-4/handling.md#5-第13步修改与第15步覆盖)，修改方案第 10 节）：HUD 周期刷新在 F 连续、29→31、跨多个周期和停在 30 时不漏、不重复重置，type 2 不被覆盖；Room 年龄 29→31、停在 30 和晚加入（年龄已超过 30）时历史画面捕获不崩溃，当前 SpawnSeed 非零且等于 Host 值（Q9）；同一 M 换 world 后平均位置不读旧目标；StatHUD 冷绑定后属性值正确、不出虚假变化提示；F 相位与 M 相位各按来源工作；F 回退或 world 重建后清除旧的去重与缓存资格；本机关闭插值时相机按原生节奏运行。另核 Projectile 每次 Render 后 PositionOffset 逐位不变（Q10） |
 
 ### 15.4 执行方式

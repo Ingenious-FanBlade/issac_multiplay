@@ -18,6 +18,9 @@
 - 历史事实、失败记录和 UNKNOWN 全部照实保留。旧方案中被取代的部分只加标注，不删除。
 - 2026-11-12 RE-1、RE-2 静态成果完成后，按审阅意见修订 2.2、4.1—4.3、4.5、5、6、6.1、6.2、7—10、12—14 节，新增 4.6（Q8）。仍未修改代码，未运行测试。
 - 同日 RE-3—RE-5 审阅后，用户决定同步 RoomDescriptor SpawnSeed、保留 `client_entity_draw_projectile`；并补入关闭插值时的相机节奏、RE-4 的验收覆盖（E40）、Q8 换算值的安装开销，以及 `0x703E40` 的归属。
+- 同日 RE-1 补遗完成：补齐提前返回分支、条件需求交接及关闭插值的 Update→Render 节拍；仍仅修改文档，未实施／未测试。
+- 同日 RE-7—RE-9 静态成果完成：补齐注入 ABI／限制、音频文字与演出来源、转场阶段和具名显示拆分交接；采集／布局／原生 adapter 尚未实施，未测试。
+- 同日审阅 RE-1 补遗与 RE-7—RE-9（IDA J273 复核）后，用户决定：Q11 转场按 Host 当前值同步 RoomTransition 显示字段，取代 RE-9 的自有 FSM 显示驱动（4.5）；Q12 保留 `client_entity_draw_paused`，Host 每个 world 帧发送 paused 位和终结分支枚举（6.2）；新开 RE-10 分类 Manager::Update 尾部非 Game 调用（至少音乐／SFX 逐帧 tick）。同时按审阅建议写入：`Game+0x22E90` 即 `HUD._isVisible`，按 Q8 同步当前值；诅咒同步 raw 字段 `Level+0xC` 与 `Game+0x25AC8`，不再注入有效值；回放 SFX 时 FrameDelay 置 0；Pα 由已安装的 primary alpha 判定。仍仅修改文档，未实施，未测试。
 
 ## 1. 背景
 
@@ -210,9 +213,10 @@
   - Client 忙时，`ClientManagerBoundary`（`mod/src/game/client/session/client.cpp:575`）整体跳过原生 Manager 更新，`Game::Update` 根本不会被调用。`client_game_update` 继续作为拦截守卫保留。
   - 相机在原生 Manager 更新的尾部，不在 `Game::Update` 里（RE-1）。所以“显示推进”根不挂在 `Game::Update` 拦截点，改挂在 Manager 边界内、world 安装（`scene.Pump`）之后，按两档调度，顺序见 6.2：
     - **30Hz 批次**：本机 Manager 帧为偶数时运行，对应原生 `Game::Update` 的节奏。不等 world 帧到达；没有新 world 帧时 GameFrame 不变（第 3 节）。
-    - **相机阶段**：每个 Manager 帧都运行，对应原生 Manager 尾部。例外：本机关闭插值（`OptionsConfig._enableInterpolation`，`Manager+0x2A1FB`）时，原生 Manager 在奇数帧写 M+1 后提前返回、不跑相机（`0x92E441`，含 `Manager+0x4A8C0/+0x4A8C1` 条件，见 [RE-3 原生时钟](client-display-delegation/RE-3/native-clocks.md#6-manager-的本地帧)）。Client 按同一条件跳过这类奇数帧的相机阶段，读本机设置，不用 Host 的。这类奇数帧原生是否也跳过 Render，并入 RE-1 补遗与提前返回分支表一起补查。
+    - **相机阶段**：每个 Manager 帧有调度机会，对应原生 Manager 尾部。本机关闭插值（`OptionsConfig._enableInterpolation`，`Manager+0x2A1FB`）且更新前 M 为奇数时先快返，不跑相机；通常在 `0x92E441` 写 M+1，但 `Manager+0x4A8C0!=0 && +0x4A8C1==0` 时不递增。Client 使用本机设置和同一控制条件。**RE-1 补遗已核**：主循环随后仍调用 Manager::Render；绘制体按更新后 M 判 `I || (Mpost&1)`，普通快返自增至偶数后跳过绘制，保持奇数的例外仍可绘制。详见[绘制节拍与真值表](client-display-delegation/RE-1/manager-render-cadence.md)，不以 Host 帧或更新前 M 代替绘制判断。
   - **RE-3 已核**：Manager 原链被跳过后，当前 Client 没有递增本机 `Manager+0x4A8B8`。显示推进 owner 须明确推进这个原生本地字段并保持相机／Render 相位顺序，不借用 Host 值，也不另设独立展示时钟，见[接线交接](client-display-delegation/RE-3/apply-contract.md#3-manager-的本地推进责任)。
   - 显示推进根按 RE-1／RE-2 白名单直接调用具名入口，帧号不会被本地递增，也与默认拒绝一致。
+  - **RE-10（2026-11-12 新开，待做）**：Manager 原链整体跳过时，Manager::Update 尾部的非 Game 调用（约 50 个 call site）也一并不运行。审阅已确认至少两项须在显示推进根中运行：音乐逐帧 tick `0x7D7DA0`（唯一调用者 `0x92EB49`）和 `0x908340`（`0x92EB3E` 调用，疑为 SFX tick）。其余调用由 RE-10 逐项分类为放行／拦截／本地，分类前不新增放行。
   - 只有某项显示工作内联在玩法函数里、无法单独调用时，才对那个函数改用拆分。`Game::Update`／`Room::Update` 的内联显示标量不拆分，按 Q8 同步当前值（4.6）。
 
 ### 4.2 包装原生 `Game::Render`
@@ -243,8 +247,8 @@
 | `EntityList::Update` | `client_entity_list` | 预期跳过 | 拦截 | — |
 | `Player::Update` | `client_player_update` | 预期跳过 | 拦截 | — |
 | OddHelper | `client_odd_helper` | 预期跳过 | 拦截 | — |
-| 门过渡 `RoomTransition::Update` | `client_door_update`／`client_door_nested` | 预期跳过 | 放行，由“显示推进”的过渡分支调用（原生顺序 `HUD::Update` → 本函数 → `Minimap::Update` → `HUD::PostUpdate` 后返回，RE-1）；其中的 `ChangeRoom` 改为 Client 构建（4.5） | RE-9 |
-| `RoomTransition::ChangeRoom` | 新增 | — | 拦截原函数，改为 Client 构建并应用 Host 的新房间目标（4.5） | RE-9 |
+| 门过渡 `RoomTransition::Update` | `client_door_update`／`client_door_nested` | 预期跳过 | 完整拦截，不拆分（Q11）：转场显示字段同步 Host 当前值，Client 只做旧／新 surface 捕获、滚动补偿、versus 动画和原生 Render（4.5）。~~拆分：在显示推进的同一顺序位置运行具名转场显示段~~（RE-9 建议，已被 Q11 取代） | [RE-9 已核](client-display-delegation/RE-9/README.md)、Q11 |
+| `RoomTransition::ChangeRoom` | 新增 | — | 拦截原函数，只作守卫：Client 不运行转场 FSM，新房间随 world 帧原子安装（4.5 Q11） | RE-9 |
 | Backdrop 装饰生成 | `client_backdrop_effects` `0x515890` | 预期跳过 | 继续拦截：它生成并更新真实 Entity，不是 FX 动画更新 | [RE-2 已核](client-display-delegation/RE-2/room-update.md#3-两个背景路径必须区分) |
 | FXLayers 显示更新 | 新增具名入口 `0x56BF40` | 不运行 | 资源／实际 roster 等依赖就绪后纳入“显示推进”，常规参数 false | [RE-2 已核](client-display-delegation/RE-2/room-update.md#2-fxlayers-的显示更新) |
 | `Room::Init` | `room_init` `0x3E8AD0` | 受控 | 拦截完整根，NativeBuild／NativeApply 复用已核显示资源子段；只拦 Spawn 不足以隔离副作用 | [RE-2 已核](client-display-delegation/RE-2/room-init.md) |
@@ -298,6 +302,8 @@
 
 依据：isaac-lan 的客机用 Host 已决定的参数回放原生转场（J460 `RoomTransition.Start`，五个参数：index、direction、animation、player、dimension）。它不调用会重新选路的 `Game::StartRoomTransition`，也跳过混乱诅咒分支，不消耗该分支的随机数。J273 中 RoomTransition 同样位于 `Game+0x1B83C`（tx-04-17 更新隔离），`RoomTransition::Update` 位于 `0x826430`。
 
+下面保留 Q5 最初的候选接法；第2／3／5项的直接调用及等待方式，实施时以本节末尾的 RE-9 静态核对修正为准，其中的自有显示驱动又被 Q11 取代（本节末尾）。
+
 1. **Host**：换房仍由 Host 原生完成。Host 在转场启动点采集上述参数，作为“转场”事件按序发出（2.3），并与新房间的 world 目标关联。
 2. **启动**：Client 在帧号到达事件帧时，用同一组参数调用原生转场启动入口回放，不重新选路。
 3. **推进与绘制**：
@@ -309,6 +315,23 @@
 5. **等待**：到换房点时，如果新房间的完整目标还没就绪，就让转场停在换房点，不再推进；就绪后再继续。不显示半套房间。
 6. **Boss 开场**：作为事件发送，Client 优先用 REPENTOGON 公开的 `RoomTransition.StartBossIntro` 启动（Q3）。
 7. **换层**：本决定只覆盖切房。换层是否同样回放原生 StageTransition，另行决定。
+
+**2026-11-12 RE-9 静态核对修正**：上面“调用启动入口／Update”描述的是原候选接法。J273 内部 Start 已定位为 `VA 0x823990 / RVA 0x423990`（ECX=this，五个32位栈参数，`retn 0x14`），但 Start 与 Update 都直接写 Player，Boss完成分支还写玩法保护计数；两者不能整根放行。现改为**具名显示拆分**，原生对象／Render和本地surface继续承担Q5显示，完整Game／Level／RoomInit与玩法部分保持拦截。Host采集接受后的启动，并在真实ChangeRoom完成后关联最终目标；Maze可能在Level里再次选路。目标未就绪时在上层显示阶段停住，不能让void ChangeRoom“空返回”后原FSM继续。窄显示驱动是实施建议，未新增用户决定，详见[原生阶段证据](client-display-delegation/RE-9/native-transition.md)与[等待／安装交接](client-display-delegation/RE-9/client-split-contract.md)。
+
+**Q11（2026-11-12 用户决定，取代上段的自有显示驱动建议及第2／3／5项）**：转场状态按 Q8 方式同步 Host 当前值，Client 不运行任何 RoomTransition Start／Update 代码，也不另写复现 FSM 的显示驱动。
+
+- **同步字段**（随 world 帧原子安装，RoomTransition 位于 `Game+0x1B83C`）：mode `+0`、counter `+4`、duration `+8`、progress `+0xC`、direction `+0x10`、roomIndex `+0x14`、dimension `+0x18`、animation `+0x1C`、Boss 标记 `+0x238`。`Game+0x1BB74`（转场 Player*）不上线，需要时按稳定成员身份在本机解析。surface strong pair `+0x28/+0x30`、versus ANM2 `+0x38`、肖像 map `+0x224`、滚动补偿 `+0x22C/+0x230`、`+0x234` 均为本地资源／本地计算，不同步。
+- **Client 本地工作**：
+  1. **旧 surface**：安装一个“当前房间身份与已安装 world 不同”的 world 帧前，用仍完整的旧 world 按原生 mode1 的方式（`Room::PreRender`→`Room::Render` 写入 `+0x28`）捕获旧画面。原生在 mode1 内捕获，但 Host 的 mode1 可在同一帧内转 mode3 并换房，Client 不一定看到“mode1＋旧房”的帧，所以捕获点放在安装事务之前，不依赖 mode 值。
+  2. **新 surface**：同一事务安装新房间 world、F／锚点／SpawnSeed／Q8 与注入后，按 ChangeRoom 尾部的方式（`0x826168`／`0x8261DC`）捕获新画面到 `+0x30`，不调用完整 ChangeRoom（它含旧房保存、额外 RoomUpdate、选曲和显式 SwapBuffers）。
+  3. **滚动补偿**：按已安装的 direction 与两房几何、本地 camera scroll 计算 `+0x22C/+0x230`，对应原生 Game::ChangeRoom 的补偿计算，不安装 Host 数值（分辨率、相机为本地）。
+  4. **versus／肖像**：Boss 标记非零时，30Hz 批次推进 versus ANM2 与肖像 map 动画（原生 mode2 `0x826AE0` 一段的显示部分）；mode、counter 与 Boss 标记的变化仍来自 Host。资源由具名 BossReplay 调 `StartBossIntro` 建立，其中的选曲 `0x823D8C`、环境声清除 `0x823D9D` 隔离；它对 `Game+0x22E90` 的写入在下一次安装时被同步的 HUD 可见性覆盖（6.4）。
+  5. **HUD 刷新请求**：原生共同尾部在 mode2／3 时写 `Game+0x22E94/+0x22E9C`（HUD `_hudRefreshType`／`_hudRefreshCountdown`）为 2。Client 在显示推进中按已安装 mode 本地提出同一请求，属于 RE-1 已定的本地刷新维护，不同步 HUD 内部计数。
+  6. **绘制**：`Game::Render` 照原生按 mode 二选一调用 `RoomTransition::Render`（`0x8273C0`），读已安装的 mode／animation／direction／progress 和本地 surface。
+- **换房点等待**：world 按帧原子安装，新房间的 world 帧到达前 Client 一直停在上一帧的“旧房＋Host 当前 mode／progress”，天然得到“停在换房点”，不需要拦截 void ChangeRoom 后冻结 FSM。`RoomTransition::ChangeRoom` hook 仍保留拦截，只作为守卫。
+- **音效**：Client 不运行 Start／Update，转场内的所有声音（Start `0x823CE1` 的 608／609、mode3 `0x826D79` 的 sound 1、mode4 `0x826FBA` 的 sound 214）都按 Q7 作为 Host 事件发送和回放。
+- **不变的部分**：完整 Game／Level／RoomInit、Player 姿态与可见性（Host 当前值随 Entity 同步）、进房选曲和 Boss 完成分支的 `Player+0x418` 写入都只在 Host 发生。Host 侧采集仍按 RE-9 关联转场序号与最终目标，供中途连接、事件幂等和 resize 恢复使用。
+- 第 1 节 RE-9 的事件／目标关联、resize 与断线失败方式仍适用；`client-split-contract.md` 第 2—3 节的自有驱动步骤由本决定取代，第 2 节“只 hook ChangeRoom 不够”的结论仍成立（Client 不运行 FSM，自然不触发）。
 
 ### 4.6 内联显示标量（Q8）
 
@@ -334,6 +357,8 @@
 | Game | 眩晕 | current `+0x669A0` |
 | Game | Retrovision | `+0x25F58` 倒计时、`+0x25F5C` 总时间 |
 | Game | fade 与开场遮罩 | primary alpha `+0x25B28`、secondary `+0x25B10`。控制值 `+0x25B34` 只作为 Host 生命周期结果，不在 Client 驱动退出、存档或换局 |
+| Game（2026-11-12 审阅追加） | HUD 可见性 | `+0x22E90` 即 HUD `_isVisible`（HUD 位于 `Game+0x1D9AC`，字段 `+0x54E4`，`HUD.zhl:66`），1 字节。原生由 StartBossIntro 清 0、Boss 完成分支置 1；Client 安装 Host 当前值，具名 BossReplay 的本地写入在下一次安装时被覆盖（6.4） |
+| RoomTransition（Q11） | 转场状态 | `Game+0x1B83C` 起 mode／counter／duration／progress／direction／roomIndex／dimension／animation 与 Boss 标记 `+0x238`；surface、versus、滚动补偿为本地（4.5） |
 | Room（RE-2） | 水色过渡 | 四个 KColor 端点、`+0x7294` duration、`+0x7298` countdown |
 | Room | 冲击波 A／B | `+0x70C4`、`+0x70E0` 两组的 count、max、radius 等 |
 | Room | 水量与熔岩 | `+0x7240` waterAmount、`+0x7740` 熔岩强度 |
@@ -373,12 +398,16 @@
 | Entity 子类 | 各类型可见字段：Tear 高度、Laser 端点与采样、Knife、Bomb 外观标志、Pickup 价格／充能／状态、Familiar、Effect 各变体的可见状态、NPC 冠军色、Slot 显示 Sprite | 原生 owner |
 | Player | costume 层、身体与头部 Sprite、颜色；HUD 读取的库存、主动道具与充能、口袋、饰品、心、显示用属性、持物；Jacob／Esau 等多身体 | 原生 owner；HUD 由原生代码读取 |
 | Grid | type／variant／State、Sprite 帧、门状态、便便与石头状态 | 原生 owner |
-| Room／Level | 房间描述（DisplayFlags、VisitedCount、Clear、类型、形状、图标）、诅咒、stage／stageType、背景类型；由 Host 随机选出的装饰结果，同步选中结果，不同步 RNG；Host 选定的背景 id 与 FX 资源选择（RE-2）；Q8 的 Room 显示标量（4.6）；当前房间描述的 SpawnSeed（`+0x5C`，4 字节，2026-11-12 用户决定，见表后说明） | 原生 owner；地图由原生 Minimap 绘制 |
-| Run | 硬币、炸弹、钥匙；挑战编号、种子效果、难度、计时；贪婪波次 | 原生 setter |
-| Game 显示标量（Q8） | 4.6 表中的 Game 字段：Bloom、震屏倒计时、Hallucination、颜色、闪电、暗度、眩晕、Retrovision、fade／开场遮罩 alpha | 安装点直接写当前值，并补做阈值动作（4.6） |
-| 注入值 | 见 6.3：恶魔房／天使房几率、药丸效果与识别、诅咒、故障道具定义、地图拾取图标、水流向量等 | 2.3 注入 |
+| Room／Level | 房间描述（DisplayFlags、VisitedCount、Clear、类型、形状、图标）、raw 诅咒 `Level+0xC`（2026-11-12 审阅，6.3）、stage／stageType、背景类型；由 Host 随机选出的装饰结果，同步选中结果，不同步 RNG；Host 选定的背景 id 与 FX 资源选择（RE-2）；Q8 的 Room 显示标量（4.6）；当前房间描述的 SpawnSeed（`+0x5C`，4 字节，2026-11-12 用户决定，见表后说明） | 原生 owner；地图由原生 Minimap 绘制 |
+| Run | 硬币、炸弹、钥匙；挑战编号、种子效果（Seeds 对象 `Game+0x1BBD8`）、难度、计时；贪婪波次；Game 级 raw 诅咒 `Game+0x25AC8`（2026-11-12 审阅，6.3） | 原生 setter；raw 诅咒按普通字段安装 |
+| Game 显示标量（Q8） | 4.6 表中的 Game 字段：Bloom、震屏倒计时、Hallucination、颜色、闪电、暗度、眩晕、Retrovision、fade／开场遮罩 alpha；HUD 可见性 `+0x22E90`（2026-11-12 审阅） | 安装点直接写当前值，并补做阈值动作（4.6） |
+| 转场状态（Q11） | RoomTransition 的 mode、counter、duration、progress、direction、roomIndex、dimension、animation、Boss 标记（4.5） | 随 world 帧原子安装，Client 不运行转场 FSM |
+| 分支与暂停（Q12） | 每个 world 帧：Host `Game::IsPaused` 的结果（1 位），以及 Host 按原生优先级在 Update 后状态上算出的终结分支枚举（6.2） | 随 world 帧安装，供显示推进选分支、相机和 `client_entity_draw_paused` 读取 |
+| 注入值 | 见 6.3：恶魔房／天使房几率、药丸效果与识别、故障道具定义、地图拾取图标、水流向量等。~~诅咒~~ 改为同步 raw 字段（上两行） | 2.3 注入 |
 | 按状态同步的表现 | 房间音乐请求、正在播放的循环音效集合、各控制器的全屏演出（ItemOverlay 的状态、延时和 Sprite） | 原生 owner；见 2.3、6.4 |
-| 事件 | 非循环音效（只含玩法路径产生的，Q7）、Boss 开场、道具横幅、fortune 文字（均带本地化键）、切房转场参数（4.5） | 2.3 事件队列；见 6.4 |
+| 事件 | 非循环音效（只含玩法路径产生的，Q7；Q11 后含全部转场声音）、Boss 开场、道具横幅、fortune 文字（均带本地化键）、转场序号与最终目标关联（4.5） | 2.3 事件队列；见 6.4 |
+
+**地图拾取图标（待定）**：RE-7 已定位来源，但 Client 上的接法尚未决定，候选两种：① 镜像最小的 SavedEntities 条目，让原生 Minimap 构建照常读取；② 原生构建完缓存后按 Host 摘要修补图标缓存。实施前在第 8／13 步选定，见 13 节。
 
 **SpawnSeed（Q9，2026-11-12 用户决定）**：
 
@@ -392,15 +421,16 @@
 
 | 编号 | 内容 | 产出 |
 | --- | --- | --- |
-| RE-1 | `Game::Update`（`0x2F6D30`）中 6.2 候选函数的 J273 签名、先后顺序和前置状态；另外核对屏幕震动、淡入淡出等是否还有遗漏的显示工作 | [静态成果已完成](client-display-delegation/RE-1/README.md)：“显示推进”白名单与调用顺序（6.2）；未实施／未测试。**补遗（待做）**：提前返回分支表，见 6.2 |
+| RE-1 | `Game::Update`（`0x2F6D30`）中 6.2 候选函数的 J273 签名、先后顺序和前置状态；另外核对屏幕震动、淡入淡出等是否还有遗漏的显示工作 | [原任务及补遗静态完成](client-display-delegation/RE-1/README.md)：白名单、调用顺序、[提前返回分支](client-display-delegation/RE-1/early-return-branches.md)、[条件需求](client-display-delegation/RE-1/branch-demand-handoff.md)与[关闭插值的绘制节拍](client-display-delegation/RE-1/manager-render-cadence.md)；未实施／未测试 |
 | RE-2 | `Room::Update` 与 `Room::Init`（`0x3E8AD0`）子调用分类：EntityList、Grid、清房与奖励、相机、背景、水面、光照、生成 | [静态成果已完成](client-display-delegation/RE-2/README.md)：拦截／拆分清单、显示资源顺序与 ABI；未实施／未测试 |
 | RE-3 | `Game+0x25A70` 的递增／重置／恢复、`Room+0x11F0` 的入房基准写点、显示依赖计数，以及 Manager 原链跳过后的本地递增（4.1） | [静态成果已完成](client-display-delegation/RE-3/README.md)：帧号写入点、Q8／本地计数目录、安装点与30Hz／相机阶段的计数来源；未实施／未测试 |
 | RE-4 | 显示代码中按帧号相等或差值做判断的地方（闪烁、每帧一次的保护等），以及它们在跳帧和停顿下的行为。Q8 后，Game／Room 内联标量不再本地推进，重点是 30Hz 批次和 Render 中读 GameFrame 的消费者（如周期 HUD 刷新） | [静态成果已完成](client-display-delegation/RE-4/README.md)：帧号消费者、跳帧／停顿风险、周期刷新／本地去重与缓存处理；未实施／未测试 |
 | RE-5（已收窄） | 两项：① `Minimap::Render`、`ItemOverlay::Render` 等是否都在 `Game::Render` 树内，决定是否需要单独挂点；② Render 已知写集（原 RE-6 并入）。4.4 的显示缓存定为 Client 本地；Projectile PositionOffset／Tear 主 Sprite 颜色等同步输入保留并按作用域恢复，其余不做静态闭合，交第 15 步 E28 实测 | [静态成果已完成](client-display-delegation/RE-5/README.md)：调用树、布局源本地职责说明与漂移范围；未实施／未测试 |
 | RE-6 | 已并入 RE-5，本次统一完成收窄范围的静态交付 | [同一成果](client-display-delegation/RE-5/README.md)，不另开任务／验收 |
-| RE-7 | 6.3 各注入值在 J273 上的字段、getter 或 API；主要工作量是天使占比 getter，另核药丸识别字节偏移和地图拾取图标 | 注入方式表（6.3） |
-| RE-8 | 6.4 各事件与状态在 J273 上的 Host 采集点和 Client 播放点，以及 Q7 的音效来源判定 | 事件／状态载荷与来源判定（6.4） |
-| RE-9（新增） | 原生切房过渡（4.5），共五项，见表后列表 | 转场事件载荷、换房点替换与等待方式 |
+| RE-7 | 6.3 各注入值在 J273 上的字段、getter 或 API；天使占比 getter、药丸识别、地图拾取图标 | [静态成果已完成](client-display-delegation/RE-7/README.md)：注入表、原生ABI、混合setter与地图／程序道具的实现交接；未实施／未测试 |
+| RE-8 | 6.4 各事件与状态在 J273 上的 Host 采集点和 Client 播放点，以及 Q7 的音效来源判定 | [静态成果已完成](client-display-delegation/RE-8/README.md)：入口、载荷语义、文字list／本地化、作用域与回放标志；未实施／未测试 |
+| RE-9 | 原生切房过渡（4.5），共五项，见表后列表 | [静态成果已完成](client-display-delegation/RE-9/README.md)：启动ABI、mode阶段、换房链／Render写集、Host最终目标关联与等待／拆分交接；未实施／未测试。其中的自有显示驱动建议已被 Q11 取代（4.5） |
+| RE-10（2026-11-12 新开） | Manager::Update（`0x92E3E0`）尾部的非 Game 调用（约 50 个 call site）逐项分类：显示推进根放行、继续拦截或本地维护。已知必须放行：音乐逐帧 tick `0x7D7DA0`（唯一调用者 `0x92EB49`）、`0x908340`（`0x92EB3E`，疑为 SFX tick） | **待做**。产出放行／拦截表、前置状态与调用顺序，并入 6.2 相机／音频阶段 |
 
 RE-9 的五项：
 
@@ -412,7 +442,7 @@ RE-9 的五项：
 
 - 先复用 [docs/hooks/README.md](../../hooks/README.md) 和已有证据文档中的点位，再补齐缺口。
 - REPENTOGON zhl 已声明 `HUD::Update`、`HUD::PostUpdate`、`PlayerHUD::Update`、`Minimap::Update`、`Minimap::Refresh`、`Camera::UpdateDrag2`（本文原称 UpdateDrag）和 `Camera::UpdateUltrasmooth`；其 J273 签名已在 RE-1 中核对。`ItemOverlay::Update` 也已声明，但不进白名单（6.2）。
-- REPENTOGON zhl 还声明了 `RoomTransition::Update`／`Render`／`ChangeRoom`／`StartBossIntro` 和 `Level::ChangeRoom`，但没有声明转场启动入口，需要在 RE-9 中定位。
+- REPENTOGON zhl 还声明了 `RoomTransition::Update`／`Render`／`ChangeRoom`／`StartBossIntro` 和 `Level::ChangeRoom`，但没有声明转场启动入口；RE-9已从原生caller定位`0x823990`，其混合副作用亦已核，不能作为纯显示根直接调用。
 
 ### 6.1 借鉴 isaac-lan 排除的逆向点
 
@@ -446,22 +476,30 @@ isaac-lan 排除不了的点：
 
 **J273 核定后的显示推进（2026-11-12 采用）**：
 
-由 Manager 边界调度（4.1）。RVA 均为 J273。Game／Room 内联显示标量不在此推进，按 Q8 在安装点写入（4.6）。
+由 Manager 边界调度（4.1）。RVA 均为 J273。Game／Room 内联显示标量不在此推进，按 Q8 在安装点写入（4.6）。下表的普通／切房序列须先通过[补遗分支优先级](client-display-delegation/RE-1/early-return-branches.md)选择，不能只检查“转场活跃”便覆盖更高优先级的 hold／GameOver／换层等分支。
 
 | 阶段 | 时机 | 调用 | 说明 |
 | --- | --- | --- | --- |
 | 0 | 每个 Manager 帧，显示推进之前 | world 安装、库存与注入、帧号写回、Q8 标量安装及阈值补做 | 第 3 节、4.6、6.3 |
-| 1 | 30Hz 批次 | `HUD::Update`（`0x57ACF0`） | 原生在各分支之前调用 |
-| 2 | 30Hz 批次，Host 转场活跃时 | `RoomTransition::Update`（`0x426430`）→ `Minimap::Update` → `HUD::PostUpdate`，本批结束 | 原生过渡分支在此返回；`ChangeRoom` 替换见 RE-9 |
+| 1 | 30Hz 批次 | `HUD::Update`（`0x57ACF0`） | 原生在终结分支之前调用；更早的 Console helper 阻断可跳过 U，见补遗 |
+| 2 | 30Hz 批次，Host 终结分支为 RoomTransition 时 | 转场本地显示工作（Q11：Boss 标记非零时推进 versus／肖像 ANM2；按已安装 mode2／3 提出 HUD 刷新请求）→ `Minimap::Update` → `HUD::PostUpdate`，本批结束 | 保留原生相对顺序。Client 不推进转场 mode／counter／progress，它们随 world 安装（4.5 Q11）；旧／新 surface 在安装事务中捕获，不在本阶段。~~具名转场显示拆分~~（RE-9 建议，已被 Q11 取代）；完整`RoomTransition::Update`（RVA`0x426430`）含直接玩法写入，继续拦截 |
 | 3 | 30Hz 批次，普通分支 | `Minimap::Update`（`0x565DB0`）；地图输入安装或缓存失效后 `Minimap::Refresh`（`0x565D60`） | Refresh 没有固定的原生调用点，按依赖调用 |
 | 4 | 30Hz 批次，普通分支 | renderEL 排序 → FXLayers 更新 `0x56BF40(false)` → Backdrop floor 两路 AnimationState、地狱横移背景 Sprite | 对应原生 `Room::Update` 内的顺序。排序用自有有界全排，不调原生 `render_sort`（scratch 容量、空表、GameFrame 奇偶渐进三个问题） |
 | 5 | 30Hz 批次，普通分支 | `HUD::PostUpdate`（`0x57AE90`） | 内部完成 PlayerHUD、HistoryHUD、StatHUD，外层不重复调 PlayerHUD |
-| 6 | 每个 Manager 帧，Render 前 | 相机阶段：CameraStyle 为 2 调 `UpdateDrag2`（`0x51E5E0`），否则调 `UpdateUltrasmooth(本机半帧奇偶)`（`0x51D840`）；按原生规则清 `Camera+0x8C` | Host 暂停时跳过，过渡状态 `Game+0x1B858==19` 例外（RE-1）；暂停状态取已同步的 Host 值。本机关闭插值时，奇数帧按原生快返条件跳过（4.1） |
-| 7 | 每个 Manager 帧 | Manager 边界返回，原生 `Game::Render` 包装放行（4.2） | |
+| 6 | 每个 Manager 帧，Render 前 | 相机阶段：CameraStyle 为 2 调 `UpdateDrag2`（`0x51E5E0`），否则调 `UpdateUltrasmooth(本机半帧奇偶)`（`0x51D840`）；按原生规则清 `Camera+0x8C` | Host 暂停时跳过，例外是转场 mode 非零且 animation `Game+0x1B858`（RoomTransition `+0x1C`）为 19（MINECART）（RE-1；审阅更正：`+0x1C` 是 Start 写入的 animation 参数，不是“阶段 19”）。暂停取 Q12 同步的 Host paused 位，mode／animation 取 Q11 已安装值。本机关闭插值时，奇数帧按原生快返条件跳过（4.1） |
+| 6a（RE-10 待核） | 每个 Manager 帧，与相机同属 Manager 尾部 | 音乐逐帧 tick `0x7D7DA0`、`0x908340`（疑为 SFX tick）；其余尾部调用待 RE-10 分类 | 原生在 `0x92EB49`／`0x92EB3E` 调用，走与相机相同的 Manager 尾部路径（含插值快返）。不运行时 Client 的音乐淡入淡出／排队曲目和 SFX 内部状态不前进。具体条件、顺序与前置状态以 RE-10 为准 |
+| 7 | 每个主循环 Manager 周期，更新／保持本机 M 后 | 主循环调用原生 `Manager::Render`，实际到达 `Game::Render` 时包装放行（4.2） | 绘制体要求本机插值开启或 Mpost 为奇数；还受当前 Manager 场景／资源分派约束，不额外补调 Game::Render |
 
 - 30Hz 批次在本机 Manager 帧为偶数时运行，不等 world 帧到达；计数来源见 [RE-3](client-display-delegation/RE-3/apply-contract.md)。[RE-4 调度交接](client-display-delegation/RE-4/handling.md)规定每本地周期的批次／相机去重、周期HUD请求合并及安装后缓存刷新；不以F相同跳过整个本地批次或Render。
 - `CommitRemovedEntities` 不进入显示推进；确需处理官方 staged remove 时，放进实际安装或退休事务（RE-1）。
-- **提前返回分支（RE-1 补遗，待做）**：暂停、`Game+0x25A6C>0`、StageTransition、ItemOverlay 与暂停组合、次级淡入、GameOver 等分支，需要一张分支表，列出每个分支的条件字段、该分支运行的显示调用，以及条件字段是否已在需求清单中。补齐前，这些状态下不按普通分支外推。同一补遗另查 Manager 层的插值快返（`0x92E441`）：本机关闭插值的奇数帧，原生是否仍调用 Render。
+- **提前返回分支（RE-1 补遗，静态完成）**：[分支表](client-display-delegation/RE-1/early-return-branches.md)列出 Console、`Game+0x25A6C>0`、GameOver、Leaderboard、StageTransition、RoomTransition、ItemOverlay／暂停组合、Prompt、次级 fade、PauseScreen 和额外 UI 的优先级与 U／P／M 调用。相机的综合 paused 与这些分支不等价；fade 前段的 Pα 也不是 return，同次原生 Update 可再调 P。Client 不运行 Q8 生产段，Pα 的当前状态资格／合并策略由第 13 步收口，不补演 Host 调用历史。
+- **终结分支与暂停（Q12，2026-11-12 用户决定）**：
+  - Host 每个 world 帧发送两项：本帧 `Game::IsPaused`（`0x6F92A0`）的结果（1 位），以及按原生优先级在 Update 之后的状态上算出的终结分支枚举（按[分支表](client-display-delegation/RE-1/early-return-branches.md#3-终结分支表严格按出现次序)的次序：Console 阻断、hold（`+0x25A6C>0`）、GameOver、Leaderboard、StageTransition、RoomTransition、ItemOverlay ACTIVE（6a）、Prompt、未命名 UI 字节 `+0x24ECC`、次级 fade、PauseScreen、额外 UI、普通）。Client 按枚举选 30Hz 批次的序列（阶段 1—5 的 U／M／P 组合见补遗分支表），不在本机重算谓词，也不复制菜单／平台／指针对象。
+  - `client_entity_draw_paused` 从默认删除改为保留：它挂在 IsPaused 上，原生 53 个调用者（含 `Room::Render` 的 `0x807775`、`0x807CB0`）都在 Client 读同步的 paused 位；相机阶段同样读这一位。
+  - Client 本地菜单／控制台阻断与 Host 分支如何合并，由第 13 步决定。
+- **Pα（2026-11-12 审阅建议采纳）**：Pα 不另设同步位，由已安装的 Q8 primary alpha 判定：`Game+0x25B28 > 0`（对应原生 `0x6F72C1` 前的 `0x6F6EB0` 检查）时，在 Pα 的位置调用 `HUD::PostUpdate`。同一批次可与终结分支的 P 各调一次，与原生相同。alpha 正好在某个 Host 帧降到 0 时，Client 看到的是安装后的值，这一帧的差异按 Q4 接受。
+- **条件需求交接**：[逐字段清单](client-display-delegation/RE-1/branch-demand-handoff.md)区分已有设计需求、旧 UNKNOWN 整段占位和缺少窄谓词的项。ItemOverlay、Q8 alpha、转场已有设计需求；hold、GameOver／Leaderboard／StageTransition、Prompt、额外 UI、暂停组合仍需在第 7／8 步收缩时落实必要分支语义，第 13 步接线。旧 D0.paused 不算新方案已接通；不复制菜单／平台／指针对象，也不调用混合 Update 求分支结果。**Q12 后**这些分支的选择由 Host 发送的终结分支枚举承接，Client 不再需要逐项同步窄谓词；分支内显示所读的状态（如 ItemOverlay、Q8 alpha、转场字段）仍按各自需求同步。
+- **插值快返（补遗已核）**：主循环依然调用 Manager::Render；其绘制体按 Mpost 与本机插值设置判断，保持 M 的控制字节例外见[真值表](client-display-delegation/RE-1/manager-render-cadence.md)。不将“入口被调用”写成“Game::Render 一定运行”。
 
 **两者的用途**：
 
@@ -494,7 +532,7 @@ isaac-lan 排除不了的点：
 **明确不进白名单**：
 
 - `ItemOverlay::Update`：会治疗玩家、切房，并在动画标记处放音效（isaac-lan 源码注释）。全屏演出改为按状态同步（6.4），由原生 `ItemOverlay::Render` 绘制。
-- Boss 开场与 TV 演出的更新：isaac-lan 认为其中含原生路线标记，客机不运行，改用同步的姿态绘制。J273 的 Boss 开场在 `RoomTransition` 内，它随白名单中的 `RoomTransition::Update` 一起运行，其中是否有玩法标记由 RE-9 第 2 项核对。若有，按“拆分”处理。
+- Boss 开场与 TV 演出的更新：isaac-lan 认为其中含原生路线标记，客机不运行，改用同步的姿态绘制。J273 Boss开场在RoomTransition内；RE-9已核完成分支会写Game+22E90和Player+418，故只推进具名动画／显示段，不放行完整Update。Q11 后 mode、counter 与 Boss 标记都随 world 安装，Client 只推进 versus／肖像 ANM2；`Game+0x22E90`（HUD 可见性）按 Q8 同步。
 - 半帧更新（Odd helper `0x2F9340`）、实体 Update、`Room::Update` 的玩法部分、交易生成和清房奖励：继续拦截。
 - `Game::UpdateVisibility` 中按门重算可见性的部分。
 
@@ -507,34 +545,38 @@ isaac-lan 排除不了的点：
 
 ### 6.3 不可算值的注入方式（RE-7）
 
+**2026-11-12 静态成果已完成**：[完整注入表与证据](client-display-delegation/RE-7/injection-table.md)。以下为核对后的方式，仍未实施；Q3的API优先不将混合setter变成无副作用leaf。
+
 | 值 | isaac-lan（J460）的做法 | 我们的方式（按 Q3） | J273 现状 |
 | --- | --- | --- | --- |
-| 恶魔房总几率 | hook `Room::GetDevilRoomChance`，返回 Host 值 | getter hook。几率依赖 Host 的整局计数，Client 上没有存储 | REPENTOGON zhl 已声明 |
-| 天使占比 | 用 thunk hook 一个内部函数，返回 Host 值 | getter hook | zhl 未声明，是 RE-7 的主要工作量 |
+| 恶魔房总几率 | hook `Room::GetDevilRoomChance`，返回 Host 值 | getter hook。几率依赖 Host 的整局计数；总率与HUD最终资格分开承接 | VA`0x7EF200`，SDK thiscall float，ST0返回；不把百分比当原始总率 |
+| 天使占比 | 用 thunk hook 一个内部函数，返回 Host 值 | getter hook，使用原生XMM0返回shim；仅Client会话启用 | VA`0x7EF590`／RVA`0x3EF590`，无显式参数；不是Level+182F4修正值 |
 | 药丸效果 | 直接写 ItemPool（`Game+0x1a740`）`+0x7a4` 处的 15 项 | 直接写 | zhl 声明了 `ItemPool::_pillEffects`（`0x7a4`） |
-| 药丸识别 | 直接写 `+0x7e0` 处的识别字节 | 识别优先用 `ItemPool::IdentifyPill`；没有“取消识别”的 API，需要时直接写 | zhl 声明了 `IdentifyPill`、`IsPillIdentified`；J273 字节偏移待核 |
-| 诅咒 | 在库存 setter 之后，按差异调用 `AddCurse`／`RemoveCurses` | 同。先装库存，再装诅咒 | 原生与 Lua API 可用 |
-| 贪婪波次 | `GreedModeWave` setter | 同 | zhl 声明了 `Game::_greedModeWave`（`0x18334`）和只读的 `GetGreedModeWave` |
-| 商店价格 | Price 作为 Pickup 字段同步；Keeper 的恶魔交易价格，各客机按买家用原生价格函数本地重算 | Price 随 Pickup 同步。Keeper 价格是否按本机玩家本地重算，核过原生价格函数后再定 | 价格函数地址待核 |
-| 故障道具（TMTRAINER） | 负 id 的道具定义随生成结果同步 | 同步生成的定义，Client 按定义注册 | 定义的存储位置待核 |
-| 地图拾取图标 | 构建地图缓存时提供 | 随房间描述同步，或在地图缓存刷新时提供，二选一 | 图标来源待核 |
-| 水流向量 | 直接写 `Room+0x7460`／`+0x7464` | 优先 REPENTOGON API，没有则直接写 | zhl 声明了 `Room::_waterCurrent`（`0x7460`） |
+| 药丸识别 | 直接写 `+0x7e0` 处的识别字节 | true用IdentifyPill；false复用官方UnidentifyPill实现的有界C++窄写，不调用Lua | 15B位于ItemPool+7E0；Identify=`0x713AF0`，IsIdentified=`0x832630`。官方已有UnidentifyPill Lua扩展，原“没有API”说法纠正 |
+| 诅咒 | 库存后按差异调用 AddCurse／RemoveCurses | **2026-11-12 审阅改为同步 raw**：`Level+0xC` 与 `Game+0x25AC8` 按普通字段随 world 安装，不注入、不挂 getter。~~先装库存，再注入Host effective_curses~~（RE-7 建议，已取代）。把有效值写进 raw 仍然拒绝 | `0x7442A0／0x742B90`含挑战过滤／黑暗／Pickup图形副作用，不调用。有效 getter `0x742450` 计算 `((Game+0x25AC8 \| Level+0xC) \| F) & ~P`：F=`0x6F55C0`（种子效果 56—62 及 stage／挑战／难度条件），P=`0x6F5750`（种子效果 63—70、79），两者只读 Seeds 对象 `Game+0x1BBD8` 与 stage／挑战／难度，均已在 Run 同步清单中。因此原生 getter 在 Client 上算出与 Host 相同的有效值，直接读 raw `Level+0xC` 的消费者也一致 |
+| 贪婪波次 | GreedModeWave setter | 合法范围用具名native setter，不调用SpawnGreedModeWave | 字段+18334；getter`0x7074C0`，setter`0x74D700`将值限制至0—12后普通赋值 |
+| 商店价格 | Price随Pickup；Keeper按买家重算 | 继续同步Host最终Price和价格Sprite；Client不重算 | `0x80B5A0`按全体玩家／商店历史计算，并非本机买家纯函数；`SetPrice 0x6DF890`还有Random／Spawn分支，不作窄writer |
+| 故障道具（TMTRAINER） | 负id的道具定义随生成结果同步 | 同步显示定义／资源，由Client自有配置owner注册并解析负id；不生成effects | Game+669BC vector；负id下标`~id`，`ItemConfig::GetCollectible 0x72A400`读ProceduralItem+0；本地atlas／owner接线仍待实施 |
+| 地图拾取图标 | 构建地图缓存时提供 | 地图刷新时提供每房间Host图标摘要；具名缓存adapter待实施。**接法待定**（第 5 节表后）：镜像最小 SavedEntities 条目，或构建后修补缓存 | `0x9635B0`扫描descriptor SavedEntities+74，步长78h，聚合Pickup／Slot；只装DisplayFlags／Refresh不足。挑战32另需Host选定标记 |
+| 水流向量 | 直接写 Room+7460／7464 | C++复用SDK GetWaterCurrent指针做有限Vector赋值，等价官方SetWaterCurrent | 官方Room/LuaRoom.cpp setter即直接赋值；不额外运行Lua／Update |
 | 进度（成就、计数） | 同步 642 字节成就和 523 个计数 | 只取显示需要的部分，经 `client_hud_achievement_query` 等查询 hook 注入；不写 PGD，不改本机存档 | 按需求清单裁剪 |
 
-注入顺序：world 安装 → 库存与 Player → 诅咒 → 其余注入值 → 显示推进。getter hook 只在 Client 会话期间返回同步值，其他时候直接调原函数。
+注入顺序：world 安装 → 库存与 Player → 诅咒 → 其余注入值 → 显示推进。（2026-11-12 审阅后诅咒改为 raw 字段随 world 安装，此处的“诅咒”一步不再单独存在；顺序其余不变。）getter hook 只在 Client 会话期间返回同步值，其他时候直接调原函数。
 
 ### 6.4 事件与状态（RE-8）
 
+**2026-11-12 静态成果已完成**：[入口与载荷语义](client-display-delegation/RE-8/sources-and-payloads.md)、[音效来源与回放](client-display-delegation/RE-8/audio-scopes.md)。下表保留参照方案并补J273结果；线格式／运行接线尚未实施。
+
 | 内容 | 形式 | isaac-lan（J460）的做法 | Host 采集点（J273） | Client 播放点 |
 | --- | --- | --- | --- | --- |
-| 非循环音效 | 事件 | hook `SFXManager::Play`。载荷为序号、tick、听众、id、音量、延时、循环、音高和声像，512 条环形缓冲；客机只播序号更新、且不超过 10 tick 的 | `SFXManager::Play`（zhl 已声明），只采玩法路径（Q7） | 原生 `SFXManager::Play`，调用时带“回放”标志 |
-| 循环音效 | 状态 | Host 记下循环事件，按 `IsPlaying` 筛出正在播放的集合；客机按集合启停 | 同一采集点，循环参数为真的进入集合 | 按集合调用 Play／Stop |
-| 房间音乐 | 状态 | hook `Music::Play`／`Crossfade`，按房间记录请求（模式、id、参数、排队曲目，13 字节）；客机忽略房间初始化里的原生选曲 | `Music::Play`、`Music::Crossfade`（zhl 已声明） | 按请求调用原生；拦截 Client 房间初始化里的选曲 |
+| 非循环音效 | 事件 | Play请求带序号、tick、听众、id、volume、FrameDelay、loop、pitch、pan；参照工程用512条缓冲和10tick期限 | `Play 0x907C60`正常逻辑资格／节流后采玩法事件（Q7），不是每次POST回调 | C/S回放scope内按原生ABI播放；FrameDelay是重播间隔，已接受事件不能因本机批量到达再被二次节流。**回放时 FrameDelay 传 0**（2026-11-12 审阅）：节流 `0x907D2F—0x907D5A` 仅在 `now < next` 且 `next ≥ 0` 时跳过，播放后写 `next = now + FrameDelay`；Host 已做过节流，传 0 使回放不被本机节流，也不为后续本地显示音效设下新的间隔 |
+| 循环音效 | 状态 | 参照工程按IsPlaying筛集合 | 正常Play／Stop／Adjust／Ambient来源，维护逻辑实例与显式world Stop；不额外调用会清pending的IsPlaying建baseline | 按完整集合协调Play／Stop和当前参数；同id多sample与本机设备失效另行处理，窄adapter待实施 |
+| 房间音乐 | 状态 | hook Play／Crossfade，记录模式、id、参数、排队曲目；13B只是参照请求体 | Play=`0x7D8360`、Crossfade=`0x7D8480`、Queue=`0x7D8A80`及queued正常消费 | 按请求版本／播放代次调用；同曲新代次也重播，未变状态不重播；拦截Client房间／Boss初始化自选曲 |
 | 道具横幅 | 事件 | hook `HUD::ShowItemText`／`ShowItemTextCustomUTF8`，带本地化键 | 同名函数（zhl 已声明） | 原生同名函数 |
-| fortune | 事件 | hook `ShowFortuneText`，各行以 `\|` 连接，并带字符串表索引；客机在栈上构造原生列表 | `HUD::ShowFortuneText`（zhl 已声明） | 原生同名函数 |
-| 全屏演出 | 状态 | 按控制器同步 ItemOverlay 的状态、id、延时和 Sprite；id 变化时先调原生 `Show`，再写状态 | `ItemOverlay::Show`，以及每帧读取状态 | id 变化时调原生 `Show` 再写状态；`Update` 拦截，`Render` 绘制 |
-| Boss 开场 | 事件 | 8 个 u32 → 原生 StartBossIntro | RE-8 与 RE-9 一起定位 | REPENTOGON `RoomTransition.StartBossIntro` |
-| 切房转场 | 事件 | 见 4.5 | RE-9 | 4.5 |
+| fortune | 事件 | 参照工程用竖线拼行与字符串表索引 | ShowFortuneText=`0x97BEE0`；正常`0x958CCD`已选类别／语言／索引可保留 | 本地化后按独立长度行构造兼容的MSVC std::list<string>；8B头／32B节点，不把网络数组强转int**，不重新抽选 |
+| 全屏演出 | 状态 | 按控制器同步ItemOverlay | Show=`0x9848B0`及实际owner当前值，含主Sprite／MegaMush Player Sprite | **新演出代次**先Show再装state／delay／姿态；相同id重播也识别。Show维护Player引用；Update继续拦截，Render绘制 |
+| Boss 开场 | 事件 | 参照工程用8个u32 | StartBossIntro=`0x823D10`，J273原生仅两个u32，事件另带room／frame／资源关联 | 具名BossReplay准备合法roomIndex／资源；音乐（`0x823D8C`）／环境声清除（`0x823D9D`）子生产须先隔离，才可用SDK构建。`0x823DA9` 对 `Game+0x22E90` 的写入不另隔离：它是 HUD `_isVisible`，按 Q8 同步，下一次安装即覆盖（2026-11-12 审阅）。~~完成阶段用RE-9显示拆分~~：Q11 后 mode／counter／Boss 标记随 world 安装，Client 只推进 versus／肖像 ANM2 |
+| 切房转场 | 状态＋关联事件 | 见 4.5 | RE-9；Q11 后采集 RoomTransition 显示字段的当前值，事件只承载转场序号与最终目标关联 | 4.5 Q11：随 world 安装，本地捕获 surface 并调原生 Render |
 
 **Q7 音效来源判定**：
 
@@ -542,14 +584,14 @@ isaac-lan 排除不了的点：
   - Host 把有玩家的房间里所有 SFX 都记为事件，客机原生发出的音效只按听众过滤。
   - 它的客机拦截了实体 Update，玩法音效本来不会在客机上原生产生，所以可能双响的主要是 HUD 一类显示音效。
 - **我们的判定（显示作用域）**：
-  - Host 在“Client 也会运行的函数”入口进入显示作用域，出口退出。范围是 `Game::Render` 全树、6.2 白名单中的函数和 `RoomTransition::Update`。
+  - Host 在“Client 实际也会运行的函数”入口进入显示作用域，出口退出。范围是Game::Render全树和6.2已接通的纯显示白名单；RE-9已核RoomTransition::Start／Update为混合根，只对实际保留的显示子段进入作用域，不能整根排除声音。**Q11 后**Client 不运行 Start／Update 的任何部分，二者整体在显示作用域外，转场内全部声音（Start `0x823CE1` 的 608／609、mode3 `0x826D79` 的 sound 1、mode4 `0x826FBA` 的 sound 214）都作为 Host 事件发送。
   - `SFXManager::Play` 采集钩子在显示作用域内不记事件。
   - 作用域与 Client 的放行判定（`ClientEntryDecision`）由同一张白名单生成，两边不会各维护一份。
 - **混合路径**：作用域按“Client 实际运行的路径”判定。
   - Client 拦截的子调用，在 Host 上要暂停显示作用域。例如 `RoomTransition::Update` 里调用的 `ChangeRoom` → `Room::Init` 链，在 Client 上被替换，其中发出的音效由 Host 作为事件发送。
   - `ItemOverlay::Update` 在 Client 上不运行，所以它在动画标记处放的音效属于玩法路径，Host 照常作为事件发送。
 - **Client 侧**：放行代码发出的 SFX 直接播放。事件回放时带“回放”标志，防止回放调用再被当作本地显示音效处理。
-- **RE-8 需逐项核对**：J273 上上述函数内的 SFX 调用点，尤其是 Render 树内有没有 SFX 调用（若有，定为本地）；以及 `SFXManager::Play` 的调用约定和“回放”标志的放置方式。
+- **RE-8 已核**：SFX Play=`0x907C60`，thiscall六个栈参数、`retn 18h`；FrameDelay是重播间隔。回放标志放在C/S主线程栈式上下文，不给原生API添加参数。HUD252为本地，ItemOverlay::Update四处SFX为Host事件，三个转场声音点按实际拆分归属（Q11 后全部为 Host 事件）。对Game::Render最多5层直接call检查未命中Play，不外推虚调用／DLL／Lua全闭包；实际显示作用域照常覆盖新发现的Render声音。
 
 ## 7. 各步修改
 
@@ -563,14 +605,14 @@ isaac-lan 排除不了的点：
 | 3、4 | Entity 公共字段和子类按第 5 节重标；Effect 各变体（E32）收窄到可见状态；Render 会重算的缓存一律标为本地 |
 | 5 | Player 重标；PlayerPost 身体约 60Hz 的窗口保留，只承载位置和 Sprite 等需要的字段 |
 | 6 | Grid 重标 |
-| 7 | Room／Level 保留描述和需要的房间状态，含 Q8 的 Room 显示标量（4.6）和 Q9 的当前房间描述 SpawnSeed（第 5 节）；[房间显示资源设计](room-display-resource-design.md)中能由 Client 冷构建本地产生的显示资源改为本地（按 RE-2 复用显示资源子段，不调用 `Room::Init`） |
+| 7 | Room／Level 保留描述和需要的房间状态，含 Q8 的 Room 显示标量（4.6）、Q9 的当前房间描述 SpawnSeed（第 5 节）和 raw 诅咒 `Level+0xC`（6.3，2026-11-12 审阅）；[房间显示资源设计](room-display-resource-design.md)中能由 Client 冷构建本地产生的显示资源改为本地（按 RE-2 复用显示资源子段，不调用 `Room::Init`） |
 | 8 | 改动最大，见第 8 节 |
 | 9 | 帧头、记录、块、zstd 和 ACK 保留；显示包络 414—417 退役；文字 422—424 并入事件队列；资源协议 425—433 收窄为实体、Grid 和 costume 等资源引用；新增事件队列段 |
-| 10 | 第五项“Run 与显示／音频生产缓存”（版本71）暂停，Run 只保留需要的窄投影，含 Q8 的 Game 显示标量（4.6）；采集窗口和执行器保留，复制计划随布局源收缩；收缩后重新评估 tx-04-21 的瓶颈 |
+| 10 | 第五项“Run 与显示／音频生产缓存”（版本71）暂停，Run 只保留需要的窄投影，含 Q8 的 Game 显示标量（4.6）、HUD 可见性 `Game+0x22E90`、raw 诅咒 `Game+0x25AC8`、Q11 的 RoomTransition 显示字段（现 `run.json` 的 `room_transition_owner`／`hud_owner` 只是 UNKNOWN 整段占位，改为具名窄字段）和 Q12 的 paused 位／终结分支枚举（Host 在 Update 后计算）；采集窗口和执行器保留，复制计划随布局源收缩；收缩后重新评估 tx-04-21 的瓶颈 |
 | 11 | 机制保留；去掉显示结果批次；增加事件队列的序号与确认 |
 | 12 | 机制保留；影子状态随域收缩；增加事件队列的接收 |
-| 13 | 13.4 的前提改为第 4 节的边界；13.6 由第 3 节取代；新增注入（2.3）；13.5 补入第 9 节的退役项；显示推进根挂在 Manager 边界，按 6.2 的阶段调度（4.1）；Q8 标量的安装与阈值补做（4.6）；Render 前置确认 SpawnSeed 已安装（4.2）；关闭插值时的相机节奏（4.1）；Q8 换算值的重写开销计入 13.3（第 3 节） |
-| 14 | 退役清单补入第 9 节；`client_entity_draw_projectile` 保留作恢复作用域（Q10） |
+| 13 | 13.4 的前提改为第 4 节的边界；13.6 由第 3 节取代；新增注入（2.3）；13.5 补入第 9 节的退役项；显示推进根挂在 Manager 边界，按 6.2 的阶段调度（4.1）；Q8 标量的安装与阈值补做（4.6）；Render 前置确认 SpawnSeed 已安装（4.2）；关闭插值时的相机节奏（4.1）；Q8 换算值的重写开销计入 13.3（第 3 节）；Q11 转场安装与 surface 捕获（4.5）；Q12 按终结分支枚举选序列、paused 位接入相机与 `client_entity_draw_paused`、本地菜单阻断的合并；Pα 规则（6.2）；RE-10 的音频 tick（6.2 阶段 6a）；SFX 回放 FrameDelay=0（6.4） |
+| 14 | 退役清单补入第 9 节；`client_entity_draw_projectile` 保留作恢复作用域（Q10）；`client_entity_draw_paused` 保留读同步 paused 位（Q12） |
 | 15 | 见第 10 节 |
 
 ## 8. 布局源逐文件修改
@@ -605,21 +647,21 @@ isaac-lan 排除不了的点：
 - `entitylist_render_sort` 保持拒绝：它的唯一原生调用者是已拦截的 EntityList Update，Render 树不调用它（RE-1）。排序由显示推进的自有全排负责。
 - `client_menu_render` 不再承担场景绘制。
 - `lua_post_render` 放行（Q6）。
-- `client_door_update`（`RoomTransition::Update`）改由“显示推进”调用（Q5）。
+- `client_door_update`（`RoomTransition::Update`）保留拦截完整混合根，不拆分（Q11）：转场显示字段随 world 安装，Client 只做本地 surface 捕获、滚动补偿、versus 动画和原生 Render（4.5）。~~显示推进在对应顺序位置调用具名显示拆分（Q5／RE-9）~~，已被 Q11 取代；不能只换ChangeRoom后CallOriginal 的结论不变。
 - `client_door_nested`、`client_room_lifecycle` 和 `client_new_room` 按 RE-9 结果判定。
 
 **复审，默认删除**。这些 hook 原本用来把 Host 提供的绘制输入塞给 Client。改为委托后，原生绘制直接读已安装的状态，只保留防副作用或注入确实需要的：
 
-- `client_entity_draw_*`（11 个，不含下面单列的 `client_entity_draw_paused`，也不含移入“保留”的 `client_entity_draw_projectile`）；
+- `client_entity_draw_*`（11 个，不含移入“保留”的 `client_entity_draw_paused` 和 `client_entity_draw_projectile`）；
 - `client_entity_shadow_*`（5 个）；
 - `client_entity_post_*`（2 个）；
-- `client_entity_draw_paused`；
+- ~~`client_entity_draw_paused`~~（2026-11-12 按 Q12 移入“保留”）；
 - `client_entity_owned_final`；
 - `client_player_palette`；
 - `client_grid_water_*`（6 个）；
 - `client_grid_light_*`（5 个）。
 
-`client_backdrop_wall` 和 `client_backdrop_graphics` 原在此列，2026-11-12 按 RE-2 移入“保留”。`client_entity_draw_projectile` 同日按 RE-5 及用户决定（Q10）移入“保留”。
+`client_backdrop_wall` 和 `client_backdrop_graphics` 原在此列，2026-11-12 按 RE-2 移入“保留”。`client_entity_draw_projectile` 同日按 RE-5 及用户决定（Q10）移入“保留”，`client_entity_draw_paused` 同日按 Q12 移入“保留”。
 
 **保留**：
 
@@ -629,6 +671,7 @@ isaac-lan 排除不了的点：
   - `client_backdrop_effects`（`0x515890`）：装饰实体生成 helper，继续拒绝原函数。
   - byte patch `client_backdrop_effect_1`／`client_backdrop_effect_2`（`0x51168F`／`0x5119E9`）：两处不经 helper 的直接生成分支。
 - `client_entity_draw_projectile`（`Projectile::Render`，RVA `0x259460`，Q10）：改作 PositionOffset 的恢复作用域，不再提供绘制输入。原生 Render 在 `0x659484` 减去 Height、`0x6597D1` 加回，浮点减加不保证逐位还原已同步的 `+0x350`。hook 进入时保存这 4 字节，调用原函数一次，正常返回且对象身份未变时精确写回（[RE-5 写集](client-display-delegation/RE-5/write-set.md)）。旧 hook 中提供绘制输入的部分照常退役。
+- `client_entity_draw_paused`（`Game::IsPaused` `0x6F92A0`，Q12）：改为返回 Host 同步的 paused 位。原生 53 个调用者（含 `Room::Render` 的 `0x807775`、`0x807CB0`）在 Client 都读这一位，不再提供旧 D0 绘制输入；与本地菜单阻断的合并由第 13 步决定。
 - 所有保存、PGD、成就和 Lua 生命周期的隔离 hook。放行的原生代码变多，这些 hook 更不能少。
 - `client_hud_achievement_query`，改作注入用。
 
@@ -637,7 +680,9 @@ isaac-lan 排除不了的点：
 **新增**：
 
 - “显示推进”根，挂在 Manager 边界（`ClientManagerBoundary`）的 world 安装之后，按 6.2 的阶段调度（4.1）。它直接调用 RE-1／RE-2 已核的具名入口，不为这些入口新增 hook；FXLayers 更新 `0x56BF40` 等新调用登记为 `ClientEntryDecision` 具名入口；
-- `RoomTransition::ChangeRoom` 的拦截点，以及转场启动入口（Host 采集、Client 回放，RE-9）；
+- `RoomTransition::ChangeRoom` 的拦截点（Client 只作守卫），以及转场启动入口的 Host 采集（RE-9）。Q11 后 Client 不回放 Start；
+- 显示推进根内的 Manager 尾部音频 tick：音乐 `0x7D7DA0`、`0x908340`（疑为 SFX），其余尾部调用待 RE-10 分类（6.2 阶段 6a）；
+- world 安装事务中的转场 surface 捕获：换房前捕获旧 surface，安装后捕获新 surface（Q11，4.5）；
 - world 安装提交点的帧号写入，以及跳过完整 Manager 后的本地计数推进（[RE-3](client-display-delegation/RE-3/apply-contract.md)）；
 - 注入 getter（RE-7，6.3）：`Room::GetDevilRoomChance` 和天使占比函数；
 - 事件与状态的 Host 采集点（RE-8，6.4）：`SFXManager::Play`、`Music::Play`／`Crossfade`、`HUD::ShowItemText`／`ShowItemTextCustomUTF8`／`ShowFortuneText`、`ItemOverlay::Show`、Boss 开场；
@@ -676,10 +721,10 @@ isaac-lan 排除不了的点：
 | E33 | 改为方案B：静止场景中 Client 的 `Game+0x25A70` 随帧头前进；空帧被接受、确认并推进帧号；不再构造“屏蔽 D0”的空帧 |
 | E34 | 改为方案B：锚点直接安装 Host 原值，FrameCount 和 `Room:GetFrameCount()` 与 Host 一致；Effect Timeout 等计数在安装点按 `Game+0x25A70` 还原；加测跳帧与停顿 |
 | E35 | 删除（D0 和随机 alpha 退役） |
-| 新增 E36 | 显示边界隔离：放行的显示更新和 Render 不产生玩法写入、玩法随机推进、保存或解锁；默认拒绝的入口计数为 0 或已解释。显示推进由 Manager 边界调度：30Hz 批次与相机阶段在 Client 上实际运行，本机 Manager 帧前进；提前返回分支按分支表执行（4.1、6.2） |
-| 新增 E37 | 事件队列：顺序、去重、有界、溢出计数、过期丢弃、重连后不重放旧事件。表现状态：音乐、循环音效和全屏演出在丢包、切房与重连后收敛到 Host。音效按 Q7：显示代码的音效（如 HUD 滑入 252）只在 Client 本地响一次，玩法音效只经事件响一次，两者都不双响也不缺失。道具横幅和 fortune 在两端语言不同时按本地语言显示 |
-| 新增 E38 | 注入值（6.3）：恶魔房／天使房几率、药丸效果与识别、诅咒、贪婪波次、价格（含 Keeper）、故障道具和地图拾取图标与 Host 一致，并在变化后收敛 |
-| 新增 E39 | 原生切房过渡（4.5）：各种门方向、动画与维度的转场按 Host 参数回放，不重新选路，也不消耗随机；目标未就绪时停在换房点，不显示半套房间；换房后背景、门和相机正确；连续快速切房、转场中断线与恢复不会卡死 |
+| 新增 E36 | 显示边界隔离：放行的显示更新和 Render 不产生玩法写入、玩法随机推进、保存或解锁；默认拒绝的入口计数为 0 或已解释。显示推进由 Manager 边界调度：30Hz 批次与相机阶段在 Client 上实际运行，本机 Manager 帧前进；提前返回分支按分支表执行（4.1、6.2）。2026-11-12 审阅追加：Client 按 Host 终结分支枚举选择批次序列，覆盖 GameOver、Leaderboard、StageTransition、ItemOverlay＋暂停组合、Prompt、次级 fade、PauseScreen 各分支；Host 暂停时 `Game::IsPaused` 的 53 个调用者（含 `Room::Render`）在 Client 读到同步的 paused 位，相机按 paused 位与 MINECART 例外运行；本地菜单打开时的合并行为符合第 13 步规定；primary fade 期间 Pα 只在已安装 alpha >0 时调用（Q12、6.2） |
+| 新增 E37 | 事件队列：顺序、去重、有界、溢出计数、过期丢弃、重连后不重放旧事件。表现状态：音乐、循环音效和全屏演出在丢包、切房与重连后收敛到 Host。音效按 Q7：显示代码的音效（如 HUD 滑入 252）只在 Client 本地响一次，玩法音效只经事件响一次，两者都不双响也不缺失。道具横幅和 fortune 在两端语言不同时按本地语言显示。2026-11-12 审阅追加：Manager 尾部的音乐／SFX tick（RE-10）在 Client 运行，音乐淡入淡出、Crossfade 和 Queue 能走完，SFX 状态正常前进；回放事件以 FrameDelay=0 播放，同 id 短间隔的 Host 事件不被本机节流吞掉；转场内的 608／609、sound 1、sound 214 各经事件只响一次（Q11） |
+| 新增 E38 | 注入值（6.3）：恶魔房／天使房几率、药丸效果与识别、诅咒、贪婪波次、价格（含 Keeper）、故障道具和地图拾取图标与 Host 一致，并在变化后收敛。诅咒按 raw `Level+0xC`／`Game+0x25AC8` 同步后，原生有效 getter 与直接读 raw 的消费者在 Client 上都与 Host 一致，含种子效果与挑战强制诅咒（2026-11-12 审阅） |
+| 新增 E39 | 原生切房过渡（4.5）：各种门方向、动画与维度的转场按 Host 参数回放，不重新选路，也不消耗随机；目标未就绪时停在换房点，不显示半套房间；换房后背景、门和相机正确；连续快速切房、转场中断线与恢复不会卡死。**Q11 修订**：转场显示字段随 world 帧原子安装，Client 不运行 Start／Update；旧 surface 在新房间 world 安装前捕获、新 surface 在安装后捕获，mode1 与换房同帧发生时也不缺旧画面；新房间 world 晚到时画面停在旧房与 Host 当前进度上（由原子安装得到，不靠冻结 FSM）；滚动补偿按本地相机计算；Boss 开场 versus／肖像正常推进，结束后 HUD 可见性与 Host 一致；同房转场（animation 11／16）、Hourglass、MINECART 与活跃转场中 resize 均有明确结果 |
 | 新增 E40 | 帧号消费者（[RE-4](client-display-delegation/RE-4/handling.md#5-第13步修改与第15步覆盖)）：HUD 周期刷新在 F 连续、29→31、跨多个周期和停在 30 时不漏、不重复重置，type 2 不被覆盖；Room 年龄 29→31、停在 30 和晚加入（年龄已超过 30）时，历史画面捕获不崩溃，当前 SpawnSeed 非零且等于 Host 值（Q9）；同一 M 换 world 后平均位置不读旧目标；StatHUD 冷绑定后属性值正确、不出虚假变化提示；F 相位与 M 相位各按来源工作；F 回退或 world 重建后清除旧的去重与缓存资格；本机关闭插值时相机按原生节奏运行（4.1）；Projectile 每次 Render 后 PositionOffset 逐位不变（Q10） |
 
 E36 中“默认拒绝入口的计数”不含 Q6 放行的回调分派；回调运行本身不算违规，只检查它们没有引起玩法写入或持久副作用。
@@ -760,7 +805,7 @@ E36 中“默认拒绝入口的计数”不含 Q6 放行的回调分派；回调
 28. ItemOverlay 状态写入顺序错误（没先调 `Show` 就写状态），Sprite 没加载或演出结束后玩家可见性没恢复。
 29. 本地化键缺失或两端字符串表版本不同，横幅或 fortune 显示为空或错字。
 30. 天使占比 getter 的 hook 在 Client 会话外仍返回同步值，污染单机游戏；或会话内漏 hook，Client 显示本地算出的错误几率。
-31. 诅咒在库存之前安装，被随后的库存安装覆盖或在显示上闪一次。
+31. 诅咒在库存之前安装，被随后的库存安装覆盖或在显示上闪一次。（2026-11-12 审阅后诅咒改为 raw 同步，此条由 55 取代，事实保留。）
 
 **显示推进调度与内联标量**（2026-11-12 追加，RE-1／RE-2 审阅后）：
 
@@ -777,8 +822,36 @@ E36 中“默认拒绝入口的计数”不含 Q6 放行的回调分派；回调
 39. 同步 SpawnSeed 后，Client 上某条读它的生成路径没被拦截，按 Host seed 生成了实体或推进了玩法随机。
 40. D1 谓词与完整 SpawnSeed 同时发送且来源不一致，Error 饰品颜色在两者之间跳变。
 41. 退役旧绘制 hook 时连带删掉 `client_entity_draw_projectile`，Projectile 的 PositionOffset 每次 Render 后留下浮点残差，被漂移校正反复纠正；或者 hook 在对象身份已变时仍写回旧值。
-42. 本机关闭插值时，Client 仍在奇数 Manager 帧运行相机阶段，相机速度是原生的两倍；或者用 Host 的插值设置代替本机设置。
+42. 本机关闭插值时，Client 仍在奇数 Manager 帧运行相机阶段，相机速度是原生的两倍；或者用 Host 的插值设置代替本机设置、按 Mpre 误判绘制相位、遗漏 A／B 保持奇数 M 时仍可绘制的例外。
 43. Q8 换算值（Effect Timeout、TimeCounter 等）在帧头每次前进时全量重写，实体多时超出安装预算。
+
+**Q11／Q12／RE-10 及审阅追加**（2026-11-12）：
+
+44. 旧 surface 在新房间 world 安装之后才捕获，或捕获条件依赖看到“mode1＋旧房”的帧（Host 可在同一帧内 mode1→mode3 并换房），转场两侧都是新房间或旧侧为空。
+45. 新 surface 在 world 安装尚未完成时捕获，半套房间进入画面；或为捕获新画面调用了完整 ChangeRoom，带出旧房保存、额外 RoomUpdate、选曲或显式 SwapBuffers。
+46. Client 本地推进转场 mode／counter／progress，与随后安装的 Host 值叠加，动画加速或回跳；或 Q11 字段与 world 不在同一事务安装，出现“新 mode＋旧房”的混合帧。
+47. 滚动补偿 `+0x22C/+0x230` 装了 Host 数值（Host 分辨率与相机），或没有按本地相机重算，入房滑动错位。
+48. 具名 BossReplay 调 StartBossIntro 时没有隔离选曲 `0x823D8C`／环境声清除 `0x823D9D`，覆盖 Host 音乐状态；或者 HUD 可见性 `Game+0x22E90` 没有进入同步，本地写 0 后 HUD 一直隐藏。
+49. 转场内声音被 Client 本地再发一次（误放行 Start／Update 的子段），或 Host 漏发事件（显示作用域误包含 Start／Update）。
+50. Host 的终结分支枚举按 Update 前的状态计算，与它实际执行的分支差一帧；或 Client 本地重算谓词，结果与 Host 不同。
+51. paused 位与旧 D0.paused、本地 Manager 状态混用；或 `client_entity_draw_paused` 被当作旧绘制 hook 删除，53 个原生调用者读到 Client 本机的非暂停结果，Host 暂停时 `Room::Render` 仍推进显示。
+52. Pα 判定读了未安装或过期的 alpha，alpha 已为 0 时仍调 PostUpdate；或同一批次把 Pα 与终结分支的 P 合并成一次，或多跑。
+53. Manager 尾部的音乐／SFX tick 不运行，音乐淡入淡出、Crossfade、Queue 卡住，SFX 内部状态不前进；或在 RE-10 分类完成前整体放行尾部，带出玩法调用。
+54. 回放 SFX 没把 FrameDelay 置 0，本机节流吞掉 Host 已接受的事件，或为随后的本地显示音效设下错误的间隔。
+55. raw 诅咒只装了 `Level+0xC` 与 `Game+0x25AC8` 中的一个，或者与 Seeds／stage／挑战／难度不在同一事务安装，有效诅咒短暂不一致；或者把 Host 的有效值写进 raw，种子效果被二次合成。
+56. 地图拾取图标的 adapter 与原生构建的时序不对：修补被下一次 Refresh 覆盖，或原生构建读到不完整的 SavedEntities 镜像。
+
+**并入的 RE 成果失败清单**（2026-11-12 审阅；原文保留在各成果中）：
+
+57. （RE-1 补遗）GameOver／Leaderboard／StageTransition／Overlay／Prompt 全被压成 paused，运行同一组 U／P／M；WAITING Overlay 与暂停菜单组合判错，或为读取下一状态运行了被拒绝的 `ItemOverlay::Update`。
+58. （RE-1 补遗）secondary fade 归零的同帧或跳帧安装后仍阻断，或本机墙钟提前放行。
+59. （RE-1 补遗）为补齐 UI 条件复制整段带指针／平台／输入的 owner，或旧 UNKNOWN 占位被误记为正式同步已完成。
+60. （RE-9）快速连续转场或重传没有按 session＋转场序号幂等，旧目标挂到新转场；像素化 RenderTarget 没有按 owner 退休，反复转场耗尽 RenderTarget 栈。
+61. （RE-9）断线或会话结束时，没有排空在途图形与引用就退休本地阶段，或向已退休的 Game／Room 写旧 mode；重连只重放旧事件，不安装当前状态。
+62. （RE-9）活跃转场中 resize（`0x703E40` 重建两张 surface）后继续使用空 surface，或回读已退休的旧 world。
+63. （RE-9）特殊动画（同房、Hourglass、镜子、MINECART、复活、Death Certificate）在 Client 上沿动画编号恢复了对应玩法命令；animation 11／16 等不经 ChangeRoom 的转场让 Client 一直等待换房。
+64. （RE-8）同 id 多实例 SFX、同曲重播与 queued 音乐、循环空集合与重连处理错误；容量溢出、事件过期、资源未就绪、原生调用失败、设备丢失被当作“已回放”。
+65. （RE-8）fortune 文字按网络数组强转构造 list，或在 Client 重新抽选。
 
 ## 13. 未决问题
 
@@ -796,6 +869,13 @@ E36 中“默认拒绝入口的计数”不含 Q6 放行的回调分派；回调
 | Q8（2026-11-12 已定） | `Game::Update`／`Room::Update` 内联显示标量 | 同步 Host 当前值，Client 不本地推进；相机、ANM2、FXLayers 以及 HUD／Minimap 自身的动画仍在本地（4.6） |
 | Q9（2026-11-12 已定） | 当前房间描述的 SpawnSeed | 同步 Host 当前值，按变化更新；其他 seed 仍留 Host；D1 谓词在第 4 步评估退役（第 5 节表后说明） |
 | Q10（2026-11-12 已定） | Projectile PositionOffset 的恢复方式 | 保留 `client_entity_draw_projectile` 作为保存／恢复作用域，不新增 hook（9.1） |
+| Q11（2026-11-12 已定） | 转场显示的驱动方式 | 按 Q8 方式同步 RoomTransition 显示字段的 Host 当前值，Client 不运行 Start／Update，也不写自有 FSM 驱动；本地只做旧／新 surface 捕获、滚动补偿、versus 动画与原生 Render。取代 RE-9 的自有显示驱动建议（4.5） |
+| Q12（2026-11-12 已定） | 暂停与提前返回分支 | 保留 `client_entity_draw_paused`；Host 每个 world 帧发送 paused 位和按原生优先级算出的终结分支枚举；Pα 由已安装 primary alpha 判定；与本地菜单的合并由第 13 步决定（6.2、9.1） |
+
+**审阅后的待办（2026-11-12）**：
+
+- **RE-10**（新开，待做）：Manager::Update 尾部非 Game 调用的分类（第 6 节表、6.2 阶段 6a）。
+- **地图拾取图标的接法**（待定）：镜像最小 SavedEntities 条目，或构建后修补缓存（第 5 节表后、6.3），在第 8／13 步实施前选定。
 
 另一个可选项：是否为“Client 边界改造”单设一次验收点。现行规范只允许第 15 步统一验收，按推荐不单设。如果以后希望提前确认原生 Render 能在 Client 上安全运行，需要用户明确调整规范。
 
@@ -803,7 +883,7 @@ E36 中“默认拒绝入口的计数”不含 Q6 放行的回调分派；回调
 
 1. **快照**（已完成）：按用户要求，分支 `codex/step4-text-dummy` 上的未提交工作（版本60—71）已提交为 `3977b46e`。
 2. **文档修订**（已完成）：已按第 11 节修订。
-3. **逆向**：RE-1—RE-4 原任务与收窄后的 RE-5／RE-6 静态成果已完成（2026-11-12），RE-1 新增的提前返回分支表补遗（含本机关闭插值时奇数帧是否 Render）仍待完成；其余为 RE-7—RE-9。RE-6 已并入 RE-5，排除项见 6.1；RE-5 其余写入交第 15 步 E28，不重新要求 Render 全树静态闭合。
+3. **逆向**：RE-1—RE-4 原任务、RE-1 新增补遗、收窄后的 RE-5／RE-6 及 RE-7—RE-9 静态成果已完成（2026-11-12），均未实施／未测试。RE-1 补遗含提前返回分支、需求缺口及本机关闭插值的 Update→Render 节拍；RE-7—RE-9 补齐注入 ABI／限制、音频文字与演出来源、转场混合副作用及具名显示拆分（其中自有显示驱动被 Q11 取代）。相关采集／布局／显示接线仍归第 7／8／10／13 步。**RE-10 待做**（2026-11-12 审阅新开）：Manager 尾部非 Game 调用分类，须在第 13 步接线显示推进根之前完成。RE-6 已并入 RE-5，排除项见 6.1；RE-5 其余写入交第 15 步 E28，不重新要求 Render 全树静态闭合。
 4. **布局源**：重标并收缩布局源，升到版本72，生成器只为“Client 需要”的字段出计划。
 5. **Client 边界**：实现第 4 节的显示推进、`Game::Render` 包装、帧号方案B 和注入。
 6. **Host 采集**：收缩采集，接入事件队列。

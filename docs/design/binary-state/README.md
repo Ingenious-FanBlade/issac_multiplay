@@ -1,11 +1,15 @@
 # 原生二进制状态同步重构：总计划
 
+**2026-11-12 RE-1 补遗与 RE-7—RE-9 审阅，仅文档**：经 IDA J273 复核后，用户决定 Q11（RoomTransition 显示字段同步 Host 当前值，Client 不运行转场 FSM）与 Q12（保留 `client_entity_draw_paused`，Host 发送 paused 位与终结分支枚举），新开 RE-10（Manager 尾部非 Game 调用分类，待做）；并采纳 HUD 可见性 `Game+0x22E90` 按 Q8 同步、诅咒同步 raw 字段、SFX 回放 FrameDelay=0、Pα 由已安装 alpha 判定。见[修改方案](client-display-delegation.md)及下方第 1 节决定 13、14。未改代码，未测试。
+
+**2026-11-12 RE-7—RE-9 静态研究完成**：本地 Wiki／REPENTOGON SDK 优先，补齐[不可算值注入](client-display-delegation/RE-7/README.md)、[音频／文字／演出来源与 Q7 作用域](client-display-delegation/RE-8/README.md)、[原生转场 ABI／阶段与显示拆分](client-display-delegation/RE-9/README.md)。完整 RoomTransition Start／Update 含玩法写入，不能只替换 ChangeRoom 后放行；最终目标按 Host 实际换房结果关联。仅文档，版本71不变，未改运行代码或运行测试；布局收缩、采集与 Client adapter 继续后续步骤，第15步唯一统一验收。
+
 **2026-11-12 RE-5／RE-6 静态研究完成**：[Render 覆盖与已知写集](client-display-delegation/RE-5/README.md)确认 Minimap／ItemOverlay 在 Game::Render 树内，定稿本地缓存、同步字段暂存恢复与 E28 漂移范围，纠正旧 Tear 十进制偏移误记。RE-6 已并入 RE-5；本次只补布局源说明／证据和研究文档，不改变 wire、版本或运行代码，未测试。其余 Render 写入不做静态闭合，交第 15 步 E28。
 
 **2026-11-12 方向调整，仅文档**：用户决定借鉴 isaac-lan，改为只采集客机需要的状态，显示交给客机本地完成（包装原生 `Game::Render`），帧号用方案B（Client 原生帧号对齐 Host）。[修改方案](client-display-delegation.md)列出各步、布局源、Hook、退役、验收和新增逆向任务的改动。
 
-- Q1—Q4 已按推荐确认；同日追加 Q5（切房走原生过渡）、Q6（放行回调分派）、Q7（音效按来源去重）和 Q8（内联显示标量同步当前值）。RE-3—RE-5 审阅后再追加 Q9（同步当前房间描述的 SpawnSeed）和 Q10（保留 `client_entity_draw_projectile` 作恢复作用域），并补入关闭插值时的相机节奏与验收 E40。
-- 逆向 RE-1—RE-4 原任务及收窄后的 RE-5／RE-6 已完成静态研究（[成果](client-display-delegation/README.md)）；据此修订：显示推进根改挂 Manager 边界，`render_sort` 改由 Client 自有全排维护，Backdrop 构图与生成隔离的 hook 保留，Minimap／ItemOverlay 不另设绘制调度，已知本地 Render 写入不作漂移比较。RE-1 提前返回分支表补遗及 RE-7—RE-9 仍待完成。
+- Q1—Q4 已按推荐确认；同日追加 Q5（切房走原生过渡）、Q6（放行回调分派）、Q7（音效按来源去重）和 Q8（内联显示标量同步当前值）。RE-3—RE-5 审阅后再追加 Q9（同步当前房间描述的 SpawnSeed）和 Q10（保留 `client_entity_draw_projectile` 作恢复作用域），并补入关闭插值时的相机节奏与验收 E40。RE-1 补遗与 RE-7—RE-9 审阅后再追加 Q11（转场状态同步 Host 当前值）和 Q12（paused 位与终结分支枚举），新开 RE-10（Manager 尾部调用分类，待做）。
+- 逆向 RE-1—RE-9 及 RE-1 新增补遗已完成本轮静态研究，RE-6 已并入 RE-5（[成果](client-display-delegation/README.md)）；据此修订：显示推进根改挂 Manager 边界，`render_sort` 改由 Client 自有全排维护，Backdrop 构图与生成隔离的 hook 保留，Minimap／ItemOverlay 不另设绘制调度，已知本地 Render 写入不作漂移比较，转场改为具名显示拆分（后被 Q11 取代：转场字段同步当前值，Client 不运行转场 FSM）。静态完成不代表采集／原生安装已实施。
 - 改动前的快照已提交为 `3977b46e`。
 - 本文第 1、3、4、6、7、9 节、[规范第 17 节](../../refactor/project-conventions.md#17-原生二进制状态同步重构)和第 0—15 步文档已按方案修订。
 - 未改代码，未运行测试。
@@ -226,6 +230,9 @@
     - 相机、ANM2 动画、FXLayers 和 HUD／Minimap 自身的动画仍在本地，见修改方案 4.6。
 11. **同步当前房间描述的 SpawnSeed（Q9，同日 RE-4 审阅后追加）**：原生 Render 在房间年龄 30 时读它，为 0 即崩溃。只同步这一个 u32，按变化更新；其他 seed 和全局 RNG 游标仍留 Host，写入不授权 Client 运行生成路径。D1 谓词在布局收缩时评估退役。
 12. **保留 Projectile 恢复作用域（Q10，同日 RE-5 审阅后追加）**：`client_entity_draw_projectile` 不随绘制 hook 删除，改为保存并精确恢复已同步的 PositionOffset `+0x350`。
+13. **转场状态同步当前值（Q11，同日 RE-1 补遗与 RE-7—RE-9 审阅后追加）**：RoomTransition 的 mode、counter、duration、progress、direction、roomIndex、dimension、animation 和 Boss 标记同步 Host 当前值，随 world 原子安装；Client 不运行 Start／Update，也不写自有 FSM 驱动，只在本地捕获旧／新 surface、算滚动补偿、推进 versus 动画并调用原生 Render。取代 RE-9 的自有显示驱动建议。
+14. **paused 位与终结分支枚举（Q12，同日追加）**：保留 `client_entity_draw_paused`，向 `Game::IsPaused` 的原生调用者返回 Host 同步的 paused 位；Host 每个 world 帧发送按原生优先级算出的终结分支枚举，Client 据此选显示批次序列；Pα 由已安装 primary alpha 判定；与本地菜单的合并由第 13 步决定。
+    - 同次审阅新开 RE-10（Manager 尾部非 Game 调用分类，至少音乐／SFX tick 须在显示推进根运行），并定为：HUD 可见性 `Game+0x22E90` 按 Q8 同步、诅咒同步 raw 字段、SFX 回放 FrameDelay=0。
 
 上面的性能和网络目标不变。2026-11-11“资源本地生成”和 2026-11-12“HUD本地化”两项决定，改由原生显示委托实现，见修改方案第 8、11 节。
 
@@ -443,5 +450,8 @@ Client 主线程（2026-11-12 起）
    - Q8（同日追加）：`Game::Update`／`Room::Update` 内联显示标量同步 Host 当前值，Client 不本地推进。
    - Q9（同日追加）：同步当前房间描述的 SpawnSeed。
    - Q10（同日追加）：保留 `client_entity_draw_projectile` 作 PositionOffset 恢复作用域。
+   - Q11（同日追加）：转场显示字段同步 Host 当前值，Client 不运行转场 FSM。
+   - Q12（同日追加）：保留 `client_entity_draw_paused`；Host 发送 paused 位与终结分支枚举。
+   - 待办：RE-10（Manager 尾部调用分类）；地图拾取图标的 Client 接法待定。
 
    不为 Client 边界改造单设验收点。改动前的快照已提交为 `3977b46e`。

@@ -7,10 +7,19 @@
 - **HUD**：改由原生 HUD 产生。版本70 `hud-local` 纯值模块中，原生能产生的部分进入退役评估。
 - **地图**：300—303 只保留描述。
 - **Random 域**：只保留 Host 选出的结果，并入相应的域。
-- **改为事件队列**：文字、横幅、Boss 开场、音乐和 SFX。
+- **改为事件队列**：文字、横幅、Boss开场和玩法路径的非循环SFX；音乐请求、循环声集合和ItemOverlay演出按状态同步，不与事件重复。
 - **改为注入值**：恶魔房／天使房几率、药丸识别、价格等。
 - **新增逆向**：事件源 RE-8。
+- **RE-7—RE-9静态成果（2026-11-12）**：[注入来源](client-display-delegation/RE-7/README.md)、[事件／状态与Q7](client-display-delegation/RE-8/README.md)、[转场拆分](client-display-delegation/RE-9/README.md)已完成定位和交接。ItemOverlay以演出代次先Show再安装，fortune是MSVC list，本地化键在正常选中／翻译前窗口采集；音乐含Queue／播放代次，循环集合不由额外IsPlaying扫描建立。完整转场Start／Update含玩法，只对实际显示子段作Host排除。未修改运行代码／布局版本，未测试。
 - **保留同步（Q8，同日追加）**：`Game::Update` 内联推进的显示标量（Bloom、震屏倒计时、Hallucination、颜色、闪电、暗度、眩晕、Retrovision、fade／开场遮罩 alpha）按 Host 当前值同步，不随显示结果退役。这些字段现位于 `run.json`，见修改方案 4.6。
+- **RE-1 补遗与 RE-7—RE-9 审阅后的需求（2026-11-12 追加）**：
+  - HUD 可见性 `Game+0x22E90`（HUD `_isVisible`）按 Q8 同步当前值。
+  - Q11：RoomTransition 的 mode、counter、duration、progress、direction、roomIndex、dimension、animation 和 Boss 标记按 Host 当前值同步；surface、versus、滚动补偿为 Client 本地。
+  - Q12：每个 world 帧的 Host paused 位与终结分支枚举（Host 在 Update 后按原生优先级计算），取代旧 D0.paused；分支表中 hold、GameOver、Leaderboard、StageTransition、Prompt、未命名 UI 等不再逐项设窄谓词。
+  - raw 诅咒 `Game+0x25AC8`（与第 7 步的 `Level+0xC` 同一事务），取代有效诅咒注入。
+  - 音效事件：Q11 后转场内三个声音点全部作为 Host 事件；回放时 FrameDelay 传 0。
+  - 地图拾取图标的 Client 接法（镜像最小 SavedEntities 或构建后修补缓存）待定。
+  - 上述字段在第 10 步的 `run.json` 中替换 `room_transition_owner`／`hud_owner` 等 UNKNOWN 整段占位，见修改方案第 5 节与第 7 节第 10 行。
 
 原第8步的布局与证据保留，作为参照。见[修改方案](client-display-delegation.md)第 5、8 节。
 
