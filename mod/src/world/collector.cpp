@@ -1,4 +1,5 @@
 #include "world/collector.h"
+#include "world/observe.h"
 #include "binding/world_layout.h"
 #include "world/domains/entity/collect.h"
 #include "world/domains/grid/collect.h"
@@ -530,6 +531,65 @@ bool Collector::PlayerPost(std::uint32_t slot,PlayerPostWitness &out) noexcept {
   if(!id||id->Retired()||!id->current_public_ready||id->local_id!=p.local||id->use!=p.use||id->revision!=p.shape)return false;
   if(authority_.kind!=AuthorityKind::StandardRoom&&authority_.kind!=AuthorityKind::OddPlayer)return false;
   out=p;out.kind=authority_.kind;out.owner=authority_.scope;return true;
+}
+// ordinary和odd提交均精确匹配实际post，不借上一tick补来源。
+bool Collector::NativePostMatches(const core::TickPostState &post) const noexcept {
+  return GetCurrentThreadId()==memory_.main_thread && prepared_ && post.tick==post_.tick &&
+    post.outer_token==outer_ && post.recording_generation==generation_ && post.attempt_seq==attempt_ &&
+    post.capture_seq==post_.capture_seq && post.status==post_.status && post.reason==post_.reason;
+}
+// 普通owner资格独立于旧Recorder批次槽；二进制owner自行封存并复核完整成员来源。
+bool Collector::NativeOrdinary(NativeCaptureWindow &out) noexcept {
+  out={};Roots now{};
+  if(GetCurrentThreadId()!=memory_.main_thread || !Recording() || !run_active_ || !run_ || !room_ || !outer_active_ || !prepared_ ||
+     polluted_ || depth_ || lifecycle_depth_ || lifecycle_episode_ || entity_reconfiguration_depth_ || authority_count_!=1 ||
+     authority_.kind!=AuthorityKind::StandardRoom || !authority_.tick || !ReadRoots(now) || now!=roots_)return false;
+  for(std::size_t i=1;i<phases_.size();++i)if(phases_[i].entered!=1 || phases_[i].returned!=1 || phases_[i].active)return false;
+  if(authority_.scope!=phases_[1].scope)return false;
+  std::uint32_t frame=0;if(!Value(std::uint64_t(roots_.game)+layout::LayoutConstants().game_frame_offset,frame))return false;
+  out={generation_,run_,room_,outer_,authority_.scope,authority_.tick,mutation_,attempt_,capture_,roots_.game,roots_.room,frame,kNoOrdinal,true};
+  const auto failures=ObservationFailures();out.wrong_thread=failures.wrong_thread;out.native_exception=failures.native_exception;
+  return true;
+}
+bool Collector::NativeBody(std::uint32_t slot,NativeCaptureWindow &out,PlayerPostWitness &body) noexcept {
+  out={};if(!PlayerPost(slot,body))return false;std::uint32_t frame=0;
+  if(!Value(std::uint64_t(roots_.game)+layout::LayoutConstants().game_frame_offset,frame))return false;
+  out={generation_,run_,room_,outer_,authority_.scope,authority_.tick,mutation_,attempt_,capture_,roots_.game,roots_.room,frame,slot,false};
+  const auto failures=ObservationFailures();out.wrong_thread=failures.wrong_thread;out.native_exception=failures.native_exception;return true;
+}
+bool Collector::NativeProduction(NativeCaptureWindow &out,std::uint64_t owner) noexcept {
+  out={};Roots now{};std::uint32_t frame=0;
+  if(GetCurrentThreadId()!=memory_.main_thread || !Recording() || !run_active_ || !run_ || !room_ ||
+     !owner || lifecycle_depth_ || lifecycle_episode_ || entity_reconfiguration_depth_ || !ReadRoots(now) || now!=roots_ ||
+     !Value(std::uint64_t(now.game)+layout::LayoutConstants().game_frame_offset,frame))return false;
+  out={generation_,run_,room_,outer_active_?outer_:owner,owner,0,mutation_,attempt_,capture_,now.game,now.room,frame,kNoOrdinal,false};out.production=true;out.production_outer=outer_active_;
+  const auto failures=ObservationFailures();out.wrong_thread=failures.wrong_thread;out.native_exception=failures.native_exception;return true;
+}
+// 当前只读段不调用原生生产器；生命周期／绑定owner使缓存立即失效，不逐字段重扫来源。
+bool Collector::NativeWindowCurrent(const NativeCaptureWindow &w) noexcept {
+  const auto failures=ObservationFailures();if(w.wrong_thread!=failures.wrong_thread || w.native_exception!=failures.native_exception)return false;
+  if(w.production){Roots now{};return GetCurrentThreadId()==memory_.main_thread && Recording() && run_active_ && run_ && room_ && w.production_outer==outer_active_ &&
+    !lifecycle_depth_ && !lifecycle_episode_ && !entity_reconfiguration_depth_ && w.generation==generation_ && w.run==run_ && w.room==room_ &&
+    w.outer==(outer_active_?outer_:w.owner) && w.mutation==mutation_ && w.owner && ReadRoots(now) && now==roots_ && w.game==now.game && w.room_address==now.room;}
+  if(GetCurrentThreadId()!=memory_.main_thread || !Recording() || !run_active_ || !run_ || !room_ || !outer_active_ || !prepared_ || polluted_ || depth_ ||
+     lifecycle_depth_ || lifecycle_episode_ || entity_reconfiguration_depth_ || w.generation!=generation_ || w.run!=run_ || w.room!=room_ ||
+     w.outer!=outer_ || w.owner!=authority_.scope || w.tick!=authority_.tick || w.mutation!=mutation_ || w.attempt!=attempt_ ||
+     w.game!=roots_.game || w.room_address!=roots_.room)return false;
+  if(w.ordinary && (authority_.kind!=AuthorityKind::StandardRoom || capture_!=w.capture))return false;
+  return true;
+}
+bool Collector::NativeCurrent(const NativeCaptureWindow &w,std::uint32_t address,std::uint64_t local,std::uint64_t use,std::uint64_t shape,ObjectDomain domain) noexcept {
+  if(!NativeWindowCurrent(w))return false;
+  if(!w.ordinary && !w.production){
+    if(domain!=ObjectDomain::Entity)return false;
+    if(w.body_slot>=player_posts_.size())return false;const auto &p=player_posts_[w.body_slot];
+    if(!p.tick || p.anchor!=anchors_[w.body_slot] || update_witnesses_[w.body_slot]!=p.anchor || p.tick!=w.tick ||
+       p.run!=w.run || p.room!=w.room || p.outer!=w.outer || p.mutation!=w.mutation || p.anchor.player!=address ||
+       p.local!=local || p.use!=use || p.shape!=shape)return false;
+  }
+  const auto *id=identities_.Find(domain,address);
+  return id && !id->Retired() && (domain!=ObjectDomain::Grid || !id->candidate) && id->local_id==local && id->use==use && id->revision==shape &&
+    id->readiness>=(domain==ObjectDomain::Grid?1u:2u);
 }
 
 // RTTI 只读分类：验证 COL/CHD/每个 BCD 的地址、签名与非虚单继承形状。
@@ -1066,11 +1126,7 @@ void Collector::PublishPostState(bool committed,
                                  const core::TickPostState &post) noexcept {
   if (!pending_)
     return;
-  const bool match = post.tick == post_.tick && post.outer_token == outer_ &&
-                     post.recording_generation == generation_ &&
-                     post.attempt_seq == attempt_ &&
-                     post.capture_seq == post_.capture_seq &&
-                     post.status == post_.status && post.reason == post_.reason;
+  const bool match = NativePostMatches(post);
   if(sink_.commit) sink_.commit(sink_.owner,committed&&match,post_stable_);
   if (!committed || !match) {
     // 析构租约会产生 UNPAIRED_SCOPE gap，不静默退回空槽。

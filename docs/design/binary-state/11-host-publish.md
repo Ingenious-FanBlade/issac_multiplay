@@ -1,5 +1,18 @@
 # 11：Host 变化检测、增量与发布
 
+**2026-11-12 HUD代码迁移，版本70**：布局70将435显示时钟与315必要结果分开；发布器须分别变化检测／引用缓存，不能因本地闪烁、渐变或排版重发315。真实发布／冷连接装配仍待本步接线。 具体接口、事实及剩余接线见[实施说明](hud-local-implementation.md)。第15步唯一统一验收，未运行测试。
+
+**2026-11-12 HUD本地化发布交接，仅文档**：按[现行合同](hud-local-presentation.md)发布必要状态、实际消费Drop及有效更新／恢复锚点、剩余特殊结果；不因Client本地图标、低血闪烁、Drop渐变、材料绘制、属性格式或排版变化而重发整份HUD。普通图标／中心、护盾资格与低血强度的重复结果须先随第9步schema迁移再退出发布，不能在现有版本直接缺字段。特殊资源、三色／充能闪烁、有序列表、Stat变化相位／概率仍按原目标与依赖发布；全部实际带宽继续计费。完整运行接线尚待实施，本次无代码／生成／构建或测试。
+
+**2026-11-11 版本66压缩交接**：[world/body独立zstd](9-world-body-zstd.md)已接既有异步编码／发送分支和协商route，同时提供完整ICSR纯字节接口供本步接二进制Frame。实际压后长度才计费，普通动态仍latest-only；增量／缓存／来源及9Mbps额度保持。
+
+**2026-11-11 第9步收尾交接，版本65**：[现行预算](9-budget-capacity.md)定模组9Mbps／三端各375000B/s，日常world/body各150000、control25000、reliable50000B/s；仅借本Peer恢复停用流。此步接最终数据报计费、真实峰值／截止、192项账本／64MiB、事件500ms、三级桶、子owner配额与大型工作串行化。已知密集设计负载超额须如实处理，不暗降频／漏内容。
+
+**2026-11-11 第9步第五项交接，版本64**：[接受与恢复合同](9-acceptance-recovery.md)已提供纯值发送账本／ACK核对与恢复计划。此步接线时须预留账本／租约后发送，仅登记实际发出的完整目标，严格匹配原始joint确认；恢复期间不发受影响序列增量，旧ACK不解除恢复，重复Resync不抬高恢复起点。普通恢复target继续前进，不回收同run资源编号。
+
+**2026-11-11 第9步第二项迁移，版本61**：[正文合同与新布局](9-domain-body-codec.md)已登记422文字／423有序行／424本地历史颜色描述，替换文字图引用、移除Host反馈与切房surface，374收窄为独立Boss versus；305／306正文禁用、304拒绝kind5。字体／特殊首码映射与真实封存、本地缓存、完整资源接受及原生显示仍由10—13步落实；取消的Host图像不形成Wait，真正必要依赖不早ACK。公共头及带宽预算保持。
+**2026-11-11 当前发布职责调整**：[本地生成合同](local-media-presentation.md)：发布文字变化、必要样式、本地资源引用／有限描述及音频事件／状态，当前不调度原始图像／音频blob。Client取消平滑切房及Host反馈图依赖；hallucination只发必要world效果参数。world/body配对、真实资源准备、事件水位和所有通道带宽计费保持；旧blob必发段按历史设计阅读，后续需迁移源和发布消费者。
+
 **2026-11-11 第9步各域正文实现，版本60**：[正文实现与边界](9-domain-body-codec.md)、[同源数字计划](layouts/09-wire-format/body-codec-plan.md)。EncodeBodyInto／EncodeRecordInto处理变化块，EncodeValueInto处理具名结果；原生换算、canonical排序先在自有状态完成。reliable承运与world/body确认分开，ordinary body-joint不套fast专用body_limit。所有调用还须传整帧剩余预算并逐三端实际计费；完整Frame／表／资源调度未接通。
 
 **2026-11-11 第9步公共合同，版本59**：[正式结构](9-public-wire-contract.md)。采用公共上下文50B、Frame壳2B及Section52B；world/body按Peer独立确认，双分段共同提交承接ordinary body-joint。Host来源映射逐Peer目标，旧目标Resync不重置计数，未确认音频事件保留至world水位ACK。普通动态64KiB／旧可靠32MiB是保护上限，三端总10Mbps／模组7.5Mbps、首次准备1MiB／10秒与实际封装／重传计费同时约束；运行调度未实现。
@@ -28,9 +41,9 @@ Baseline、增量和 Resync 使用同一套机制。
 - **保留的身份语义**：`IdentityTable` 与 `Registry` 的 key／use／shape 语义保留（总计划第 6 节）。
 - **共享编码**：现有 `Blob` 让多个 Peer 共用同一份逻辑正文（`stream_transport.h:28-41`）。
 - **网络预算**：默认值和上限来自 `stream_config.h:11-12`：
-  - world 每秒 120000 字节，上限 937500；
-  - player 每秒 120000 字节，上限 937500；
-  - reliable 每秒 47500 字节，上限 937500。
+  - world 每秒 150000 字节，上限 1125000；
+  - player 每秒 150000 字节，上限 1125000；
+  - reliable 每秒 50000 字节，上限 1125000。
 - **首次准备**：不超过 1 MiB，从发起到画面就绪不超过 10 s。
 - **现有合同中被取代的部分**：“永不隐式继承旧动态字段”和 Field／Atom／Layout 范围模型，在本步由“显式继承已确认版本”取代。
 
@@ -55,12 +68,12 @@ Baseline、增量和 Resync 使用同一套机制。
    - 消失：写“离开”表项。
    - 有表项变化时，成员表 epoch 递增。
 2. **引用**：把缓冲区里的身份句柄转成成员序号。目标仍是“待登记”的，会在本步内一起登记；登记不了的报缺口。
-3. **比较**：world 版本号加 1，逐块 memcmp。
-   - 字节不同：覆盖块存储，变化版本设为当前版本，写入变化日志。
+3. **比较**：合法封存后分配不回绕的Host来源修订，逐块memcmp；来源先于任何Peer目标存在，不把全局来源号当Peer的world版本。
+   - 字节不同：覆盖块存储，变化标记关联本次真实封存来源，写入变化日志；发布时再按各Peer的base／target映射。
    - 字节相同：不做任何事。
 4. **不完整采集**：主线程标为不完整的采集不推进发布版本，不据缺读推断离开，也不得覆盖用于变化判断／ACK继承的已发布块或成员集合。若暂存其中完整片段，须与已发布基线分开，待合法完整目标重新比较；具体缓存策略在本步实现，不让未发布字节被下一次memcmp误判为已经发送。
 
-body 序列用同样的流程，使用独立的版本号和独立的块存储。body 记录只包含 body 块。
+body来源用同样的独立块存储／比较流程，只含body块；同窗口world／body共享真实来源身份，各Peer两条target确认序列仍独立，不由来源号直接代替。
 
 ### 11.3 组帧
 
@@ -114,7 +127,7 @@ body 序列用同样的流程，使用独立的版本号和独立的块存储。
 | Run：[Run职责](run-synchronization-review.md) | TimeCounter基准而非每帧原计数；GameFrame帧头唯一更新，current颜色、黑暗、最终分数及窄bool按实际结果比较；生成历史不发 | 当前Game与冻结结算owner分别匹配显示修订；空帧仍推进已应用时钟 | 132B各块变化、最终分数／资格结果与UI批次关联，不能把基准不变误作时钟可停 |
 | HUD／地图／UI：[Presentation](presentation-synchronization-review.md)、[地图设计](room-display-resource-design.md) | 最终心格、Stat三值、有序History／实际图像、消息／转场pass；MapFocusPair、徽标顺序／问号图与world限制保留，Host展开／Options不发 | 身体归组、L0—L3、资源、地图／显示修订同目标；本地视口不能裁掉全目录 | 未注册结果的正式组帧／限速与不可变批次；持续UI不得靠重播Show命令恢复 |
 | D0／随机结果：[逐用途交接](room-random-handoff.md) | D0=5B，alpha按已确认用途／调用身份发布；两个seed／全局流不上线，不能用本地顺序或最后值合并重复调用 | world/presentation、subject/use/shape、pass／递归及资源依赖齐备；缺批次不是state0 | 具名结果注册、批次替换／退休与必要源缺口处理；Authority tick不等待结果或ACK |
-| 配置／图像／shader资源：[typed资源](room-display-resource-design.md)、9.6 | 15B或实际内容变更分配新不可变号，路径与Image独立；先资源依赖闭包／blob，再发引用它的状态。固定头304—309不是完整消息 | 资源epoch与内容／recipe依赖、目标world及各Peer真实ready/ACK对应，不按同名复用 | 完整kind／blob／有序recipe调度、耗尽恢复与候选资源寿命；Context、压缩blob、结构全计首次1MiB/10秒及持续7.5Mbps |
+| 配置／图像／shader资源：[本地生成合同](local-media-presentation.md)、9.6 | 声明本地文件／配置／有限生成描述，变化时分配不可变号；文字按内容／样式变化发送。不发送原始图像／音频，当前不调度媒体blob；固定头304—309仍是既有源事实 | 资源epoch、本地准备与目标world／body对应；删除取消用途的Host前后surface／历史图依赖，不按同名猜实际绑定 | 完整kind允许集、文字／描述调度、耗尽恢复及资源寿命；全部有效声明／recipe／状态／重传计首次1MiB/10秒及持续9Mbps |
 | Music／SFX／环境声：[音频职责](presentation-synchronization-review.md)、[实际sample](room-random-handoff.md) | 事件发布已选sample且去重，持续voice／crossfade/jingle状态供Baseline恢复；不同voice不能按soundID合并，重复状态不重播。Host音量／节流游标不发 | sample资源、voice代次／相位、场景和开始停止clear关系明确；事件不能直接套latest-only状态丢弃语义 | 第9步事件／状态封装与本步可靠调度、生命周期和预算统计，不用“仅currentId／仅事件”代替完整声音 |
 
 共享编码必须匹配完整依赖键；目标过大可以延后并合并，不能截断成员／条件投影后ACK。Baseline=base0与增量复用同一规范字节，保留真实空帧及最后变化后静止的收敛。变化日志长度、轮转周期、长期落后恢复阈值和全通道计费仍待本步落实，第15步统一验收；本次不运行这些路径。

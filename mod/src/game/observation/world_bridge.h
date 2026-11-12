@@ -5,6 +5,7 @@
 #include "world/common/service.h"
 #include "world/common/publication.h"
 #include <memory>
+#include <thread>
 #include <deque>
 #include <map>
 #include "world/domains/level/model.h"
@@ -15,12 +16,14 @@
 #include "replica/stream_config.h"
 
 namespace cs::game {
+class BinaryEntities;
 // Text缓冲资格来自本use真实writer，不由Init/内存可读或旧池内容推断。
 struct EntityTextWriteWitness final { std::uint64_t local=0,use=0,revision=0; };
 // 采集 owner 不拥有文件录制器；即使没有 Recorder，也保持同一身份 epoch 和值消费。
 struct WorldCapture final {
   // 测试状态先构造、最后释放，reader/writer 的非拥有指针不会悬空。
   world::FaultSwitches faults;
+  WorldCapture();
   ~WorldCapture();
   world::BudgetLedger ledger;
   world::WorldStorage storage;
@@ -87,6 +90,9 @@ struct WorldCapture final {
   std::deque<world::LifecycleEvent> e2e_grid_events;
   bool reserve_charged=false;
   world::MemoryReader source_memory{};
+  // 主线程身份在发起后台准备前固定；正式二进制源独立于Recorder和Lua读值。
+  std::thread::id binary_thread;
+  std::unique_ptr<BinaryEntities> binary_entities;
   // 只在主线程查找地址关联；至多16384项，scope退休时随采集owner释放。
   std::map<std::uint32_t,EntityTextWriteWitness> text_writes;
   // 只在同步 Lua 调用期间有效，均为本批自有 RawObject 值，不交给后台。

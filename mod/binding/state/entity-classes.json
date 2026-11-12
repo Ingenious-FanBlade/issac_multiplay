@@ -775,18 +775,15 @@
           "size": "0x4",
           "name": "fire_cooldown",
           "type": "i32",
-          "category": "换算",
-          "semantics": "FireCooldown按变体可加、可减；不能一律倒计时；Render VA0x61E360调用充能条helper VA0x62C0C0，直接读取+D4C；属于展示依赖，不能按纯射击冷却删除",
-          "status": "推断",
-          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md；state/entity_counters.h；方向/活动条件未全部核定时必须Gap；docs/design/binary-state/synchronization-field-review.md",
+          "category": "状态",
+          "semantics": "保留Render实际读取的完整i32 FireCooldown；2026-11-11用户选择普通窗口原值采样，Client不外推；一帧双减、停走与复位不伪装成每帧±1或Frozen",
+          "status": "已核",
+          "evidence": "J273 60E2C0/60E310..60E33A具有一次或两次正值递减；62C0C0读取+D4C；10-entity-player-capture.md用户决定与静态补证；原时钟未决见历史文档",
           "wire": {
-            "kind": "convert",
-            "type": "u64",
-            "host": "fire_cooldown_to_anchor",
-            "client": "fire_cooldown_from_anchor",
-            "value_rule": "entity-counter"
+            "kind": "copy",
+            "type": "i32"
           },
-          "read_requires": "entity-current-window-and-confirmed-subclass-counter-clock"
+          "read_requires": "entity-current-window"
         },
         {
           "offset": "0xd50",
@@ -1234,8 +1231,7 @@
         }
       ],
       "conversions": {
-        "fire_cooldown_to_anchor": "只按已核原生分支选择EntityCounterMode Frozen/Increasing/Decreasing；EncodeEntityCounter以Host game_frame形成u64：低32位mode，高32位value；活跃时钟或方向未知报Gap，不把未知当Frozen。FireCooldown按变体可加、可减；不能一律倒计时",
-        "fire_cooldown_from_anchor": "先ValidEntityCounter拒绝mode>2，用最近已应用world game_frame调用DecodeEntityCounter；保留有符号值及回绕，不推进AI/爆炸；每个world展示时钟变化由第13步重写。"
+        "fire_cooldown_sample": "2026-11-11用户决定：存在一帧双减、停走及复位，改为普通窗口原始i32采样，不使用Frozen伪装未知时钟，不在Client外推；源与线宽均4B。旧锚点合同见版本66及此前历史记录。"
       },
       "validators": {
         "is_follower": {
@@ -4190,18 +4186,15 @@
           "size": "0x4",
           "name": "pickup_drop_delay",
           "type": "i32",
-          "category": "换算",
-          "semantics": "6E0650:6E0685正值且Entity+188==0才减1并早退；+188!=0直接清零后继续；非正值保持；发送正倒计时锚点，未知活动条件报Gap；Render 6E35F8按正值隐藏，属于真实展示计时，继续保留现有条件锚点；不放行Update",
-          "status": "推断",
-          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md；主审复读所列J273原始指令；state/entity_counters.cpp；docs/design/binary-state/pickup-slot-synchronization-review.md",
+          "category": "状态",
+          "semantics": "同步采样时的原始i32；正值且Entity+188==0时Update减1，碰撞类非零时直接清零，不能用固定步长锚点表达；Client保留到后续普通帧，不额外运行Update",
+          "status": "已核",
+          "evidence": "J273 6E0650:6E0685—6E06AE；2026-11-11用户决定改用原始i32；10-entity-player-capture.md",
           "wire": {
-            "kind": "convert",
-            "type": "u64",
-            "host": "pickup_drop_delay_to_anchor",
-            "client": "pickup_drop_delay_from_anchor",
-            "value_rule": "countdown"
+            "kind": "copy",
+            "type": "i32"
           },
-          "read_requires": "entity-current-window-and-confirmed-subclass-counter-clock"
+          "read_requires": "entity-current-window"
         },
         {
           "offset": "0x558",
@@ -4441,8 +4434,7 @@
         }
       ],
       "conversions": {
-        "pickup_drop_delay_to_anchor": "已核当前字段真实活动/重置分支后用EncodeEntityCountdown(game_frame,value,advances)。u64低32位mode0=原值/1=到期帧，高32位value。正值才锚到到期帧；零和负哨兵保留。未知分支/时钟关系报Gap，不默认停走。6E0650:6E0685正值且Entity+188==0才减1并早退；+188!=0直接清零后继续；非正值保持",
-        "pickup_drop_delay_from_anchor": "先ValidEntityCountdown，再用最近已应用world game_frame调用DecodeEntityCountdown；mode1减到零停走，mode0保留原值与负哨兵；不运行Remove/更新/重抽逻辑。"
+        "pickup_drop_delay_sample": "原始i32同步采样值；直接清零分支与倒计时分支均保留实际值，不伪造固定步长时钟。"
       },
       "validators": {},
       "members": [

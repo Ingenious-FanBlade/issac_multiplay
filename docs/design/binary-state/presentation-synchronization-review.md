@@ -1,5 +1,11 @@
 # 第8步 Presentation：原生字节与同步职责核对
 
+**2026-11-12 HUD代码迁移，版本70**：现行HUD布局70及纯值模块已落地；此前缓存必发结论由HUD本地合同覆盖，原始研究记录保持。 具体接口、事实及剩余接线见[实施说明](hud-local-implementation.md)。第15步唯一统一验收，未运行测试。
+
+**2026-11-12 HUD同步职责修订，仅文档**：[现行HUD本地生成合同](hud-local-presentation.md)取代下方低血强度、护盾资格、普通图标／中心、材料／队列绘制、Drop逐帧结果与Host布局缓存必发要求。Client复用已提交状态／资源／时钟；基础属性仅本地格式化Host最终value。完整心格、三色／充能闪烁、特殊图像、有序Inventory／History、Stat变化相位／概率及必要显示角色／顺序继续同步。当前JSON来源目录、原生账本、schema及已生成表保持迁移前事实，后续按第9—14步落实，不因本文修改升级证据或宣称已实现；本次无生成、构建或测试。
+
+**2026-11-11 当前显示职责调整**：[本地生成合同](local-media-presentation.md)取代文字缓存图／前后切房surface／Host hallucination历史图必发：传文字与样式，Client直接切房并本地生成反馈；图像／音频文件不作默认网络正文。下方原生字节、引用和UNKNOWN仍是事实，旧网络归属按本合同迁移，不能由Image存在推导原始媒体必发。本次不改版本60生产源或已生成表。
+
 **2026-11-10 批次及HUD主体定稿**：[正式方案B](presentation-result-batches.md)确定统一批次／实际owner分组／按依赖共同提交、明确贡献身份、保留现行Gap／Wait处理。各端History／Stat等详细HUD默认跟随本端控制组，其他参与者的公共多人HUD继续展示；Jacob／Esau等保留组内双角色语义。下文两个原生History／Stat槽只描述单个原生owner容量，不代表只支持两参与者或照搬Host主体；全部组的合法最终结果来源仍待实施。版本57不变，仅文档，无构建或测试。
 
 **2026-11-10同步职责修订5**：[资源／屏幕／转场与音频53项复核](presentation-source-synchronization-review.md)及[逐来源决定](presentation-source-synchronization-review.json)明确只发必要当前结果／事件和按需资源。最终Nightmare贡献替代路线／场景帧／Dogma等重复输入；最终voice gain替代layer mask／混音树／ducking，voice pitch替代全局pitch。world意图与后端失败分开，个人设备／抢占不广播Stop，精确硬件游标不作必需world状态。来源目录修订2、字节账本修订5仍50视图且UNKNOWN不变；旧决定保留JSON历史，生产版本57，未构建或测试。
@@ -30,8 +36,8 @@
 
 | 范围 | 需要同步的内容 | 不需要或不应同步的内容 |
 |---|---|---|
-| PlayerHUD | 实际身体owner／显示归组、24个最终心格、低血闪隐和三色闪烁、四主动显示槽、两饰品显示槽、四Pocket独立Sprite、HolyMantle最终显示资格、有序inventory图像、crafting实际图像、Drop显示比例 | Player*/HUD*/control、设备键、刷新dirty、资源选择比较历史、UpdateHearts的全部健康生产输入、按键重放、绘制包围框旧scratch |
-| StatHUD | 实际两列身体owner、当前可绘0—8行的value／delta／countdown、合并概率显示方式、实际Sprite资源、Host星象房显示资格 | previous、threshold、当前无消费者的第9行、RecomputeStats、概率生产输入和Client进度查询；不恢复Player六项玩法属性 |
+| PlayerHUD | 实际身体及必要显示角色／顺序、24个最终心格、三色触发闪烁、主动／饰品特殊显示及充能闪烁、四Pocket专用结果、有序inventory／实际crafting输出；最小critical_health与实际消费Drop驱动／锚点另按新合同登记 | 低血强度、HolyMantle资格、普通主动／饰品图标与中心、八材料／六法术绘制、逐帧Drop比例及排版由Client纯显示生成；Player*/HUD*/control、设备键、dirty、比较历史、按键重放、旧绘制scratch不上线 |
+| StatHUD | 实际身体选择、当前可绘0—8行的value／delta／countdown、合并概率方式、必要资源及Host星象房资格 | 六项基础value的格式／字体／排版本地；previous、threshold、第9行、RecomputeStats、概率生产输入与Client进度查询不上线，不恢复Player六项玩法属性 |
 | HUD消息／fortune | 11个消息物理槽各自当前存在性、streak资源／姿态及实际文字图像；fortune Sprite与独立文字图像；需要语义文本的声明UI另保留有界文字 | Show命令重放、原始指针、自动隐藏生产FSM、旧position/scale、字体／FBO／图形批次对象；字符串或路径不足以替代实际文字图像 |
 | HistoryHUD | 两个实际显示owner和有序visual_id＋实际Image；保留负ID、633及0x88000 shader分支 | 原始获得史、时间／池／层、16索引、按库存count重排；视口位置、列数、可见前缀由本地布局计算 |
 | Boss HUD | 填充值（含负值隐藏）、闪色相位、当前显示图像选择、特殊计数字段、具名最终位置／绘制分支 | 伤害生产过程、Boss AI、原版Online选择／设备身份；不能仅从当前Entity HP重建全部显示缓存 |
@@ -52,9 +58,9 @@
 - SDK `PlayerHUD=0x6E0`，HUD内8份，另有Player+20A8的动态strong owner。`832C10`写24心、四份0x1C主动显示desc、两份0x18饰品desc、四份0x11C Pocket显示体以及+6A4列表／+6B4合成图像；`97AE90`遍历8份调用它。**完整PostUpdate不是纯显示维护。** 它还调用History Recompute和StatHUD更新，不能在Client放行。
 - `832800`生产最终心格；`834930`消费可见／eternal／golden／fade／flash以及实际动画名，另有Player角色、curse、额外生命和特殊健康绘制分支。第5步已保留的Player P2依赖继续有效；不能用24个心格替代全部特殊健康显示，也不能为刷新心格恢复被裁的原始健康字段。
 - `834930`先判断每格visible，再读其余显示值。隐藏格只发送visible=false，不读取残留动画指针；overlay名称只在实际eternal分支需要时读取。`412A90/412AC0`分别是cos/sin封装，淡出色、肖像旋转和屏幕振荡的这类计算是确定数学，不新增RNG状态或逐顶点负载；应按同world显示相位与实际资源参数重建。
-- `PlayerHUD+0A`是低血闪隐强度，`832C10`依据生命和GameFrame%45产生；+0C/+0D/+0E是三种心闪计时；+6A0是effect313（HolyMantle）的最终显示资格，`834930`直接消费。它们不能遗漏，也不能在Client用输入／效果重算。
+- `PlayerHUD+0A`是低血闪隐强度，`832C10`依据生命和GameFrame%45产生；+0C/+0D/+0E是三种心闪计时；+6A0是effect313（HolyMantle）的最终显示资格，`834930`直接消费。**2026-11-12职责调整**：低血周期按最小健康判定／GameFrame、护盾按P8禁用及效果条目存在性由Client纯值adapter生成，不再重复下发这两份缓存；三色触发计时及心格闪烁／消退仍保留。原生读取事实不因本地化删除，不能放行完整HUD Update。
 - `835B40`除Player P4六值外消费实际itemImage/bookImage及charge flash；`837720`饰品使用最终图像与中心，且在非golden分支判断desc+4是否非零来选择额外colorize。SDK的`slot`名字不能作为丢弃理由：只发这项1B最终`tint_override`，其整数更新比较值不发。`839370`／`839A80`消费+6A4按12B步长的有序 `{visual_id, Image strong}`；后者还用+6B4结果图像。实际图像结果不能被重新按ID查ItemConfig／抽取／排序取代。
-- `832C10`末尾读Drop动作后产生+6BC显示比例，`97EB40`用其淡化实际身体的道具显示。这里只传显示结果，统一输入scheduler的Host职责不变。`839A80`对+6C0..6CF累计包围框；该scratch在正确绘制初始化／pass中重建，不发旧残值。
+- `832C10`末尾读Drop动作后产生+6BC显示比例，`97EB40`用其淡化实际身体的道具显示。**2026-11-12职责调整**：Client按Host实际消费Drop、有效显示更新锚点和初始化相位本地推进渐变，不再逐帧传该浮点结果；不把本端物理键或到包／渲染次数代替权威消费及更新次数。统一输入scheduler的Host职责不变。`839A80`对+6C0..6CF累计包围框；该scratch在正确绘制初始化／pass中重建，不发旧残值。
 
 ### 3.2 StatHUD从“五值全发”收紧为绘制三值
 

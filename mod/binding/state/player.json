@@ -483,15 +483,16 @@
           "size": "0x4",
           "name": "item",
           "type": "ItemConfig*",
-          "category": "换算",
+          "category": "资源",
           "semantics": "仅真实queued饰品配置选择；非饰品折Null",
           "status": "已核",
           "evidence": "5-player-p3-p5.md",
           "wire": {
-            "kind": "convert",
+            "kind": "resource",
             "type": "u16",
             "host": "queueitemdata_item_read",
-            "client": "queueitemdata_item_install"
+            "client": "queueitemdata_item_install",
+            "target": "item-config"
           }
         },
         {

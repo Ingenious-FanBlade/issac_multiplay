@@ -1,5 +1,18 @@
 {
   "format": "isaac.cs.presentation-resource-screen-source-review",
+  "current_policy_override": {
+    "date": "2026-11-11",
+    "document": "local-media-presentation.md",
+    "scope": "仅覆盖旧网络职责／验收要求；原条目证据、字节、UNKNOWN与历史决定保留；不是生产schema",
+    "production_schema_changed": false,
+    "decisions": [
+      "文字与必要样式下行，Client本地生成缓存；不传文字图像",
+      "当前Client合法完整目标就绪后直接切房，不要求前后surface",
+      "Hallucination采用本端历史与同步参数；不要求Host反馈图／像素一致",
+      "尽量不传原始图像／音频；资源引用／有限描述与播放控制保留，当前不启用通用媒体blob",
+      "旧文字图／转场／反馈值布局和依赖仍待唯一源后续迁移；不改写已有版本60实现事实"
+    ]
+  },
   "revision": 2,
   "date": "2026-11-10",
   "target": "official REPENTOGON 1.1.3 / v1.9.7.12.J273 / Win32",

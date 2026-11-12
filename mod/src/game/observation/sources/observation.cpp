@@ -1,6 +1,7 @@
 #include "game/tests/client_entity_e2e.h"
 #include "replica/stream_resource_e2e.h"
 #include "game/observation/world_bridge.h"
+#include "game/observation/binary_entities.h"
 #include "game/observation/sources/lua_entity.h"
 #include "core/capture_cost.h"
 #include "world/compatibility/encode.h"
@@ -206,6 +207,15 @@ void Commit(void *owner,bool committed,bool stable) noexcept {
 void Event(void *owner,const world::LifecycleEvent &event) noexcept {
   capture::Cost cost(capture::CostPart::Control);
   auto &c=*static_cast<WorldCapture *>(owner);
+  if(c.binary_entities){
+    if(event.kind==world::EventKind::LifecycleBoundary&&event.entering)c.binary_entities->Invalidate();
+    if(event.domain&&event.address)c.binary_entities->GridChanged(event.address);
+    if(!event.domain&&event.address){
+      const auto *id=c.identities.Find(world::ObjectDomain::Entity,event.address);
+      if(id&&(id->Retired()||id->readiness<2))c.binary_entities->EntityChanged(event.address);
+      else if(event.kind==world::EventKind::CurrentPlayerReadWitness&&event.reason==world::Reason::NotReady)c.binary_entities->RetireBody(event.address);
+    }
+  }
 #ifdef ISAACCS_E2E
   // 创建相关调用只输出既有call/parent与原生返回；供缺资格定位，不改变正式来源状态。
   const auto op=static_cast<world::Observation>(event.observation);
@@ -294,6 +304,7 @@ void WorldCapture::SetConsumers(bool formal,bool recorder) noexcept {
     if(result.accepted) { recorder_consumer=recorder; if(recorder) {GlobalRandomCheckpoint();RandomSourcesCheckpoint();} }
   }
   ArmObservationValueSources(observation.Active()&&!observation.Plan().domains.empty());
+  if(binary_entities)binary_entities->Active(formal_consumer||live_consumer||recorder_consumer);
   ArmGlobalRandom(observation.Needed(obs::DomainId::Random,obs::Phase::ActualCall));
   ArmRandomSources(observation.Needed(obs::DomainId::Random,obs::Phase::ActualCall));
  }catch(...){++formal_loss;live.Invalidate("consumer_plan_allocation");}
@@ -310,6 +321,7 @@ obs::RequestResult WorldCapture::SetLiveConsumer(bool active) noexcept {
     live_request_reason=result.reason;
     if(result.accepted){
       live_consumer=active;live.Attached(active);
+      if(binary_entities)binary_entities->Active(formal_consumer||live_consumer||recorder_consumer);
       if(active){
         // 停采集期间的同址重建没有来源证言；重挂时丢弃旧地址表，代次计数绝不回绕或复用。
         stream_resources.clear();body_status={};pending_bodies={};pending_body_bytes=0;
@@ -530,7 +542,7 @@ EntityLaserPresentationValue EntityLaserPresentation(void *object) noexcept {
 // Text Init不初始化buffer；真实首个Update的两个格式化分支和具名helper才建立本use读资格。
 EntityTextUpdateWitness BeginEntityTextUpdate(void *object,void *return_slot) noexcept {
   EntityTextUpdateWitness out;if(!IsMain()||!object)return out;
-  auto c=CurrentWorldRecording();if(!c||!c->observation.Active())return out;
+  auto c=CurrentWorldRecording();if(!c||(!c->observation.Active()&&!(c->binary_entities&&c->binary_entities->Active())))return out;
   const auto address=std::uint32_t(reinterpret_cast<uintptr_t>(object));
   const auto *id=c->identities.Find(world::ObjectDomain::Entity,address);
   if(!id||id->Retired()||id->readiness<2)return out;
@@ -547,9 +559,11 @@ EntityTextUpdateWitness BeginEntityTextUpdate(void *object,void *return_slot) no
   if(wrote)out={c->epoch,id->local_id,id->use,id->revision,address,true};return out;
 }
 void FinishEntityTextUpdate(const EntityTextUpdateWitness &w) noexcept {
-  if(!w.wrote||!IsMain())return;auto c=CurrentWorldRecording();if(!c||c->epoch!=w.epoch||!c->observation.Active())return;
+  if(!w.wrote||!IsMain())return;auto c=CurrentWorldRecording();if(!c||c->epoch!=w.epoch)return;
   const auto *id=c->identities.Find(world::ObjectDomain::Entity,w.address);
   if(!id||id->Retired()||id->local_id!=w.local||id->use!=w.use||id->revision!=w.revision||id->readiness<2)return;
+  if(c->binary_entities&&c->binary_entities->Active())c->binary_entities->TextWritten(w.address,w.local,w.use,w.revision);
+  if(!c->observation.Active())return;
   try {
     if(c->text_writes.size()>=16384&&!c->text_writes.count(w.address)){
       for(auto i=c->text_writes.begin();i!=c->text_writes.end();){const auto *current=c->identities.Find(world::ObjectDomain::Entity,i->first);

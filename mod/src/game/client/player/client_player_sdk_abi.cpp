@@ -43,3 +43,11 @@ static_assert(sizeof(Innate)==sizeof(ItemSpoofSystem::InnateItems));
 static_assert(sizeof(Spoof)==sizeof(ItemSpoofSystem::CollectibleSpoof));
 static_assert(sizeof(Spoof)==sizeof(ItemSpoofSystem::TrinketSpoof));
 static_assert(sizeof(PlusItems)==sizeof(ItemSpoofSystem::PlayerItemSpoofs));
+// 第10步原生只读聚合用到的官方Release容器前缀；不调用私有getter或读取timer。
+static_assert(offsetof(EntityPlayerPlus,itemSpoofs)==0x10);
+static_assert(sizeof(std::unordered_map<int,int>)==0x20 && sizeof(std::unordered_set<int>)==0x20);
+static_assert(sizeof(std::map<std::string,Innate>)==8 && sizeof(std::string)==24);
+static_assert(offsetof(Innate,totals)==0x2c && offsetof(Spoof,groups)==0x24);
+using InnateTreeNode=std::_Tree_node<std::pair<const std::string,Innate>,void *>;
+using ItemListNode=std::_List_node<std::pair<const int,int>,void *>;
+static_assert(offsetof(InnateTreeNode,_Myval)==0x10 && offsetof(ItemListNode,_Myval)==8);

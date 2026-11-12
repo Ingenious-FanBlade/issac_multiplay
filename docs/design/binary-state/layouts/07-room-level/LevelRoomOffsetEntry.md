@@ -1,6 +1,6 @@
 # LevelRoomOffsetEntry
 
-由唯一布局源生成。布局编号 277；布局版本 60；原生大小 0x4；未知 0B；完整：是。
+由唯一布局源生成。布局编号 277；布局版本 71；原生大小 0x4；未知 0B；完整：是。
 
 官方Level._greedwavesclearedwithoutredheartdamage=+18204实际是dimension2/grid120；_levelStateFlag=+1822C实际是dimension2/grid130。 原始静态证据保持；运行reader／writer尚待第10/13步接线。
 

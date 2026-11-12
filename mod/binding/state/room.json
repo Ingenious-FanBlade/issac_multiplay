@@ -140,10 +140,11 @@
           "semantics": "实际八门槽，允许与grid槽别名；不能按门的primary Slot反推；同步决定：R3八项nullable成员引用；同world解析，保留别名，不驱动过门FSM；正式投影：八个槽逐一转同world Grid成员序号，FFFF明确空；保留别名，不从Door.primary Slot反推",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
           "wire": {
-            "kind": "convert",
+            "kind": "reference",
             "type": "u16[8]",
             "host": "room_door_slots_read",
-            "client": "room_door_slots_install"
+            "client": "room_door_slots_install",
+            "target": "grid"
           },
           "read_requires": "qualified-main-thread-stable-world-owner-and-current-use",
           "shape": true
@@ -527,11 +528,11 @@
           "type": "ANM2",
           "category": "状态",
           "status": "已核",
-          "semantics": "Render强制Idle／临时帧；含特殊背景分支；同步决定：只发当前实际资源／必要层覆盖／显示结果；不推进动画，不把旧动画状态当稳定输入",
+          "semantics": "Backdrop18／28未clear时按每波独立主帧绘制；稳定外观及overlay保留，通用共享main_state不下发。",
           "evidence": "804500；7F7F60；7E8AD0",
           "wire": {
             "kind": "nested",
-            "type": "ANM2",
+            "type": "RoomWaveSprite",
             "when": {
               "field": "wave_sprite_present",
               "predicate": "room_wave_sprite_present_present",
@@ -9907,7 +9908,6 @@
           "name": "WaterVisualPayload当前结果",
           "sequence": "world",
           "fields": [
-            "mode",
             "image",
             "phase_used",
             "flow",
@@ -9916,8 +9916,6 @@
         }
       ],
       "conversions": {
-        "water_visual_payload_mode_read": "经典／反射世界模式，独立于本地图形选项；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
-        "water_visual_payload_mode_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；经典／反射世界模式，独立于本地图形选项；不调用Update／Init／Restore或写访客进度。",
         "water_visual_payload_image_read": "实际water用途image-table资源引用；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
         "water_visual_payload_image_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；实际water用途image-table资源引用；不调用Update／Init／Restore或写访客进度。",
         "water_visual_payload_phase_used_read": "91AC70实际采用的有符号phase；816BB0的2*GameFrame另从同批帧头派生；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
@@ -9928,12 +9926,6 @@
         "water_visual_payload_shader_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；正常816BB0最终32B水色结果；缺源不折空；不调用Update／Init／Restore或写访客进度。"
       },
       "validators": {
-        "mode": {
-          "kind": "range",
-          "scalar": "u8",
-          "min": 0,
-          "max": 1
-        },
         "phase_used": {
           "kind": "finite",
           "scalar": "f32"
@@ -9945,18 +9937,10 @@
       },
       "members": [],
       "public_owners": [],
-      "notes": "",
+      "notes": "2026-11-12按用户决定：经典／反射水面、局部动画与波纹由Client纯显示模拟，mode为本地画质选择，不发Host Options或要求逐帧画面一致。水量／水流／水色与实际资源仍由Host提供。",
       "extent": "protocol",
       "layout": 286,
       "synthetic_fields": [
-        {
-          "name": "mode",
-          "type": "u8",
-          "semantics": "经典／反射世界模式，独立于本地图形选项",
-          "evidence": "docs/design/binary-state/7-room-level.md；room-display-resource-design.md及对应原生账本",
-          "host": "water_visual_payload_mode_read",
-          "client": "water_visual_payload_mode_install"
-        },
         {
           "name": "image",
           "type": "u16",
@@ -10040,7 +10024,7 @@
       "conversions": {
         "water_visual_present_read": "明确世界分支存在性；缺源是Gap；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
         "water_visual_present_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；明确世界分支存在性；缺源是Gap；不调用Update／Init／Restore或写访客进度。",
-        "watervisual_present_present": "present==1才读取47B负载",
+        "watervisual_present_present": "present==1才读取当前水面显示锚点与资源负载",
         "water_visual_payload_read": "水图像／phase／flow／shader同批提交；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
         "water_visual_payload_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；水图像／phase／flow／shader同批提交；不调用Update／Init／Restore或写访客进度。"
       },
@@ -10071,7 +10055,7 @@
         {
           "name": "payload",
           "type": "WaterVisualPayload",
-          "semantics": "水图像／phase／flow／shader同批提交",
+          "semantics": "水图像／phase／flow／shader同批提供；Client本地选择画质并推进纯显示动画",
           "evidence": "第7步正常生产结果／具名owner；对应原生账本及room-display-resource-design.md",
           "status": "已核",
           "host": "water_visual_payload_read",
@@ -10106,7 +10090,8 @@
             "shadow_fill",
             "light_tint",
             "lighting_alpha",
-            "special_background"
+            "special_background",
+            "lightning"
           ]
         }
       ],
@@ -10124,7 +10109,9 @@
         "room_lighting_result_lighting_alpha_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；804500当前最终强度，不调用8134C0查询补值；不调用Update／Init／Restore或写访客进度。",
         "room_lighting_bit3": "(mask & 8)!=0",
         "room_lighting_result_special_background_read": "已核特殊背景分支编号；0普通/1地狱横移/2 Home，按具名pass消费；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
-        "room_lighting_result_special_background_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；已核特殊背景分支编号；0普通/1地狱横移/2 Home，按具名pass消费；不调用Update／Init／Restore或写访客进度。"
+        "room_lighting_result_special_background_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；已核特殊背景分支编号；0普通/1地狱横移/2 Home，按具名pass消费；不调用Update／Init／Restore或写访客进度。",
+        "room_lighting_result_lightning_read": "同一ordinary窗口只读纯值，不调用原生Getter或Render。",
+        "room_lighting_result_lightning_install": "纯显示合成，禁止修改玩法。"
       },
       "validators": {
         "mask": {
@@ -10136,6 +10123,16 @@
         "lighting_alpha": {
           "kind": "finite",
           "scalar": "f32"
+        },
+        "lightning": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "special_background": {
+          "kind": "range",
+          "scalar": "u8",
+          "min": 1,
+          "max": 7
         }
       },
       "members": [],
@@ -10177,7 +10174,7 @@
         {
           "name": "special_background",
           "type": "u8",
-          "semantics": "当前特殊背景具名kind；具体枚举与pass映射仍须第9/13步登记，未知值不能默认为普通；固定值布局不等于已有分派。",
+          "semantics": "固定pass位：bit0 Backdrop11 Hush／bit1 Backdrop57 Home／bit2镜面维度；独立组合，零时不出现。",
           "evidence": "docs/design/binary-state/7-room-level.md；room-display-resource-design.md及对应原生账本",
           "host": "room_lighting_result_special_background_read",
           "client": "room_lighting_result_special_background_install",
@@ -10195,6 +10192,14 @@
               }
             }
           }
+        },
+        {
+          "name": "lightning",
+          "type": "f32",
+          "semantics": "同批闪电强度：本端合成shadow减量与当前光层色，不以Host Options关闭世界资格",
+          "evidence": "J273 803E20／804500 Game+105063*4",
+          "host": "room_lighting_result_lightning_read",
+          "client": "room_lighting_result_lightning_install"
         }
       ],
       "companions": [
@@ -10268,10 +10273,16 @@
             "active_mask",
             "a_world_center",
             "a_radius_used",
-            "a_gain_used",
+            "a_strength",
+            "a_radius_step",
+            "a_elapsed",
+            "a_duration",
             "b_world_center",
             "b_radius_used",
-            "b_gain_used"
+            "b_strength",
+            "b_radius_step",
+            "b_elapsed",
+            "b_duration"
           ]
         }
       ],
@@ -10279,19 +10290,35 @@
         "room_wave_result_active_mask_read": "两波纹当前有效位；不是未来推进状态；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
         "room_wave_result_active_mask_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；两波纹当前有效位；不是未来推进状态；不调用Update／Init／Restore或写访客进度。",
         "room_wave_bit0": "(active_mask & 1)!=0",
-        "room_wave_result_a_world_center_read": "世界中心，本端视口换算；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
-        "room_wave_result_a_world_center_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；世界中心，本端视口换算；不调用Update／Init／Restore或写访客进度。",
-        "room_wave_result_a_radius_used_read": "包含有效半帧的当前radius；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
-        "room_wave_result_a_radius_used_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；包含有效半帧的当前radius；不调用Update／Init／Restore或写访客进度。",
+        "room_wave_result_a_world_center_read": "同一ordinary窗口读取显示锚点，不执行Render／Update／随机。",
+        "room_wave_result_a_world_center_install": "以同批GameFrame为时钟锚点，只推进本端纯显示，暂停／退休后停止，不写碰撞或实体。",
+        "room_wave_result_a_radius_used_read": "同一ordinary窗口读取显示锚点，不执行Render／Update／随机。",
+        "room_wave_result_a_radius_used_install": "以同批GameFrame为时钟锚点，只推进本端纯显示，暂停／退休后停止，不写碰撞或实体。",
         "room_wave_result_a_gain_used_read": "当前包络／gain；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
         "room_wave_result_a_gain_used_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；当前包络／gain；不调用Update／Init／Restore或写访客进度。",
         "room_wave_bit1": "(active_mask & 2)!=0",
-        "room_wave_result_b_world_center_read": "世界中心，本端视口换算；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
-        "room_wave_result_b_world_center_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；世界中心，本端视口换算；不调用Update／Init／Restore或写访客进度。",
-        "room_wave_result_b_radius_used_read": "包含有效半帧的当前radius；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
-        "room_wave_result_b_radius_used_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；包含有效半帧的当前radius；不调用Update／Init／Restore或写访客进度。",
+        "room_wave_result_b_world_center_read": "同一ordinary窗口读取显示锚点，不执行Render／Update／随机。",
+        "room_wave_result_b_world_center_install": "以同批GameFrame为时钟锚点，只推进本端纯显示，暂停／退休后停止，不写碰撞或实体。",
+        "room_wave_result_b_radius_used_read": "同一ordinary窗口读取显示锚点，不执行Render／Update／随机。",
+        "room_wave_result_b_radius_used_install": "以同批GameFrame为时钟锚点，只推进本端纯显示，暂停／退休后停止，不写碰撞或实体。",
         "room_wave_result_b_gain_used_read": "当前包络／gain；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
-        "room_wave_result_b_gain_used_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；当前包络／gain；不调用Update／Init／Restore或写访客进度。"
+        "room_wave_result_b_gain_used_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；当前包络／gain；不调用Update／Init／Restore或写访客进度。",
+        "room_wave_result_a_strength_read": "同一ordinary窗口读取显示锚点，不执行Render／Update／随机。",
+        "room_wave_result_a_strength_install": "以同批GameFrame为时钟锚点，只推进本端纯显示，暂停／退休后停止，不写碰撞或实体。",
+        "room_wave_result_a_radius_step_read": "同一ordinary窗口读取显示锚点，不执行Render／Update／随机。",
+        "room_wave_result_a_radius_step_install": "以同批GameFrame为时钟锚点，只推进本端纯显示，暂停／退休后停止，不写碰撞或实体。",
+        "room_wave_result_a_elapsed_read": "同一ordinary窗口读取显示锚点，不执行Render／Update／随机。",
+        "room_wave_result_a_elapsed_install": "以同批GameFrame为时钟锚点，只推进本端纯显示，暂停／退休后停止，不写碰撞或实体。",
+        "room_wave_result_a_duration_read": "同一ordinary窗口读取显示锚点，不执行Render／Update／随机。",
+        "room_wave_result_a_duration_install": "以同批GameFrame为时钟锚点，只推进本端纯显示，暂停／退休后停止，不写碰撞或实体。",
+        "room_wave_result_b_strength_read": "同一ordinary窗口读取显示锚点，不执行Render／Update／随机。",
+        "room_wave_result_b_strength_install": "以同批GameFrame为时钟锚点，只推进本端纯显示，暂停／退休后停止，不写碰撞或实体。",
+        "room_wave_result_b_radius_step_read": "同一ordinary窗口读取显示锚点，不执行Render／Update／随机。",
+        "room_wave_result_b_radius_step_install": "以同批GameFrame为时钟锚点，只推进本端纯显示，暂停／退休后停止，不写碰撞或实体。",
+        "room_wave_result_b_elapsed_read": "同一ordinary窗口读取显示锚点，不执行Render／Update／随机。",
+        "room_wave_result_b_elapsed_install": "以同批GameFrame为时钟锚点，只推进本端纯显示，暂停／退休后停止，不写碰撞或实体。",
+        "room_wave_result_b_duration_read": "同一ordinary窗口读取显示锚点，不执行Render／Update／随机。",
+        "room_wave_result_b_duration_install": "以同批GameFrame为时钟锚点，只推进本端纯显示，暂停／退休后停止，不写碰撞或实体。"
       },
       "validators": {
         "active_mask": {
@@ -10308,9 +10335,25 @@
           "kind": "finite",
           "scalar": "f32"
         },
-        "a_gain_used": {
+        "a_strength": {
           "kind": "finite",
           "scalar": "f32"
+        },
+        "a_radius_step": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "a_elapsed": {
+          "kind": "range",
+          "scalar": "u32",
+          "min": 0,
+          "max": 2147483647
+        },
+        "a_duration": {
+          "kind": "range",
+          "scalar": "u32",
+          "min": 1,
+          "max": 2147483647
         },
         "b_world_center": {
           "kind": "finite",
@@ -10320,14 +10363,30 @@
           "kind": "finite",
           "scalar": "f32"
         },
-        "b_gain_used": {
+        "b_strength": {
           "kind": "finite",
           "scalar": "f32"
+        },
+        "b_radius_step": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "b_elapsed": {
+          "kind": "range",
+          "scalar": "u32",
+          "min": 0,
+          "max": 2147483647
+        },
+        "b_duration": {
+          "kind": "range",
+          "scalar": "u32",
+          "min": 1,
+          "max": 2147483647
         }
       },
       "members": [],
       "public_owners": [],
-      "notes": "",
+      "notes": "水面／波纹纯表现由Client本地推进；Host下发视觉锚点及必要外观，不捕获每次Render scratch，不要求各端逐帧画面相等。",
       "extent": "protocol",
       "layout": 289,
       "synthetic_fields": [
@@ -10342,8 +10401,8 @@
         {
           "name": "a_world_center",
           "type": "f32[2]",
-          "semantics": "世界中心，本端视口换算",
-          "evidence": "docs/design/binary-state/7-room-level.md；room-display-resource-design.md及对应原生账本",
+          "semantics": "世界中心，由本端转换视口",
+          "evidence": "J273 RoomShockwave布局／804500；2026-11-11用户授权Client纯显示推进",
           "host": "room_wave_result_a_world_center_read",
           "client": "room_wave_result_a_world_center_install",
           "wire": {
@@ -10364,8 +10423,8 @@
         {
           "name": "a_radius_used",
           "type": "f32",
-          "semantics": "包含有效半帧的当前radius",
-          "evidence": "docs/design/binary-state/7-room-level.md；room-display-resource-design.md及对应原生账本",
+          "semantics": "当前显示半径锚点，含已采用半帧",
+          "evidence": "J273 RoomShockwave布局／804500；2026-11-11用户授权Client纯显示推进",
           "host": "room_wave_result_a_radius_used_read",
           "client": "room_wave_result_a_radius_used_install",
           "wire": {
@@ -10384,17 +10443,83 @@
           }
         },
         {
-          "name": "a_gain_used",
+          "name": "a_strength",
           "type": "f32",
-          "semantics": "当前包络／gain",
-          "evidence": "docs/design/binary-state/7-room-level.md；room-display-resource-design.md及对应原生账本",
-          "host": "room_wave_result_a_gain_used_read",
-          "client": "room_wave_result_a_gain_used_install",
+          "semantics": "显示包络的原始强度，Client本地计算1-pow(elapsed/duration,0.4f)",
+          "evidence": "J273 RoomShockwave布局／804500；2026-11-11用户授权Client纯显示推进",
+          "host": "room_wave_result_a_strength_read",
+          "client": "room_wave_result_a_strength_install",
           "wire": {
             "kind": "convert",
             "type": "f32",
-            "host": "room_wave_result_a_gain_used_read",
-            "client": "room_wave_result_a_gain_used_install",
+            "host": "room_wave_result_a_strength_read",
+            "client": "room_wave_result_a_strength_install",
+            "when": {
+              "field": "active_mask",
+              "predicate": "room_wave_bit0",
+              "test": {
+                "kind": "any-bits",
+                "value": 1
+              }
+            }
+          }
+        },
+        {
+          "name": "a_radius_step",
+          "type": "f32",
+          "semantics": "每个原生显示计时帧的半径增量，只供本地显示",
+          "evidence": "J273 RoomShockwave布局／804500；2026-11-11用户授权Client纯显示推进",
+          "host": "room_wave_result_a_radius_step_read",
+          "client": "room_wave_result_a_radius_step_install",
+          "wire": {
+            "kind": "convert",
+            "type": "f32",
+            "host": "room_wave_result_a_radius_step_read",
+            "client": "room_wave_result_a_radius_step_install",
+            "when": {
+              "field": "active_mask",
+              "predicate": "room_wave_bit0",
+              "test": {
+                "kind": "any-bits",
+                "value": 1
+              }
+            }
+          }
+        },
+        {
+          "name": "a_elapsed",
+          "type": "u32",
+          "semantics": "同批视觉计时锚点；不成为Client玩法计时器",
+          "evidence": "J273 RoomShockwave布局／804500；2026-11-11用户授权Client纯显示推进",
+          "host": "room_wave_result_a_elapsed_read",
+          "client": "room_wave_result_a_elapsed_install",
+          "wire": {
+            "kind": "convert",
+            "type": "u32",
+            "host": "room_wave_result_a_elapsed_read",
+            "client": "room_wave_result_a_elapsed_install",
+            "when": {
+              "field": "active_mask",
+              "predicate": "room_wave_bit0",
+              "test": {
+                "kind": "any-bits",
+                "value": 1
+              }
+            }
+          }
+        },
+        {
+          "name": "a_duration",
+          "type": "u32",
+          "semantics": "本次视觉持续帧数，必须大于elapsed",
+          "evidence": "J273 RoomShockwave布局／804500；2026-11-11用户授权Client纯显示推进",
+          "host": "room_wave_result_a_duration_read",
+          "client": "room_wave_result_a_duration_install",
+          "wire": {
+            "kind": "convert",
+            "type": "u32",
+            "host": "room_wave_result_a_duration_read",
+            "client": "room_wave_result_a_duration_install",
             "when": {
               "field": "active_mask",
               "predicate": "room_wave_bit0",
@@ -10408,8 +10533,8 @@
         {
           "name": "b_world_center",
           "type": "f32[2]",
-          "semantics": "世界中心，本端视口换算",
-          "evidence": "docs/design/binary-state/7-room-level.md；room-display-resource-design.md及对应原生账本",
+          "semantics": "世界中心，由本端转换视口",
+          "evidence": "J273 RoomShockwave布局／804500；2026-11-11用户授权Client纯显示推进",
           "host": "room_wave_result_b_world_center_read",
           "client": "room_wave_result_b_world_center_install",
           "wire": {
@@ -10430,8 +10555,8 @@
         {
           "name": "b_radius_used",
           "type": "f32",
-          "semantics": "包含有效半帧的当前radius",
-          "evidence": "docs/design/binary-state/7-room-level.md；room-display-resource-design.md及对应原生账本",
+          "semantics": "当前显示半径锚点，含已采用半帧",
+          "evidence": "J273 RoomShockwave布局／804500；2026-11-11用户授权Client纯显示推进",
           "host": "room_wave_result_b_radius_used_read",
           "client": "room_wave_result_b_radius_used_install",
           "wire": {
@@ -10450,17 +10575,83 @@
           }
         },
         {
-          "name": "b_gain_used",
+          "name": "b_strength",
           "type": "f32",
-          "semantics": "当前包络／gain",
-          "evidence": "docs/design/binary-state/7-room-level.md；room-display-resource-design.md及对应原生账本",
-          "host": "room_wave_result_b_gain_used_read",
-          "client": "room_wave_result_b_gain_used_install",
+          "semantics": "显示包络的原始强度，Client本地计算1-pow(elapsed/duration,0.4f)",
+          "evidence": "J273 RoomShockwave布局／804500；2026-11-11用户授权Client纯显示推进",
+          "host": "room_wave_result_b_strength_read",
+          "client": "room_wave_result_b_strength_install",
           "wire": {
             "kind": "convert",
             "type": "f32",
-            "host": "room_wave_result_b_gain_used_read",
-            "client": "room_wave_result_b_gain_used_install",
+            "host": "room_wave_result_b_strength_read",
+            "client": "room_wave_result_b_strength_install",
+            "when": {
+              "field": "active_mask",
+              "predicate": "room_wave_bit1",
+              "test": {
+                "kind": "any-bits",
+                "value": 2
+              }
+            }
+          }
+        },
+        {
+          "name": "b_radius_step",
+          "type": "f32",
+          "semantics": "每个原生显示计时帧的半径增量，只供本地显示",
+          "evidence": "J273 RoomShockwave布局／804500；2026-11-11用户授权Client纯显示推进",
+          "host": "room_wave_result_b_radius_step_read",
+          "client": "room_wave_result_b_radius_step_install",
+          "wire": {
+            "kind": "convert",
+            "type": "f32",
+            "host": "room_wave_result_b_radius_step_read",
+            "client": "room_wave_result_b_radius_step_install",
+            "when": {
+              "field": "active_mask",
+              "predicate": "room_wave_bit1",
+              "test": {
+                "kind": "any-bits",
+                "value": 2
+              }
+            }
+          }
+        },
+        {
+          "name": "b_elapsed",
+          "type": "u32",
+          "semantics": "同批视觉计时锚点；不成为Client玩法计时器",
+          "evidence": "J273 RoomShockwave布局／804500；2026-11-11用户授权Client纯显示推进",
+          "host": "room_wave_result_b_elapsed_read",
+          "client": "room_wave_result_b_elapsed_install",
+          "wire": {
+            "kind": "convert",
+            "type": "u32",
+            "host": "room_wave_result_b_elapsed_read",
+            "client": "room_wave_result_b_elapsed_install",
+            "when": {
+              "field": "active_mask",
+              "predicate": "room_wave_bit1",
+              "test": {
+                "kind": "any-bits",
+                "value": 2
+              }
+            }
+          }
+        },
+        {
+          "name": "b_duration",
+          "type": "u32",
+          "semantics": "本次视觉持续帧数，必须大于elapsed",
+          "evidence": "J273 RoomShockwave布局／804500；2026-11-11用户授权Client纯显示推进",
+          "host": "room_wave_result_b_duration_read",
+          "client": "room_wave_result_b_duration_install",
+          "wire": {
+            "kind": "convert",
+            "type": "u32",
+            "host": "room_wave_result_b_duration_read",
+            "client": "room_wave_result_b_duration_install",
             "when": {
               "field": "active_mask",
               "predicate": "room_wave_bit1",
@@ -11091,8 +11282,8 @@
       "conversions": {
         "resource_entry_header_index_read": "不可变会话资源项，不得FFFF；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
         "resource_entry_header_index_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；不可变会话资源项，不得FFFF；不调用Update／Init／Restore或写访客进度。",
-        "resource_entry_header_kind_read": "按wire.json的resource_kind分派；完整payload未登记前不得接受，仅公共tag范围0—9已确定。",
-        "resource_entry_header_kind_install": "按wire.json的resource_kind分派；完整payload未登记前不得接受，仅公共tag范围0—9已确定。",
+        "resource_entry_header_kind_read": "版本61基础头kind仅允许0、1、2、3、4、6、7、8、9，拒绝像素5；完整payload／table-kind矩阵待后续，不凭头部通过接受资源。",
+        "resource_entry_header_kind_install": "版本61基础头kind仅允许0、1、2、3、4、6、7、8、9，拒绝像素5；完整payload／table-kind矩阵待后续，不凭头部通过接受资源。",
         "resource_entry_header_payload_bytes_read": "后续typed payload精确长度；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
         "resource_entry_header_payload_bytes_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；后续typed payload精确长度；不调用Update／Init／Restore或写访客进度。",
         "resource_entry_header_table_read": "从不可变typed资源声明取明确空间；显式资源表空间0—7；与u16 index共同定位，不因整数相等跨表替换",
@@ -11100,10 +11291,19 @@
       },
       "validators": {
         "kind": {
-          "kind": "range",
+          "kind": "enum",
           "scalar": "u8",
-          "min": 0,
-          "max": 9
+          "values": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            6,
+            7,
+            8,
+            9
+          ]
         },
         "table": {
           "kind": "range",
@@ -11114,7 +11314,7 @@
       },
       "members": [],
       "public_owners": [],
-      "notes": "第9步公共合同将旧7B头改为8B：table/index/kind/payload_bytes。布局304保留；完整typed payload和允许集尚待本步后续，不代表资源可接受报文已实现。",
+      "notes": "第9步公共合同将旧7B头改为8B：table/index/kind/payload_bytes。布局304保留；完整typed payload和允许集尚待本步后续，不代表资源可接受报文已实现。 版本61当前kind允许编号排除SurfacePixels=5；其余只通过基础头校验，完整payload与table/kind对应仍须后续登记；Audio仅本地选定资源描述。",
       "extent": "protocol",
       "layout": 304,
       "synthetic_fields": [
@@ -11137,7 +11337,7 @@
         {
           "name": "kind",
           "type": "u8",
-          "semantics": "公共resource_kind编号0—9；具体table/kind允许集及完整payload待第9步后续登记",
+          "semantics": "公共resource_kind保留0—9编号；当前排除像素5，其他完整payload及table/kind允许集待后续。",
           "evidence": "docs/design/binary-state/7-room-level.md；room-display-resource-design.md及对应原生账本",
           "host": "resource_entry_header_kind_read",
           "client": "resource_entry_header_kind_install"
@@ -11257,7 +11457,7 @@
       },
       "members": [],
       "public_owners": [],
-      "notes": "16B描述；不是GL handle，不自动量化特殊格式。",
+      "notes": "16B描述；不是GL handle，不自动量化特殊格式。 版本61保留原固定字节目录，但正文编解码入口拒绝此布局；当前不启用像素／原始媒体blob，不能用作缺源兜底。",
       "extent": "protocol",
       "layout": 305,
       "synthetic_fields": [
@@ -11333,7 +11533,8 @@
           "host": "surface_pixels_descriptor_content_bytes_read",
           "client": "surface_pixels_descriptor_content_bytes_install"
         }
-      ]
+      ],
+      "body_enabled": false
     },
     {
       "type": "ResourceBlobChunkHeader",
@@ -11386,7 +11587,7 @@
       },
       "members": [],
       "public_owners": [],
-      "notes": "第9步公共合同将旧14B头改为15B：resource_epoch/table/index/offset/bytes；完整范围、内容冲突、资源就绪和总预算仍须后续编解码执行。",
+      "notes": "第9步公共合同将旧14B头改为15B：resource_epoch/table/index/offset/bytes；完整范围、内容冲突、资源就绪和总预算仍须后续编解码执行。 版本61保留原固定字节目录，但正文编解码入口拒绝此布局；当前不启用像素／原始媒体blob，不能用作缺源兜底。",
       "extent": "protocol",
       "layout": 306,
       "synthetic_fields": [
@@ -11430,7 +11631,8 @@
           "host": "resource_blob_chunk_header_bytes_read",
           "client": "resource_blob_chunk_header_bytes_install"
         }
-      ]
+      ],
+      "body_enabled": false
     },
     {
       "type": "SurfaceRecipeHeader",
@@ -11730,7 +11932,9 @@
             "vertex_space2",
             "vertex_color3",
             "vertex_space3",
-            "color_mod"
+            "color_mod",
+            "pixelation_amount",
+            "clip_plane"
           ]
         }
       ],
@@ -11768,7 +11972,11 @@
         "surface_recipe_quad_vertex_space3_read": "KColor3标签；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
         "surface_recipe_quad_vertex_space3_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；KColor3标签；不调用Update／Init／Restore或写访客进度。",
         "surface_recipe_quad_color_mod_read": "完整ColorMod；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
-        "surface_recipe_quad_color_mod_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；完整ColorMod；不调用Update／Init／Restore或写访客进度。"
+        "surface_recipe_quad_color_mod_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；完整ColorMod；不调用Update／Init／Restore或写访客进度。",
+        "resource_pixelation_amount_encode": "封存实际固定shader输入。",
+        "resource_pixelation_amount_decode": "固定本地adapter消费，不执行任意参数。",
+        "resource_clip_plane_encode": "封存实际固定shader输入。",
+        "resource_clip_plane_decode": "固定本地adapter消费，不执行任意参数。"
       },
       "validators": {
         "op": {
@@ -11810,11 +12018,40 @@
         "color_mod": {
           "kind": "finite",
           "scalar": "f32"
+        },
+        "pixelation_amount": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "clip_plane": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "blend_view": {
+          "kind": "enum",
+          "scalar": "u8",
+          "values": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        "sampler_view": {
+          "kind": "range",
+          "scalar": "u8",
+          "min": 0,
+          "max": 15
         }
       },
       "members": [],
       "public_owners": [],
-      "notes": "196B固定Quad值。shader/blend/sampler的具体已核枚举及上传leaf ABI仍归第9/13步，不把数值布局当成已实现GPU adapter。",
+      "notes": "196B固定Quad值。shader/blend/sampler的具体已核枚举及上传leaf ABI仍归第9/13步，不把数值布局当成已实现GPU adapter。 版本63补齐ColorOffset的pixelation_amount及clip_plane共16B；当前212B，原字节尺寸为历史。",
       "extent": "protocol",
       "layout": 309,
       "synthetic_fields": [
@@ -11838,7 +12075,8 @@
             "type": "u16",
             "target": "image-table",
             "host": "surface_recipe_quad_image_read",
-            "client": "surface_recipe_quad_image_install"
+            "client": "surface_recipe_quad_image_install",
+            "value_rule": "non-null"
           }
         },
         {
@@ -11853,7 +12091,8 @@
             "type": "u16",
             "target": "shader-table",
             "host": "surface_recipe_quad_shader_read",
-            "client": "surface_recipe_quad_shader_install"
+            "client": "surface_recipe_quad_shader_install",
+            "value_rule": "non-null"
           }
         },
         {
@@ -11967,6 +12206,475 @@
           "evidence": "docs/design/binary-state/7-room-level.md；room-display-resource-design.md及对应原生账本",
           "host": "surface_recipe_quad_color_mod_read",
           "client": "surface_recipe_quad_color_mod_install"
+        },
+        {
+          "name": "pixelation_amount",
+          "type": "f32",
+          "semantics": "ColorOffset实际提交上下文；不重用未来全局值",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_pixelation_amount_encode",
+          "client": "resource_pixelation_amount_decode"
+        },
+        {
+          "name": "clip_plane",
+          "type": "f32[3]",
+          "semantics": "ColorOffset实际clip normal.xy及threshold",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_clip_plane_encode",
+          "client": "resource_clip_plane_decode"
+        }
+      ]
+    },
+    {
+      "type": "RoomWaveSprite",
+      "native_size": "0x114",
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（非多态值类型）",
+        "rva": 0
+      },
+      "layout": 434,
+      "contexts": {},
+      "ranges": [
+        {
+          "offset": "0x0",
+          "size": "0x18",
+          "name": "file_name",
+          "type": "std::string",
+          "category": "资源",
+          "semantics": "可空ANM2文件资源选择；Host loaded=false编码0xFFFF，true编码文件资源号；不以路径非空猜测存在性",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；J273 Render VA0x4059E0读取+109；Reset VA0x403530清文件／资源及loaded，Load VA0x407B52置1；版本32见docs/design/binary-state/animation-resource-synchronization-review.md",
+          "wire": {
+            "kind": "resource",
+            "type": "u16",
+            "host": "anm2_selected_file_to_resource",
+            "client": "anm2_selected_file_from_resource",
+            "target": "anm2-files"
+          }
+        },
+        {
+          "offset": "0x18",
+          "size": "0x18",
+          "name": "default_animation_name",
+          "type": "std::string",
+          "category": "权威",
+          "semantics": "共享主姿态／默认选择／未来速率不下发；两波当前主帧由具名投影承接。",
+          "status": "已核",
+          "evidence": "J273 VA 0x407AF0 Load 调 VA 0x409680；VA 0x4099D4/0x4099E9 将 cache 字符串复制到 this+0x18；SetAnimation VA 0x405F50 只切换 AnimationData。REP ANM2.zhl"
+        },
+        {
+          "offset": "0x30",
+          "size": "0x20",
+          "name": "main_state",
+          "type": "AnimationState",
+          "category": "权威",
+          "semantics": "共享主姿态／默认选择／未来速率不下发；两波当前主帧由具名投影承接。",
+          "status": "SDK声明",
+          "evidence": "J273 VA 0x404390（RVA 0x4390）SetLayerFrame；VA 0x4040B0（RVA 0x40B0）AdvanceNullLayerPosition；官方 AnimationState.zhl"
+        },
+        {
+          "offset": "0x50",
+          "size": "0x20",
+          "name": "overlay_state",
+          "type": "AnimationState",
+          "category": "状态",
+          "semantics": "叠加动画状态与独立图层/空层帧选择器",
+          "status": "SDK声明",
+          "evidence": "J273 VA 0x404390（RVA 0x4390）SetLayerFrame；VA 0x4040B0（RVA 0x40B0）AdvanceNullLayerPosition；官方 AnimationState.zhl",
+          "wire": {
+            "kind": "nested",
+            "type": "AnimationState"
+          }
+        },
+        {
+          "offset": "0x70",
+          "size": "0x1",
+          "name": "overlay_render_first",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "叠加动画先绘制开关",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          }
+        },
+        {
+          "offset": "0x71",
+          "size": "0x3",
+          "name": "unknown_71_73",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "SDK 字段间未解释字节；不认作填充",
+          "status": "未知",
+          "evidence": "ANM2.zhl 中 overlayRenderFirst +0x70 与 AnimationData* +0x74 间未命名"
+        },
+        {
+          "offset": "0x74",
+          "size": "0x4",
+          "name": "animation_data",
+          "type": "AnimationData*",
+          "category": "派生",
+          "semantics": "由 ANM2 文件动画表建立的资源数组首址",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation"
+        },
+        {
+          "offset": "0x78",
+          "size": "0x4",
+          "name": "animation_count",
+          "type": "i32",
+          "category": "派生",
+          "semantics": "由 ANM2 文件动画表确定的动画数量",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation"
+        },
+        {
+          "offset": "0x7C",
+          "size": "0x4",
+          "name": "layer_states",
+          "type": "LayerState*",
+          "category": "容器",
+          "semantics": "按 layer_count 遍历图层实例状态",
+          "status": "已核",
+          "evidence": "ANM2.zhl +0x7C；LayerState 实例步长 0xA0；J273 VA 0x407AF0 按该数组顺序处理图层",
+          "wire": {
+            "kind": "container",
+            "element": "LayerState",
+            "limit": 65535,
+            "stride": "0xA0",
+            "storage": "array",
+            "host": "read_room_wave_sprite_layers",
+            "client": "rebuild_anm2_layer_states",
+            "count_field": "layer_count"
+          }
+        },
+        {
+          "offset": "0x80",
+          "size": "0x4",
+          "name": "layer_count",
+          "type": "u32",
+          "category": "派生",
+          "semantics": "由 ANM2 文件图层数组确定的图层数",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation"
+        },
+        {
+          "offset": "0x84",
+          "size": "0x4",
+          "name": "null_layer_names",
+          "type": "std::string*",
+          "category": "派生",
+          "semantics": "由文件建立的空层名称表",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation"
+        },
+        {
+          "offset": "0x88",
+          "size": "0x4",
+          "name": "null_layer_count",
+          "type": "u32",
+          "category": "派生",
+          "semantics": "由文件建立的空层名称数量",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation"
+        },
+        {
+          "offset": "0x8C",
+          "size": "0x4",
+          "name": "event_names",
+          "type": "std::string*",
+          "category": "派生",
+          "semantics": "由文件建立的事件名表",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation"
+        },
+        {
+          "offset": "0x90",
+          "size": "0x4",
+          "name": "event_count",
+          "type": "u32",
+          "category": "派生",
+          "semantics": "由文件建立的事件数量",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation"
+        },
+        {
+          "offset": "0x94",
+          "size": "0x8",
+          "name": "offset",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "绘制偏移",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "wire": {
+            "kind": "nested",
+            "type": "Vector"
+          }
+        },
+        {
+          "offset": "0x9C",
+          "size": "0x8",
+          "name": "scale",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "绘制缩放",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "wire": {
+            "kind": "nested",
+            "type": "Vector"
+          }
+        },
+        {
+          "offset": "0xA4",
+          "size": "0x4",
+          "name": "rotation",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "全局旋转",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": "0xA8",
+          "size": "0x2C",
+          "name": "color",
+          "type": "ColorMod",
+          "category": "状态",
+          "semantics": "全局颜色",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "wire": {
+            "kind": "nested",
+            "type": "ColorMod"
+          }
+        },
+        {
+          "offset": "0xD4",
+          "size": "0x2C",
+          "name": "champion_color",
+          "type": "ColorMod",
+          "category": "状态",
+          "semantics": "精英色调",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "wire": {
+            "kind": "nested",
+            "type": "ColorMod"
+          }
+        },
+        {
+          "offset": "0x100",
+          "size": "0x1",
+          "name": "flip_x",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "水平翻转",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          }
+        },
+        {
+          "offset": "0x101",
+          "size": "0x1",
+          "name": "flip_y",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "垂直翻转",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          }
+        },
+        {
+          "offset": "0x102",
+          "size": "0x2",
+          "name": "unknown_102_103",
+          "type": "bytes[2]",
+          "category": "未知",
+          "semantics": "SDK 字段间未解释字节；不认作填充",
+          "status": "未知",
+          "evidence": "ANM2.zhl 在 flip bool +0x100/+0x101 与 playbackSpeed +0x104 之间留空"
+        },
+        {
+          "offset": "0x104",
+          "size": "0x4",
+          "name": "playback_speed",
+          "type": "f32",
+          "category": "权威",
+          "semantics": "共享主姿态／默认选择／未来速率不下发；两波当前主帧由具名投影承接。",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；REPENTOGON/Patches/InterpolV2.cpp按_playbackSpeed计算lerpappend；版本32见docs/design/binary-state/animation-resource-synchronization-review.md"
+        },
+        {
+          "offset": "0x108",
+          "size": "0x1",
+          "name": "unknown_108",
+          "type": "u8",
+          "category": "未知",
+          "semantics": "初始化为零但语义未明；不作为 shader 状态",
+          "status": "未知",
+          "evidence": "J273 ANM2 ctor VA 0x403530 初始化周围字段；REP shader 扩展另在 Anm2Extras 旁表"
+        },
+        {
+          "offset": "0x109",
+          "size": "0x1",
+          "name": "loaded",
+          "type": "bool",
+          "category": "本地",
+          "semantics": "本地ANM2构造／加载／重置结果；Host只用它确定file_name的可空资源选择，Client由资源owner完成准备后维护，不直接传布尔字节",
+          "status": "已核",
+          "evidence": "J273 Load VA 0x407AF0 的 VA 0x407B52 写 +0x109=1；属于本地资源生命周期状态；J273 IsLoaded VA0x41B820/RVA0x1B820直接return this[0x109]，主审已复读；版本32同步职责复核：docs/design/binary-state/animation-resource-synchronization-review.md"
+        },
+        {
+          "offset": "0x10A",
+          "size": "0x2",
+          "name": "unknown_10A_10B",
+          "type": "bytes[2]",
+          "category": "未知",
+          "semantics": "+0x109 与 shadowLayerIndex +0x10C 间未解释字节",
+          "status": "未知",
+          "evidence": "ANM2.zhl 与 J273 Load 对该两字节未给出语义"
+        },
+        {
+          "offset": "0x10C",
+          "size": "0x4",
+          "name": "shadow_layer_index",
+          "type": "i32",
+          "category": "派生",
+          "semantics": "资源中名称为 shadow 的 LayerState 数组序号；不存在时为 -1",
+          "status": "已核",
+          "evidence": "J273 Load VA 0x407AF0：VA 0x407B59 初始化 -1；VA 0x407BC9 在层名等于 shadow 时写当前层序号"
+        },
+        {
+          "offset": "0x110",
+          "size": "0x4",
+          "name": "render_flags",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "ANM2 渲染位标志",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          }
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "波纹稳定外观与资源",
+          "sequence": "world",
+          "fields": [
+            "file_name",
+            "overlay_render_first",
+            "offset",
+            "scale",
+            "rotation",
+            "color",
+            "champion_color",
+            "flip_x",
+            "flip_y",
+            "render_flags"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "逐波主姿态及独立overlay",
+          "sequence": "world",
+          "fields": [
+            "active_mask",
+            "animation",
+            "overlay_state"
+          ]
+        },
+        {
+          "id": 2,
+          "name": "实际图层外观",
+          "sequence": "world",
+          "fields": [
+            "layer_states"
+          ]
+        }
+      ],
+      "conversions": {
+        "room_wave_sprite_active_mask_read": "同一ordinary窗口只读纯值投影，不执行Render或动画写入。",
+        "room_wave_sprite_active_mask_install": "本地显示owner按每波主帧绘制，不推进玩法或未来动画。",
+        "room_wave_sprite_animation_read": "同一ordinary窗口只读纯值投影，不执行Render或动画写入。",
+        "room_wave_sprite_animation_install": "本地显示owner按每波主帧绘制，不推进玩法或未来动画。",
+        "room_wave_sprite_a_frame_present": "(active_mask & 1)!=0",
+        "room_wave_sprite_a_frame_read": "同一ordinary窗口只读纯值投影，不执行Render或动画写入。",
+        "room_wave_sprite_a_frame_install": "本地显示owner按每波主帧绘制，不推进玩法或未来动画。",
+        "room_wave_sprite_b_frame_present": "(active_mask & 2)!=0",
+        "room_wave_sprite_b_frame_read": "同一ordinary窗口只读纯值投影，不执行Render或动画写入。",
+        "room_wave_sprite_b_frame_install": "本地显示owner按每波主帧绘制，不推进玩法或未来动画。"
+      },
+      "validators": {
+        "active_mask": {
+          "kind": "range",
+          "scalar": "u8",
+          "min": 1,
+          "max": 3
+        },
+        "overlay_render_first": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "rotation": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "flip_x": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "flip_y": {
+          "kind": "boolean",
+          "scalar": "u8"
+        }
+      },
+      "members": [],
+      "public_owners": [],
+      "notes": "2026-11-11用户授权纯显示波纹由Client本地推进。Host只发实际Idle资源和稳定外观；逐波主帧从RoomWaveResult显示计时在Client派生，通用共享main_state不读取。",
+      "catalog_rows": [],
+      "synthetic_fields": [
+        {
+          "name": "active_mask",
+          "type": "u8",
+          "semantics": "bit0／bit1为当前实际采用的波纹",
+          "evidence": "J273 804500、407A70；10-grid-room-level-capture.md",
+          "host": "room_wave_sprite_active_mask_read",
+          "client": "room_wave_sprite_active_mask_install"
+        },
+        {
+          "name": "animation",
+          "type": "u16",
+          "semantics": "实际已加载文件中的Idle动画，不调用Getter",
+          "evidence": "J273 804500、407A70；10-grid-room-level-capture.md",
+          "host": "room_wave_sprite_animation_read",
+          "client": "room_wave_sprite_animation_install",
+          "wire": {
+            "kind": "resource",
+            "type": "u16",
+            "target": "anm2-animation-table",
+            "host": "room_wave_sprite_animation_read",
+            "client": "room_wave_sprite_animation_install",
+            "value_rule": "non-null"
+          }
         }
       ]
     }

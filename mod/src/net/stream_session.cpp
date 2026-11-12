@@ -1011,7 +1011,8 @@ unsigned PublicationSender::Pump(std::uint64_t now, std::uint64_t &transfer, Enc
     if (!fast_.contains(range->id) &&
         (queued_[range->id] != range->revision || !sent_at_.contains(range->id) ||
          (applied_[range->id]<range->revision&&now - sent_at_[range->id] >= route_.config.final_retry_ms))) {
-      auto blob = cache.Get(range, false, route_.fast_limits);
+      // 动态压缩只取双方明确协商的独立消息能力；仍走latest-only原通道。
+      auto blob = cache.Get(range, route_.zstd && route_.world_body_zstd, route_.fast_limits);
       if (blob) {
         Track(range);Encoded(*blob);
         if(queued_[range->id]==range->revision&&sent_at_.contains(range->id))++metrics_.repeated_range_transfers;

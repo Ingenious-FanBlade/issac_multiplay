@@ -7,9 +7,9 @@ namespace cs::replica::stream {
 // 单位随字段名固定；连接启动时复制，远端协商只能收紧保护上限。
 #define CS_STREAM_SETTINGS(X) \
   X(player_hz,60,1,60) X(world_hz,30,1,30) X(roster_hz,20,1,20) X(timing_hz,60,1,60) \
-  X(total_bytes_per_second,937500,1228,937500) X(peer_bytes_per_second,312500,1228,937500) \
-  X(control_bytes_per_second,25000,1228,937500) X(player_bytes_per_second,120000,1228,937500) \
-  X(world_bytes_per_second,120000,1228,937500) X(reliable_bytes_per_second,47500,1228,937500) \
+  X(total_bytes_per_second,1125000,1228,1125000) X(peer_bytes_per_second,375000,1228,1125000) \
+  X(control_bytes_per_second,25000,1228,1125000) X(player_bytes_per_second,150000,1228,1125000) \
+  X(world_bytes_per_second,150000,1228,1125000) X(reliable_bytes_per_second,50000,1228,1125000) \
   X(total_burst_bytes,24576,1228,24576) X(peer_burst_bytes,8192,1228,8192) \
   X(control_burst_bytes,2048,1228,8192) X(player_burst_bytes,4096,1228,8192) \
   X(world_burst_bytes,4096,1228,8192) X(reliable_burst_bytes,8192,1228,8192) \

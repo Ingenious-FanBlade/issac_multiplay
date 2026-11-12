@@ -33,6 +33,14 @@ struct PlayerPostWitness final {
   std::uint64_t local=0,use=0,shape=0,tick=0,outer=0,owner=0,mutation=0,run=0,room=0;
   AuthorityKind kind=AuthorityKind::None;
 };
+// 正式二进制读取只借用已完成的主线程窗口；不依赖旧字段是否进入Recorder／Lua样本。
+struct NativeCaptureWindow {
+  std::uint64_t generation=0,run=0,room=0,outer=0,owner=0,tick=0,mutation=0,attempt=0,capture=0;
+  std::uint32_t game=0,room_address=0,game_frame=0,body_slot=kNoOrdinal;
+  bool ordinary=false;
+  std::uint64_t wrong_thread=0,native_exception=0;
+  bool production=false,production_outer=false;
+};
 
 // 采集服务的窄提交通知；录制器不拥有 Collector，也不能决定 Authority 是否提交。
 struct CaptureSink final {
@@ -93,6 +101,14 @@ public:
                       const PlayerAnchor &after, std::uint64_t tick,
                       bool normal, bool body_reached) noexcept;
   bool PlayerPost(std::uint32_t slot,PlayerPostWitness &out) noexcept;
+  bool NativeOrdinary(NativeCaptureWindow &) noexcept;
+  // 独立正常显示／音频观察窗口，不要求模拟tick；不据此授予任意Player字段资格。
+  bool NativeProduction(NativeCaptureWindow &,std::uint64_t owner) noexcept;
+  bool NativePostMatches(const core::TickPostState &) const noexcept;
+  bool NativeBody(std::uint32_t slot,NativeCaptureWindow &,PlayerPostWitness &) noexcept;
+  bool NativeWindowCurrent(const NativeCaptureWindow &) noexcept;
+  bool NativeCurrent(const NativeCaptureWindow &,std::uint32_t address,std::uint64_t local,
+                     std::uint64_t use,std::uint64_t shape,ObjectDomain domain=ObjectDomain::Entity) noexcept;
   // 20 项观察入口的 call/parent 值；错线程只在观察策略层置原子故障位。
   std::uint32_t ObserveEnter(Observation observation, std::uint32_t object,
                             const std::uint32_t *args, std::uint32_t count) noexcept;

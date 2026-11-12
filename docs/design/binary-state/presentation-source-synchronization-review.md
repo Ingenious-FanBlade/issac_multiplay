@@ -1,5 +1,9 @@
 # 第8步：资源、屏幕／转场和音频来源的同步职责复核
 
+**2026-11-12 HUD代码迁移，版本70**：现行HUD布局70及纯值模块已落地；原始来源、字节、UNKNOWN与历史决定保留，不据此宣称正常来源／原生绘制已经接通。 具体接口、事实及剩余接线见[实施说明](hud-local-implementation.md)。第15步唯一统一验收，未运行测试。
+
+**2026-11-11 当前决定优先级修订**：[资源本地生成合同](local-media-presentation.md)覆盖下方旧“程序内容精确传送”“文字图／Host前后surface／反馈图必需”判定。默认传引用、文字、有限描述与音频控制，Client直接切房、hallucination使用本端历史。旧53项表及JSON原条目保留为2026-11-10决定与证据；机器目录附current_policy_override，不能以旧投影恢复原始媒体。其他最终结果／事件、唯一owner和两序列合同保持。
+
 2026-11-10；目标仍为官方REPENTOGON 1.1.3／J273 Win32。本文复核[资源／屏幕来源](presentation-resource-screen-sources.md)23项与[音频来源](presentation-audio-sources.md)30项，逐来源机器决定见[JSON](presentation-source-synchronization-review.json)。**来源已核不等于该来源的全部字段都应下行。** 本轮只修订同步职责及设计账本，不改生产`layout_version=57`，不构建或测试；原生字节、指令和UNKNOWN不因裁剪而消失。
 
 本轮采用当前结果adapter：屏幕／转场消费具名有序绘制结果，音频消费每个逻辑voice的最终参数。**生产输入与最终结果只保留一份网络表达。** 以后若改为参数化adapter，必须说明其具体消费者和替代关系，不能将两条路线同时列成必发字段。

@@ -20,6 +20,7 @@ struct Route final {
   WorldScope scope{};
   RuntimeConfig config;
   Limits fast_limits=WorldLimits(true);
+  bool world_body_zstd=false;
 };
 // 仅从严格协商结果取得本地上限；不接受报文Header作为预算来源。
 Limits NegotiatedWorldLimits(const Value &);
@@ -40,6 +41,16 @@ struct Blob final {
 };
 using SharedBlob=std::shared_ptr<const Blob>;
 SharedBlob EncodeBlob(const Message &,bool zstd,Limits=WorldLimits());
+// 自有完整ICSR字节接口，供二进制Frame接线复用；不解析／构建JSON或访问游戏。
+// 每条独立zstd帧，无字典；不更小时返回原文。owner持有输入／输出及其实际capacity租约。
+struct WorldBodyCompressionView {
+  Codec codec=Codec::None;
+  std::uint32_t decoded_bytes=0;
+  std::span<const std::uint8_t> bytes;
+};
+WorldBodyCompressionView CompressWorldBodyInto(std::span<const std::uint8_t> logical,Lane,std::span<std::uint8_t> scratch);
+std::span<const std::uint8_t> DecompressWorldBodyInto(Codec,std::span<const std::uint8_t> encoded,
+    std::uint32_t expected,Lane,std::span<std::uint8_t> output);
 std::vector<std::uint8_t> Datagram(const Blob &,TransferKey,std::uint32_t index,Limits=WorldLimits());
 // 小包容器保持逐条kind/lane/sequence和各自完整分片，不跨连接、路由；最大等待2ms。
 bool IsBundle(std::span<const std::uint8_t>) noexcept;

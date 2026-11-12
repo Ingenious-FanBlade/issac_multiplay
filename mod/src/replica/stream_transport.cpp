@@ -1,5 +1,6 @@
 #include "replica/stream_transport.h"
 #include "replica/stream_metrics.h"
+#include "state/budget.h"
 #define ZSTD_STATIC_LINKING_ONLY
 #include <zstd.h>
 #include <algorithm>
@@ -34,6 +35,12 @@ void Decompress(const std::vector<std::uint8_t> &wire,std::vector<std::uint8_t> 
   out.resize(expected);const auto n=ZSTD_decompressDCtx(ctx.get(),out.data(),out.size(),wire.data(),wire.size());Z(n,"zstd_decompress_failed");if(n!=expected)Fail("zstd_decoded_length");
 }
 bool WorldLane(Lane lane){return lane==Lane::Baseline||lane==Lane::Context||lane==Lane::WorldDynamic||lane==Lane::PlayerFast;}
+bool WorldBodyLane(Lane lane){return lane==Lane::WorldDynamic||lane==Lane::PlayerFast;}
+bool Overlaps(std::span<const std::uint8_t> a,std::span<const std::uint8_t> b){
+  if(a.empty()||b.empty())return false;
+  const auto x=reinterpret_cast<std::uintptr_t>(a.data()),y=reinterpret_cast<std::uintptr_t>(b.data());
+  return x<=y?y-x<a.size():x-y<b.size();
+}
 bool WorldValid(const WorldScope &w){return w.session&&w.run&&w.floor&&w.dimension&&w.room&&w.scene;}
 void RouteHeader(const Header &h,const Route &route,bool routed){
   if(!routed){if(WorldLane(h.lane)||h.codec!=Codec::None)Fail("stream_world_not_authorized");return;}
@@ -43,8 +50,50 @@ void RouteHeader(const Header &h,const Route &route,bool routed){
   if(WorldLane(h.lane)&&(!route.negotiated||!route.world))Fail("stream_world_not_authorized");
   if(WorldLane(h.lane)&&!WorldValid(route.scope))Fail("stream_world_scope_not_authorized");
   if(WorldLane(h.lane)&&route.direction!=Direction::ToClient)Fail("stream_world_wrong_direction");
-  if(h.codec==Codec::Zstd&&(!route.zstd||!route.world||!Reliable(h.lane)))Fail("stream_codec_not_negotiated");
+  if(h.codec==Codec::Zstd&&(!route.zstd||!route.world||!WorldLane(h.lane)||
+      (WorldBodyLane(h.lane)&&!route.world_body_zstd)))Fail("stream_codec_not_negotiated");
 }
+}
+// 仅有界自有字节参与压缩；不把独立动态消息加入可靠队列，也不保留前帧字典。
+WorldBodyCompressionView CompressWorldBodyInto(std::span<const std::uint8_t> logical,Lane lane,std::span<std::uint8_t> output){
+  const auto &policy=state::StateBudgets();
+  if(!WorldBodyLane(lane)||!policy.world_body_zstd||logical.size()<40||logical.size()>policy.ordinary_message_bytes)
+    Fail("world_body_zstd_input_budget");
+  const auto bound=ZSTD_compressBound(logical.size());Z(bound,"zstd_compress_bound");
+  if(output.size()<bound||Overlaps(logical,output))Fail("world_body_zstd_output_or_overlap");
+  std::unique_ptr<ZSTD_CCtx,decltype(&ZSTD_freeCCtx)> ctx(ZSTD_createCCtx_advanced(Allocator()),ZSTD_freeCCtx);
+  if(!ctx)Fail("zstd_workspace_exhausted");
+  Z(ZSTD_CCtx_setParameter(ctx.get(),ZSTD_c_compressionLevel,int(policy.zstd_level)),"zstd_level_parameter");
+  Z(ZSTD_CCtx_setParameter(ctx.get(),ZSTD_c_windowLog,23),"zstd_window_parameter");
+  Z(ZSTD_CCtx_setParameter(ctx.get(),ZSTD_c_contentSizeFlag,1),"zstd_size_parameter");
+  const auto size=ZSTD_compress2(ctx.get(),output.data(),output.size(),logical.data(),logical.size());Z(size,"zstd_compress_failed");
+  // 原文或压后均受原64KiB约束；压后不严格更小时使用原文，避免小包膨胀。
+  if(size>=logical.size())return {Codec::None,std::uint32_t(logical.size()),logical};
+  return {Codec::Zstd,std::uint32_t(logical.size()),output.first(size)};
+}
+std::span<const std::uint8_t> DecompressWorldBodyInto(Codec codec,std::span<const std::uint8_t> encoded,
+    std::uint32_t expected,Lane lane,std::span<std::uint8_t> output){
+  const auto &policy=state::StateBudgets();
+  if(!WorldBodyLane(lane)||encoded.empty()||encoded.size()>policy.ordinary_message_bytes||expected<40||
+      expected>policy.ordinary_message_bytes||output.size()<expected||Overlaps(encoded,output))Fail("world_body_zstd_decode_budget");
+  output=output.first(expected);
+  if(codec==Codec::None){
+    if(encoded.size()!=expected)Fail("stream_fragment_decoded_size");
+    std::memcpy(output.data(),encoded.data(),expected);return output;
+  }
+  if(codec!=Codec::Zstd||!policy.world_body_zstd)Fail("world_body_zstd_codec");
+  ZSTD_FrameHeader header{};const auto status=ZSTD_getFrameHeader(&header,encoded.data(),encoded.size());
+  Z(status,"zstd_frame_invalid");if(status)Fail("zstd_frame_truncated");
+  if(header.frameType!=ZSTD_frame||header.dictID)Fail("zstd_frame_dictionary_or_skippable");
+  if(header.windowSize>policy.zstd_window_bytes)Fail("zstd_window_limit");
+  if(header.frameContentSize!=expected)Fail("zstd_decoded_length");
+  const auto frame=ZSTD_findFrameCompressedSize(encoded.data(),encoded.size());Z(frame,"zstd_frame_invalid");
+  if(frame!=encoded.size())Fail("zstd_trailing_frame");
+  std::unique_ptr<ZSTD_DCtx,decltype(&ZSTD_freeDCtx)> ctx(ZSTD_createDCtx_advanced(Allocator()),ZSTD_freeDCtx);
+  if(!ctx)Fail("zstd_workspace_exhausted");
+  Z(ZSTD_DCtx_setParameter(ctx.get(),ZSTD_d_windowLogMax,23),"zstd_window_parameter");
+  const auto size=ZSTD_decompressDCtx(ctx.get(),output.data(),output.size(),encoded.data(),encoded.size());
+  Z(size,"zstd_decompress_failed");if(size!=expected)Fail("zstd_decoded_length");return output;
 }
 Limits HandshakeLimits() noexcept {Limits l;l.bytes=65536;l.nodes=4096;l.depth=24;l.string_bytes=8192;l.fragments=64;l.candidates=2;l.timeout_ms=1000;return l;}
 Limits WorldLimits(bool fast) noexcept {Limits l;l.timeout_ms=2000;if(fast){l.candidates=65;l.bytes=65536;l.nodes=32768;l.fragments=64;}return l;}
@@ -63,7 +112,7 @@ bool Reliable(Lane lane) noexcept {return lane==Lane::Baseline||lane==Lane::Cont
 SharedBlob EncodeBlob(const Message &m,bool compress,Limits limits){
   if(limits.datagram<=64||limits.datagram>1200)Fail("stream_datagram_budget");
   const auto lane=MessageLane(m);if(!Reliable(lane)){const auto cap=WorldLane(lane)?WorldLimits(true):HandshakeLimits();limits.bytes=(std::min)(limits.bytes,cap.bytes);limits.nodes=(std::min)(limits.nodes,cap.nodes);limits.depth=(std::min)(limits.depth,cap.depth);limits.string_bytes=(std::min)(limits.string_bytes,cap.string_bytes);limits.fragments=(std::min)(limits.fragments,cap.fragments);}
-  if(compress&&!Reliable(lane))Fail("stream_compression_lane");
+  if(compress&&!WorldLane(lane))Fail("stream_compression_lane");
   // Encode先计量实际payload，再为同时存活的payload/wire计费；返回后只保留wire容量。
   auto workspace=memory::Reserve(memory::Pool::Workspace,0);const auto started=Micros(),cpu_started=ThreadCpuMicros();auto wire=Encode(m,limits,workspace);const auto encoded=Micros(),cpu_encoded=ThreadCpuMicros();workspace->Resize(wire.capacity());
   // 路由封套不属于共享内容；接收端按已经授权的分片头恢复这16字节再做严格解码。
@@ -72,9 +121,18 @@ SharedBlob EncodeBlob(const Message &m,bool compress,Limits limits){
   if(WorldLane(lane)){if(m.range)blob->world=m.range->world;else {const auto &w=m.body["world"];blob->world={Unsigned(w["session"]),Unsigned(w["run"]),Unsigned(w["floor"]),Unsigned(w["dimension"]),Unsigned(w["room"]),Unsigned(w["scene"])};}}
   if(compress){
     const auto bound=ZSTD_compressBound(wire.size());Z(bound,"zstd_compress_bound");blob->memory=memory::Reserve(memory::Pool::Wire,bound+sizeof(Blob));blob->bytes.resize(bound);
+    if(WorldBodyLane(lane)){
+      const auto result=CompressWorldBodyInto(wire,lane,blob->bytes);
+      if(result.codec==Codec::Zstd){blob->bytes.resize(result.bytes.size());blob->codec=Codec::Zstd;}
+      else{
+        // 放弃暂存压缩结果，原文缓冲正常移交Wire租约，不同时保留两份输出。
+        std::vector<std::uint8_t>().swap(blob->bytes);blob->memory->Resize(wire.capacity()+sizeof(Blob));blob->bytes=std::move(wire);
+      }
+    }else{
     std::unique_ptr<ZSTD_CCtx,decltype(&ZSTD_freeCCtx)> ctx(ZSTD_createCCtx_advanced(Allocator()),ZSTD_freeCCtx);if(!ctx)Fail("zstd_workspace_exhausted");
     Z(ZSTD_CCtx_setParameter(ctx.get(),ZSTD_c_compressionLevel,3),"zstd_level_parameter");Z(ZSTD_CCtx_setParameter(ctx.get(),ZSTD_c_windowLog,23),"zstd_window_parameter");Z(ZSTD_CCtx_setParameter(ctx.get(),ZSTD_c_contentSizeFlag,1),"zstd_size_parameter");
     const auto n=ZSTD_compress2(ctx.get(),blob->bytes.data(),blob->bytes.size(),wire.data(),wire.size());Z(n,"zstd_compress_failed");if(n>limits.bytes)Fail("zstd_wire_budget");blob->bytes.resize(n);blob->codec=Codec::Zstd;
+    }
   }else {blob->memory=memory::Reserve(memory::Pool::Wire,wire.capacity()+sizeof(Blob));blob->bytes=std::move(wire);}
   blob->compression_us=compress?Micros()-encoded:0;const auto cpu_end=ThreadCpuMicros();if(compress&&cpu_encoded!=UINT64_MAX&&cpu_end!=UINT64_MAX&&cpu_end>=cpu_encoded)blob->compression_cpu_us=cpu_end-cpu_encoded;return blob;
 }
@@ -118,7 +176,7 @@ std::uint64_t TransferDeadline(std::uint64_t started,std::uint64_t now,std::uint
   return (std::min)(absolute,now>UINT64_MAX-duration?UINT64_MAX:now+duration);
 }
 void Reassembler::Configure(Limits l) noexcept {pending_.clear();retired_.clear();retired_before_=0;limits_=HandshakeLimits();limits_.bytes=(std::min)(limits_.bytes,l.bytes);limits_.nodes=(std::min)(limits_.nodes,l.nodes);limits_.depth=(std::min)(limits_.depth,l.depth);limits_.string_bytes=(std::min)(limits_.string_bytes,l.string_bytes);limits_.fragments=(std::min)(limits_.fragments,l.fragments);limits_.candidates=(std::min)(limits_.candidates,l.candidates);limits_.timeout_ms=(std::min)(limits_.timeout_ms,l.timeout_ms);limits_.value_bytes=(std::min)(limits_.value_bytes,l.value_bytes);}
-void Reassembler::Authorize(Route r) noexcept {if(!routed_||r.connection!=route_.connection||r.epoch!=route_.epoch||r.world!=route_.world||r.zstd!=route_.zstd||r.negotiated!=route_.negotiated||r.scope!=route_.scope){pending_.clear();retired_.clear();retired_before_=0;}route_=r;routed_=true;rate_=r.config.reliable_bytes_per_second;}
+void Reassembler::Authorize(Route r) noexcept {if(!routed_||r.connection!=route_.connection||r.epoch!=route_.epoch||r.world!=route_.world||r.zstd!=route_.zstd||r.world_body_zstd!=route_.world_body_zstd||r.negotiated!=route_.negotiated||r.scope!=route_.scope){pending_.clear();retired_.clear();retired_before_=0;}route_=r;routed_=true;rate_=r.config.reliable_bytes_per_second;}
 void Reassembler::Retire(std::uint64_t transfer) noexcept {try{retired_.push_back(transfer);if(retired_.size()>128){retired_before_=(std::max)(retired_before_,retired_.front());retired_.pop_front();}}catch(...){retired_before_=(std::max)(retired_before_,transfer);}}
 void Reassembler::Cancel(std::uint64_t transfer) noexcept {for(auto i=pending_.begin();i!=pending_.end();)if(i->first.transfer==transfer)i=pending_.erase(i);else ++i;Retire(transfer);}
 void Reassembler::Expire(std::uint64_t now){for(auto i=pending_.begin();i!=pending_.end();){auto &c=i->second;const auto age=now>=c.started?now-c.started:UINT64_MAX,stall=now>=c.progress?now-c.progress:UINT64_MAX;const auto timeout=WorldLane(c.header.lane)?route_.config.progress_timeout_ms:limits_.timeout_ms;if(age>=route_.config.absolute_timeout_ms||(!c.complete&&(stall>=timeout||now>=c.deadline))){Retire(i->first.transfer);i=pending_.erase(i);++statistics_.expired;}else ++i;}}
@@ -150,7 +208,10 @@ bool Reassembler::Receive(std::span<const std::uint8_t> b,std::uint64_t now,Mess
   try {
     const auto decode_started=Micros();
     auto workspace=memory::Reserve(memory::Pool::Workspace,std::uint64_t(h.decoded_bytes)+128);std::vector<std::uint8_t> decoded;
-    if(h.codec==Codec::Zstd)Decompress(c.bytes,decoded,h.decoded_bytes);else decoded=c.bytes;
+    if(h.codec==Codec::Zstd){
+      if(WorldBodyLane(h.lane)){decoded.resize(h.decoded_bytes);DecompressWorldBodyInto(h.codec,c.bytes,h.decoded_bytes,h.lane,decoded);}
+      else Decompress(c.bytes,decoded,h.decoded_bytes);
+    }else decoded=c.bytes;
     if(decoded.size()<40)Fail("stream_decoded_header");for(unsigned j=24;j<40;++j)if(decoded[j])Fail("stream_shared_envelope");Set(decoded,24,h.connection);Set(decoded,32,h.route);
     auto message=stream::Decode(decoded,limits);if(message.kind!=h.kind||MessageLane(message)!=h.lane)Fail("stream_fragment_envelope_conflict");
     if(world&&(!message.range||message.range->world!=route_.scope))Fail("stream_world_scope_conflict");

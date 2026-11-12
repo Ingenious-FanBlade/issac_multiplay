@@ -1,6 +1,6 @@
 # GridEntityDesc
 
-由唯一布局源生成。布局编号 198；布局版本 60；原生大小 0x20；未知 3B；完整：否。
+由唯一布局源生成。布局编号 198；布局版本 71；原生大小 0x20；未知 3B；完整：否。
 
 版本50沿用版本48的四项16B描述展示输入，原生3B UNKNOWN保持。SpawnSeed保留Light实际依赖，Host初始化/玩法/保存元数据不恢复。119项全目录及运行接线仍待后续；见grid-common-evidence.md与grid-common-synchronization-review.md。
 

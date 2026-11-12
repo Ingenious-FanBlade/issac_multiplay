@@ -82,6 +82,12 @@ bool Zstd(const r::Value &agreed) {
       return true;
   return false;
 }
+bool WorldBodyZstd(const r::Value &agreed) {
+  if(!Zstd(agreed))return false;
+  for(const auto &feature:agreed["supported"].GetArray())
+    if(String(feature)==s::kWorldBodyZstdCapability)return true;
+  return false;
+}
 s::WorldScope ReadWorld(const r::Value &v) {
   return {N(v, "session"),   N(v, "run"),  N(v, "floor"),
           N(v, "dimension"), N(v, "room"), N(v, "scene")};
@@ -202,6 +208,7 @@ bool HostPeer::Receive(std::span<const std::uint8_t> bytes, std::uint64_t now, R
     assembler_.Configure(Agreed(agreed));
     route_.negotiated = true;
     route_.zstd = Zstd(agreed);
+    route_.world_body_zstd = WorldBodyZstd(agreed);
     route_.world_limits = s::NegotiatedWorldLimits(agreed);
     route_.fast_limits = s::NegotiatedFastLimits(agreed);
     assembler_.Authorize(route_);
@@ -645,7 +652,7 @@ struct Client::State {
         ordinal = unsigned(participant);
         server_nonce = server;
         welcomed = true;
-        route.config=config;route.fast_limits=s::NegotiatedFastLimits(agreed);
+        route.config=config;route.fast_limits=s::NegotiatedFastLimits(agreed);route.world_body_zstd=WorldBodyZstd(agreed);
         assembler.Authorize(route);
         operations.Bind(route.connection, route.epoch);
         published_connection.store(route.connection, std::memory_order_release);

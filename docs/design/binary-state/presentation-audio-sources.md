@@ -1,5 +1,7 @@
 # 第8步：音频状态与事件的必要来源
 
+**2026-11-11 当前音频资源边界**：[本地生成合同](local-media-presentation.md)明确只传Host实际选定资源的标识／必要依赖、voice状态和控制事件，Client用本地文件播放；不传音频文件、PCM／混音或视频音轨，缺本地资源不自动转音频blob。选sample、多voice／Options前参数、事件水位、持续声恢复和后端隔离保持，seek／segment等来源Gap并未解决；本文与机器目录仍保留原时点来源证据。
+
 **2026-11-10同步职责复核**：[当前决定](presentation-source-synchronization-review.md)及[53项逐来源表](presentation-source-synchronization-review.json)收紧下行范围。每voice最终Options前gain／pitch承接后，layer mask／混音树／ducking／全局pitch不重复；明确world Start／Stop与个人后端成功／失败分开，设备失效／偷占不广播Stop，普通one-shot自然完成由本地收尾。精确硬件游标不属于必需world状态，必要逻辑段落／起点及可靠恢复仍是未决。旧来源事实保持，旧网络推导按本文修订及账本5历史保留；生产版本57，无构建或测试。
 
 2026-11-10；官方REPENTOGON 1.1.3／Repentance+ v1.9.7.12.J273／Win32。按用户要求先查本地Wiki，再查官方SDK／源码，只对未暴露的具体需求补只读静态分析。本文是**来源、字节纠错和后续实现合同**，不是已经运行的音频同步。生产`layout_version=57`不变，未构建或测试；第15步仍是唯一整体验收。

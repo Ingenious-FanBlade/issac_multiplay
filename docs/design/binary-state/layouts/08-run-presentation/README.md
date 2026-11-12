@@ -79,7 +79,7 @@
 | [RoomGlitchResult](RoomGlitchResult.md) | 371 | 0 | 0 | 是 |
 | [ScreenFadeContribution](ScreenFadeContribution.md) | 372 | 0 | 0 | 是 |
 | [ScreenEffectsResult](ScreenEffectsResult.md) | 373 | 0 | 0 | 是 |
-| [RoomTransitionResult](RoomTransitionResult.md) | 374 | 0 | 0 | 否 |
+| [BossVersusResult](BossVersusResult.md) | 374 | 0 | 0 | 否 |
 | [NightmareSceneResult](NightmareSceneResult.md) | 375 | 0 | 0 | 否 |
 | [GameOverResult](GameOverResult.md) | 376 | 0 | 0 | 否 |
 | [StageTransitionResult](StageTransitionResult.md) | 377 | 0 | 0 | 是 |
@@ -113,6 +113,11 @@
 | [CrtRandStateWord](CrtRandStateWord.md) | 405 | 4 | 0 | 否 |
 | [SFXSampleSelectionRNG](SFXSampleSelectionRNG.md) | 406 | 16 | 0 | 是 |
 | [SFXSeedSoundReplacementRNG](SFXSeedSoundReplacementRNG.md) | 407 | 16 | 0 | 是 |
+| [DisplayTextRun](DisplayTextRun.md) | 422 | 0 | 0 | 是 |
+| [FortuneText](FortuneText.md) | 423 | 0 | 0 | 是 |
+| [LocalHistoryOverlay](LocalHistoryOverlay.md) | 424 | 0 | 0 | 是 |
+| [PlayerHUDLocalClock](PlayerHUDLocalClock.md) | 435 | 0 | 0 | 是 |
+| [HudMantleEffects](HudMantleEffects.md) | 436 | 24 | 2 | 否 |
 
 公开目录：[run-catalog run域全部 191 行](run-catalog-run-members.md)。
 

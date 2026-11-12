@@ -1,4 +1,5 @@
 #include "replica/stream_config.h"
+#include "state/budget.h"
 #include <cstring>
 namespace cs::replica::stream {
 // 一次性检查数值及组合约束，返回具体首因；不降档或修改配置。
@@ -14,7 +15,8 @@ const char *RuntimeConfig::Validate() const noexcept {
   if(1000/world_hz>=stale_ms)return "stream_config_world_frequency_vs_stale";
   if(final_retry_ms>=stale_ms||stale_ms>=recovery_ms||progress_timeout_ms>absolute_timeout_ms)return "stream_config_recovery";
   if(fragment_payload_bytes+64!=datagram_bytes||fragments*fragment_payload_bytes<world_message_bytes||fast_message_bytes>world_message_bytes||fast_nodes>world_nodes)return "stream_config_fragment_capacity";
-  if(acceptance_profile&&(peer_bytes_per_second!=312500||total_bytes_per_second!=937500||control_bytes_per_second!=25000||player_bytes_per_second!=120000||world_bytes_per_second!=120000||reliable_bytes_per_second!=47500))return "stream_config_acceptance_budget";
+  const auto &budget=state::StateBudgets();
+  if(acceptance_profile&&(peer_bytes_per_second!=budget.peer_bytes_per_second||total_bytes_per_second!=budget.host_bytes_per_second||control_bytes_per_second!=budget.control_bytes_per_second||player_bytes_per_second!=budget.body_bytes_per_second||world_bytes_per_second!=budget.world_bytes_per_second||reliable_bytes_per_second!=budget.reliable_bytes_per_second))return "stream_config_acceptance_budget";
   return "";
 }
 std::string RuntimeConfig::Fields(const std::string &prefix) const {

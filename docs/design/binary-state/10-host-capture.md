@@ -1,5 +1,30 @@
 # 10：Host 采集器
 
+**2026-11-12 概率查询暂缓**：按用户要求暂停该部分后续工作；已确认的C++接口来源、代码停点、产品编译结果和恢复事项已记入[第五项进度](10-run-presentation-capture.md#当前停点概率查询暂缓)。概率部分及第五项整体均未完成；未启动游戏或运行测试。
+
+**2026-11-12 第五项实施中，版本71**：已接Run窄投影、正常生产缓存、逐身体HUD／Stat／History自有来源、已核屏幕包络与SFX部分状态／控制事件。按用户要求，每个参与者的详细面板和道具历史归其实际控制组，不以原生两槽作为人数限制。全部文字／瞬态贡献、程序History与音乐等仍有必要缺口，**第五项尚未完成**；[实施与剩余来源](10-run-presentation-capture.md)。未运行测试，第15步唯一统一验收。
+
+**2026-11-12 HUD代码迁移，版本70**：HudClockCapture已提供按实际正常更新观察的纯值tracker及有限Drop锚点；实际832C10/92F610来源、历史P8与全身体HUD封存尚未接通，不能从ordinary或原生旧缓存补猜。 具体接口、事实及剩余接线见[实施说明](hud-local-implementation.md)。第15步唯一统一验收，未运行测试。
+
+**2026-11-12 HUD本地化来源交接，仅文档**：按[现行合同](hud-local-presentation.md)封存最小critical_health、P3／P4／P8、结构与资源以及Host实际消费Drop／显示更新锚点／恢复相位；保留逐心格、三色／充能闪烁、特殊图像、有序Inventory／History和Stat最终三值／概率。低血强度、护盾资格、普通图标／中心、材料／队列绘制和排版不再要求额外Host最终缓存。不得调用HUD Update、属性／概率／合成重算、随机或Lua补齐本地派生输入；当前相关schema／来源迁移未实施，本次不改代码、不生成、构建或测试。下方旧“全部HUD缓存必采”交接以本合同收窄。
+
+**2026-11-12 第四项 Grid／Room／Level来源闭合，版本69**：[实施记录](10-grid-room-level-capture.md)已补背景正常生产的有限recipe／实际用途绑定、完整光照投影和波纹资源。按用户决定，水面／波纹由Client纯显示推进，经典／反射为本地画质选择；Host保留世界参数与资源。来源接线已实现，完整发布／本地物化仍按第11／13步推进；未运行测试，第15步唯一统一验收。
+
+**2026-11-11 第四项续，版本68**：[Grid与Room／Level实施记录](10-grid-room-level-capture.md)。Grid公共部分／17派生、官方旁表和完整槽关系已接原生源；Room／Level结构、L0—L3、配置资源、地图聚合及已核FX／水色／波纹／焦点投影已实现。八门改为同宽定长Grid引用数组。**Room／Level全域尚未完成**：正常背景内容／pass、完整光照／水面模式及特殊波纹Sprite仍缺真实来源，当前在必需位置失败，不发布不完整WorldFrame。产品纯编译／链接完成，无测试；具体未决不得被下方历史“第四项完成”覆盖。
+
+**2026-11-11 第四项完成，版本67**：[Entity公共部分、全部已登记子类与Player](10-entity-player-capture.md)已绑定原生容器／转换／资源与真实窗口，接通普通成员闭包、全部身体联合根、快速身体及Clock提交后的纯值交接。两项计时按用户决定改原始i32，QueueItem配置引用修正为资源。产品纯编译／链接完成，无测试；其余域、程序资源／显示来源与完整发布继续后续，第15步唯一验收。
+
+**2026-11-11 第三项完成，版本仍66**：[计划执行器](10-capture-executor.md)已实现整根／分流与递归投影、条件／规范零、容器计数组／共享来源预检、动态槽允许集、纯值校验、实际字节／访问预算及失败回卷。真实容器／转换／资源与各域资格仍由具名owner绑定，缺源失败；Collector／worker尚未切换。本项只做产品纯编译，不运行测试，第15步唯一验收。
+
+**2026-11-11 第二项完成，版本仍66**：[公共采集基础设施](10-capture-foundation.md)提供CaptureWindow／Plan、预分配纯值事务、BodyValueSource适配及有界cold／ordinary／body／control交接，编入产品状态库；缺资格／处理器明确失败。Release／Win32产品纯编译／链接成功。实际Collector／正常生产来源、完整递归遍历、正式worker和各域接线仍待后续，不将公共接口当成采集已启用。本项未运行测试，第15步唯一验收。
+
+**2026-11-11 第一项完成，当前版本66**：[当前合同与来源缺口](10-contract-source-gaps.md)已对照唯一源、第8—9步合同和实际Collector／桥／worker，整理G01—G15及28条显示合同来源。正文编解码／资源／完整报文已登记，真实采集仍未接通；当前旧链仍调用Lua并构建Range。下文10.7按版本66更新，早期提示只保留原时点。本项只做静态文档整理，不生成、不构建、不运行测试；第15步唯一验收。
+
+**2026-11-11 第9步交接，版本65**：[预算／容量／时间合同](9-budget-capacity.md)已同源生成静态账本，模组额度按用户决定为90%＝9Mbps。此步仍须完成真实非空原版来源；数量／条件下界不能充当合法完整样本，未知与来源Gap不因第9步完成而消失，正式采集不依赖录制。
+
+**2026-11-11 第9步第二项迁移，版本61**：[正文合同与新布局](9-domain-body-codec.md)已登记422文字／423有序行／424本地历史颜色描述，替换文字图引用、移除Host反馈与切房surface，374收窄为独立Boss versus；305／306正文禁用、304拒绝kind5。字体／特殊首码映射与真实封存、本地缓存、完整资源接受及原生显示仍由10—13步落实；取消的Host图像不形成Wait，真正必要依赖不早ACK。公共头及带宽预算保持。
+**2026-11-11 当前采集职责调整**：[本地生成合同](local-media-presentation.md)：封存实际文字／样式、本地资源选择及效果参数，不为正式同步读回文字／切房／hallucination纹理或采集音频字节。Client直接切房与本端历史合成不再要求Host提供对应surface。下文原生Image与writer仍作来源事实，旧像素物化／必发要求被替代；生产schema迁移及Hook／缓存未因此完成。
+
 **2026-11-11 第9步各域正文实现，版本60**：[正文实现与边界](9-domain-body-codec.md)、[同源数字计划](layouts/09-wire-format/body-codec-plan.md)。BodyValueSource按数字布局／字段／规范父路径提供已封存的小端纯值、宽count、共享presence和Weapon槽；编码器不读取原生对象或Lua。空主动槽／Null costume不询问源旧尾值。实际采集窗口／纯值源及正常结果缓存仍由本步实现，不能把接口当作Host采集已接通。
 
 **2026-11-11 第9步公共合同，版本59**：[正式结构](9-public-wire-contract.md)。按版本59公共头408—421封存来源与显示实例身份；produced_revision保留真实初次生产，不把Peer target或GameFrame当来源。为多pass贡献和稳定voice事件封存自有纯值，必要Gap不折空；只更新公共合同，不表示本步Hook／缓存已经实现。
@@ -14,9 +39,9 @@
 
 **2026-11-10 第8步资源／屏幕来源交接**：[正常生产／消费点目录](presentation-resource-screen-sources.md)明确图像和各屏幕pass、versus逐layer临时变换、Nightmare实际Sprite／程序道具及BossOverlay。采集在正常Host已形成本次结果时封存，图形内容等正常提交消费后再物化；不能函数返回后只读最后Sprite值，也不额外调用Lua／Render／Show／随机。图形状态保护、世界／显示／资源代次、CPU队列与生命周期照合同处理；读回与资源分配属于图形资源物化阶段，不能塞入零分配world memcpy热路径或让Authority等待。实际Hook／缓存／读回仍未实施，版本57不变，无构建或测试。
 
-状态：设计稿，未实施。上级：[总计划](README.md)。
+状态：第一至第三项公共基础与执行器、第四项Entity／Player及Grid原生源已实现；Room／Level已核来源已接，完整正常显示／程序资源来源仍未闭合，尚未全域完成。上级：[总计划](README.md)。
 
-**2026-11-10 各域交接统一整理**：现行入口为10.7“各域来源与采集交接清单”，按来源、特殊约束、版本依赖与待落实项登记全部相关域。本次静态审阅的布局源为57；布局入源、运行接线和第15步验收分别说明。本次只改本文档，不修改实现／布局源／生成表，不构建、不运行测试。
+**现行阅读入口**：[第一项清单](10-contract-source-gaps.md)给出版本66合同、已有代码能力、读取资格和缺口；10.7按域定位来源与特殊约束。2026-11-10首次整理时布局源为57，该时点的未注册说明已由第8—9步后续实现替代；布局入源、实际运行接线和第15步验收分别说明。
 
 ## 目标
 
@@ -57,6 +82,8 @@ ordinary 窗口、PlayerPost 窗口，以及规范第 11 节的条件读取规�
 - **采集位置**：新采集器是 Collector 的一个采集阶段，在已核的 ordinary 窗口和 PlayerPost 窗口内执行，不新增 Hook，也不新增窗口。
 - **按会话启停**：会话外逻辑停用，Hook 保持常驻。
 
+以上位置约束针对对象状态复制。显示／音频瞬态结果仍须在正常生产／消费点封存，不能在ordinary补读最后值；现有Hook覆盖与必要观测点／ABI按[第一项G12—G14](10-contract-source-gaps.md)逐用途核定，本项未决定或安装新增Hook。所有观测接线继续经统一清单和协调owner，原函数exactly-once，不额外调用Render／Update／Lua／随机补值。
+
 ### 10.2 布局识别
 
 - **建立映射**：会话开始时，在后台按 `rtti` 名找到 J273 的类型描述符，建立“虚表地址 → 布局编号”映射表。
@@ -75,7 +102,7 @@ ordinary 窗口、PlayerPost 窗口，以及规范第 11 节的条件读取规�
 
 Slot／Projectile／Effect 的布局和公开回映射见[后续三类实现](implementation-4-slot-projectile-effect.md)。Slot 的奖励 ANM2 与主 Sprite 独立读取；Projectile 的 DepthOffset 只读取继承 E4 一次。Effect `shared-owner` 字段的偏移指向 holder，必须读前后 holder／具体 RTTI／生命周期见证，全部投影来自同一个 payload 和窗口。缺失输出规范化最短全零，未知类型或读失败报 Gap，不能按缺失处理；严禁把生成的 payload 偏移直接加到根 Entity。版本38已由606190的明确new(0x40)及完整复制核定Trail节点：按deque逻辑顺序遍历独立节点指针，不能当连续数组；不再要求旧confirmed-trail-record-layout读取资格。Ghost只采集0—4有效Sprite前缀，ANM2 Offset／Scale不上线，原生i32 count收窄前检查，三个投影同一窗口／前缀。普通变体的 `0x420—0x43F` 未核，FX2 预留不复制。Timeout 每窗从原值重算到期帧，停走或非线性变化会使锚点变化并重新发送，不依赖所有变体都恰好递减一次的假设。
 
-生成器为每个布局产出一份操作序列（`state_capture.inc`）。主线程按顺序执行：
+当前生成器的`state_capture.inc`只产出合并的`CopyRange`表；完整操作、来源及嵌套元数据在`state_wire.inc`等同源表中，由`state/layout.h`统一暴露。[第三项执行器](10-capture-executor.md)已联合消费这些表及第9步数字规则；实际各域来源与主线程桥仍须绑定，不能只解释复制区间。概念操作如下：
 
 | 操作 | 动作 |
 | --- | --- |
@@ -85,10 +112,11 @@ Slot／Projectile／Effect 的布局和公开回映射见[后续三类实现](im
 | `Resource(src, kind, dst)` | 读资源指针或路径，查资源表；遇到新资源先登记待发送 |
 | `Container(src, elem_layout, cap, dst)` | 读 begin／end 或 count，校验后按元素布局逐项执行（嵌套计划） |
 | `Sub(offset, layout)` | 对内嵌对象（ANM2、LayerState 数组等）递归执行其计划 |
+| `Choice(selector, layouts)` | 按先行选择器和生成允许集解释当前有效分支或动态槽布局，不回退猜型 |
 
-- **一个对象一层保护**：每个对象的计划在一个 SEH 保护块内执行（一个对象一次，不是一个字段一次）。发生访问异常时，该对象的整条记录作废并报具名缺口，不写入半条记录。
+- **整根失败保护**：执行器不直接解引用原生地址，所有读取经CaptureWindow的有界read；实际MemoryReader负责访问异常捕获与错误返回。任意读取、资格或来源失败均作废整根事务并保留具名缺口，不留下半条记录。Collector实机读取适配仍待后续接线，不能将公共事务回卷写成已安装对象级SEH。
 - **地址来源**：对象地址只来自已核的枚举来源，以及 Collector 已校验的成员关系，不跟随任意指针。
-- **条件读取**：带条件的字段（规范第 11 节）由计划中的条件操作控制，条件不满足时写入“不可读”标记。
+- **条件读取**：协议条件明确不成立时，按布局跳过旧payload并输出规定的最短编码；`read_requirement`或规范第11节的实际读取资格不满足时，报具名Gap并撤销相关候选，不把“不可读”伪装为合法缺席／空值。实际资格绑定见[第一项第4节](10-contract-source-gaps.md#4-读取资格的实际绑定清单)。
 
 上表是操作概念说明；执行时还须消费当前生成表的`source`、`nested_layout`、choice、先行选择器、`fixed_count`、`count_bytes`、计数组和字节预算。协议分支明确不存在时按布局输出最短编码；来源窗口失效或不可读仍是Gap，不能与合法缺席混同。
 
@@ -98,6 +126,8 @@ Slot／Projectile／Effect 的布局和公开回映射见[后续三类实现](im
 - **双缓冲**：主线程写一份，后台读另一份。
 - **超出容量**：报具名缺口，并把本次采集标为“不完整”交给后台。后台不发布不完整的 world 帧，改发下一次完整采集；容量按高水位在会话之间调整。
 - **主线程不分配内存**：采集过程中主线程不分配内存，不加锁，不等待。
+
+双缓冲描述读写所有权，不表示完整交接只需两个槽。现有cold、latest ordinary、构建中及body／控制槽的撤销语义仍需保留，钉住的不可变缓冲和在途租约均须计费。[第二项公共基础](10-capture-foundation.md)已提供预分配纯值buffer与交接机制，实际Collector／worker接线及全部身体的ordinary joint处理仍属[第一项G02／G03](10-contract-source-gaps.md)未完成范围。
 
 ### 10.5 频率分层
 
@@ -120,7 +150,7 @@ Slot／Projectile／Effect 的布局和公开回映射见[后续三类实现](im
 
 ### 10.7 各域来源与采集交接清单
 
-布局／编码的共同依据为[第9步9.10](9-wire-format.md)，运行窗口依据本页输入事实及[现行规范](../../refactor/project-conventions.md)。版本57已登记基础、Entity、Player、Grid、Run及Room／Level值布局；Presentation根、D0、逐用途结果和音频尚有未注册项。下列“待落实”只说明本步要接通的来源与交接，不把已有小型读取辅助函数当作完整采集器。
+布局／编码的共同依据为[第9步9.10](9-wire-format.md)及其正文／显示／资源／接受／预算合同，运行窗口依据本页输入事实及[现行规范](../../refactor/project-conventions.md)。当前版本66的349布局／2806字段／85条件已经包含Presentation根、D0、逐用途结果、音频、422—424和425—433资源值；完整Frame和纯值接受代码也已提供。公共事务／交接及通用执行器已提供，待落实的是实际来源、缓存与运行交接，不能再将其写成布局未注册。已有代码边界、来源未闭合项和全部28条显示合同见[第一项清单](10-contract-source-gaps.md)；第11—13步仍需真实运行链，本步不因已有辅助函数而宣称完整采集。
 
 | 域与来源 | 本步特殊约束 | 身份／版本依赖 | 待落实项 |
 |---|---|---|---|
@@ -140,15 +170,16 @@ Slot／Projectile／Effect 的布局和公开回映射见[后续三类实现](im
 | Room／背景／FX：[版本57实现](implementation-7-room-level.md)、[资源设计](room-display-resource-design.md) | 239无vptr，R0描述是source-slot；真实448格／8门、最终颜色／water／light／wave／focus／FX和rails按源取。flow唯一归WaterVisual，ray取已消费phase；不读生成队列、path／占格表或函数表 | world几何、实际用途绑定／资源、owner及显示修订匹配；Host视口／Options未执行分支不是world禁用 | 正常生产缓存／已核纯值投影、完整可显示目录及全部变更失效来源；不额外Render／Init／生成装饰补画面 |
 | Level／Descriptor／保存与探索：[版本57](implementation-7-room-level.md)、[两域核对](room-save-exploration-synchronization-review.md) | 唯一L0/L1/L2/L3 owner；有效curse在Host只读投影，L1五位含HasWater，Boss所有模式保留。L2仅OR/max结果，隐藏保存集合不为观测扩读；不扫描ESSM作为身份 | 源槽／活动成员／维度／双配置与同world地图修订；-19隔离，路由不是数组下标，保存回调不是稳定更新见证 | 活动集合／占用／保存图标扫描预算与原位变化失效；MapFocus／徽标归Presentation，不重复采同一数据 |
 | Run：[Run职责](run-synchronization-review.md) | 132B窄投影，GameFrame只进帧头，TimeCounter独立基准；七种种子显示、ascent/daily窄值，current颜色／两黑暗／最终64B分数。原树／回溯体不上线 | 正常主线程同run/world；当前Game与旧结算副本分别归owner，最终进度图标有实际显示批次 | 新handler、只读种子树／TimeCounter转换及分数／资格缓存；不额外Calculate／daily Init或进度查询 |
-| HUD／地图／UI：[Presentation核对](presentation-synchronization-review.md)、[地图设计](room-display-resource-design.md) | 实际身体HUD、最终心格／Stat三值／有序图像、11消息槽和真实文字内容；地图全可显示事实、300—303两配置焦点／有序徽标／问号图。展开、视口、dirty与shakeDuration不采 | subject/use、显示归组、Player／Run／L0—L3、资源及显示修订关联，不能把Sprite最后帧当整列 | 未注册HUD/UI根的布局与正常缓存；历史／转场／屏幕图像及shader未知源逐项留Gap，不额外Update／Refresh／Recompute |
+| HUD／地图／UI：[Presentation核对](presentation-synchronization-review.md)、[地图设计](room-display-resource-design.md) | 实际身体HUD、最终心格／Stat三值／有序图像、11消息槽和真实文字内容；地图全可显示事实、300—303两配置焦点／有序徽标／问号图。展开、视口、dirty与shakeDuration不采 | subject/use、显示归组、Player／Run／L0—L3、资源及显示修订关联，不能把Sprite最后帧当整列 | HUD/UI布局已登记；全部组合法来源、正常缓存、文字／字体映射及逐用途贡献仍须落实，未核源留Gap，不额外Update／Refresh／Recompute |
 | Random／D0：[逐用途交接](room-random-handoff.md) | D0只Manager相位＋paused5B；Pickup6E3805后、Familiar61E604后取实际alpha／资格，不发两seed或玩法／音频流。未产生不等于确认无覆盖 | world/presentation修订、subject/use/shape、pass／重复调用／递归及资源同批；相同GameFrame不够 | 正常栈／临时结果缓存、用途与调用身份及缺源表达；Authority不等待显示，不补抽样或复演全局顺序 |
-| 配置／图像／shader资源：[typed设计](room-display-resource-design.md)、[版本57](implementation-7-room-level.md) | 15B配置、文件、完整recipe或精确像素分别取源；RGBA8读回leaf依据A4C840由图形owner在正常提交／CPU消费完成后用，非普通memcpy／后台getter。保留pixel/UV／padding和图形状态 | 不可变内容身份、依赖闭包、同owner/use版本，Data/Override独立；冷连接缺历史不猜图片名 | 具体GPU ABI、shader旁表、图形物化缓存和有界自有缓冲；所有成本／blob纳入后续预算，不量化／降质补缺 |
-| Music／SFX／环境声：[同步职责复核](presentation-source-synchronization-review.md)、[具体来源](presentation-audio-sources.md) | 正常逻辑资格通过且已选sample时保存world意图，封存每voice最终Options前gain／pitch／必要pan；不重复mask／混音树／ducking。907E9D仅证明本地提交，个人后端失败／重试不自动Stop／Start | 逻辑voice实例／资源／world用途、事件序号／时点／水位及真实退休关联；普通one-shot本地完成，硬件游标不上线；必要逻辑段／恢复另核 | 完整world用途／退休与音乐gain来源、自有意图缓存和正式布局未落实；主线程封存后交后台，不额外Play／SetAmbientSound／getter补源 |
+| 配置／图像／shader资源：[当前本地生成合同](local-media-presentation.md)、[正式资源协议](9-resource-protocol.md) | 采集15B配置、实际文件／图层／shader选择、有界纯值recipe及文字／样式；不为正式同步读回纹理或采集音频字节。A4C840仍是原生读回证据，不作为必需网络source | 不可变描述身份、依赖闭包与owner/use，Data/Override独立；取消Host切房／反馈图依赖，不把缺本地文件编码为Null | typed资源与图形规则已登记；补齐实际加载来源到规范路径／资源描述的绑定、样式／字体映射与完整本地合成描述；未闭合程序内容列Gap，不恢复Host额外Render／RNG／原始媒体兜底 |
+| Music／SFX／环境声：[同步职责复核](presentation-source-synchronization-review.md)、[具体来源](presentation-audio-sources.md) | 正常逻辑资格通过且已选sample时保存world意图，封存每voice最终Options前gain／pitch／必要pan；不重复mask／混音树／ducking。907E9D仅证明本地提交，个人后端失败／重试不自动Stop／Start | 逻辑voice实例／资源／world用途、事件序号／时点／水位及真实退休关联；普通one-shot本地完成，硬件游标不上线；必要逻辑段／恢复另核 | 381—383／433及事件封装已登记；完整world用途／退休、Options前音乐writer／逻辑包络、必要segment与恢复来源、自有意图缓存仍待落实；主线程封存后交后台，不额外Play／SetAmbientSound／getter补源 |
 
 跨域交接使用自有不可变数据；失败不发布半记录或不完整world，不把“本轮没读到”推导成成员离开。低频轮转与正常显示生产来源需明确有效修订／失效条件和预算，不拼接不同world/use；退役旧源在第14步，运行正确性与性能仅第15步验收。本次清单静态整理不执行这些步骤。
 
 ## 改动范围
 
+- 第二项公共基础现位于`mod/src/state/capture*`，接口、所有权与尚未接通边界见[实现说明](10-capture-foundation.md)；以下仍是全步骤的剩余运行接线范围。
 - Collector 新增采集阶段，以及复制计划解释器（读取生成的计划表，不手写逐字段代码）。
 - 虚表映射表和资源表登记。
 - CaptureWorker 交接的载荷改为二进制缓冲区，槽位和撤销语义不变。
@@ -167,16 +198,17 @@ Slot／Projectile／Effect 的布局和公开回映射见[后续三类实现](im
 
 ## 完成内容
 
-本次仅完成文档整理与静态审阅；以下为本步骤后续实施／验收需要交付的内容，不表示已经实现、编译或通过测试。
+第一至第三项公共基础已实现，第四项[Entity／Player原生源与交接](10-entity-player-capture.md)及[Grid／Room／Level当前实施](10-grid-room-level-capture.md)已接入产品，当前布局版本69。Grid／Room／Level已补正常生产缓存、世界参数投影及纯值交接；整个第10步的其它域仍待后续，也不表示完整WorldFrame发布或测试通过。
 
-- **实现交付**：需完成采集器与计划解释器，并在实施阶段完成相应纯产品编译；本次未实现或构建。
+- **实现交付**：公共窗口、绑定、纯值事务、交接及通用递归计划解释已编写；仍需完成各域真实来源／资格、成员闭包、生产缓存及运行接线，继续按实际改动完成必要纯产品编译。
 - **代码约束**：主线程路径没有 Lua 调用、没有 JSON、没有内存分配，所有核心函数和数据结构带中文注释。
 - **验证安排**：性能和正确性的验证全部在第 15 步完成。
 
 ## 未决问题
 
 - 低频轮转的分片大小和一整轮的周期。
-- 身体槽数量 8 是否继续足够；Esau、Tainted Lazarus 等多身体情况下要核对上限。
+- 现有worker快源槽为8，而Collector／桥身体锚点为256（4×64），两者不是系统支持上限；须落实全部合法身体的fast选择／ordinary body-joint交接与预算，不能静默漏身体。
+- 全部组HUD、原生文字／字体映射、程序显示／坐标、音频逻辑来源等具体未决见[第一项G01—G15与28条合同](10-contract-source-gaps.md)。
 
 ## 历史修订提示与原分域补充
 

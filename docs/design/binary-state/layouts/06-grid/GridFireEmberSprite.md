@@ -1,6 +1,6 @@
 # GridFireEmberSprite
 
-由唯一布局源生成。布局编号 204；布局版本 60；原生大小 0x114；未知 14B；完整：否。
+由唯一布局源生成。布局编号 204；布局版本 71；原生大小 0x114；未知 14B；完整：否。
 
 版本51：Fire+27C的第三ANM2展示视图，主动画用203，overlay仍完整AnimationState（未被逐粒子SetFrame覆写）；外观94B，最小110B，UNKNOWN14B。保留实际Image/颜色/变换/插值及本Sprite的glitch最终两位。与当前同world ember容器绑定，逐粒子绘制产生的帧/选择器/事件scratch必须恢复；实际接线待第10/13步。
 

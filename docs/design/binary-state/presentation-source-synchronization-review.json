@@ -1,5 +1,18 @@
 {
   "format": "isaac.cs.presentation-source-synchronization-review",
+  "current_policy_override": {
+    "date": "2026-11-11",
+    "document": "local-media-presentation.md",
+    "scope": "仅覆盖旧网络职责／验收要求；原条目证据、字节、UNKNOWN与历史决定保留；不是生产schema",
+    "production_schema_changed": false,
+    "decisions": [
+      "文字与必要样式下行，Client本地生成缓存；不传文字图像",
+      "当前Client合法完整目标就绪后直接切房，不要求前后surface",
+      "Hallucination采用本端历史与同步参数；不要求Host反馈图／像素一致",
+      "尽量不传原始图像／音频；资源引用／有限描述与播放控制保留，当前不启用通用媒体blob",
+      "旧文字图／转场／反馈值布局和依赖仍待唯一源后续迁移；不改写已有版本60实现事实"
+    ]
+  },
   "revision": 1,
   "date": "2026-11-10",
   "target": "official REPENTOGON 1.1.3 / v1.9.7.12.J273 / Win32",
@@ -600,5 +613,14 @@
     }
   ],
   "native_unknown_policy": "全部UNKNOWN范围保持；未知不等于已知不必同步",
-  "runtime_status": "未实施；未构建或测试"
+  "runtime_status": "未实施；未构建或测试",
+  "current_hud_policy": {
+    "date": "2026-11-12",
+    "document": "hud-local-presentation.md",
+    "implementation": "hud-local-implementation.md",
+    "production_layout_version": 70,
+    "pure_value_module_implemented": true,
+    "native_capture_publish_apply_connected": false,
+    "scope": "原条目原生事实、UNKNOWN与历史结论保持；现行HUD网络职责以布局70为准。315三项重复缓存退出；311/312普通分支本地生成，特殊分支保留；新增独立435实际更新驱动。第15步尚未验收。"
+  }
 }

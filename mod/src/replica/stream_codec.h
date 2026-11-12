@@ -8,6 +8,8 @@ enum class Lane : unsigned { Control=1, Baseline, Context, WorldDynamic, PlayerF
 enum class Direction { ToAuthority, ToClient };
 enum class State { Handshake, Waiting, Preparing, Active, Retiring, Stopped };
 enum class Codec : unsigned { None, Zstd };
+// 可选能力独立于原zstd-v1；旧Peer的可靠压缩支持不自动允许world/body压缩。
+inline constexpr const char *kWorldBodyZstdCapability="world-body-zstd-v1";
 // 封套按连接/路由持有；范围正文中的WorldScope仍然可在全部Peer间共享。
 struct Message final {
   memory::Lease memory;

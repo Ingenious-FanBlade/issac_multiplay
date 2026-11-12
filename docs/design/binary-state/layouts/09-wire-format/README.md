@@ -20,7 +20,24 @@
 | [StateAppliedAckHeader](StateAppliedAckHeader.md) | 419 | 0 | 0 | 是 |
 | [StateAppliedAckEntry](StateAppliedAckEntry.md) | 420 | 0 | 0 | 是 |
 | [StateResyncHeader](StateResyncHeader.md) | 421 | 0 | 0 | 是 |
+| [ResourcePath](ResourcePath.md) | 425 | 0 | 0 | 是 |
+| [ResourceImageFile](ResourceImageFile.md) | 426 | 0 | 0 | 是 |
+| [ResourceBuiltinShader](ResourceBuiltinShader.md) | 427 | 0 | 0 | 是 |
+| [ResourceAnimation](ResourceAnimation.md) | 428 | 0 | 0 | 是 |
+| [ResourceName](ResourceName.md) | 429 | 0 | 0 | 是 |
+| [ResourceAnimationLayer](ResourceAnimationLayer.md) | 430 | 0 | 0 | 是 |
+| [ResourceItemConfig](ResourceItemConfig.md) | 431 | 0 | 0 | 是 |
+| [ResourceEntityConfig](ResourceEntityConfig.md) | 432 | 0 | 0 | 是 |
+| [ResourceAudio](ResourceAudio.md) | 433 | 0 | 0 | 是 |
 
 [公共报文编号、枚举与预算](protocol-constants.md)。
 
 [各域正文数字编解码计划](body-codec-plan.md)。
+
+[显示封装数字合同](presentation-envelope-plan.md)。
+
+[资源协议数字合同](resource-protocol-plan.md)。
+
+[完整消息与接受数字合同](state-protocol-plan.md)。
+
+[完整消息静态预算](budget-plan.md)。

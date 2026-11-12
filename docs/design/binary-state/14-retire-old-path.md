@@ -1,5 +1,13 @@
 # 14：退役旧路径与产品边界
 
+**2026-11-12 HUD代码迁移，版本70**：新布局已退出重复HUD缓存；旧可运行legacy采集／安装／漂移比较继续保留，等正常来源与原生显示实际接管后退役，不能仅因纯值模块编译成功删除唯一运行来源。 具体接口、事实及剩余接线见[实施说明](hud-local-implementation.md)。第15步唯一统一验收，未运行测试。
+
+**2026-11-12 HUD本地化退役交接，仅文档**：按[现行合同](hud-local-presentation.md)在新schema、真实来源及Client纯显示owner接管后，退役low_health_flash／holy_mantle_visible、普通图标／中心、逐帧Drop渐变和Host布局缓存的重复采集／发送／安装／原值比较。保留实际驱动、完整心格／三色及充能闪烁、特殊资源、有序列表、Stat三值／概率与正常本地资源生命周期；不恢复Player六项玩法属性或因本地化开启整段HUD Update。当前未删除代码、未改生成表／版本，无构建或测试；旧可运行路径仍按真正接管时序退出。
+
+**2026-11-11 第9步收尾交接，版本65**：线格式、正文／显示／资源／完整消息、纯值接受恢复及[预算合同](9-budget-capacity.md)均完成，旧Range和JSON握手仍不能作为新状态的兼容分支。本步在10—13步完整接线后退役旧入口与重复预算常量，保留输入、隔离、Hook常驻和必要生命周期owner；第15步统一验收。
+
+**2026-11-11 当前退役目标调整**：[本地生成合同](local-media-presentation.md)落实后，退役正式同步中的文字／切房／hallucination像素必发和音频文件传送假设；通用媒体blob当前不启用。保留本地资源加载、文字纯显示生成、hallucination本地缓存和必要音频执行／失败保护。旧schema／代码仅在替代消费者实际接通后迁移，不提前删唯一可用路径；历史来源、失败和UNKNOWN保持。
+
 **2026-11-11 第9步各域正文实现，版本60**：[正文实现与边界](9-domain-body-codec.md)、[同源数字计划](layouts/09-wire-format/body-codec-plan.md)。正文编码器已编入产品状态库，但整消息新Kind／握手／资源／接受入口仍未启用。不能因此提前删除唯一运行中的旧Range／Lua／JSON路径；按完整10—13接线完成后退役，旧失败与UNKNOWN照实保留。
 
 **2026-11-11 第9步公共合同，版本59**：[正式结构](9-public-wire-contract.md)。以版本59公共合同为后续替换目标；新固定头和Kind数值登记不等于新编解码已可用。待完整payload、接受规则和10—13步运行接线完成，再退役旧Range／树形解析／相关旧路径，不能仅因本项定稿便先删除唯一运行实现。
@@ -95,7 +103,7 @@
 | Level／保存探索／地图：[两域](room-save-exploration-synchronization-review.md)、[版本57](implementation-7-room-level.md) | 退出全flags／全seed／完整保存体、四揭图bool／Host按键历史／ESSM ID；保留L0—L3、HasWater五位、所有模式Boss、L2图标／楼梯／Portal、Focus／Badge／Question。旧原版地图builder只属历史窄路径 | 物理源槽／有序活动成员／双配置、地图／world／资源同目标，-19隔离，探索回退／特殊房间寿命保留 | 纯地图adapter／扫描失效／资源与门Light替代；错误Getter事实保留，不修官方SDK冒称DLL修复，不用Restore／Refresh兜底 |
 | Run／HUD／UI：[Run](run-synchronization-review.md)、[Presentation](presentation-synchronization-review.md) | 退出整flags／回溯体、Stat五值全复制／颜色生产三态／Host展开输入及原值进度查询；保留132B窄Run、最终64B分数、真实身体HUD／心格／Stat三值／有序图像／消息及世界pass | 当前Game／冻结结算owner、身体归组、world／资源／显示批次分开，本地UI／Options保持自身owner | 新结果缓存／typed根与应用、分数／Online隔离完成后迁旧链；不因141行目录漏项删除Minimap／Nightmare等必要原版负载 |
 | D0／Random／音频：[逐用途交接](room-random-handoff.md)、[音频边界](presentation-synchronization-review.md) | 退出application_draw全流、37/13B旧D0、背景／地图随机重放、随机Play／SetAmbientSound及仅事件恢复声音；保留5B相位／paused、具名alpha／资格、已选sample与持续voice／crossfade/jingle状态 | world/presentation、subject/use/shape/pass／调用、资源及voice代次／场景生命周期完整；状态与事件去重不混 | 正式批次／事件／非随机leaf与CPU／颜色栈恢复接通后退旧路径，流不上线不能变成结果删除 |
-| typed资源／E2E边界：[资源设计](room-display-resource-design.md)、[现行规范](../../refactor/project-conventions.md) | 固定头／值布局不足以删资源owner；保留路径／实际Image、图像／shader／recipe／精确内容与失败／退休保护。Lua观测／故障注入仅E2E，原版产品不加载第三方adapter，历史源码不因迁出设计而删除 | 正式资源空间／epoch／内容身份与整个依赖闭包一致；保持Hook常驻、C/S与原版Online／Sync隔离、输入／设备与NEVER生命周期 | 产品/E2E构建依赖、发布包与静态调用方整理；不把未知ABI／未实现adapter当已退役，不恢复Lua补源旁路 |
+| typed资源／E2E边界：[本地生成合同](local-media-presentation.md)、[现行规范](../../refactor/project-conventions.md) | 新路线接通后退出正式原始媒体／Host前后surface与反馈图必发依赖；保留本地文件加载、文字缓存、本端hallucination、有限recipe、音频控制与失败／退休保护。Lua观测／故障注入仅E2E，原始证据和旧实现事实保留 | 正式资源空间／epoch／描述身份与现行必要依赖一致；保持Hook常驻、C/S隔离、输入／设备与NEVER生命周期 | 迁移旧文字图／结果引用与调用方后再删旧链；固定头存在不启用媒体正文，未知／未接线不冒称已退役，不恢复Lua补源 |
 
 每项实际切换都须同时接管来源、组帧／版本、解码、应用／退休与对应读回口径，避免新旧路径重复发布或旧JSON反填掩盖缺口。源码／历史记录、正常本地初始化、必要关系撤销和资源失败保护按原职责保留；本次没有执行卸载、恢复Hook字节、删文件或产品打包。
 

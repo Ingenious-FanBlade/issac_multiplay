@@ -1,0 +1,395 @@
+{
+  "hud_local_policy": {
+    "active_last": 732,
+    "trinket_last": 189,
+    "active_special": [
+      290,
+      326,
+      352,
+      422,
+      434,
+      474,
+      479,
+      483,
+      489,
+      523,
+      640,
+      685,
+      710,
+      711,
+      720
+    ],
+    "trinket_special": [
+      75,
+      166
+    ],
+    "golden_mask": 32768
+  },
+  "types": [
+    {
+      "type": "PlayerHUDLocalClock",
+      "layout": 435,
+      "native_size": 0,
+      "parent": null,
+      "rtti": {
+        "name": "纯C/S显示驱动，无原生RTTI",
+        "rva": 0
+      },
+      "ranges": [],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "身体HUD有效更新时钟与有限驱动",
+          "sequence": "body",
+          "fields": [
+            "player",
+            "binding_revision",
+            "update_ordinal",
+            "sample_game_frame",
+            "critical_health",
+            "mantle_source_revision",
+            "drop_anchor_update",
+            "drop_held",
+            "drop_anchor_phase"
+          ]
+        }
+      ],
+      "conversions": {
+        "hud_local_player_capture": "从正常HUD更新的同身体自有封存来源读取；不调用Update/Getters/Lua/输入生产器。",
+        "hud_local_player_prepare": "核同目标、body/use/shape、绑定、实际更新来源及必要资源后准备纯显示；失败不安装、不ACK。",
+        "hud_local_binding_revision_capture": "从正常HUD更新的同身体自有封存来源读取；不调用Update/Getters/Lua/输入生产器。",
+        "hud_local_binding_revision_prepare": "核同目标、body/use/shape、绑定、实际更新来源及必要资源后准备纯显示；失败不安装、不ACK。",
+        "hud_local_update_ordinal_capture": "从正常HUD更新的同身体自有封存来源读取；不调用Update/Getters/Lua/输入生产器。",
+        "hud_local_update_ordinal_prepare": "核同目标、body/use/shape、绑定、实际更新来源及必要资源后准备纯显示；失败不安装、不ACK。",
+        "hud_local_sample_game_frame_capture": "从正常HUD更新的同身体自有封存来源读取；不调用Update/Getters/Lua/输入生产器。",
+        "hud_local_sample_game_frame_prepare": "核同目标、body/use/shape、绑定、实际更新来源及必要资源后准备纯显示；失败不安装、不ACK。",
+        "hud_local_critical_health_capture": "从正常HUD更新的同身体自有封存来源读取；不调用Update/Getters/Lua/输入生产器。",
+        "hud_local_critical_health_prepare": "核同目标、body/use/shape、绑定、实际更新来源及必要资源后准备纯显示；失败不安装、不ACK。",
+        "hud_local_mantle_source_revision_capture": "从正常HUD更新的同身体自有封存来源读取；不调用Update/Getters/Lua/输入生产器。",
+        "hud_local_mantle_source_revision_prepare": "核同目标、body/use/shape、绑定、实际更新来源及必要资源后准备纯显示；失败不安装、不ACK。",
+        "hud_local_drop_anchor_update_capture": "从正常HUD更新的同身体自有封存来源读取；不调用Update/Getters/Lua/输入生产器。",
+        "hud_local_drop_anchor_update_prepare": "核同目标、body/use/shape、绑定、实际更新来源及必要资源后准备纯显示；失败不安装、不ACK。",
+        "hud_local_drop_held_capture": "从正常HUD更新的同身体自有封存来源读取；不调用Update/Getters/Lua/输入生产器。",
+        "hud_local_drop_held_prepare": "核同目标、body/use/shape、绑定、实际更新来源及必要资源后准备纯显示；失败不安装、不ACK。",
+        "hud_local_drop_anchor_phase_capture": "从正常HUD更新的同身体自有封存来源读取；不调用Update/Getters/Lua/输入生产器。",
+        "hud_local_drop_anchor_phase_prepare": "核同目标、body/use/shape、绑定、实际更新来源及必要资源后准备纯显示；失败不安装、不ACK。"
+      },
+      "validators": {
+        "critical_health": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "drop_held": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "drop_anchor_phase": {
+          "kind": "range",
+          "scalar": "u8",
+          "min": 0,
+          "max": 4
+        },
+        "binding_revision": {
+          "kind": "range",
+          "scalar": "u64",
+          "min": 1,
+          "max": 18446744073709551615
+        },
+        "update_ordinal": {
+          "kind": "range",
+          "scalar": "u64",
+          "min": 1,
+          "max": 18446744073709551615
+        },
+        "mantle_source_revision": {
+          "kind": "range",
+          "scalar": "u64",
+          "min": 1,
+          "max": 18446744073709551615
+        },
+        "drop_anchor_update": {
+          "kind": "range",
+          "scalar": "u64",
+          "min": 1,
+          "max": 18446744073709551615
+        }
+      },
+      "members": [],
+      "public_owners": [],
+      "extent": "protocol",
+      "synthetic_fields": [
+        {
+          "name": "player",
+          "type": "u16",
+          "semantics": "真实身体引用",
+          "evidence": "docs/design/binary-state/hud-local-presentation.md；J273 832C10→90A490/92F610",
+          "host": "hud_local_player_capture",
+          "client": "hud_local_player_prepare",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "player",
+            "host": "hud_local_player_capture",
+            "client": "hud_local_player_prepare"
+          }
+        },
+        {
+          "name": "binding_revision",
+          "type": "u64",
+          "semantics": "同控制组绑定代次",
+          "evidence": "docs/design/binary-state/hud-local-presentation.md；J273 832C10→90A490/92F610",
+          "host": "hud_local_binding_revision_capture",
+          "client": "hud_local_binding_revision_prepare"
+        },
+        {
+          "name": "update_ordinal",
+          "type": "u64",
+          "semantics": "该HUD实例已正常完成的有效显示更新次数；非Authority tick/渲染帧/ACK",
+          "evidence": "docs/design/binary-state/hud-local-presentation.md；J273 832C10→90A490/92F610",
+          "host": "hud_local_update_ordinal_capture",
+          "client": "hud_local_update_ordinal_prepare"
+        },
+        {
+          "name": "sample_game_frame",
+          "type": "u32",
+          "semantics": "最后一次有效HUD更新的真实GameFrame；冻结期间不随到包推进",
+          "evidence": "docs/design/binary-state/hud-local-presentation.md；J273 832C10→90A490/92F610",
+          "host": "hud_local_sample_game_frame_capture",
+          "client": "hud_local_sample_game_frame_prepare"
+        },
+        {
+          "name": "critical_health",
+          "type": "u8",
+          "semantics": "同次HUD生产的red+eternal+soul+bone原生32位和是否等于1",
+          "evidence": "docs/design/binary-state/hud-local-presentation.md；J273 832C10→90A490/92F610",
+          "host": "hud_local_critical_health_capture",
+          "client": "hud_local_critical_health_prepare"
+        },
+        {
+          "name": "mantle_source_revision",
+          "type": "u64",
+          "semantics": "最近允许护盾查询时封存的P8效果来源修订；冻结/冷连接必须取得该修订的完整纯值输入",
+          "evidence": "docs/design/binary-state/hud-local-presentation.md；J273 832C10→90A490/92F610",
+          "host": "hud_local_mantle_source_revision_capture",
+          "client": "hud_local_mantle_source_revision_prepare"
+        },
+        {
+          "name": "drop_anchor_update",
+          "type": "u64",
+          "semantics": "最近实际消费Drop状态变化或恢复时的已完成HUD更新锚点",
+          "evidence": "docs/design/binary-state/hud-local-presentation.md；J273 832C10→90A490/92F610",
+          "host": "hud_local_drop_anchor_update_capture",
+          "client": "hud_local_drop_anchor_update_prepare"
+        },
+        {
+          "name": "drop_held",
+          "type": "u8",
+          "semantics": "该身体在832C10尾部92F610实际消费后的Drop持续状态",
+          "evidence": "docs/design/binary-state/hud-local-presentation.md；J273 832C10→90A490/92F610",
+          "host": "hud_local_drop_held_capture",
+          "client": "hud_local_drop_held_prepare"
+        },
+        {
+          "name": "drop_anchor_phase",
+          "type": "u8",
+          "semantics": "锚点更新完成后的有限0..4相位；只用于初建/变化/纠正，不是逐帧浮点结果",
+          "evidence": "docs/design/binary-state/hud-local-presentation.md；J273 832C10→90A490/92F610",
+          "host": "hud_local_drop_anchor_phase_capture",
+          "client": "hud_local_drop_anchor_phase_prepare"
+        }
+      ],
+      "record_limit": 41,
+      "body_limit": 41,
+      "notes": "八类本地HUD共用正式world/body提交，无第三确认序列。435变化不要求重发315；缺历史P8、更新来源或冷连接相位不得确认。",
+      "presentation_contract": {
+        "owner": "实际身体HUD实例的纯显示驱动",
+        "subject": "body key/use/shape与HUD实例代次",
+        "producer": "正常832C10完成及92F610实际返回；护盾输入取允许查询的P8修订",
+        "adapter": "hud_local_prepare",
+        "dependencies": "同目标P3/P4、精确P8效果来源修订、组绑定与必要配置/图像资源；drop锚点不大于update_ordinal",
+        "dependency_types": [
+          "EntityPlayer",
+          "PlayerControlGroup"
+        ],
+        "sequence": "body",
+        "atomic_scope": "body-target",
+        "validity": "同scope、身体use/shape、HUD实例、绑定及完整输入",
+        "invalidation": "切房/恢复/换形/绑定退休按scope清理，真实writer/draw借用退出后回收",
+        "contribution_identity": "身体/HUD实例/use/shape；沿原world/body目标确认",
+        "source_gap": "缺实际消费、更新资格、精确P8或相位时失败，不猜默认值",
+        "envelope": {
+          "mode": "group",
+          "subject_type": "EntityPlayer",
+          "cacheable": true,
+          "clock": false,
+          "topology": true,
+          "paired_streams": 0,
+          "passes": [
+            "Context",
+            "Value"
+          ],
+          "subject_field": "player"
+        }
+      }
+    },
+    {
+      "type": "HudMantleEffects",
+      "layout": 436,
+      "native_size": "0x18",
+      "parent": null,
+      "rtti": {
+        "name": "PlayerTemporaryEffects具名历史视图，无新增原生对象",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": "0x0",
+          "size": "0x4",
+          "name": "cache_mask",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "待属性重算mask，不是vptr",
+          "status": "已核",
+          "evidence": "5-player-p6-p8.md"
+        },
+        {
+          "offset": "0x4",
+          "size": "0xC",
+          "name": "entries",
+          "type": "vector<TemporaryEffect>",
+          "category": "容器",
+          "semantics": "完整有界有序身份／count；仅704 cooldown",
+          "status": "已核",
+          "evidence": "5-player-p6-p8.md",
+          "wire": {
+            "kind": "container",
+            "element": "PlayerTemporaryEffect",
+            "stride": 16,
+            "storage": "vector",
+            "limit": 16384,
+            "host": "playertemporaryeffects_entries_read",
+            "client": "playertemporaryeffects_entries_install",
+            "max_bytes": 33554432
+          }
+        },
+        {
+          "offset": "0x10",
+          "size": "0x1",
+          "name": "evaluate",
+          "type": "bool",
+          "category": "权威",
+          "semantics": "Host重算请求",
+          "status": "已核",
+          "evidence": "5-player-p6-p8.md"
+        },
+        {
+          "offset": "0x11",
+          "size": "0x1",
+          "name": "disabled",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "效果查询禁用，独立于列表空值",
+          "status": "已核",
+          "evidence": "5-player-p6-p8.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          }
+        },
+        {
+          "offset": "0x12",
+          "size": "0x2",
+          "name": "unknown_12_13",
+          "type": "bytes[2]",
+          "category": "未知",
+          "semantics": "尚无字段语义或填充证明；初始化清零／相邻字段不足以改判",
+          "status": "未知",
+          "evidence": "5-player-p6-p8.md"
+        },
+        {
+          "offset": "0x14",
+          "size": "0x4",
+          "name": "owner",
+          "type": "Player*",
+          "category": "本地",
+          "semantics": "本地承载Player回指",
+          "status": "已核",
+          "evidence": "5-player-p6-p8.md"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "护盾冻结所需的准确历史P8输入",
+          "sequence": "body",
+          "fields": [
+            "player",
+            "disabled",
+            "entries"
+          ]
+        }
+      ],
+      "conversions": {
+        "hud_mantle_effects_player_capture": "读取正常允许护盾查询时保存的同身体P8纯值，不在后台借用原生对象或重跑查询。",
+        "hud_mantle_effects_player_prepare": "必须与435同主体/实例，produced_revision等于mantle_source_revision；解析完整配置与有序条目后交纯显示adapter。"
+      },
+      "validators": {
+        "disabled": {
+          "kind": "boolean",
+          "scalar": "u8"
+        }
+      },
+      "members": [],
+      "public_owners": [],
+      "notes": "版本70的条件历史输入视图，不是第二份常规P8或holy_mantle_visible缓存。当前P8或已提交自有快照能满足435修订时复用，不额外发送436；仅冷连接/恢复/冻结时真实缺该修订才随原body/joint目标补完整快照。完整有序配置身份/count/cooldown沿180/150规则，不能把count>0当存在性。原生字节归属引用PlayerTemporaryEffects，不新建原生效果对象。",
+      "synthetic_fields": [
+        {
+          "name": "player",
+          "type": "u16",
+          "semantics": "这份历史P8投影的真实身体；完整身份由结果subject/use/shape解释",
+          "evidence": "docs/design/binary-state/hud-local-implementation.md",
+          "host": "hud_mantle_effects_player_capture",
+          "client": "hud_mantle_effects_player_prepare",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "player",
+            "host": "hud_mantle_effects_player_capture",
+            "client": "hud_mantle_effects_player_prepare"
+          }
+        }
+      ],
+      "record_limit": 164000,
+      "body_limit": 65536,
+      "presentation_contract": {
+        "owner": "身体HUD最近允许护盾查询的历史P8来源",
+        "subject": "body key/use/shape与HUD实例代次",
+        "producer": "正常护盾查询资格窗口封存的P8完整disabled与有序条目",
+        "adapter": "hud_mantle_effects_input",
+        "dependencies": "仅在435需要的修订不能由同目标或已保留P8满足时发送；与435同身体/use/shape/HUD实例，produced_revision必须等于mantle_source_revision；全部配置资源精确就绪",
+        "dependency_types": [
+          "EntityPlayer"
+        ],
+        "sequence": "body",
+        "atomic_scope": "body-target",
+        "validity": "同scope、身体use/shape、HUD实例、绑定及完整输入",
+        "invalidation": "切房/恢复/换形/绑定退休按scope清理，真实writer/draw借用退出后回收",
+        "contribution_identity": "身体/HUD实例/use/shape；沿原world/body目标确认",
+        "source_gap": "冷连接/恢复缺准确历史P8时明确缺依赖，不拿当前P8或默认无护盾代替",
+        "envelope": {
+          "mode": "group",
+          "subject_type": "EntityPlayer",
+          "cacheable": true,
+          "clock": false,
+          "topology": true,
+          "paired_streams": 0,
+          "passes": [
+            "Context",
+            "Value"
+          ],
+          "subject_field": "player"
+        }
+      }
+    }
+  ]
+}

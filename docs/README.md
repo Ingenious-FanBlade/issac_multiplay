@@ -1,3 +1,39 @@
+**2026-11-12 二进制状态同步方向调整，仅文档**：[客机显示委托与按需采集修改方案](design/binary-state/client-display-delegation.md)：Host 只采集客机需要的状态，Client 包装原生 `Game::Render` 本地显示，帧号用方案B；Q1—Q4 待确认，规范与各步文档尚未修订，未改代码，未运行测试。
+
+**2026-11-12 HUD布局与纯值模块，版本70**：[实施说明](design/binary-state/hud-local-implementation.md)记录正式布局迁移、独立显示时钟、普通／特殊图标边界与Client纯值模块。正常采集、正式发布和原生资源／绘制尚未接通；产品DLL纯编译／链接完成，无测试，第15步唯一统一验收。
+
+**2026-11-12 HUD本地化决定，仅文档**：[HUD本地生成合同](design/binary-state/hud-local-presentation.md)将低血周期闪烁、Holy Mantle资格、普通主动／饰品图标、材料与法术队列绘制、Drop渐变、基础属性格式化及多人HUD排版交Client生成。特殊图像／触发相位／有序列表／概率与公共绘制既定状态保留；基础属性继续用Host最终显示值，Drop复用实际消费驱动。规范及第8—15步交接已同步；未改schema／生成表／代码或版本，无生成、构建或测试。
+
+**2026-11-12 二进制第10步第四项 Grid／Room／Level来源闭合，版本69**：[实施记录](design/binary-state/10-grid-room-level-capture.md)已补背景正常生产的有限recipe／实际用途绑定、完整光照投影和波纹资源。按用户决定，水面／波纹由Client纯显示推进，经典／反射为本地画质选择；Host保留世界参数与资源。来源接线已实现，完整发布／本地物化仍按第11／13步推进；未运行测试，第15步唯一统一验收。
+
+**2026-11-11 二进制第10步第四项续，版本68**：[Grid与Room／Level](design/binary-state/10-grid-room-level-capture.md)已接Grid公共部分／17派生／旁表，补入Room／Level结构、L0—L3、配置资源、保存地图聚合及已核FX／水色／波纹／焦点投影。八门改为同宽Grid引用数组。Room／Level全域尚未完成：背景程序内容／pass、完整光照／水面模式与特殊波纹Sprite仍缺真实来源，严格失败且不发布不完整WorldFrame。产品DLL纯编译／链接完成，未运行测试，第15步唯一统一验收。
+
+**2026-11-11 二进制第12步第3项完成，版本67未变**：[影子／候选事务](design/binary-state/12-client-shadow.md)已实现成功base继承、完整根／投影、自有Frame及结构意图、完整validator／缓存提升接口及实际busy排空，产品DLL纯编译／链接完成。全域检查、结果／事件、调度与主线程仍待第4—7项／第13步，无测试，第15步唯一验收。
+
+**2026-11-11 二进制第10步第四项完成，版本67**：[Entity公共部分、全部已登记子类与Player](design/binary-state/10-entity-player-capture.md)已接原生只读源、完整身体联合根、逐身体快源和Clock提交后的纯值交接。计时／QueueItem合同修正已入源；产品DLL纯编译／链接完成，当前Host桥不完整类型问题已修正。其余域／完整发布继续后续，无测试，第15步唯一验收。
+
+**2026-11-11 二进制第12步第2项完成**：[成员表与资源表管理](design/binary-state/12-client-tables.md)已实现自有精确快照、成员历史／借用、资源内容／图／准备代次、快照与内存额度。状态库Release／Win32编译完成，本项未改布局，最终随共享源67；整体产品构建的当前Host桥BinaryEntities错误如实保留，未记为DLL通过。Client后续接线及第15步唯一验收仍待后续，无测试。
+
+**2026-11-11 二进制第12步第1项完成，版本仍66**：[接口、数据寿命与失败处理](design/binary-state/12-client-contract.md)明确后台唯一修改者、借用视图及快照／正文寿命、候选与应用批次、主线程准备／完成／排空和失败恢复；逻辑inflight失效不代表原生批次已退出。[第12步](design/binary-state/12-client-decode.md)其余运行实现待后续。本项仅文档与静态审阅，无新增运行代码、生成／构建／测试，第15步唯一验收。
+
+**2026-11-11 二进制第10步第三项完成，版本仍66**：[计划执行器](design/binary-state/10-capture-executor.md)已实现同源数字计划的整根递归、条件／规范零、计数组／共享来源预检、动态槽、预算及失败回卷。各域真实来源与游戏桥／worker继续后续；产品纯编译／链接完成，无测试，第15步唯一验收。
+
+**2026-11-11 二进制第10步第二项完成，版本仍66**：[公共采集基础设施](design/binary-state/10-capture-foundation.md)已实现窗口／数字绑定、预分配纯值事务与后台适配、有界cold／ordinary／body／控制交接，Release／Win32产品纯编译／链接成功。实际各域来源与游戏桥仍待接线；未运行测试，第15步唯一验收。
+
+**2026-11-11 二进制第10步第一项完成，版本仍66**：[当前合同与来源缺口](design/binary-state/10-contract-source-gaps.md)已整理当前合同、已有代码边界、读取资格、15组缺口及28条显示合同来源，并同步[Host采集器](design/binary-state/10-host-capture.md)。实际采集尚未接通；本项只改文档，无生成／构建／测试，第15步唯一验收。
+
+> **2026-11-11 第9步第四项完成，版本63**：[资源协议](design/binary-state/9-resource-protocol.md)补齐八张表的九种启用kind、本地typed资源、有限recipe、shader／blend／sampler规则、资源消息、不可变目录与依赖闭包。新增425—433，349布局／2806字段／85条件；309／366补齐ColorOffset输入为212／213B，像素／blob禁用。状态库纯编译完成，无测试；完整Frame／最终接受和10—14运行接线、15验收仍待后续。
+
+**2026-11-11 二进制版本66**：仅新增[world/body独立zstd](design/binary-state/9-world-body-zstd.md)，原字段／动画／音频／增量与预算不变；协商、收发及实际压后计费已补，未运行测试。
+
+**2026-11-11 二进制第9步完成，版本65**：[预算／容量／时间与收尾](design/binary-state/9-budget-capacity.md)按用户90%额度定为模组9Mbps，完成静态字节核算与有界协议。10—14步仍接真实运行链，第15步唯一验收；已知密集设计负载超预算不冒称达标。
+
+**2026-11-11 二进制第9步第五项，版本64**：[接受与恢复合同](design/binary-state/9-acceptance-recovery.md)完成完整报文和纯值状态机，明确ACK丢失与部分应用失败恢复，并同步第13步。公共头不变；剩余预算及运行接线，无测试，第15步统一验收。
+
+> **2026-11-11 第9步第三项完成，版本62**：[显示批次外层封装](design/binary-state/9-presentation-envelope.md)已实现结果组／依赖／贡献／音频事件及整批编解码，保留真实来源、完整主体、缓存epoch、typed定位和事件连续水位。28条用途规则同源生成；状态库Release／Win32纯编译完成，无测试。完整资源payload／图形允许集／Frame与最终接受入口、10—14运行接线和第15步统一验收仍待后续。
+
+> **2026-11-11 资源与显示要求调整**：[现行本地生成合同](design/binary-state/local-media-presentation.md)：横幅／fortune传文字与必要样式，本地生成；当前Client完整目标就绪后直接切房；hallucination使用本端历史与同步参数。尽量不传图片／纹理／音频／PCM，资源引用与控制事件继续同步。已同步规范及9—15步交接；随后[第9步第二项](design/binary-state/9-domain-body-codec.md)按版本61迁移文字／本地历史正文与取消依赖，拒绝像素／blob正文，已生成及纯编译。实际来源、资源完整payload与本地生成仍待后续，未运行测试。
+
 > **2026-11-10 第8步正式源完成，版本58**：[实现与后续交接](design/binary-state/implementation-8-presentation.md)：地图唯一owner、随机显示最终结果及Presentation74＋Random24个新布局已登记310—407；28条具名结果合同、141＋54行目录和单行表同源生成。实际采集／资源／原生安装继续按9—14步接线，UNKNOWN和来源Gap保持；本步不运行测试。
 
 > **2026-11-10 第8步显示结果批次与各端HUD方案定稿**：[用户确定的方案B](design/binary-state/presentation-result-batches.md)：沿用world／body，按实际owner分组、明确贡献身份、按依赖共同提交；缺必要结果不安装／不ACK。各端History／Stat详细HUD默认跟随自身控制组，双角色及其他组公共多人HUD保留；Host原生两槽不是系统容量，各组合法结果来源仍待实施。9—15步交接已同步，生产版本57不变，仅文档静态审阅，无构建或测试。

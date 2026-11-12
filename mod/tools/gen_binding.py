@@ -155,6 +155,7 @@ CONSTANT_ORDER = [
 ]
 # 同址入口只准具名的 Client 主动外层与既有观察层配对；Player 另有内层见证。
 ALLOWED_SAME_RVA = {
+    0x507C60: {'binary_audio_play','client_entity_local_sound'},
     0x2F6D30: {'client_game_update','game_update'},
     0x446C90: {'client_post_update','post_update'},
     0x3F7F60: {'client_room_update','room_update'},
@@ -254,7 +255,7 @@ def split_params(text):
 LEGACY_GROUPS = {'loop', 'input', 'player', 'join', 'control', 'device', 'observe', 'world', 'client'}
 
 
-def parse_legacy_rows(rows, problems):
+def parse_legacy_rows(rows, problems, explicit_abi=None):
     parsed = []
     if not isinstance(rows, list):
         problems.add('hooks.json.hooks', '必须是数组')
@@ -287,12 +288,27 @@ def parse_legacy_rows(rows, problems):
             continue
         if not 0 < rva < 0x800000:
             problems.add(where, 'RVA 超出映像范围: %#x' % rva)
+        abi = (explicit_abi or {}).get(ident)
+        specs = []
+        if abi is not None:
+            if not own or static or not isinstance(abi, list) or len(abi) != len(split_params(params)):
+                problems.add(where, 'explicit_abi只用于已核自有成员入口，须逐参数登记')
+            else:
+                for location in abi:
+                    if location in XMM_REGISTERS:
+                        specs.append(dict(kind='xmm', reg=XMM_REGISTERS[location]))
+                    elif location in GP_REGISTERS:
+                        specs.append(dict(kind='gp', reg=GP_REGISTERS[location]))
+                    elif location == 'stack:1':
+                        specs.append(dict(kind='stack', size=1))
+                    else:
+                        problems.add(where, '未支持的显式参数ABI: %r' % location)
         parsed.append(dict(
             kind='legacy', id=ident, group=group, cls=cls, method=method,
             ret=ret, params=params, call=call, rva=rva, owner=owner,
             static=static, conv=conv, own=own, priority=priority_value,
             required=bool(required), nargs=len(split_params(params)),
-            name=('IsaacCS::' + method) if own else cls + '::' + method))
+            name=('IsaacCS::' + method) if own else cls + '::' + method, args=specs))
     return parsed
 
 
@@ -513,6 +529,9 @@ struct CsStatic {};
 struct CsMtSeed {};
 struct CsEntityList {};
 struct CsRoom {};
+struct CsGraphics {};
+struct CsStatHUD {};
+struct CsAudioStream {};
 struct CsLifecycle {};
 struct CsDevice {};
 struct CsButtonMaps {};
@@ -579,7 +598,8 @@ def legacy_body(row):
                 '    auto value=super();', '    owner.Returned();', '    return value;']
     if ident == 'client_entity_draw_paused':
         return ['    bool value=false;', '    if(cs::game::ClientEntityDrawPaused(value)) return value;',
-                '    cs::CallScope scope(record);', '    return super();']
+                '    cs::CallScope scope(record);', '    const auto result=super();',
+                '    cs::game::BinaryDrawClockObserved(this,result);','    return result;']
     if ident == 'client_entity_owned_final':
         return ['    if(cs::game::ClientEntityDrawOwnedFinal(this,sprite,offset)) return;',
                 '    cs::CallScope scope(record);', '    super(sprite,offset);']
@@ -628,12 +648,14 @@ def legacy_body(row):
     if ident == 'client_backdrop_wall':
         return ['    cs::game::ClientBackdropWallScope trace(this);',
                 '    if (!trace.Ready()) return;',
+                '    cs::game::BinarySceneBuildScope binary(this,false,g_Game&&g_Game->_room&&this==&g_Game->_room->_backdrop);',
                 '    cs::CallScope scope(record);',
                 '    super();',
                 '    trace.Returned();']
     if ident == 'client_backdrop_graphics':
         return ['    cs::game::ClientBackdropBuildScope trace(this);',
                 '    if (!trace.Ready()) return 0;',
+                '    cs::game::BinarySceneBuildScope binary(this,true,g_Game&&g_Game->_room&&this==&g_Game->_room->_backdrop);',
                 '    cs::CallScope scope(record);',
                 '    auto result=super();',
                 '    trace.Returned();',
@@ -644,7 +666,46 @@ def legacy_body(row):
                 '    // J273 HUD传未使用的栈word（push ecx），不能以其bool值决定是否应用显示来源。',
                 '    if (cs::game::ClientPresentationHudAchievementQuery(result)) return result;',
                 '    cs::CallScope scope(record);',
-                '    return super(unk);']
+                '    result=super(unk);',
+                '    cs::game::BinaryHudProgressObserved(false,result);',
+                '    return result;']
+    binary_production={
+        'binary_player_hud':'PlayerHud','binary_score':'Score','binary_hud_render':'HudRender',
+        'binary_stat_recompute':'StatRecompute','binary_stat_tick':'StatTick'
+    }
+    if ident=='binary_audio_play':
+        return ['    cs::game::BinaryProductionScope binary(cs::game::BinaryProductionKind::SfxPlay,this,g_Manager);',
+                '    binary.Audio(id,volume,pitch,pan,loop,cs::game::BinaryAudioWorldContext());',
+                '    cs::CallScope scope(record);','    super(%s);' % call,'    binary.Returned();']
+    if ident=='binary_audio_pan':
+        return ['    cs::CallScope scope(record);','    super(pan);','    cs::game::BinaryAudioPanObserved(this);']
+    audio_controls={'binary_audio_volume':('SfxVolume','id,volume,1,0,false'),
+                    'binary_audio_pitch':('SfxPitch','id,0,pitch,0,false'),
+                    'binary_audio_loops':('SfxStopLoops','-1,0,1,0,false'),
+                    'binary_audio_remix':('SfxRemix','-1,0,1,0,false'),
+                    'binary_audio_ambient':('SfxAmbient','id,volume,pitch,0,true')}
+    if ident in audio_controls:
+        kind,args=audio_controls[ident]
+        return ['    cs::game::BinaryProductionScope binary(cs::game::BinaryProductionKind::%s,this,g_Manager);' % kind,
+                '    binary.Audio(%s,cs::game::BinaryAudioWorldContext());' % args,
+                '    cs::CallScope scope(record);','    super(%s);' % call,'    binary.Returned();']
+    if ident in binary_production:
+        out=['    cs::game::BinaryProductionScope binary(cs::game::BinaryProductionKind::%s,this,g_Manager);' % binary_production[ident]]
+        if ident=='binary_stat_recompute':out+=['    binary.Stat(playerId,flags);']
+        if ident=='binary_player_hud':
+            out+=['    // HUD Drop与真实玩法consumer共用C/S输入查询；观察最终返回值，不读取物理按键补值。',
+                  '    cs::game::ConsumerScope input(this->_player,cs::game::ConsumerKind::Drop);']
+        out+=['    cs::CallScope scope(record);','    %ssuper(%s);' % ('auto result=' if ret!='void' else '',call),
+              '    binary.Returned();']
+        if ret!='void':out+=['    return result;']
+        return out
+    if ident in ('binary_hud_mantle','binary_hud_drop','binary_hud_seed_progress'):
+        notify={'binary_hud_mantle':'BinaryHudMantleObserved(this,id)',
+                'binary_hud_drop':'BinaryHudDropObserved(action,player,result)',
+                'binary_hud_seed_progress':'BinaryHudProgressObserved(true,result)'}[ident]
+        out=['    cs::CallScope scope(record);','    const auto result=super(%s);' % call,'    cs::game::%s;' % notify]
+        if ident=='binary_hud_mantle':out+=['    cs::game::BinaryRoomEffectObserved(this,id,result);']
+        return out+['    return result;']
     if ident == 'client_menu_render':
         return ['    if (cs::game::ClientMenuRenderBoundary()) return;',
                 '    // 替代分派先决策；仅原菜单真正进入时才记录原调用。',
@@ -662,13 +723,34 @@ def legacy_body(row):
         'room_prerender':'RoomPreRender','room_render':'RoomRender',
         'entitylist_render_sort':'EntityListRenderSort','client_game_start':'GameStart'
     }
+    if ident == 'binary_level_owner':
+        return ['    cs::game::BinaryFloorScope state;',
+                '    record.calls.fetch_add(1, std::memory_order_relaxed);',
+                '    super(%s);' % call,
+                '    record.completed.fetch_add(1, std::memory_order_relaxed);']
+    if ident == 'binary_scene_image':
+        return ['    cs::game::BinarySceneImageBefore(this,source,destination,tl,tr,bl,br);',
+                '    cs::CallScope scope(record);',
+                '    auto result=super(%s);' % call,
+                '    cs::game::BinarySceneImageAfter(result);', '    return result;']
+    if ident in ('binary_scene_target','binary_scene_push','binary_scene_restore','binary_scene_clear','binary_scene_present','binary_scene_present_no_swap'):
+        if ident=='binary_scene_clear':return ['    cs::game::BinarySceneClearScope binary;', '    cs::CallScope scope(record);', '    super();']
+        out=['    cs::game::%s();' % ('BinarySceneGraphicsBoundary' if ident=='binary_scene_clear' else 'BinarySceneGraphicsFinish'), '    cs::CallScope scope(record);', '    super(%s);' % call]
+        if ident=='binary_scene_target':out += [
+            '    // 只在当前Room拥有的四张离屏图上观察，不把屏幕／反射FBO录成背景资源。',
+            '    if(g_Game&&g_Game->_room){auto& b=g_Game->_room->_backdrop;',
+            '      cs::game::BinarySceneTargetAfter(&b,target&&(target==b.floorBuffer.image||target==b.wallsBuffer.image||target==b.floorSurface2.image||target==b.tempBackdropSurface.image));}']
+        return out
     if ident in outer_dispatch:
         entry=outer_dispatch[ident]
         out=['    if (cs::game::ClientDispatchBefore(cs::game::ClientEntry::%s) != cs::game::ClientEntryDecision::CallOriginal) return%s;'
              % (entry,' 0' if ret!='void' else ''),
              '    // 主动跳过单独由Client计数，观察调用只对应真正进入的原链。',
              '    record.calls.fetch_add(1, std::memory_order_relaxed);']
+        if ident in ('game_render','room_render'):
+            out.append('    cs::game::BinaryProductionScope binary(cs::game::BinaryProductionKind::%s,this,g_Manager);' % ('Screen' if ident=='game_render' else 'RoomRender'))
         out.append('    %ssuper(%s);' % ('auto result = ' if ret!='void' else '',call))
+        if ident in ('game_render','room_render'):out.append('    binary.Returned();')
         out += ['    cs::game::ClientDispatchReturned(cs::game::ClientEntry::%s);' % entry,
                 '    record.completed.fetch_add(1, std::memory_order_relaxed);']
         if ret!='void':out.append('    return result;')
@@ -726,8 +808,11 @@ def legacy_body(row):
     if ident == 'client_entity_retire_sound':
         return ['    // Client准备至安全退休全窗口不重演Stop；Host/Off仍透传。',
                 '    if(cs::game::ClientBusy()) return;',
+                '    cs::game::BinaryProductionScope binary(cs::game::BinaryProductionKind::SfxStop,this,g_Manager);',
+                '    binary.Audio(sound,0,1,0,false,cs::game::BinaryAudioWorldContext());',
                 '    record.calls.fetch_add(1, std::memory_order_relaxed);',
                 '    super(sound);',
+                '    binary.Returned();',
                 '    record.completed.fetch_add(1, std::memory_order_relaxed);']
     if ident == 'native_text_render':
         return ['    cs::game::ClientEntityDrawScope draw(this,offset,0);',
@@ -986,6 +1071,14 @@ def emit_hooks(legacy, world, patterns):
         macro = 'CS_HOOK_STATIC' if row['static'] else 'CS_HOOK_METHOD'
         conv = '__' + row['conv'] if row['conv'] else ''
         pattern = patterns.get(row['rva'], '') if row['own'] else ''
+        if row.get('args'):
+            table_lines, table_name = world_arg_table(dict(row, conv='thiscall'))
+            lines += table_lines
+            lines.append('CS_HOOK_ABI_METHOD(%s, %s, "%s", %s, %s, %d, %s, "%s", true, %d, %d, %s, %s, %s, (%s), %s) {'
+                         % (row['id'],row['group'].title(),row['name'],row['cls'],row['method'],row['priority'],hex(row['rva']),pattern,row['nargs'],legacy_flags(row),row['owner'],table_name,conv,row['params'],row['ret']))
+            lines += legacy_body(row)
+            lines.append('}')
+            continue
         lines.append('%s(%s, %s, "%s", %s, %s, %d, %s, "%s", %s, %d, %d, %s, %s, (%s), %s) {'
                      % (macro, row['id'], row['group'].title(), row['name'],
                         row['cls'], row['method'], row['priority'], hex(row['rva']),
@@ -1548,7 +1641,7 @@ def main():
         problems.add('hooks.json', 'schema.layout_manifest 必须指向 '
                      'binding/world_layout.json')
 
-    legacy = parse_legacy_rows(document.get('hooks'), problems)
+    legacy = parse_legacy_rows(document.get('hooks'), problems, document.get('explicit_abi'))
     world = parse_world_rows(document, problems)
     check_unique(legacy, world, problems)
     native_priority = parse_int(schema.get('world_native_witness_priority'),

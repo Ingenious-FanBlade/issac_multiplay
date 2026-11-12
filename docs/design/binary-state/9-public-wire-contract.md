@@ -1,8 +1,20 @@
 # 第9步第一项：公共报文结构定稿
 
+**2026-11-11 版本66补充**：仅新增[world/body独立zstd](9-world-body-zstd.md)的可选共同协商及收发支持；固定头、状态字段与ACK／恢复均保持，普通64KiB同时保护压后及解压完整消息。其余布局／资源／动画／音频／预算不改。
+
+**2026-11-11 第9步收尾，版本65**：[现行预算／容量／时间](9-budget-capacity.md)覆盖原75%额度和“后续核算”表述：用户允许模组占90%，持续9Mbps，三端各375000B/s。准确成本含ICSR／ICRF／IP／UDP与实际中继，初建／恢复只借本Peer停用流；64KiB／32MiB完整消息先扣40B信封。公共头尺寸保持，细化等待、episode、账本／事件／缓存／池配额，静态设计负载不等于实机通过。
+
+**2026-11-11 第五项完成，版本64**：[最终接受与恢复合同](9-acceptance-recovery.md)覆盖下方版本59时点的“详细规则／完整消息后续”：完整Frame、成员表、ContextReady／AppliedAck／Resync编解码及纯值状态机已实现；表／来源／完整候选／原生owner由10—13步接线。公共固定头保持，严格整数版本；旧base补原ACK、实际发送账本、恢复期间旧ACK不能解除恢复。普通Resync不归零；只有排空退休旧复制route后的显式新代次重绑定才可重置epoch，资源身份／编号历史仍完整保留。
+
+**2026-11-11 第四项实现，版本63**：[完整本地资源协议](9-resource-protocol.md)完成table/kind矩阵、typed payload、有限recipe、固定图形规则、资源消息和不可变目录／闭包。builtin shader使用1B官方类型而非路径；309／366补16B ColorOffset上下文，分别212／213B；公共固定头保持。像素／blob禁用，运行接线仍待10—14步。下方版本59的资源payload“后续”表示原定稿时点，当前由版本63合同覆盖。
+
+**2026-11-11 第三项实现，版本62**：[显示外层](9-presentation-envelope.md)已实现414—417及显示区域的编解码、用途／pass数字规则、真实主体和贡献定位、缓存epoch及事件水位／冲突检查，尺寸仍42／32／16／40B。Reference只复用相同epoch的已提交缓存，换表以Replace重新映射并保留原produced_revision；完整Frame及资源／图形允许集和运行接线仍待后续。下文“后续”与版本59／61实施状态保留其原时点。
+
+**2026-11-11 资源职责修订及版本61实施**：[本地生成合同](local-media-presentation.md)覆盖本文旧通用内容块、Host切房／hallucination图及文字图必需下行的设计。[第二项实现](9-domain-body-codec.md)已迁移文字／有限样式和本地历史结果，374收窄为BossVersusResult，正文层拒绝305／306及资源kind5；公共固定头字节与Kind24编号保留。完整本地资源payload、允许集及运行接线仍待后续，不启用原始媒体blob／像素payload。
+
 2026-11-11，用户采用本轮公共报文方案，并明确保留 **u32 块掩码和12B记录头**、守住Host三端总上行10Mbps预算。本项登记固定封装、身份、共同提交、事件和预算语义；不把它等同第9步完整编解码或第10—13步运行接线完成。
 
-唯一源为 [`wire.json`](../../../mod/binding/state/wire.json)，本合同定稿时布局整数版本 **59**；[正文实现](9-domain-body-codec.md)递增至60，公共结构字节尺寸与编号保持。第7步已登记的 ResourceEntryHeader304／ResourceBlobChunkHeader306 在原源 [`room.json`](../../../mod/binding/state/room.json) 中更新，不另建同义头。固定头及常量的正式字节／数值表见[第9步生成索引](layouts/09-wire-format/README.md)；所有表由同一次生成产生。原生对象账本、UNKNOWN、来源Gap和运行adapter缺口保持。
+唯一源为 [`wire.json`](../../../mod/binding/state/wire.json)，本合同定稿时布局整数版本 **59**；正文首次实现递增至60，本次本地生成迁移递增至61，公共结构字节尺寸保持。第7步已登记的 ResourceEntryHeader304／ResourceBlobChunkHeader306 在原源 [`room.json`](../../../mod/binding/state/room.json) 中更新，不另建同义头。固定头及常量的正式字节／数值表见[第9步生成索引](layouts/09-wire-format/README.md)；所有表由同一次生成产生。原生对象账本、UNKNOWN、来源Gap和运行adapter缺口保持。
 
 ## 1. 封套、公共上下文与消息编号
 
@@ -15,7 +27,7 @@
 | 21 | StateFrame | 单world增量走WorldDynamic，单body走PlayerFast；完整初建／恢复、结构配对与ordinary body-joint走Baseline可靠承运 |
 | 22 | MemberTable | Context可靠发送成员元数据，不直接创建／移除原生对象 |
 | 23 | ResourceTable | Context可靠发送不可变typed资源声明 |
-| 24 | ResourceBlobChunk | Context可靠发送明确资源的有界内容块 |
+| 24 | ResourceBlobChunk | 既有数值／固定头保留；当前不启用通用原始媒体正文，不作为缺资源兜底 |
 | 8／9／10 | ContextReady／AppliedAck／Resync | 保留既有Kind编号和控制职责；新正文分别按418／419＋420／421编码 |
 
 新Kind的数值只在源与生成常量中登记。本项不修改旧stream_codec的KnownKind、Lane分派、握手、合包或运行解析；这些入口必须在第9步后续一并接通，不能仅扩大KnownKind便接受未完整实现的消息。新状态能力使用整数布局版本协商，版本不符明确失败，不猜读旧Range。
@@ -57,11 +69,13 @@ ScenePrepare的场景准备职责由成员表、资源表和base=0目标承接�
 
 **ResourceEntryHeader304由7B改为8B**：`table:u8 + index:u16 + kind:u8 + payload_bytes:u32`。资源字段若生成布局已固定table，仍只发送u16 index；表项、blob及公共依赖明确传table。FFFF表示未选择资源，不占表项；非Null尚未ready不能改为Null。
 
-table的固定编号0—7依次为anm2-animation-table、image-table、anm2-files、item-config、entity-configs、room-config-visual、shader-table、audio-table。kind与table不是同一编号空间，0—9的typed分派tag在源中登记；**完整payload、table/kind矩阵、shader／blend／sampler与各用途允许集由第9步后续完成**，有固定头不等于已经可接受任意tag正文。
+table的固定编号0—7依次为anm2-animation-table、image-table、anm2-files、item-config、entity-configs、room-config-visual、shader-table、audio-table。kind与table不是同一编号空间，0—9的typed分派tag在源中登记；**完整payload、table/kind矩阵、shader／blend／sampler与各用途允许集由第9步后续完成**，有固定头不等于已经可接受任意tag正文。按2026-11-11[本地生成合同](local-media-presentation.md)，本次后续分派以本地资源声明、配置与有限生成描述为主；已有像素tag／blob头不加入当前接受允许集，文字缓存与本地历史图不再声明为Host媒体内容。
 
 资源表是同session/run下的不可变内容目录，可跨当前场景复用已准备内容；公共WorldScope仍标明此消息服务的目标。变更分配新号，同run不回收、不原号覆盖；恢复全量表也必须保持已知内容身份一致。资源号耗尽不能靠普通Resync原号复用，需明确失败／新的合法命名空间生命周期。
 
 **ResourceBlobChunkHeader306由14B改为15B**：`resource_epoch:u32 + table:u8 + index:u16 + offset:u32 + bytes:u32`，随后恰好bytes字节。offset针对声明的完整内容；先检查乘加、上限、缺块及重复内容冲突。相同重传可幂等复用，冲突、错空间或越界失败。表收到、内容收齐、依赖图无环就绪、本地物化成功分别记录；不因表头到达便ACK状态目标。单chunk原256KiB是保护上限，实际分块仍受速率、突发、时间和首次准备总额约束。
+
+上述306字节是保留的生成事实和旧内容块设计；版本61正文入口明确拒绝306及305像素描述，304的基础kind校验排除5。现阶段不实施通用图像／音频分块传送；冷连接发送描述／文字／当前状态，Client使用本地资源生成或播放。真正必需的文字／样式／本地资源未就绪仍不得提前ACK；取消的切房surface与Host反馈图不再形成Wait。文字与历史结果字段已沿唯一源迁移，完整资源payload、精确用途允许集及运行消费者仍须后续接通，不能把正文通过当目标已完整。
 
 ## 5. 结果组、缓存与依赖
 
@@ -92,7 +106,7 @@ purpose复用已登记具名结果布局号；同用途多次实例由owner_inst
 
 field是父节点生成布局的字段索引，element是它已有容器中的实际有序索引；FFFF分别表示当前根值或非容器值。父链定位嵌套／递归上下文；定位必须落到当前typed payload，不允许越过count、指向不存在的条件分支或重复占用同一贡献位置。不同pass可以声明对同一已核内容的独立贡献身份，保持Host提交顺序。
 
-365／366已有branch／layer／track以及资源／姿态／图像空间字段，公共定位不重复发送这些值；标量随机结果的分支由固定用途、pass和父链定位。贡献payload只编码一次。versus逐layer、Nightmare逐项、hallucination叠加及Pickup／Familiar多pass分别保留，不能只留最后值。Client不按本地第N次访问猜身份；额外可见调用无对应合法结果时报Gap，重复展示同一批不重新抽取／推进事件。
+365／366已有branch／layer／track以及资源／姿态／图像空间字段，公共定位不重复发送这些值；标量随机结果的分支由固定用途、pass和父链定位。贡献payload只编码一次。versus逐layer、Nightmare逐项及Pickup／Familiar多pass分别保留，不能只留最后值。Hallucination按本地生成合同保留必要world参数，历史采样／叠加由本端adapter管理，不再要求Host反馈图或逐次像素贡献一致。Client不按本地第N次访问猜Host随机结果身份；重复展示同一批不重新抽取／推进玩法事件。
 
 ## 7. world音频事件与可靠语义
 
@@ -114,16 +128,16 @@ Host只接受当前connection/route、完整scope和实际已发送目标的确�
 
 Resync为公共头＋421的11B，说明stream mask、具名原因及本端已安装world/body。普通恢复保留Host目标单调性，以base=0完整重建所需序列；结构有关时共同恢复。成员／资源epoch或u32目标将耗尽时，先退休旧路由和候选，再建立新的复制代次并完整准备；不能只发普通Resync后同路由从1复用旧版本。资源index仍受同run不复用约束，route变更不自动解除。
 
-表快照、已提交目标、构建候选和待安装内容均有界，不能无限缓存缺表或拼凑跨代目标。world可以只保留最新候选等待依赖；单body未就绪即丢，joint按整个共同目标等待／淘汰。详细错误分类、来源／用途允许集和可执行reader/writer在第9步后续完成，本项只定这些结构与必要语义。
+表快照、已提交目标、构建候选和待安装内容均有界，不能无限缓存缺表或拼凑跨代目标。world可以只保留最新候选等待依赖；单body未就绪即丢，joint按整个共同目标等待／淘汰。详细错误分类／来源用途允许集／纯值reader与writer已由第9步第二至第五项完成，实际原生reader／writer按10／13步接线；容量／时间以版本65预算合同为准。
 
 ## 9. 带宽、消息保护与准备预算
 
 | 范围 | 已定持续预算 | 说明 |
 |---|---|---|
 | Host向三个远端总上行 | 10,000,000 bit/s | 不是每Peer10Mbps；物理链路统计含实际IP／UDP／中继封装 |
-| 三端模组持续总额 | 937,500 B/s＝7.5Mbps | 所有通道、ACK、重传、状态、表、资源、准备和恢复共同计费 |
-| 每Peer | 312,500 B/s | world120000＋body120000＋control25000＋reliable47500 |
-| world 30Hz／body 60Hz | 平均4000B／2000B每次 | 含分片／消息公共封装；不是每次固定额度或性能通过结论 |
+| 三端模组持续总额 | 1,125,000 B/s＝9Mbps（90%） | 所有通道、ACK、重传、状态、表、资源、准备和恢复共同计费 |
+| 每Peer | 375,000 B/s | world150000＋body150000＋control25000＋reliable50000 |
+| world 30Hz／body 60Hz | 平均5000B／2500B每次 | 含分片／消息公共封装；不是每次固定额度或性能通过结论 |
 | 首次准备 | 每Peer≤1MiB、≤10秒 | 状态、表、资源和协议封装合计；发三端按三份发送流量计费 |
 
 实际发送按最终合包／分片产生的字节计费，包括重复传输；共享编码只省CPU和内存，不能把三个Peer的网络成本记成一份。可见的网络／中继额外开销纳入链路统计和限速余量；不能用压缩前体积冒充实际线上带宽，也不能忽略解压内存保护。
@@ -132,7 +146,7 @@ Resync为公共头＋421的11B，说明stream mask、具名原因及本端已安
 
 进一步核对现有EncodeBlob：非可靠world/body实际已受64KiB未压缩逻辑消息保护，并非32MiB；本合同沿用该保护界限，**64KiB也不是普通帧发送额度**。旧32MiB只描述可靠大消息／解码内存保护及旧布局理论容器预算，不能作为正常world产品帧许可。单条头部／布局预算、整逻辑消息、解压内存和实际速率须同时满足，不能把普通超限目标改走可靠通道绕过。
 
-首次准备及合法恢复的可靠目标按完整目标和其资源闭包计费，不截断／降质／漏发必要内容。必要完整目标超过实际预算时报告真实未满足项；第9步后续须按当前布局静态核算典型／最坏目标并细化有效发送峰值与积压时限，第11步落实调度，第15步唯一整体验收验证。这里没有把“保护上限可容纳”写成频率、带宽或准备时间已达标。
+首次准备及合法恢复的可靠目标按完整目标和其资源闭包计费，不截断／降质／漏发必要内容。必要完整目标超过实际预算时报告真实未满足项；版本65已按当前布局完成[静态账本及有效峰值／积压期限](9-budget-capacity.md)，第11步落实实际调度，第15步唯一整体验收验证。这里没有把“保护上限可容纳”写成频率、带宽或准备时间已达标。
 
 ## 10. 失败方式与本项交付
 

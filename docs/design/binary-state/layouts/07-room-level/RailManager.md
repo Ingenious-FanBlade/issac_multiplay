@@ -1,6 +1,6 @@
 # RailManager
 
-由唯一布局源生成。布局编号 249；布局版本 60；原生大小 0x2D8；未知 14B；完整：否。
+由唯一布局源生成。布局编号 249；布局版本 71；原生大小 0x2D8；未知 14B；完整：否。
 
 SDK_gridflags[447]少一项：sprite从+1C4开始，flags实际448字节恰好接上。 原始静态证据保持；运行reader／writer尚待第10/13步接线。 仅读取实际extent前缀；Client尾部清255。main动画/帧由rail/pitrail与flag派生，SetAnimation索引owner按生命周期维护，禁止回写失效旧头。
 

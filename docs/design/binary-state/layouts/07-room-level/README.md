@@ -6,7 +6,7 @@
 
 | 类型 | 布局编号 | 原生字节 | 未知字节 | 完整 |
 |---|---|---|---|---|
-| [Room](Room.md) | 239 | 30872 | 613 | 否 |
+| [Room](Room.md) | 239 | 30872 | 610 | 否 |
 | [Backdrop](Backdrop.md) | 240 | 21112 | 374 | 否 |
 | [BackdropConfig](BackdropConfig.md) | 241 | 316 | 5 | 否 |
 | [FXLayers](FXLayers.md) | 242 | 1432 | 109 | 否 |
@@ -77,6 +77,7 @@
 | [SurfaceRecipeHeader](SurfaceRecipeHeader.md) | 307 | 0 | 0 | 是 |
 | [SurfaceRecipeClear](SurfaceRecipeClear.md) | 308 | 0 | 0 | 是 |
 | [SurfaceRecipeQuad](SurfaceRecipeQuad.md) | 309 | 0 | 0 | 是 |
+| [RoomWaveSprite](RoomWaveSprite.md) | 434 | 276 | 11 | 否 |
 
 公开目录：[stream-catalog room域全部 269 行](stream-catalog-room-members.md)。
 

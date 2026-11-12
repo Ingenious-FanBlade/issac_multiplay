@@ -1,13 +1,13 @@
 # StatHUDPlayer
 
-由唯一布局源生成。布局编号 317；布局版本 60；原生大小 0xCC；未知 0B；完整：是。
+由唯一布局源生成。布局编号 317；布局版本 71；原生大小 0xCC；未知 0B；完整：是。
 
  原生字节事实保留；委派范围按本表具名结果承接，不按原生owner全量复制。 真实物理10槽全部展开；线上固定0..7，官方星象房第8行按Host最终资格存在，不发第9行和可伪装空列表的count。
 
 具名显示结果合同（接线声明，不表示运行实现）：
 
-| owner：实际身体Stat列 | subject：body key/use/shape＋具体HUD实例用途 | producer：83CFD0／83D210正常完成的0..8行最终三值及资格 | adapter：stat_h_u_d_player_fixed_adapter | dependencies：所属组选择、身体key/use/shape、必要P0—P6绘制拓扑和图像／动画资源；不依赖全地图。 | dependency_types：EntityPlayer | sequence：body | atomic_scope：body-target | validity：同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。 | invalidation：切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。 | contribution_identity：subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。 | source_gap：必须取得所有控制组的合法来源，不能仅采Host当前两槽／八内嵌槽，不调用Update／Recompute补值。 |
-|---|---|---|---|---|---|---|---|---|---|---|---|
+| owner：实际身体Stat列 | subject：body key/use/shape＋具体HUD实例用途 | producer：83CFD0／83D210正常完成的0..8行最终三值及资格 | adapter：stat_h_u_d_player_fixed_adapter | dependencies：所属组选择、身体key/use/shape、必要P0—P6绘制拓扑和图像／动画资源；不依赖全地图。 | dependency_types：EntityPlayer | sequence：body | atomic_scope：body-target | validity：同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。 | invalidation：切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。 | contribution_identity：subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。 | source_gap：必须取得所有控制组的合法来源，不能仅采Host当前两槽／八内嵌槽，不调用Update／Recompute补值。 | envelope：{'mode': 'group', 'subject_type': 'EntityPlayer', 'cacheable': True, 'clock': False, 'topology': True, 'paired_streams': 0, 'passes': ['Context', 'Value'], 'subject_field': 'player'} |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
 
 记录编码预算≤4194304B；body组≤65536B，超出body预算改ordinary body-joint，超记录或帧总预算报缺口，不截断。各块上限不能同时取满。
 

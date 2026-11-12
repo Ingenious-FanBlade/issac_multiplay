@@ -1,6 +1,6 @@
 # 公共协议常量
 
-布局版本 60；由唯一布局源生成。数值登记不表示运行编解码已经接通。
+布局版本 71；由唯一布局源生成。数值登记不表示运行编解码已经接通。
 
 | 分类 | 名称 | 数值 | 语义 |
 |---|---|---|---|
@@ -10,7 +10,7 @@
 | message | StateFrame | 21 | 公共协议Kind编号；仅合同登记，运行stream_codec尚未接通 |
 | message | MemberTable | 22 | 公共协议Kind编号；仅合同登记，运行stream_codec尚未接通 |
 | message | ResourceTable | 23 | 公共协议Kind编号；仅合同登记，运行stream_codec尚未接通 |
-| message | ResourceBlobChunk | 24 | 公共协议Kind编号；仅合同登记，运行stream_codec尚未接通 |
+| message | ResourceBlobChunk | 24 | 公共协议Kind24仅保留编号；版本61正文禁用306，不启用原始媒体／blob，也未接通运行stream_codec |
 | resource_table | anm2-animation-table | 0 | 显式u8资源空间；不能因序号相等跨表替换 |
 | resource_table | image-table | 1 | 显式u8资源空间；不能因序号相等跨表替换 |
 | resource_table | anm2-files | 2 | 显式u8资源空间；不能因序号相等跨表替换 |
@@ -19,16 +19,16 @@
 | resource_table | room-config-visual | 5 | 显式u8资源空间；不能因序号相等跨表替换 |
 | resource_table | shader-table | 6 | 显式u8资源空间；不能因序号相等跨表替换 |
 | resource_table | audio-table | 7 | 显式u8资源空间；不能因序号相等跨表替换 |
-| resource_kind | ANM2File | 0 | typed payload分派编号；完整payload及table/kind允许集由第9步后续登记 |
-| resource_kind | ImageFile | 1 | typed payload分派编号；完整payload及table/kind允许集由第9步后续登记 |
-| resource_kind | BuiltinShader | 2 | typed payload分派编号；完整payload及table/kind允许集由第9步后续登记 |
-| resource_kind | RoomConfigVisual | 3 | typed payload分派编号；完整payload及table/kind允许集由第9步后续登记 |
-| resource_kind | SurfaceRecipe | 4 | typed payload分派编号；完整payload及table/kind允许集由第9步后续登记 |
-| resource_kind | SurfacePixels | 5 | typed payload分派编号；完整payload及table/kind允许集由第9步后续登记 |
-| resource_kind | AnimationTable | 6 | typed payload分派编号；完整payload及table/kind允许集由第9步后续登记 |
-| resource_kind | ItemConfig | 7 | typed payload分派编号；完整payload及table/kind允许集由第9步后续登记 |
-| resource_kind | EntityConfig | 8 | typed payload分派编号；完整payload及table/kind允许集由第9步后续登记 |
-| resource_kind | Audio | 9 | typed payload分派编号；完整payload及table/kind允许集由第9步后续登记 |
+| resource_kind | ANM2File | 0 | 版本63已完成typed payload与table/kind数字矩阵；仅本地资源描述／有限recipe，不包含媒体文件内容。 |
+| resource_kind | ImageFile | 1 | 版本63已完成typed payload与table/kind数字矩阵；仅本地资源描述／有限recipe，不包含媒体文件内容。 |
+| resource_kind | BuiltinShader | 2 | 版本63已完成typed payload与table/kind数字矩阵；仅本地资源描述／有限recipe，不包含媒体文件内容。 |
+| resource_kind | RoomConfigVisual | 3 | 版本63已完成typed payload与table/kind数字矩阵；仅本地资源描述／有限recipe，不包含媒体文件内容。 |
+| resource_kind | SurfaceRecipe | 4 | 版本63已完成typed payload与table/kind数字矩阵；仅本地资源描述／有限recipe，不包含媒体文件内容。 |
+| resource_kind | SurfacePixels | 5 | typed payload分派编号；完整payload及table/kind允许集由第9步后续登记；版本61仅保留编号，当前不启用、不接受原始媒体 |
+| resource_kind | AnimationTable | 6 | 版本63已完成typed payload与table/kind数字矩阵；仅本地资源描述／有限recipe，不包含媒体文件内容。 |
+| resource_kind | ItemConfig | 7 | 版本63已完成typed payload与table/kind数字矩阵；仅本地资源描述／有限recipe，不包含媒体文件内容。 |
+| resource_kind | EntityConfig | 8 | 版本63已完成typed payload与table/kind数字矩阵；仅本地资源描述／有限recipe，不包含媒体文件内容。 |
+| resource_kind | Audio | 9 | 版本63已完成typed payload与table/kind数字矩阵；仅本地资源描述／有限recipe，不包含媒体文件内容。 |
 | stream | World | 0 | 具名公共封装枚举；组合约束见正式合同 |
 | stream | Body | 1 | 具名公共封装枚举；组合约束见正式合同 |
 | group_op | Replace | 0 | 具名公共封装枚举；组合约束见正式合同 |
@@ -44,12 +44,12 @@
 | clear_scope | WorldPurpose | 2 | 具名公共封装枚举；组合约束见正式合同 |
 | clear_scope | RunPurpose | 3 | 具名公共封装枚举；组合约束见正式合同 |
 | budget | total_link_bits_per_second | 10000000 | Host向三端总上行链路预算，非每Peer额度 |
-| budget | total_mod_bytes_per_second | 937500 | 三端模组持续7.5Mbps；包含全部通道／重传／封装 |
-| budget | peer_bytes_per_second | 312500 | 默认每Peer持续额度，三端合计不得越过总额 |
-| budget | world_bytes_per_second | 120000 | 每Peer world额度；30Hz平均4000B，不是每帧固定大小 |
-| budget | body_bytes_per_second | 120000 | 每Peer body额度；60Hz平均2000B |
+| budget | total_mod_bytes_per_second | 1125000 | 三端模组持续9Mbps；包含全部通道／重传／封装 |
+| budget | peer_bytes_per_second | 375000 | 默认每Peer持续额度，三端合计不得越过总额 |
+| budget | world_bytes_per_second | 150000 | 每Peer world额度；30Hz平均5000B，含实际封装，不是每帧固定大小 |
+| budget | body_bytes_per_second | 150000 | 每Peer body额度；60Hz平均2500B，含实际封装 |
 | budget | control_bytes_per_second | 25000 | 每Peer控制额度 |
-| budget | reliable_bytes_per_second | 47500 | 每Peer可靠表／资源／准备／恢复额度 |
+| budget | reliable_bytes_per_second | 50000 | 每Peer可靠表／资源／准备／恢复额度 |
 | budget | total_burst_bytes | 24576 | 总突发上限，仍逐实际发送扣费 |
 | budget | peer_burst_bytes | 8192 | 逐Peer突发上限，不能借共享编码漏计三端发送 |
 | budget | world_burst_bytes | 4096 | world桶突发上限，大逻辑消息可分片跨轮次发送 |
@@ -80,7 +80,7 @@
 | result_purpose | ScreenHallucinationResult | 370 | 用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分 |
 | result_purpose | RoomGlitchResult | 371 | 用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分 |
 | result_purpose | ScreenEffectsResult | 373 | 用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分 |
-| result_purpose | RoomTransitionResult | 374 | 用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分 |
+| result_purpose | BossVersusResult | 374 | 版本61收窄旧374，仅Boss versus独立有序Sprite贡献；普通切房不建surface结果／依赖 |
 | result_purpose | NightmareSceneResult | 375 | 用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分 |
 | result_purpose | GameOverResult | 376 | 用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分 |
 | result_purpose | StageTransitionResult | 377 | 用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分 |
@@ -91,3 +91,50 @@
 | result_purpose | AudioWorldEvent | 383 | 用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分 |
 | flag | Joint | 1 | Frame和AppliedAck bit0；双分段共同提交 |
 | flag | Baseline | 1 | Section bit0，当且仅当base_version=0 |
+| display_font | Latin | 0 | 协议自有有限显示profile，非原生编号；本地字体／样式映射由第10／13步核定，缺失报Gap，不执行任意首码命令 |
+| display_font | Japanese | 1 | 协议自有有限显示profile，非原生编号；本地字体／样式映射由第10／13步核定，缺失报Gap，不执行任意首码命令 |
+| display_font | Korean | 2 | 协议自有有限显示profile，非原生编号；本地字体／样式映射由第10／13步核定，缺失报Gap，不执行任意首码命令 |
+| display_font | SimplifiedChinese | 3 | 协议自有有限显示profile，非原生编号；本地字体／样式映射由第10／13步核定，缺失报Gap，不执行任意首码命令 |
+| display_font | TraditionalChinese | 4 | 协议自有有限显示profile，非原生编号；本地字体／样式映射由第10／13步核定，缺失报Gap，不执行任意首码命令 |
+| display_font | Cyrillic | 5 | 协议自有有限显示profile，非原生编号；本地字体／样式映射由第10／13步核定，缺失报Gap，不执行任意首码命令 |
+| display_style | BannerMain | 0 | 协议自有有限显示profile，非原生编号；本地字体／样式映射由第10／13步核定，缺失报Gap，不执行任意首码命令 |
+| display_style | BannerSubtitle | 1 | 协议自有有限显示profile，非原生编号；本地字体／样式映射由第10／13步核定，缺失报Gap，不执行任意首码命令 |
+| display_style | CurseMain | 2 | 协议自有有限显示profile，非原生编号；本地字体／样式映射由第10／13步核定，缺失报Gap，不执行任意首码命令 |
+| display_style | CurseSubtitle | 3 | 协议自有有限显示profile，非原生编号；本地字体／样式映射由第10／13步核定，缺失报Gap，不执行任意首码命令 |
+| display_style | Fortune | 4 | 协议自有有限显示profile，非原生编号；本地字体／样式映射由第10／13步核定，缺失报Gap，不执行任意首码命令 |
+| display_style | PromptTitle | 5 | 协议自有有限显示profile，非原生编号；本地字体／样式映射由第10／13步核定，缺失报Gap，不执行任意首码命令 |
+| display_style | PromptBody | 6 | 协议自有有限显示profile，非原生编号；本地字体／样式映射由第10／13步核定，缺失报Gap，不执行任意首码命令 |
+| contribution_pass | Context | 0 | C/S自有有限贡献类别；不是原生枚举。Context只作父链，Value为根值，其余须命中对应typed节点；随机主／次／递归由第10步具名来源绑定，不按Client访问次数推断。 |
+| contribution_pass | Value | 1 | C/S自有有限贡献类别；不是原生枚举。Context只作父链，Value为根值，其余须命中对应typed节点；随机主／次／递归由第10步具名来源绑定，不按Client访问次数推断。 |
+| contribution_pass | Sprite | 2 | C/S自有有限贡献类别；不是原生枚举。Context只作父链，Value为根值，其余须命中对应typed节点；随机主／次／递归由第10步具名来源绑定，不按Client访问次数推断。 |
+| contribution_pass | Image | 3 | C/S自有有限贡献类别；不是原生枚举。Context只作父链，Value为根值，其余须命中对应typed节点；随机主／次／递归由第10步具名来源绑定，不按Client访问次数推断。 |
+| contribution_pass | LocalHistory | 4 | C/S自有有限贡献类别；不是原生枚举。Context只作父链，Value为根值，其余须命中对应typed节点；随机主／次／递归由第10步具名来源绑定，不按Client访问次数推断。 |
+| contribution_pass | Fade | 5 | C/S自有有限贡献类别；不是原生枚举。Context只作父链，Value为根值，其余须命中对应typed节点；随机主／次／递归由第10步具名来源绑定，不按Client访问次数推断。 |
+| contribution_pass | RandomPrimary | 6 | C/S自有有限贡献类别；不是原生枚举。Context只作父链，Value为根值，其余须命中对应typed节点；随机主／次／递归由第10步具名来源绑定，不按Client访问次数推断。 |
+| contribution_pass | RandomSecondary | 7 | C/S自有有限贡献类别；不是原生枚举。Context只作父链，Value为根值，其余须命中对应typed节点；随机主／次／递归由第10步具名来源绑定，不按Client访问次数推断。 |
+| contribution_pass | RandomRecursive | 8 | C/S自有有限贡献类别；不是原生枚举。Context只作父链，Value为根值，其余须命中对应typed节点；随机主／次／递归由第10步具名来源绑定，不按Client访问次数推断。 |
+| presentation_budget | max_result_groups | 1024 | 整批数量保护；还须同时满足整消息字节、字段访问次数、调用者scratch及实际发送预算，不是常态发送额度。 |
+| presentation_budget | max_result_dependencies | 8192 | 整批数量保护；还须同时满足整消息字节、字段访问次数、调用者scratch及实际发送预算，不是常态发送额度。 |
+| presentation_budget | max_result_contributions | 8192 | 整批数量保护；还须同时满足整消息字节、字段访问次数、调用者scratch及实际发送预算，不是常态发送额度。 |
+| presentation_budget | max_audio_events | 4096 | 整批数量保护；还须同时满足整消息字节、字段访问次数、调用者scratch及实际发送预算，不是常态发送额度。 |
+| resource_graphics_use | SurfaceQuad | 0 | 资源唯一源的固定shader用途；精确shader允许集见resource_protocol，不是任意GPU参数分派。 |
+| resource_graphics_use | PresentationImage | 1 | 资源唯一源的固定shader用途；精确shader允许集见resource_protocol，不是任意GPU参数分派。 |
+| resource_graphics_use | Sprite | 2 | 资源唯一源的固定shader用途；精确shader允许集见resource_protocol，不是任意GPU参数分派。 |
+| resource_graphics_use | Bloom | 3 | 资源唯一源的固定shader用途；精确shader允许集见resource_protocol，不是任意GPU参数分派。 |
+| resource_graphics_use | Pixelation | 4 | 资源唯一源的固定shader用途；精确shader允许集见resource_protocol，不是任意GPU参数分派。 |
+| resource_graphics_use | Retrovision | 5 | 资源唯一源的固定shader用途；精确shader允许集见resource_protocol，不是任意GPU参数分派。 |
+| resource_graphics_use | Hallucination | 6 | 资源唯一源的固定shader用途；精确shader允许集见resource_protocol，不是任意GPU参数分派。 |
+| resource_graphics_use | ColorMod | 7 | 资源唯一源的固定shader用途；精确shader允许集见resource_protocol，不是任意GPU参数分派。 |
+| resource_graphics_use | Water | 8 | 资源唯一源的固定shader用途；精确shader允许集见resource_protocol，不是任意GPU参数分派。 |
+| resource_graphics_use | Wave | 9 | 资源唯一源的固定shader用途；精确shader允许集见resource_protocol，不是任意GPU参数分派。 |
+| resource_graphics_use | Background | 10 | 资源唯一源的固定shader用途；精确shader允许集见resource_protocol，不是任意GPU参数分派。 |
+| resource_graphics_use | Fade | 11 | 资源唯一源的固定shader用途；精确shader允许集见resource_protocol，不是任意GPU参数分派。 |
+| acceptance_policy | binary_state_capability | 1 | 独立二进制状态能力；同时协商精确整数布局版本，不回退旧Range |
+| acceptance_policy | world_candidates | 1 | 普通world至多保留最新一个候选 |
+| acceptance_policy | joint_candidates | 1 | joint至多保留最新一个完整候选 |
+| acceptance_policy | inflight_applies | 1 | 同Peer一次最多一个原生应用批次 |
+| acceptance_policy | member_entries | 65535 | 完整成员表上限，FFFF不占真实项 |
+| acceptance_policy | frame_records | 65535 | 整帧记录总量保护，不替代实际消息及速率预算 |
+| compression | world_body_zstd | 1 | 版本66：只在双方显式协商后允许world/body独立消息zstd；不改变可靠性／字段／64KiB解压保护 |
+| compression | zstd_level | 3 | 沿用独立帧zstd level3；动态压缩结果严格更小时使用，否则保留原文 |
+| compression | zstd_window_bytes | 8388608 | 沿用8MiB窗口保护；不使用跨消息字典，普通解压仍最多64KiB |

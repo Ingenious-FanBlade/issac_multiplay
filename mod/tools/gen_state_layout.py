@@ -41,11 +41,14 @@ DOC_DOMAIN_STEPS = {
     'grid.json': '06-grid', 'grid-classes.json': '06-grid',
     'room.json': '07-room-level', 'level.json': '07-room-level',
     'run.json': '08-run-presentation', 'presentation.json': '08-run-presentation',
+    'hud-local.json': '08-run-presentation',
     'random.json': '08-run-presentation',
     'wire.json': '09-wire-format',
 }
 # 正式布局源中的历史证据仍引用这两个旧路径，保留跳转页，不改写证据或布局版本。
 DOC_LEGACY_PATHS = {'EntitySaveState': '05-player', 'GridEntityDesc': '06-grid'}
+# 旧文档引用保留可读跳转；新版本不同时生成两份同编号有效布局。
+DOC_RENAMED_TYPES = {'RoomTransitionResult': 'BossVersusResult'}
 
 
 def doc_path(compiler, name):
@@ -166,12 +169,26 @@ class Compiler:
         self.doc_steps = {}
         # 公共报文编号、枚举和预算与布局同源生成；这里只登记合同，不启用网络消息。
         self.protocol_constants = []
+        self.resource_protocol = None
+        self.budget_policy = None
+        self.budget_workloads = []
+        self.hud_local_policy = None
         constant_keys = set()
         schema = read_json(source / 'schema.json')
         for domain in self.version['domains']:
             require(re.fullmatch(r'[a-z][a-z0-9_-]*\.json', domain), domain, '非法域文件名')
             data = read_json(source / domain)
             schema_check(data, schema, schema['$defs'], domain)
+            if 'budget_policy' in data:
+                require(self.budget_policy is None, domain, '预算合同只能有一个唯一源')
+                self.budget_policy = data['budget_policy']
+            self.budget_workloads.extend(data.get('budget_workloads', []))
+            if 'hud_local_policy' in data:
+                require(self.hud_local_policy is None, domain, 'HUD本地映射只能有一个唯一源')
+                self.hud_local_policy = data['hud_local_policy']
+            if 'resource_protocol' in data:
+                require(self.resource_protocol is None, domain, '资源合同只能有一个唯一源')
+                self.resource_protocol = data['resource_protocol']
             for constant in data.get('protocol_constants', []):
                 key = (constant['domain'], constant['name'])
                 require(key not in constant_keys, domain, '公共协议常量重名')
@@ -345,7 +362,8 @@ class Compiler:
                 require(nonempty(wire.get('host')) and nonempty(wire.get('client')), where, '缺少具名双端处理器')
                 require(scalar_size(wire.get('type', '')) is not None, where, '转换结果必须是定长值')
                 if kind == 'reference':
-                    require(nonempty(wire.get('target')) and wire['type'] == 'u16', where, '引用缺少目标空间或不是 u16')
+                    # 固定关系数组也逐项保留身份；不是提前生成的Peer成员序号。
+                    require(nonempty(wire.get('target')) and re.fullmatch(r'u16(?:\[[1-9][0-9]*\])?', wire['type']), where, '引用缺少目标空间或不是 u16固定值／数组')
                 if kind == 'resource':
                     require(wire.get('target') in self.resource_tables, where,
                             '未登记资源表: ' + str(wire.get('target')) + '；请使用 version.resource_tables 的规范名称')
@@ -465,6 +483,12 @@ class Compiler:
                         item['type'] == element and
                         0 < wire.get('limit', 0) <= 65535 and wire.get('host') == item['host'] and wire.get('client') == item['client'] and
                         not any(k in wire for k in ('fixed_count', 'inline_count', 'projections')), name + '.' + key, '合成容器必须是具名纯值数组或零步长复杂结果列表')
+            elif wire['kind'] == 'nested':
+                # 资源协议内嵌自有值没有原生对象；不借此放行任意原生类型／偏移。
+                require(entry.get('extent') == 'protocol' and item['type'] in self.expanded and
+                        self.expanded[item['type']].get('extent') == 'protocol' and
+                        wire.get('type') == item['type'] and not any(k in wire for k in ('storage', 'block', 'projections')),
+                        name + '.' + key, '合成嵌套只允许完整自有协议值')
             else:
                 require(scalar_size(item['type']) is not None, name + '.' + key, '合成标量不是已核值类型')
                 require(wire['kind'] in {'convert', 'reference', 'resource'} and wire.get('type') == item['type'] and
@@ -1061,8 +1085,11 @@ def emit_body_codec(compiler, plans, out, docs):
                 copies = sum(c['group'] == group and c['slot'] == slot for c in p['count_constraints'])
                 slots = len({c['slot'] for c in p['count_constraints'] if c['group'] == group})
             rule = {'non-null': 'NonNull', 'nullable-water': 'NullableWater',
-                    'entity-counter': 'EntityCounter', 'countdown': 'Countdown'}.get(f['source']['wire'].get('value_rule'), 'None')
-            require(rule == 'None' or (components == 1 and atom == ('U16' if rule == 'NonNull' else 'U64')),
+                    'entity-counter': 'EntityCounter', 'countdown': 'Countdown',
+                    'display-utf8': 'DisplayUtf8'}.get(f['source']['wire'].get('value_rule'), 'None')
+            require(rule == 'None' or (rule == 'DisplayUtf8' and atom == 'U8' and components == 1 and
+                    f['operation'] == 'Container' and f['storage'] == 'array' and not f['fixed_count']) or
+                    (rule != 'DisplayUtf8' and components == 1 and atom == ('U16' if rule == 'NonNull' else 'U64')),
                     entry['type'], '具名线上编码规则的标量宽度不匹配')
             fields.append((atom, components, storage_names[f['storage']], resource_ids.get(f['target'], 255),
                            canonical[f['name'].split('#', 1)[0]], selector, predicate, value, mask, rule, validation,
@@ -1092,11 +1119,20 @@ def emit_body_codec(compiler, plans, out, docs):
     for layout, kind, selector, other in rules:
         body.append(f'  {{{layout}, LayoutRuleKind::{kind}, {selector}, {other}}},\n')
     body.append('}};\n')
+    # 固定头仍留作历史字节目录，但当前正文入口不得编码／接受被禁用的媒体布局。
+    disabled = [p for p in plans if not p['entry'].get('body_enabled', True)]
+    body += [array('std::uint16_t', 'kBodyDisabledLayouts', len(disabled)),
+             ','.join(str(p['entry']['layout']) for p in disabled) + '\n', '}};\n']
+    text_limits = {f['limit'] for p in plans for f in p['fields']
+                   if f['source']['wire'].get('value_rule') == 'display-utf8'}
+    require(len(text_limits) == 1, 'display-utf8', '显示文字须共用唯一字节预算')
+    body.append(f'constexpr std::size_t kBodyDisplayTextBytes = {text_limits.pop()};\n')
     write(out / 'state_body_codec.inc', ''.join(body))
     summary = f'# 各域正文数字编解码计划\n\n布局版本 {compiler.version["version"]}；由同一布局源生成，不是运行测试报告。\n\n'
     maximum_fields = max(len(p['fields']) for p in plans)
     summary += f'共{len(plans)}种布局、{len(fields)}个字段计划、{sum(f[6] != "None" for f in fields)}个条件字段；最大根字段数{maximum_fields}。无负载的Host权威类型只登记空值布局，不补造状态。\n\n'
     summary += '条件、资源空间、整数／浮点校验、计数组和规范零负载在构建时转成数字规则；正文热路径不按名称解释。字段／引用的图关系、资源ready和原生应用成功仍由完整目标处理。\n\n'
+    summary += '当前禁用正文布局：' + '、'.join(f'{p["entry"]["layout"]} {p["entry"]["type"]}' for p in disabled) + '。保留固定字节表不表示允许媒体下行。\n\n'
     summary += '| 域源 | 布局数（含继承／变体） | 字段数 |\n|---|---|---|\n'
     for domain, step in DOC_DOMAIN_STEPS.items():
         # 同一步有多份域源；直接按原始类型与展开的variant_base定位，不按目录重复计数。
@@ -1117,12 +1153,307 @@ def emit_body_codec(compiler, plans, out, docs):
     write(docs / '09-wire-format/body-codec-plan.md', summary)
 
 
+def emit_state_budget(compiler, plans, out, docs):
+    """只按布局声明计算整数大小；不编码样本、不运行校验或游戏实验。"""
+    policy = compiler.budget_policy
+    require(policy is not None, 'budget_policy', '缺少预算唯一源')
+    require(policy['world_body_zstd'] == 1 and policy['zstd_level'] == 3 and policy['zstd_window_bytes'] == 8*1024*1024,
+            'budget_policy', '独立world/body压缩沿用level3与8MiB窗口保护')
+    require(policy['host_bytes_per_second']*100 == policy['link_bytes_per_second']*policy['host_utilization_percent'] and
+            policy['host_utilization_percent'] == 90, 'budget_policy', '本轮用户确定模组占10Mbps的90%')
+    require(policy['host_bytes_per_second'] == 3 * policy['peer_bytes_per_second'] and
+            sum(policy[k + '_bytes_per_second'] for k in ('control', 'world', 'body', 'reliable')) == policy['peer_bytes_per_second'],
+            'budget_policy', '逐通道／逐Peer／总持续额度不一致')
+    require(3*policy['peer_value_bytes']+policy['shared_value_bytes'] <= policy['pool_value_bytes'] and
+            3*policy['peer_wire_bytes']+policy['shared_wire_bytes'] <= policy['pool_wire_bytes'] and
+            policy['workspace_job_bytes']*policy['workspace_jobs'] <= policy['pool_workspace_bytes'],
+            'budget_policy', '子额度超过既有进程共享池')
+    constants = {(c['domain'], c['name']): c['value'] for c in compiler.protocol_constants}
+    for name, key in [('total_mod_bytes_per_second','host_bytes_per_second'), ('peer_bytes_per_second','peer_bytes_per_second'),
+                      ('world_bytes_per_second','world_bytes_per_second'), ('body_bytes_per_second','body_bytes_per_second'),
+                      ('reliable_bytes_per_second','reliable_bytes_per_second')]:
+        require(constants[('budget', name)] == policy[key], name, '公共常量与预算合同不一致')
+    body = ['// 同源预算与静态大小；不表示运行性能已经通过。\nconstexpr StateBudgetPolicy kStateBudgetPolicy{\n']
+    body.extend(f'  .{k}={v}ull,\n' for k, v in policy.items())
+    body.append('};\n')
+    write(out / 'state_budget.inc', ''.join(body))
+    text = f'# 完整消息静态预算\n\n布局版本 {compiler.version["version"]}；普通构建生成，仅整数公式，不运行编解码样例或测试。\n\n'
+    text += '| 合同 | 数值 |\n|---|---|\n'
+    text += ''.join(f'| {k} | {v} |\n' for k, v in policy.items())
+    by_name = {p['entry']['type']: p for p in plans}
+    size = lambda name: by_name[name]['min']
+    def network(body):
+        logical = body + policy['envelope_bytes']
+        fragments = (logical + policy['fragment_payload_bytes'] - 1) // policy['fragment_payload_bytes']
+        return logical + fragments * (policy['fragment_header_bytes'] + policy['ip_udp_bytes'])
+    text += '\n## 设计负载静态下界\n\n不压缩、不计合包收益，IP／UDP按48B，三端各发一份。只计所列成员／资源；不含其余必要显示／资源／控制／重传，不是完整场景通过结论。数量是设计输入，不是原版硬上限或观察样本。\n\n| 负载 | 正文B | 一端发出B | Hz | 一端B/s | 三端B/s |\n|---|---|---|---|---|---|\n'
+    details = '\n| 负载 | 组成 |\n|---|---|\n'
+    for work in compiler.budget_workloads:
+        kind = work['kind']
+        total = size('StateCommonHeader') + (size('StateTableHeader') if kind == 'resources' else
+                size('StateFrameHeader') + (2 if kind == 'baseline' else 1) * size('StateSectionHeader'))
+        members = 0
+        for term in work['terms']:
+            p = by_name[term['type']]
+            if not term.get('result_envelope'):
+                members += term['count']
+            extra = term.get('extra_bytes', 0) + sum(size(e['type']) * e['count'] for e in term.get('extra_layouts', []))
+            if kind == 'resources':
+                total += term['count'] * (size('ResourceEntryHeader') + p['min'] + extra)
+            elif term.get('result_envelope'):
+                require(p['entry'].get('presentation_contract', {}).get('envelope', {}).get('mode') == 'group',
+                        work['name'], '显示预算必须使用正式具名结果组')
+                # 结果不套12B成员头；实际依赖与贡献在同一项extra_layouts显式收费。
+                total += term['count'] * (size('StateResultGroupHeader') + p['min'] + extra)
+            else:
+                selected = [b for b in p['blocks'] if b['max'] and ('blocks' not in term or b['id'] in term['blocks'])]
+                streams = {False: 0, True: 0}
+                for b in selected:
+                    is_body = b['body'] or b['player_body'] and term['type'] == 'EntityPlayer'
+                    if kind == 'baseline' or is_body == (kind == 'body'):
+                        streams[is_body] += b['min']
+                for is_body, value in streams.items():
+                    if value:
+                        total += term['count'] * (size('StateRecordHeader') + value)
+                total += term['count'] * extra
+        cost = network(total)
+        text += f'| {work["name"]} | {total} | {cost} | {work["hz"]} | {cost*work["hz"]} | {3*cost*work["hz"]} |\n'
+        details += f'| {work["name"]} | ' + '; '.join(f'{t["type"]}×{t["count"]}' +
+                ('（具名结果组）' if t.get('result_envelope') else '') +
+                (f' blocks={t["blocks"]}' if 'blocks' in t else '') +
+                ''.join(f' + {e["type"]}×{e["count"]}/项' for e in t.get('extra_layouts', [])) for t in work['terms']) + ' |\n'
+        if kind == 'baseline':
+            table = size('StateCommonHeader') + size('StateTableHeader') + members * size('StateMemberEntry')
+            text += f'| 上述成员表{members}项（另计） | {table} | {network(table)} | 0 | 0 | 0 |\n'
+    text += details
+    text += '\n## 普通发送峰值的静态必要条件\n\n只按不压缩、无其他排队竞争计算；是可行性的上限，不是每帧固定配额，也不是延迟保证。\n\n| 序列 | 平均每次发出B | 可容纳正文B | 截止ms | 空桶可容纳正文B | 满通道突发桶可容纳正文B |\n|---|---|---|---|---|---|\n'
+    def body_for_cost(allowed):
+        lo, hi = 0, policy['ordinary_message_bytes'] - policy['envelope_bytes']
+        while lo < hi:
+            middle = (lo+hi+1)//2
+            if network(middle) <= allowed:
+                lo = middle
+            else:
+                hi = middle-1
+        return lo
+    for stream in ('world', 'body'):
+        rate, hz, deadline = policy[stream+'_bytes_per_second'], policy[stream+'_hz'], policy[stream+'_send_ms']
+        average = rate//hz
+        text += f'| {stream} | {average} | {body_for_cost(average)} | {deadline} | {body_for_cost(rate*deadline//1000)} | {body_for_cost(rate*deadline//1000+policy[stream+"_burst_bytes"])} |\n'
+    text += '\n## 各类型整记录声明界限\n\n仍不含公共帧／分段；上界只描述该类型record_limit，真正整帧必须再扣所有头／其他记录，条件下界不能视为完整合法样本。\n\n| 类型 | 布局 | 正文下界B | 正文声明上界B |\n|---|---|---|---|\n'
+    for p in plans:
+        text += f'| {p["entry"]["type"]} | {p["entry"]["layout"]} | {p["min"]} | {p["max"]} |\n'
+    text += '\n## 容量边界单价\n\n| 对象 | 正文B | 不压缩一端发出B |\n|---|---|---|\n'
+    for name, value in [('ContextReady', size('StateCommonHeader')+size('StateContextReady')),
+                        ('单项AppliedAck', size('StateCommonHeader')+size('StateAppliedAckHeader')+size('StateAppliedAckEntry')),
+                        ('joint AppliedAck', size('StateCommonHeader')+size('StateAppliedAckHeader')+2*size('StateAppliedAckEntry')),
+                        ('Resync', size('StateCommonHeader')+size('StateResyncHeader')),
+                        ('最大成员表', size('StateCommonHeader')+size('StateTableHeader')+65535*size('StateMemberEntry')),
+                        ('4096条最大19B音频事件区域', 4096*(size('StateAudioEventHeader')+19)),
+                        ('普通完整消息保护', policy['ordinary_message_bytes']-policy['envelope_bytes']),
+                        ('可靠完整消息保护', policy['reliable_message_bytes']-policy['envelope_bytes'])]:
+        text += f'| {name} | {value} | {network(value)} |\n'
+    text += '\n## 逐块声明上下界\n\n下界可能要求不同条件同时缺席，不能直接宣称可构成一个合法完整对象。上界受记录／整消息／字段访问预算共同约束，不代表允许按此大小持续发送。\n\n| 类型 | 布局／块 | 序列 | 下界B | 声明上界B |\n|---|---|---|---|---|\n'
+    for p in plans:
+        for b in p['blocks']:
+            stream = 'body' if b['body'] or b['player_body'] and p['entry']['type'] == 'EntityPlayer' else 'world'
+            text += f'| {p["entry"]["type"]} | {p["entry"]["layout"]}/{b["id"]} | {stream} | {b["min"]} | {b["max"]} |\n'
+    write(docs / '09-wire-format/budget-plan.md', text)
+
+
+def emit_state_protocol(compiler, plans, out, docs):
+    """完整消息只使用同源固定头／字段索引，不再手写字节偏移。"""
+    names = ['StateCommonHeader', 'StateFrameHeader', 'StateSectionHeader', 'StateRecordHeader',
+             'StateTableHeader', 'StateMemberEntry', 'StateResultGroupHeader', 'StateDependencyEntry', 'StateContributionEntry', 'StateAudioEventHeader',
+             'StateContextReady', 'StateAppliedAckHeader', 'StateAppliedAckEntry', 'StateResyncHeader']
+    body = ['// 完整二进制消息的同源固定头与接受保护；不安装游戏对象。\n']
+    summary = f'# 完整消息与接受数字合同\n\n布局版本 {compiler.version["version"]}；同源生成，不是测试报告。\n\n| 头 | 布局 | 字节 |\n|---|---|---|\n'
+    for name in names:
+        p = next(p for p in plans if p['entry']['type'] == name)
+        require(p['min'] == p['max'] and all(f['min_size'] == f['max_size'] and
+                f['max_size'] in (1, 2, 4, 8) for f in p['fields']), name, '完整消息头须为定长整数')
+        body += [f'constexpr std::uint16_t kW_{name} = {p["entry"]["layout"]};\n',
+                 f'constexpr std::size_t kW_{name}Bytes = {p["min"]}u;\n',
+                 f'enum class {name}Field : std::uint16_t {{' +
+                 ','.join(f'{f["name"]}={f["index"]}' for f in p['fields']) + f', count={len(p["fields"])}' + '};\n']
+        summary += f'| {name} | {p["entry"]["layout"]} | {p["min"]} |\n'
+    for c in compiler.protocol_constants:
+        if c['domain'] in ('acceptance_policy', 'presentation_budget', 'message'):
+            body.append(f'constexpr std::uint32_t kW_{c["name"]} = {c["value"]}u;\n')
+    summary += '\n接受、ACK丢失、不可变目标与污染恢复见[第五项合同](../../9-acceptance-recovery.md)。字节保护不替代10Mbps／首次准备预算。\n'
+    write(out / 'state_protocol.inc', ''.join(body))
+    write(docs / '09-wire-format/state-protocol-plan.md', summary)
+
+
+def emit_resource_protocol(compiler, plans, out, docs):
+    """资源矩阵、固定字段、图形允许集与保护预算同源生成，不把媒体内容引入协议。"""
+    source = compiler.resource_protocol
+    require(source is not None, 'resource_protocol', '缺少资源合同')
+    by_name = {p['entry']['type']: p for p in plans}
+    selected = ['StateCommonHeader', 'StateTableHeader', 'ResourceEntryHeader', 'SurfaceRecipeHeader',
+                'SurfaceRecipeClear', 'SurfaceRecipeQuad', 'PresentationImageContribution', 'AudioVoiceParameters']
+    selected += [p['entry']['type'] for p in plans if 425 <= p['entry']['layout'] <= 433]
+    body = ['// 由资源唯一源生成；不包含原生地址、文件内容或GPU命令。\n']
+    body.append(f'constexpr std::size_t kResourceMaxRootFields = {max(len(by_name[n]["fields"]) for n in selected)};\n')
+    for name in selected:
+        p = by_name[name]
+        body.append(f'constexpr std::uint16_t kR_{name} = {p["entry"]["layout"]};\n')
+        size = p['min'] if p['min'] == p['max'] else 0
+        body.append(f'constexpr std::size_t kR_{name}Bytes = {size}u;\n')
+        body.append(f'enum class {name}Field : std::uint16_t {{' +
+                    ','.join(f'{f["name"]}={f["index"]}' for f in p['fields']) + f', count={len(p["fields"])}' + '};\n')
+    entries = source['entries']
+    require(len({(e['table'], e['kind']) for e in entries}) == len(entries) and
+            {e['kind'] for e in entries} == set(range(10)) - {5}, 'resource_protocol', '资源矩阵缺项／重复／启用像素')
+    body.append(array('ResourceDispatch', 'kResourceDispatch', len(entries)))
+    summary = f'# 资源协议数字合同\n\n布局版本 {compiler.version["version"]}；同源生成，不是测试报告。\n\n'
+    summary += '| table | kind | typed布局 | 编码 |\n|---|---|---|---|\n'
+    for e in entries:
+        p = by_name[e['type']]
+        body.append(f'  {{{e["table"]}, {e["kind"]}, {p["entry"]["layout"]}, {str(e["recipe"]).lower()}}},\n')
+        summary += f'| {e["table"]} | {e["kind"]} | {p["entry"]["layout"]} {e["type"]} | {"具名有序recipe" if e["recipe"] else "完整值"} |\n'
+    body.append('}};\n')
+    for key, width, typ in [('blend_profiles', 5, 'BlendProfile'), ('sampler_profiles', 4, 'SamplerProfile')]:
+        profiles = source[key]
+        require([p['id'] for p in profiles] == list(range(len(profiles))) and all(len(p['values']) == width for p in profiles), key, 'profile须稠密且宽度固定')
+        require(all(all(v in (0, 1) for v in p['values']) if key == 'sampler_profiles' else
+                    (0 <= p['values'][0] <= 4 and all(0 <= v <= 9 for v in p['values'][1:])) for p in profiles),
+                key, 'profile含未登记的sampler／blend值')
+        body.append(array(typ, 'kResource_' + key, len(profiles)))
+        for p in profiles:
+            body.append('  {{' + ','.join(map(str, p['values'])) + '}},\n')
+        body.append('}};\n')
+        summary += f'\n{key}：\n\n| 编号 | 固定值 |\n|---|---|\n'
+        for p in profiles:
+            summary += f'| {p["id"]} | {p["values"]} |\n'
+    uses = source['graphics_uses']
+    require([u['id'] for u in uses] == list(range(len(uses))), 'graphics_uses', '用途编号须稠密')
+    body.append(array('GraphicsRule', 'kResourceGraphicsRules', len(uses)))
+    for u in uses:
+        mask = sum(1 << v for v in u['shaders'])
+        body.append(f'  {{{mask}u, {u["blend_mask"]}u, {u["sampler_mask"]}u}},\n')
+        body.append('')
+    body.append('}};\n')
+    for u in uses:
+        body.append(f'constexpr std::uint8_t kRUse_{u["name"]} = {u["id"]};\n')
+    for name, value in source['limits'].items():
+        body.append(f'constexpr std::uint32_t kRLimit_{name} = {value}u;\n')
+    summary += '\n固定shader用途：\n\n| 用途号 | 名称 | 内置shader |\n|---|---|---|\n'
+    for u in uses:
+        summary += f'| {u["id"]} | {u["name"]} | {u["shaders"]} |\n'
+    summary += '\nkind5、305／306及Kind24正文禁用；recipe首项完整Clear，只有Clear／Quad，不含像素或任意参数字典。表元数据、闭包、实际本地物化分开，未ready不能ACK。\n'
+    write(out / 'state_resource_protocol.inc', ''.join(body))
+    write(docs / '09-wire-format/resource-protocol-plan.md', summary)
+
+
+def emit_presentation_envelope(compiler, plans, out, docs):
+    """同源生成固定头字段索引、用途／pass允许集；接收端不按自然语言选择adapter。"""
+    constants = {(c['domain'], c['name']): c['value'] for c in compiler.protocol_constants}
+    body = ['// 同源生成：显示封装数字合同，不能由报文扩展用途或pass。\n']
+    headers = {'Group': 'StateResultGroupHeader', 'Dependency': 'StateDependencyEntry',
+               'Contribution': 'StateContributionEntry', 'Event': 'StateAudioEventHeader'}
+    for name, typ in headers.items():
+        p = next(p for p in plans if p['entry']['type'] == typ)
+        fields = p['fields']
+        require(all(f['min_size'] == f['max_size'] and f['max_size'] in (1, 2, 4, 8) and
+                    not f['nested_layout'] for f in fields), typ, '封装头须为定长整数字段')
+        body += [f'constexpr std::uint16_t k{name}Layout = {p["entry"]["layout"]};\n',
+                 f'constexpr std::size_t k{name}Bytes = {sum(f["max_size"] for f in fields)};\n',
+                 f'enum class {name}Field : std::uint16_t {{' +
+                 ','.join(f'{f["name"]}={f["index"]}' for f in fields) + f', count={len(fields)}' + '};\n']
+    for domain in ('contribution_pass', 'presentation_budget'):
+        for c in compiler.protocol_constants:
+            if c['domain'] == domain:
+                body.append(f'constexpr std::uint32_t kEnvelope_{c["name"]} = {c["value"]}u;\n')
+    policies = [p for p in plans if p['entry'].get('presentation_contract')]
+    body.append(array('ResultPolicy', 'kResultPolicies', len(policies)))
+    summary = f'# 显示封装数字合同\n\n布局版本 {compiler.version["version"]}；由唯一源生成，不是测试结果。\n\n'
+    summary += '| 用途／布局 | 序列 | 模式 | subject布局（0为world） | 可引用缓存 | D0依赖 | 绘制拓扑 | 允许配对mask | pass mask |\n|---|---|---|---|---|---|---|---|---|\n'
+    for p in policies:
+        c = p['entry']['presentation_contract']
+        e = c['envelope']
+        lid = p['entry']['layout']
+        subject = 0 if e['subject_type'] == 'world' else compiler.expanded[e['subject_type']]['layout']
+        subject_field = next((f['index'] for f in p['fields'] if f['name'] == e['subject_field']), 65535)
+        require(not e['subject_field'] or (subject_field != 65535 and p['fields'][subject_field]['operation'] == 'Reference'),
+                p['entry']['type'], '主体字段必须是真实成员引用')
+        mask = sum(1 << constants[('contribution_pass', n)] for n in e['passes'])
+        require((e['mode'] == 'event') == (not mask), p['entry']['type'], '事件不可作为普通结果组')
+        body.append(f'  {{{lid}, {subject}, {subject_field}, {str(c["sequence"] == "body").lower()}, '
+                    f'{str(e["mode"] == "event").lower()}, {str(e["cacheable"]).lower()}, '
+                    f'{str(e["clock"]).lower()}, {str(e["topology"]).lower()}, {e["paired_streams"]}, {mask}u}},\n')
+        summary += f'| {lid} {p["entry"]["type"]} | {c["sequence"]} | {e["mode"]} | {subject} | {e["cacheable"]} | {e["clock"]} | {e["topology"]} | {e["paired_streams"]} | {mask} |\n'
+    body.append('}};\n')
+    # 按真实嵌套布局保留具名子owner依赖，不凭stats等字段名猜测其类型。
+    by_id = {p['entry']['layout']: p for p in plans}
+    policy_ids = {p['entry']['layout'] for p in policies}
+    requirements = []
+    for root in policies:
+        pending, seen, required = [root['entry']['layout']], set(), set()
+        while pending:
+            lid = pending.pop()
+            if lid in seen:
+                continue
+            seen.add(lid)
+            p = by_id[lid]
+            c = p['entry'].get('presentation_contract')
+            if c:
+                required.update(compiler.expanded[n]['layout'] for n in c['dependency_types']
+                                if compiler.expanded[n]['layout'] in policy_ids)
+            pending.extend(f['nested_layout'] for f in p['fields'] if f['nested_layout'])
+        requirements.extend((root['entry']['layout'], dep) for dep in sorted(required))
+    body.append(array('ResultRequirement', 'kResultRequirements', len(requirements)))
+    for root, dependency in requirements:
+        body.append(f'  {{{root}, {dependency}}},\n')
+    body.append('}};\n')
+    summary += '\n聚合owner的具名结果依赖（包括实际嵌套owner）：\n\n| 用途 | 必需结果用途 |\n|---|---|\n'
+    for root, dependency in requirements:
+        summary += f'| {root} | {dependency} |\n'
+    for name, typ, field in [('AudioKind', 'AudioWorldEvent', 'kind')]:
+        p = next(p for p in plans if p['entry']['type'] == typ)
+        f = next(f for f in p['fields'] if f['name'] == field)
+        body.append(f'constexpr std::uint16_t k{name}Field = {f["index"]};\n')
+    write(out / 'state_presentation_envelope.inc', ''.join(body))
+    summary += '\n贡献类别编号见protocol-constants.md。Context仅定位；多次独立贡献保持原数组顺序，不按位置排序重写payload。所有资源、成员、拓扑和缓存就绪由第12／13步正式owner提供，结构解码不提交或ACK。\n'
+    write(docs / '09-wire-format/presentation-envelope-plan.md', summary)
+
+
+def emit_hud_local(compiler, plans, out):
+    """普通映射边界及435数字路径同源生成，不在C++维护第二份布局表。"""
+    policy = compiler.hud_local_policy
+    require(policy is not None, 'hud-local', '缺少本地HUD映射合同')
+    plan = next(p for p in plans if p['entry']['type'] == 'PlayerHUDLocalClock')
+    fields = {f['name']: f for f in plan['fields']}
+    names = ['player', 'binding_revision', 'update_ordinal', 'sample_game_frame', 'critical_health',
+             'mantle_source_revision', 'drop_anchor_update', 'drop_held', 'drop_anchor_phase']
+    require(set(names) == set(fields), 'hud-local', '时钟值接口与正式字段不一致')
+    require(plan['min'] == plan['max'] == 41, 'hud-local', '时钟必须是41B定长值')
+    body = '// 由gen_state_layout.py生成；只修改mod/binding/state/hud-local.json。\n'
+    body += f'constexpr std::uint16_t kHudClockLayout={plan["entry"]["layout"]};\n'
+    body += f'constexpr std::uint32_t kHudClockBytes={plan["max"]};\n'
+    for key, target in [('active_last', 'ActiveLast'), ('trinket_last', 'TrinketLast'), ('golden_mask', 'GoldenMask')]:
+        body += f'constexpr std::uint32_t kHud{target}={policy[key]};\n'
+    for key, target in [('active_special', 'ActiveSpecial'), ('trinket_special', 'TrinketSpecial')]:
+        require(all(v <= policy['active_last' if key == 'active_special' else 'trinket_last'] for v in policy[key]),
+                'hud-local', '特殊映射越过已登记原版范围')
+        values = ','.join(str(v) for v in policy[key])
+        body += f'constexpr std::array<std::uint32_t,{len(policy[key])}> kHud{target}={{{values}}};\n'
+    for target, values in [('Fields', [fields[n]['index'] for n in names]), ('Widths', [fields[n]['min_size'] for n in names])]:
+        body += 'constexpr std::array<std::uint16_t,9> kHudClock' + target + '={' + ','.join(map(str, values)) + '};\n'
+    write(out / 'state_hud_local.inc', body)
+
+
 def emit(compiler, plans, out, docs):
     """四份 .inc 共享相同字段索引；代码表、协议偏移与文档在一次构建内同时更新。"""
     header = '// 由 gen_state_layout.py 生成；只修改 mod/binding/state/*.json。\n'
     emit_grid_description(compiler, plans, out)
     emit_room_description(compiler, plans, out)
     emit_body_codec(compiler, plans, out, docs)
+    emit_presentation_envelope(compiler, plans, out, docs)
+    emit_resource_protocol(compiler, plans, out, docs)
+    emit_state_protocol(compiler, plans, out, docs)
+    emit_state_budget(compiler, plans, out, docs)
+    emit_hud_local(compiler, plans, out)
     count_fields = sum(len(p['fields']) for p in plans)
     wire = [header, f"constexpr std::uint16_t kStateLayoutVersion ={integer(compiler.version['version'])};\n", array('Layout', 'kStateLayouts', len(plans))]
     capture = [header, array('CopyRange', 'kStateCopyRanges', sum(len(p['copies']) for p in plans))]
@@ -1155,6 +1486,8 @@ def emit(compiler, plans, out, docs):
             body += '**范围仅为已核前缀，不是动态对象分配大小；具体对象仍需完整布局。**\n\n'
         if e.get('notes'):
             body += e['notes'] + '\n\n'
+        if not e.get('body_enabled', True):
+            body += '**当前正文编解码禁用此布局；下面的固定字节表仅保留定义事实，不表示可接受媒体正文。**\n\n'
         contract = e.get('presentation_contract')
         if contract:
             body += '具名显示结果合同（接线声明，不表示运行实现）：\n\n'
@@ -1376,11 +1709,19 @@ def emit(compiler, plans, out, docs):
         write(docs / '09-wire-format/protocol-constants.md', body)
         step_indexes['09-wire-format'] += '\n[公共报文编号、枚举与预算](protocol-constants.md)。\n'
     step_indexes['09-wire-format'] += '\n[各域正文数字编解码计划](body-codec-plan.md)。\n'
+    step_indexes['09-wire-format'] += '\n[显示封装数字合同](presentation-envelope-plan.md)。\n'
+    step_indexes['09-wire-format'] += '\n[资源协议数字合同](resource-protocol-plan.md)。\n'
+    step_indexes['09-wire-format'] += '\n[完整消息与接受数字合同](state-protocol-plan.md)。\n'
+    step_indexes['09-wire-format'] += '\n[完整消息静态预算](budget-plan.md)。\n'
     for step, body in step_indexes.items():
         write(docs / step / 'README.md', body)
     index += '\n旧证据路径仅保留 [EntitySaveState](EntitySaveState.md) 和 [GridEntityDesc](GridEntityDesc.md) 两个跳转页，正式表见对应步骤目录。\n'
     for name, step in DOC_LEGACY_PATHS.items():
         write(docs / (name + '.md'), f'# {name}：旧证据路径\n\n正式布局已归入 [{name}]({step}/{name}.md)。\n\n本页仅保留布局源中既有证据路径；原生字节归属、状态布局及未知项以正式表为准。\n')
+    for old_name, name in DOC_RENAMED_TYPES.items():
+        if name in compiler.doc_steps:
+            step = compiler.doc_steps[name]
+            write(docs / step / (old_name + '.md'), f'# {old_name}：旧布局名\n\n版本61起布局374收窄为 [{name}]({name}.md)，仅承接独立Boss versus；普通切房surface结果已取消。原版本定义见提交历史，不保留两套当前必发表达。\n')
     write(docs / 'README.md', index)
 
 

@@ -36,7 +36,9 @@ add_library(isaac_cs_world STATIC src/world/model.cpp src/world/identity.cpp
   src/world/storage.cpp src/world/writer.cpp src/world/observe.cpp src/world/collector.cpp src/world/player_child_source.cpp
   src/world/common/contracts.cpp src/world/common/service.cpp src/world/common/publication.cpp src/world/common/live_consumer.cpp
   src/world/common/native_source.cpp src/world/common/membership.cpp src/world/compatibility/min_read_v1.cpp src/world/compatibility/encode.cpp
-  src/world/domains/entity/collect.cpp src/world/domains/grid/collect.cpp)
+  src/world/domains/entity/collect.cpp src/world/domains/grid/collect.cpp
+  src/world/binary/entity_source.cpp src/world/binary/entity_containers.cpp src/world/binary/entity_resources.cpp
+  src/world/binary/entity_player.cpp src/world/binary/grid_source.cpp src/world/binary/scene_source.cpp src/world/binary/scene_map.cpp src/world/binary/scene_lighting.cpp src/world/binary/scene_production.cpp src/world/binary/run_source.cpp src/world/binary/presentation_source.cpp src/world/binary/hud_production.cpp src/world/binary/hud_probability.cpp)
 target_include_directories(isaac_cs_world PUBLIC src)
 target_compile_features(isaac_cs_world PUBLIC cxx_std_20)
 target_compile_definitions(isaac_cs_world PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
@@ -48,7 +50,7 @@ set(GENERATED "${CMAKE_CURRENT_BINARY_DIR}/generated")
 file(GLOB STATE_LAYOUT_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/binding/state/*.json")
 add_custom_command(OUTPUT "${GENERATED}/state_capture.inc" "${GENERATED}/state_wire.inc"
   "${GENERATED}/state_client.inc" "${GENERATED}/state_members.inc" "${GENERATED}/state_grid_view.inc"
-  "${GENERATED}/state_room_view.inc" "${GENERATED}/state_body_codec.inc"
+  "${GENERATED}/state_room_view.inc" "${GENERATED}/state_body_codec.inc" "${GENERATED}/state_presentation_envelope.inc" "${GENERATED}/state_resource_protocol.inc" "${GENERATED}/state_protocol.inc" "${GENERATED}/state_budget.inc" "${GENERATED}/state_hud_local.inc"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_state_layout.py"
     --out "${GENERATED}" --docs "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/binary-state/layouts"
   DEPENDS tools/gen_state_layout.py ${STATE_LAYOUT_SOURCES} binding/world_layout.json
@@ -57,12 +59,15 @@ add_custom_command(OUTPUT "${GENERATED}/state_capture.inc" "${GENERATED}/state_w
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/observation-expansion/grid-catalog.json"
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/observation-expansion/run-catalog.json"
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-21/stream-catalog.json" VERBATIM)
-add_library(isaac_cs_state STATIC src/state/layout.cpp src/state/nested.cpp src/state/owned_payload.cpp src/state/entity_extension.cpp src/state/entity_counters.cpp src/state/npc_presentation.cpp src/state/body_codec.cpp
+add_library(isaac_cs_state STATIC src/state/layout.cpp src/state/nested.cpp src/state/owned_payload.cpp src/state/entity_extension.cpp src/state/entity_counters.cpp src/state/npc_presentation.cpp src/state/body_codec.cpp src/state/presentation_envelope.cpp src/state/resource_protocol.cpp src/state/wire_protocol.cpp src/state/acceptance.cpp src/state/budget.cpp
+  src/state/capture.cpp src/state/capture_values.cpp src/state/capture_exchange.cpp src/state/capture_executor.cpp src/state/production_cache.cpp
+  src/state/client_memory.cpp src/state/client_tables.cpp src/state/client_shadow.cpp src/state/hud_local.cpp
   "${GENERATED}/state_capture.inc" "${GENERATED}/state_wire.inc"
-  "${GENERATED}/state_client.inc" "${GENERATED}/state_members.inc" "${GENERATED}/state_body_codec.inc")
+  "${GENERATED}/state_client.inc" "${GENERATED}/state_members.inc" "${GENERATED}/state_body_codec.inc" "${GENERATED}/state_presentation_envelope.inc" "${GENERATED}/state_resource_protocol.inc" "${GENERATED}/state_protocol.inc" "${GENERATED}/state_budget.inc" "${GENERATED}/state_hud_local.inc")
 target_include_directories(isaac_cs_state PUBLIC src PRIVATE "${GENERATED}")
 target_compile_features(isaac_cs_state PUBLIC cxx_std_20)
 target_compile_options(isaac_cs_state PRIVATE /W4 /Zi /utf-8 /EHsc)
+target_link_libraries(isaac_cs_world PUBLIC isaac_cs_state)
 # 第6步只编译由完整影子记录生成纯值描述的模块；第12/13步再接解码调度与原生安装。
 add_library(isaac_cs_grid_description STATIC src/game/client/grid/client_grid_description.cpp
   "${GENERATED}/state_grid_view.inc")
@@ -155,6 +160,7 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
   src/game/authority/tick.cpp src/game/input/input_a.cpp
   src/game/input/query.cpp src/game/input/consumers.cpp src/game/authority/lifecycle.cpp
   src/game/participants/remote_life.cpp src/game/observation/world_bridge.cpp
+  src/game/observation/binary_entities.cpp src/game/observation/binary_production.cpp src/game/observation/binary_probability.cpp
   src/game/observation/sources/global_random.cpp
   src/game/observation/sources/random_sources.cpp src/game/observation/sources/random_runtime_lua.cpp
   src/game/observation/sources/random_owners.cpp src/hooks/random_runtime.cpp
@@ -215,7 +221,7 @@ file(GENERATE OUTPUT "${ISAACCS_DLL_OUTPUT}/build-flavor.json"
 # SDK-facing 单元只使用 C++17 值接口；Join/输入/world 核心保持 C++20。
 # 显式覆盖逐文件标准，不降低整个 DLL 标准，也不修改 SDK 头或补丁/汇编行为。
 set_source_files_properties(src/game/observation/sources/loot.cpp src/game/observation/sources/lua_entity.cpp
-  src/game/common/player_api.cpp src/game/client/scene/client_native_bridge.cpp
+  src/game/common/player_api.cpp src/game/observation/binary_probability.cpp src/game/client/scene/client_native_bridge.cpp
   src/binding/definitions.cpp "${GENERATED}/hooks_generated.cpp"
   src/game/client/player/client_players_native.cpp
   src/game/client/player/client_player_state_native.cpp

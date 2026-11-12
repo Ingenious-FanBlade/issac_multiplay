@@ -179,13 +179,23 @@
           "size": 4,
           "name": "visual_id",
           "type": "i32",
-          "category": "状态",
+          "category": "换算",
           "semantics": "已选择的主动道具显示身份，含负生成ID",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/PlayerHUDActiveItem.zhl; J273 832C10/835B40",
           "status": "已核",
           "wire": {
-            "kind": "copy",
-            "type": "i32"
+            "kind": "convert",
+            "type": "i32",
+            "when": {
+              "field": "icon_source",
+              "predicate": "hud_icon_is_special",
+              "test": {
+                "kind": "equal",
+                "value": 2
+              }
+            },
+            "host": "hud_special_visual_capture",
+            "client": "hud_special_visual_apply"
           }
         },
         {
@@ -213,7 +223,15 @@
             "type": "u16",
             "host": "player_h_u_d_active_item_item_image_capture",
             "client": "player_h_u_d_active_item_item_image_apply",
-            "target": "image-table"
+            "target": "image-table",
+            "when": {
+              "field": "icon_source",
+              "predicate": "hud_icon_is_special",
+              "test": {
+                "kind": "equal",
+                "value": 2
+              }
+            }
           }
         },
         {
@@ -255,6 +273,7 @@
           "name": "PlayerHUDActiveItem具名当前结果",
           "sequence": "world",
           "fields": [
+            "icon_source",
             "visual_id",
             "item_image",
             "book_image",
@@ -266,13 +285,38 @@
         "player_h_u_d_active_item_item_image_capture": "实际Image与本地引用计数control；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
         "player_h_u_d_active_item_item_image_apply": "实际Image与本地引用计数control；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。",
         "player_h_u_d_active_item_book_image_capture": "实际Image与本地引用计数control；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
-        "player_h_u_d_active_item_book_image_apply": "实际Image与本地引用计数control；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。"
+        "player_h_u_d_active_item_book_image_apply": "实际Image与本地引用计数control；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。",
+        "hud_icon_source_capture": "只对已登记原版映射、同目标P3/P4身份及实际图像资源精确匹配使用1；空槽须真实为空，其余使用2。",
+        "hud_icon_source_prepare": "1从同身体同目标P3/P4及本地就绪配置生成；2消费保留特殊结果；缺依赖失败，不补零。",
+        "hud_icon_is_special": "icon_source == 2",
+        "hud_special_visual_capture": "仅icon_source=2读取正常生产的实际i32显示身份；普通分支不读取旧缓存。",
+        "hud_special_visual_apply": "仅特殊分支安装真实i32身份；本地普通分支从同目标P3/P4派生。"
       },
-      "validators": {},
+      "validators": {
+        "icon_source": {
+          "kind": "enum",
+          "scalar": "u8",
+          "values": [
+            0,
+            1,
+            2
+          ]
+        }
+      },
       "members": [],
       "public_owners": [],
-      "notes": " 原生字节事实保留；委派范围按本表具名结果承接，不按原生owner全量复制。",
-      "record_limit": 4194304
+      "notes": " 原生字节事实保留；委派范围按本表具名结果承接，不按原生owner全量复制。 版本70：普通图标不发重复visual_id/Image/center；特殊分支仍完整发送，tint/book/charge保留。",
+      "record_limit": 13,
+      "synthetic_fields": [
+        {
+          "name": "icon_source",
+          "type": "u8",
+          "semantics": "0为空槽；1为已登记且与P3/P4及真实资源一致的普通本地图标；2保留Host特殊选择。普通资源缺失是依赖缺失，不能改为空槽。",
+          "evidence": "docs/design/binary-state/hud-local-presentation.md；J273 832C10",
+          "host": "hud_icon_source_capture",
+          "client": "hud_icon_source_prepare"
+        }
+      ]
     },
     {
       "type": "PlayerHUDTrinket",
@@ -289,13 +333,23 @@
           "size": 4,
           "name": "visual_id",
           "type": "i32",
-          "category": "状态",
+          "category": "换算",
           "semantics": "实际饰品显示身份",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/PlayerHUDTrinket.zhl; J273 832C10/837720",
           "status": "已核",
           "wire": {
-            "kind": "copy",
-            "type": "i32"
+            "kind": "convert",
+            "type": "i32",
+            "when": {
+              "field": "icon_source",
+              "predicate": "hud_icon_is_special",
+              "test": {
+                "kind": "equal",
+                "value": 2
+              }
+            },
+            "host": "hud_special_visual_capture",
+            "client": "hud_special_visual_apply"
           }
         },
         {
@@ -329,7 +383,15 @@
             "type": "u16",
             "host": "player_h_u_d_trinket_image_capture",
             "client": "player_h_u_d_trinket_image_apply",
-            "target": "image-table"
+            "target": "image-table",
+            "when": {
+              "field": "icon_source",
+              "predicate": "hud_icon_is_special",
+              "test": {
+                "kind": "equal",
+                "value": 2
+              }
+            }
           }
         },
         {
@@ -344,7 +406,15 @@
           "native_type": "Vector",
           "wire": {
             "kind": "nested",
-            "type": "Vector"
+            "type": "Vector",
+            "when": {
+              "field": "icon_source",
+              "predicate": "hud_icon_is_special",
+              "test": {
+                "kind": "equal",
+                "value": 2
+              }
+            }
           }
         }
       ],
@@ -354,6 +424,7 @@
           "name": "PlayerHUDTrinket具名当前结果",
           "sequence": "world",
           "fields": [
+            "icon_source",
             "visual_id",
             "tint_override_source",
             "image",
@@ -365,18 +436,42 @@
         "player_h_u_d_trinket_image_capture": "实际Image与本地引用计数control；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
         "player_h_u_d_trinket_image_apply": "实际Image与本地引用计数control；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。",
         "player_h_u_d_trinket_tint_override_source_capture": "SDK名slot；837720在非golden分支实际判断此DWORD是否非零并选择额外colorize；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。 只输出原i32 != 0的bool，不发历史比较整数。",
-        "player_h_u_d_trinket_tint_override_source_apply": "SDK名slot；837720在非golden分支实际判断此DWORD是否非零并选择额外colorize；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。"
+        "player_h_u_d_trinket_tint_override_source_apply": "SDK名slot；837720在非golden分支实际判断此DWORD是否非零并选择额外colorize；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。",
+        "hud_icon_source_capture": "只对已登记原版映射、同目标P3/P4身份及实际图像资源精确匹配使用1；空槽须真实为空，其余使用2。",
+        "hud_icon_source_prepare": "1从同身体同目标P3/P4及本地就绪配置生成；2消费保留特殊结果；缺依赖失败，不补零。",
+        "hud_icon_is_special": "icon_source == 2",
+        "hud_special_visual_capture": "仅icon_source=2读取正常生产的实际i32显示身份；普通分支不读取旧缓存。",
+        "hud_special_visual_apply": "仅特殊分支安装真实i32身份；本地普通分支从同目标P3/P4派生。"
       },
       "validators": {
         "tint_override_source": {
           "kind": "boolean",
           "scalar": "u8"
+        },
+        "icon_source": {
+          "kind": "enum",
+          "scalar": "u8",
+          "values": [
+            0,
+            1,
+            2
+          ]
         }
       },
       "members": [],
       "public_owners": [],
-      "notes": " 原生字节事实保留；委派范围按本表具名结果承接，不按原生owner全量复制。",
-      "record_limit": 4194304
+      "notes": " 原生字节事实保留；委派范围按本表具名结果承接，不按原生owner全量复制。 版本70：普通图标不发重复visual_id/Image/center；特殊分支仍完整发送，tint/book/charge保留。",
+      "record_limit": 16,
+      "synthetic_fields": [
+        {
+          "name": "icon_source",
+          "type": "u8",
+          "semantics": "0为空槽；1为已登记且与P3/P4及真实资源一致的普通本地图标；2保留Host特殊选择。普通资源缺失是依赖缺失，不能改为空槽。",
+          "evidence": "docs/design/binary-state/hud-local-presentation.md；J273 832C10",
+          "host": "hud_icon_source_capture",
+          "client": "hud_icon_source_prepare"
+        }
+      ]
     },
     {
       "type": "PlayerHUDPocket",
@@ -557,14 +652,10 @@
           "size": 2,
           "name": "low_health_flash",
           "type": "i16",
-          "category": "状态",
-          "semantics": "低生命时产生的闪隐强度",
+          "category": "派生",
+          "semantics": "低生命时产生的闪隐强度；版本70起仅保留原生事实，Client由PlayerHUDLocalClock与同目标输入生成，不采集／发送／漂移比较该缓存。",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/PlayerHUD.zhl; J273 832C10/834930/835B40/837720/8378C0/839370/839A80/97EB40",
-          "status": "已核",
-          "wire": {
-            "kind": "copy",
-            "type": "i16"
-          }
+          "status": "已核"
         },
         {
           "offset": 12,
@@ -715,14 +806,10 @@
           "size": 1,
           "name": "holy_mantle_visible",
           "type": "bool",
-          "category": "状态",
-          "semantics": "Update求effect313，RenderHearts消费的最终护盾显示资格",
+          "category": "派生",
+          "semantics": "Update求effect313，RenderHearts消费的最终护盾显示资格；版本70起仅保留原生事实，Client由PlayerHUDLocalClock与同目标输入生成，不采集／发送／漂移比较该缓存。",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/PlayerHUD.zhl; J273 832C10/834930/835B40/837720/8378C0/839370/839A80/97EB40",
-          "status": "已核",
-          "wire": {
-            "kind": "copy",
-            "type": "u8"
-          }
+          "status": "已核"
         },
         {
           "offset": 1697,
@@ -806,14 +893,10 @@
           "size": 4,
           "name": "drop_display_scale",
           "type": "f32",
-          "category": "状态",
-          "semantics": "Drop输入已生产的HUD淡化/缩放，97EB40消费",
+          "category": "派生",
+          "semantics": "Drop输入已生产的HUD淡化/缩放，97EB40消费；版本70起仅保留原生事实，Client由PlayerHUDLocalClock与同目标输入生成，不采集／发送／漂移比较该缓存。",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/PlayerHUD.zhl; J273 832C10/834930/835B40/837720/8378C0/839370/839A80/97EB40",
-          "status": "已核",
-          "wire": {
-            "kind": "copy",
-            "type": "f32"
-          }
+          "status": "已核"
         },
         {
           "offset": 1728,
@@ -843,7 +926,6 @@
           "sequence": "body",
           "fields": [
             "player",
-            "low_health_flash",
             "red_flash",
             "soul_flash",
             "gold_flash",
@@ -851,10 +933,8 @@
             "active",
             "trinkets",
             "pockets",
-            "holy_mantle_visible",
             "inventory_visuals",
-            "crafting_image",
-            "drop_display_scale"
+            "crafting_image"
           ]
         }
       ],
@@ -874,16 +954,7 @@
         "player_h_u_d_crafting_image_capture": "实际Image与本地引用计数control；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
         "player_h_u_d_crafting_image_apply": "实际Image与本地引用计数control；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。"
       },
-      "validators": {
-        "holy_mantle_visible": {
-          "kind": "boolean",
-          "scalar": "u8"
-        },
-        "drop_display_scale": {
-          "kind": "finite",
-          "scalar": "f32"
-        }
-      },
+      "validators": {},
       "members": [],
       "public_owners": [],
       "notes": "内嵌八份之外，Player+20A8动态HUD必须按同一类型单独建owner；空owner与缺失来源分开。 原生字节事实保留；委派范围按本表具名结果承接，不按原生owner全量复制。",
@@ -894,16 +965,30 @@
         "subject": "body key/use/shape＋具体HUD实例用途",
         "producer": "832C10正常完成的24心／槽／库存与动态HUD owner",
         "adapter": "player_h_u_d_fixed_adapter",
-        "dependencies": "所属组选择、身体key/use/shape、必要P0—P6绘制拓扑和图像／动画资源；不依赖全地图。",
+        "dependencies": "所属组选择、身体key/use/shape、必要P0—P6绘制拓扑和图像／动画资源；不依赖全地图。 普通槽依赖同身体P3/P4及精确本地配置；低血／护盾／Drop由独立435时钟驱动，不因动画改变重发315。",
         "dependency_types": [
-          "EntityPlayer"
+          "EntityPlayer",
+          "PlayerHUDLocalClock"
         ],
         "sequence": "body",
         "atomic_scope": "body-target",
         "validity": "同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。",
         "invalidation": "切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。",
         "contribution_identity": "subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。",
-        "source_gap": "必须取得所有控制组的合法来源，不能仅采Host当前两槽／八内嵌槽，不调用Update／Recompute补值。"
+        "source_gap": "必须取得所有控制组的合法来源，不能仅采Host当前两槽／八内嵌槽，不调用Update／Recompute补值。",
+        "envelope": {
+          "mode": "group",
+          "subject_type": "EntityPlayer",
+          "cacheable": true,
+          "clock": false,
+          "topology": true,
+          "paired_streams": 0,
+          "passes": [
+            "Context",
+            "Value"
+          ],
+          "subject_field": "player"
+        }
       },
       "contexts": {
         "batch": {
@@ -1220,7 +1305,20 @@
         "validity": "同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。",
         "invalidation": "切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。",
         "contribution_identity": "subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。",
-        "source_gap": "必须取得所有控制组的合法来源，不能仅采Host当前两槽／八内嵌槽，不调用Update／Recompute补值。"
+        "source_gap": "必须取得所有控制组的合法来源，不能仅采Host当前两槽／八内嵌槽，不调用Update／Recompute补值。",
+        "envelope": {
+          "mode": "group",
+          "subject_type": "EntityPlayer",
+          "cacheable": true,
+          "clock": false,
+          "topology": true,
+          "paired_streams": 0,
+          "passes": [
+            "Context",
+            "Value"
+          ],
+          "subject_field": "player"
+        }
       },
       "contexts": {
         "batch": {
@@ -1333,7 +1431,20 @@
         "validity": "同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。",
         "invalidation": "切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。",
         "contribution_identity": "subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。",
-        "source_gap": "正常来源缓存与运行adapter尚待第10／13步接线。"
+        "source_gap": "正常来源缓存与运行adapter尚待第10／13步接线。",
+        "envelope": {
+          "mode": "group",
+          "subject_type": "world",
+          "cacheable": true,
+          "clock": false,
+          "topology": false,
+          "paired_streams": 2,
+          "passes": [
+            "Context",
+            "Value"
+          ],
+          "subject_field": ""
+        }
       },
       "contexts": {
         "batch": {
@@ -1437,26 +1548,11 @@
           "size": 8,
           "name": "text_image",
           "type": "ImageStrongPair",
-          "category": "资源",
-          "semantics": "实际Image与本地引用计数control",
+          "category": "派生",
+          "semantics": "实际Image与本地引用计数control；版本61起仅本地缓存，不再声明image-table依赖；文字与必要样式由main_text/sub_text承接。",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/HUD_Message.zhl; J273 831620/8317A0/8318D0/831AD0/97E590",
           "status": "已核",
-          "native_type": "ImageStrongPair",
-          "wire": {
-            "kind": "resource",
-            "type": "u16",
-            "host": "h_u_d_message_text_image_capture",
-            "client": "h_u_d_message_text_image_apply",
-            "target": "image-table",
-            "when": {
-              "field": "showing",
-              "predicate": "h_u_d_message_showing_showing__1",
-              "test": {
-                "kind": "equal",
-                "value": 1
-              }
-            }
-          }
+          "native_type": "ImageStrongPair"
         },
         {
           "offset": 32,
@@ -1521,15 +1617,19 @@
           "sequence": "world",
           "fields": [
             "showing",
-            "text_image",
+            "main_text",
+            "sub_text",
             "streak"
           ]
         }
       ],
       "conversions": {
-        "h_u_d_message_text_image_capture": "实际Image与本地引用计数control；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
-        "h_u_d_message_text_image_apply": "实际Image与本地引用计数control；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。",
-        "h_u_d_message_showing_showing__1": "showing==1；只取同块先行字段，不读失效分支旧payload。"
+        "h_u_d_message_showing_showing__1": "showing==1；只取同块先行字段，不读失效分支旧payload。",
+        "hudmessage_showing_is_one": "showing==1；只读同块先行字段，缺席不读取旧负载。",
+        "hudmessage_main_text_capture": "HUDMessage+0实际主文字及color1／具名字体样式；原生指针不发送。；正常Host已封存的具名文字／样式，非指针解引用许可；缺源报Gap。",
+        "hudmessage_main_text_apply": "HUDMessage+0实际主文字及color1／具名字体样式；原生指针不发送。；交本地纯显示缓存owner；不调用整段HUD Update／Show或Lua。",
+        "hudmessage_sub_text_capture": "HUDMessage+4实际副文字及color2／具名字体样式；原生指针不发送。；正常Host已封存的具名文字／样式，非指针解引用许可；缺源报Gap。",
+        "hudmessage_sub_text_apply": "HUDMessage+4实际副文字及color2／具名字体样式；原生指针不发送。；交本地纯显示缓存owner；不调用整段HUD Update／Show或Lua。"
       },
       "validators": {
         "showing": {
@@ -1539,8 +1639,44 @@
       },
       "members": [],
       "public_owners": [],
-      "notes": "尾部未核用途仍UNKNOWN。普通样式可经具名完整recipe重建，现有通用字符串+路径不是完整recipe证明；不得把UNKNOWN尾部静默当不影响显示。 原生字节事实保留；委派范围按本表具名结果承接，不按原生owner全量复制。",
-      "record_limit": 4194304
+      "notes": "尾部未核用途仍UNKNOWN。普通样式可经具名完整recipe重建，现有通用字符串+路径不是完整recipe证明；不得把UNKNOWN尾部静默当不影响显示。 原生字节事实保留；委派范围按本表具名结果承接，不按原生owner全量复制。 版本61替换文字图引用；尾部UNKNOWN不改判，字体／首码与安全文字生成leaf仍需第10／13步落实，不能回退传像素。",
+      "record_limit": 4194304,
+      "companions": [
+        {
+          "name": "main_text",
+          "type": "DisplayTextRun",
+          "semantics": "HUDMessage+0实际主文字及color1／具名字体样式；原生指针不发送。",
+          "evidence": "docs/design/binary-state/local-media-presentation.md；第9步版本61文字／本地历史合同",
+          "status": "已核",
+          "host": "hudmessage_main_text_capture",
+          "client": "hudmessage_main_text_apply",
+          "when": {
+            "field": "showing",
+            "predicate": "hudmessage_showing_is_one",
+            "test": {
+              "kind": "equal",
+              "value": 1
+            }
+          }
+        },
+        {
+          "name": "sub_text",
+          "type": "DisplayTextRun",
+          "semantics": "HUDMessage+4实际副文字及color2／具名字体样式；原生指针不发送。",
+          "evidence": "docs/design/binary-state/local-media-presentation.md；第9步版本61文字／本地历史合同",
+          "status": "已核",
+          "host": "hudmessage_sub_text_capture",
+          "client": "hudmessage_sub_text_apply",
+          "when": {
+            "field": "showing",
+            "predicate": "hudmessage_showing_is_one",
+            "test": {
+              "kind": "equal",
+              "value": 1
+            }
+          }
+        }
+      ]
     },
     {
       "type": "HistoryHUDItem",
@@ -1800,7 +1936,20 @@
         "validity": "同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。",
         "invalidation": "切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。",
         "contribution_identity": "subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。",
-        "source_gap": "必须取得所有控制组的合法来源，不能仅采Host当前两槽／八内嵌槽，不调用Update／Recompute补值。"
+        "source_gap": "必须取得所有控制组的合法来源，不能仅采Host当前两槽／八内嵌槽，不调用Update／Recompute补值。",
+        "envelope": {
+          "mode": "group",
+          "subject_type": "EntityPlayer",
+          "cacheable": true,
+          "clock": false,
+          "topology": true,
+          "paired_streams": 0,
+          "passes": [
+            "Context",
+            "Value"
+          ],
+          "subject_field": "player"
+        }
       },
       "contexts": {
         "batch": {
@@ -2155,18 +2304,11 @@
           "size": 8,
           "name": "fortune_image",
           "type": "ImageStrongPair",
-          "category": "资源",
-          "semantics": "实际Image与本地引用计数control",
+          "category": "派生",
+          "semantics": "实际Image与本地引用计数control；版本61起是本端文字缓存，不形成Host图像资源；fortune_text提供实际有序文本。",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/HUD.zhl; J273 979E10/97ACF0/97AE90/97C300/97E590/97F7A0/97FD50",
           "status": "已核",
-          "native_type": "ImageStrongPair",
-          "wire": {
-            "kind": "resource",
-            "type": "u16",
-            "host": "h_u_d_fortune_image_capture",
-            "client": "h_u_d_fortune_image_apply",
-            "target": "image-table"
-          }
+          "native_type": "ImageStrongPair"
         },
         {
           "offset": 21396,
@@ -2495,7 +2637,7 @@
             "message_stack",
             "message_players",
             "fortune",
-            "fortune_image",
+            "fortune_text",
             "stats",
             "boss_fill",
             "boss_flash",
@@ -2513,8 +2655,6 @@
         }
       ],
       "conversions": {
-        "h_u_d_fortune_image_capture": "实际Image与本地引用计数control；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
-        "h_u_d_fortune_image_apply": "实际Image与本地引用计数control；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。",
         "h_u_d_boss_bar_normal_capture": "实际Image与本地引用计数control；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
         "h_u_d_boss_bar_normal_apply": "实际Image与本地引用计数control；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。",
         "h_u_d_boss_bar_alternate_capture": "实际Image与本地引用计数control；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
@@ -2528,7 +2668,9 @@
         "h_u_d_message_players_capture": "四份参与者附近小横幅；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
         "h_u_d_message_players_apply": "四份参与者附近小横幅；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。",
         "h_u_d_boss_final_placement_capture": "正常Host已选的Boss显示放置分支；只表达具名上／下布局，具体视口坐标本地计算。；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
-        "h_u_d_boss_final_placement_apply": "正常Host已选的Boss显示放置分支；只表达具名上／下布局，具体视口坐标本地计算。；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。"
+        "h_u_d_boss_final_placement_apply": "正常Host已选的Boss显示放置分支；只表达具名上／下布局，具体视口坐标本地计算。；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。",
+        "hud_fortune_text_capture": "正常ShowFortuneText生产窗口封存实际文本行与样式；原生Image不能反推出文字，冷连接所需自有缓存由第10步实现。；正常Host已封存的具名文字／样式，非指针解引用许可；缺源报Gap。",
+        "hud_fortune_text_apply": "正常ShowFortuneText生产窗口封存实际文本行与样式；原生Image不能反推出文字，冷连接所需自有缓存由第10步实现。；交本地纯显示缓存owner；不调用整段HUD Update／Show或Lua。"
       },
       "validators": {
         "boss_fill": {
@@ -2600,7 +2742,7 @@
         "subject": "run／各具名消息用途",
         "producer": "97AE90正常生产完成及消息图像／Boss正常消费",
         "adapter": "hud_shared_fixed_adapter",
-        "dependencies": "同world共享显示资源与11条消息用途；身体HUD按body目标另提交。",
+        "dependencies": "同world共享显示资源与11条消息用途；身体HUD按body目标另提交。 版本61消息／fortune依赖文字、有限字体样式和本地生成ready，不再依赖Host文字图。",
         "dependency_types": [
           "PresentationDrawClock"
         ],
@@ -2609,7 +2751,20 @@
         "validity": "同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。",
         "invalidation": "切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。",
         "contribution_identity": "subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。",
-        "source_gap": "正常来源缓存与运行adapter尚待第10／13步接线。"
+        "source_gap": "正常来源缓存与运行adapter尚待第10／13步接线。",
+        "envelope": {
+          "mode": "group",
+          "subject_type": "world",
+          "cacheable": true,
+          "clock": true,
+          "topology": false,
+          "paired_streams": 0,
+          "passes": [
+            "Context",
+            "Value"
+          ],
+          "subject_field": ""
+        }
       },
       "catalog_rows": [
         {
@@ -3013,6 +3168,17 @@
           "fields": [],
           "route": "Host正常生产／命令，不在Client重放",
           "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责"
+        }
+      ],
+      "companions": [
+        {
+          "name": "fortune_text",
+          "type": "FortuneText",
+          "semantics": "正常ShowFortuneText生产窗口封存实际文本行与样式；原生Image不能反推出文字，冷连接所需自有缓存由第10步实现。",
+          "evidence": "docs/design/binary-state/local-media-presentation.md；第9步版本61文字／本地历史合同",
+          "status": "已核",
+          "host": "hud_fortune_text_capture",
+          "client": "hud_fortune_text_apply"
         }
       ]
     },
@@ -3449,7 +3615,20 @@
         "validity": "同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。",
         "invalidation": "切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。",
         "contribution_identity": "subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。",
-        "source_gap": "正常焦点／徽标缓存与安全地图合成待10／13步；不调用Refresh／Update／分数重算；169无合法描述必须Gap。"
+        "source_gap": "正常焦点／徽标缓存与安全地图合成待10／13步；不调用Refresh／Update／分数重算；169无合法描述必须Gap。",
+        "envelope": {
+          "mode": "group",
+          "subject_type": "world",
+          "cacheable": true,
+          "clock": false,
+          "topology": false,
+          "paired_streams": 0,
+          "passes": [
+            "Context",
+            "Value"
+          ],
+          "subject_field": ""
+        }
       },
       "contexts": {
         "batch": {
@@ -6196,7 +6375,7 @@
           "name": "previous_surface",
           "type": "ImageStrongPair",
           "category": "派生",
-          "semantics": "实际Image与本地引用计数control；具体下行职责见具名结果，不直接复制该范围。；由RoomTransitionResult固定最终结果承接，不与生产输入重复发送。",
+          "semantics": "实际Image与本地引用计数control；原生surface事实保留，版本61起当前Client直接切房，不委派网络结果或形成资源依赖。",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/RoomTransition.zhl；J273 8273C0",
           "status": "已核",
           "native_type": "ImageStrongPair"
@@ -6207,7 +6386,7 @@
           "name": "next_surface",
           "type": "ImageStrongPair",
           "category": "派生",
-          "semantics": "实际Image与本地引用计数control；具体下行职责见具名结果，不直接复制该范围。；由RoomTransitionResult固定最终结果承接，不与生产输入重复发送。",
+          "semantics": "实际Image与本地引用计数control；原生surface事实保留，版本61起当前Client直接切房，不委派网络结果或形成资源依赖。",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/RoomTransition.zhl；J273 8273C0",
           "status": "已核",
           "native_type": "ImageStrongPair"
@@ -6218,7 +6397,7 @@
           "name": "versus",
           "type": "ANM2",
           "category": "派生",
-          "semantics": "内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传；具体下行职责见具名结果，不直接复制该范围。；由RoomTransitionResult固定最终结果承接，不与生产输入重复发送。",
+          "semantics": "内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传；具体下行职责见具名结果，不直接复制该范围。；由BossVersusResult固定最终结果承接，不与生产输入重复发送。",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/RoomTransition.zhl；J273 8273C0",
           "status": "已核",
           "native_type": "ANM2"
@@ -6239,7 +6418,7 @@
           "name": "extra_portraits",
           "type": "map<int,ANM2>",
           "category": "派生",
-          "semantics": "按层ID的额外肖像Sprite；具体下行职责见具名结果，不直接复制该范围。；由RoomTransitionResult固定最终结果承接，不与生产输入重复发送。",
+          "semantics": "按层ID的额外肖像Sprite；具体下行职责见具名结果，不直接复制该范围。；由BossVersusResult固定最终结果承接，不与生产输入重复发送。",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/RoomTransition.zhl；J273 8273C0",
           "status": "已核"
         },
@@ -8446,7 +8625,20 @@
         "validity": "同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。",
         "invalidation": "切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。",
         "contribution_identity": "subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。",
-        "source_gap": "正常来源缓存与运行adapter尚待第10／13步接线。"
+        "source_gap": "正常来源缓存与运行adapter尚待第10／13步接线。",
+        "envelope": {
+          "mode": "group",
+          "subject_type": "world",
+          "cacheable": false,
+          "clock": false,
+          "topology": false,
+          "paired_streams": 0,
+          "passes": [
+            "Context",
+            "Value"
+          ],
+          "subject_field": ""
+        }
       },
       "contexts": {
         "batch": {
@@ -8555,7 +8747,22 @@
         "validity": "同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。",
         "invalidation": "切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。",
         "contribution_identity": "subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。",
-        "source_gap": "正常来源缓存与运行adapter尚待第10／13步接线。"
+        "source_gap": "正常来源缓存与运行adapter尚待第10／13步接线。",
+        "envelope": {
+          "mode": "group",
+          "subject_type": "EntityPickup",
+          "cacheable": false,
+          "clock": true,
+          "topology": false,
+          "paired_streams": 0,
+          "passes": [
+            "Context",
+            "RandomPrimary",
+            "RandomSecondary",
+            "RandomRecursive"
+          ],
+          "subject_field": ""
+        }
       },
       "contexts": {
         "batch": {
@@ -8664,7 +8871,22 @@
         "validity": "同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。",
         "invalidation": "切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。",
         "contribution_identity": "subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。",
-        "source_gap": "正常来源缓存与运行adapter尚待第10／13步接线。"
+        "source_gap": "正常来源缓存与运行adapter尚待第10／13步接线。",
+        "envelope": {
+          "mode": "group",
+          "subject_type": "EntityFamiliar",
+          "cacheable": false,
+          "clock": true,
+          "topology": false,
+          "paired_streams": 0,
+          "passes": [
+            "Context",
+            "RandomPrimary",
+            "RandomSecondary",
+            "RandomRecursive"
+          ],
+          "subject_field": ""
+        }
       },
       "contexts": {
         "batch": {
@@ -8848,7 +9070,20 @@
         "validity": "同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。",
         "invalidation": "切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。",
         "contribution_identity": "subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。",
-        "source_gap": "逐身体／槽位正常结果缓存待接线；GetPillColor本身无原生显示消费者证明，不执行它补值。"
+        "source_gap": "逐身体／槽位正常结果缓存待接线；GetPillColor本身无原生显示消费者证明，不执行它补值。",
+        "envelope": {
+          "mode": "group",
+          "subject_type": "EntityPlayer",
+          "cacheable": true,
+          "clock": false,
+          "topology": true,
+          "paired_streams": 0,
+          "passes": [
+            "Context",
+            "Value"
+          ],
+          "subject_field": ""
+        }
       },
       "contexts": {
         "batch": {
@@ -9055,7 +9290,20 @@
         "validity": "同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。",
         "invalidation": "切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。",
         "contribution_identity": "subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。",
-        "source_gap": "全部预览正常来源覆盖仍需第10步核定；256仅保护上限，超限报Gap不截断。"
+        "source_gap": "全部预览正常来源覆盖仍需第10步核定；256仅保护上限，超限报Gap不截断。",
+        "envelope": {
+          "mode": "group",
+          "subject_type": "EntityPickup",
+          "cacheable": true,
+          "clock": false,
+          "topology": false,
+          "paired_streams": 0,
+          "passes": [
+            "Context",
+            "Value"
+          ],
+          "subject_field": ""
+        }
       },
       "contexts": {
         "batch": {
@@ -9150,7 +9398,20 @@
         "validity": "同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。",
         "invalidation": "切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。",
         "contribution_identity": "subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。",
-        "source_gap": "正常来源缓存与运行adapter尚待第10／13步接线。"
+        "source_gap": "正常来源缓存与运行adapter尚待第10／13步接线。",
+        "envelope": {
+          "mode": "group",
+          "subject_type": "EntityPlayer",
+          "cacheable": true,
+          "clock": false,
+          "topology": true,
+          "paired_streams": 0,
+          "passes": [
+            "Context",
+            "Value"
+          ],
+          "subject_field": ""
+        }
       },
       "contexts": {
         "batch": {
@@ -9272,7 +9533,7 @@
       "validators": {},
       "members": [],
       "public_owners": [],
-      "notes": "",
+      "notes": " 版本70保留group、body、roles与display_order：现有P7不足以唯一推出显示身体选择、关联健康资格与显示顺序；位置、行列、缩放、History前缀及裁剪均本地生成，不增发HUD槽号。",
       "extent": "protocol",
       "synthetic_fields": [
         {
@@ -9326,7 +9587,20 @@
         "validity": "同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。",
         "invalidation": "切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。",
         "contribution_identity": "subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。",
-        "source_gap": "所有控制组合法History／Stat来源必须补齐；Host当前两槽不足时明确Gap，不借其他组结果。"
+        "source_gap": "所有控制组合法History／Stat来源必须补齐；Host当前两槽不足时明确Gap，不借其他组结果。",
+        "envelope": {
+          "mode": "group",
+          "subject_type": "PlayerControlGroup",
+          "cacheable": true,
+          "clock": false,
+          "topology": false,
+          "paired_streams": 2,
+          "passes": [
+            "Context",
+            "Value"
+          ],
+          "subject_field": "group"
+        }
       },
       "contexts": {
         "batch": {
@@ -9481,7 +9755,9 @@
             "vertex_color_2",
             "vertex_space_2",
             "vertex_color_3",
-            "vertex_space_3"
+            "vertex_space_3",
+            "pixelation_amount",
+            "clip_plane"
           ]
         }
       ],
@@ -9519,7 +9795,11 @@
         "presentation_image_contribution_vertex_color_3_capture": "实际第3顶点KColor RGBA。；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
         "presentation_image_contribution_vertex_color_3_apply": "实际第3顶点KColor RGBA。；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。",
         "presentation_image_contribution_vertex_space_3_capture": "该顶点KColor颜色空间标签，不强制丢弃。；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
-        "presentation_image_contribution_vertex_space_3_apply": "该顶点KColor颜色空间标签，不强制丢弃。；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。"
+        "presentation_image_contribution_vertex_space_3_apply": "该顶点KColor颜色空间标签，不强制丢弃。；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。",
+        "resource_pixelation_amount_encode": "封存实际固定shader输入。",
+        "resource_pixelation_amount_decode": "固定本地adapter消费，不执行任意参数。",
+        "resource_clip_plane_encode": "封存实际固定shader输入。",
+        "resource_clip_plane_decode": "固定本地adapter消费，不执行任意参数。"
       },
       "validators": {
         "destination": {
@@ -9557,11 +9837,40 @@
         "vertex_color_3": {
           "kind": "finite",
           "scalar": "f32"
+        },
+        "pixelation_amount": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "clip_plane": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "blend_view": {
+          "kind": "enum",
+          "scalar": "u8",
+          "values": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        "sampler_view": {
+          "kind": "range",
+          "scalar": "u8",
+          "min": 0,
+          "max": 15
         }
       },
       "members": [],
       "public_owners": [],
-      "notes": "",
+      "notes": " 版本63补齐ColorOffset的pixelation_amount及clip_plane共16B；当前213B，原字节尺寸为历史。",
       "extent": "protocol",
       "synthetic_fields": [
         {
@@ -9584,7 +9893,8 @@
             "type": "u16",
             "host": "presentation_image_contribution_image_capture",
             "client": "presentation_image_contribution_image_apply",
-            "target": "image-table"
+            "target": "image-table",
+            "value_rule": "non-null"
           }
         },
         {
@@ -9599,7 +9909,8 @@
             "type": "u16",
             "host": "presentation_image_contribution_shader_capture",
             "client": "presentation_image_contribution_shader_apply",
-            "target": "shader-table"
+            "target": "shader-table",
+            "value_rule": "non-null"
           }
         },
         {
@@ -9713,9 +10024,25 @@
           "evidence": "docs/design/binary-state/8-run-presentation.md；presentation-result-batches.md；presentation-source-synchronization-review.md",
           "host": "presentation_image_contribution_vertex_space_3_capture",
           "client": "presentation_image_contribution_vertex_space_3_apply"
+        },
+        {
+          "name": "pixelation_amount",
+          "type": "f32",
+          "semantics": "ColorOffset实际提交上下文；不重用未来全局值",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_pixelation_amount_encode",
+          "client": "resource_pixelation_amount_decode"
+        },
+        {
+          "name": "clip_plane",
+          "type": "f32[3]",
+          "semantics": "ColorOffset实际clip normal.xy及threshold",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_clip_plane_encode",
+          "client": "resource_clip_plane_decode"
         }
       ],
-      "record_limit": 197,
+      "record_limit": 213,
       "contexts": {
         "identity": {
           "type": "PresentationContributionContext",
@@ -9813,7 +10140,20 @@
         "validity": "同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。",
         "invalidation": "切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。",
         "contribution_identity": "subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。",
-        "source_gap": "正常来源缓存与运行adapter尚待第10／13步接线。"
+        "source_gap": "正常来源缓存与运行adapter尚待第10／13步接线。",
+        "envelope": {
+          "mode": "group",
+          "subject_type": "world",
+          "cacheable": true,
+          "clock": true,
+          "topology": false,
+          "paired_streams": 0,
+          "passes": [
+            "Context",
+            "Value"
+          ],
+          "subject_field": ""
+        }
       },
       "contexts": {
         "batch": {
@@ -9917,7 +10257,20 @@
         "validity": "同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。",
         "invalidation": "切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。",
         "contribution_identity": "subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。",
-        "source_gap": "正常来源缓存与运行adapter尚待第10／13步接线。"
+        "source_gap": "正常来源缓存与运行adapter尚待第10／13步接线。",
+        "envelope": {
+          "mode": "group",
+          "subject_type": "world",
+          "cacheable": true,
+          "clock": true,
+          "topology": false,
+          "paired_streams": 0,
+          "passes": [
+            "Context",
+            "Value"
+          ],
+          "subject_field": ""
+        }
       },
       "contexts": {
         "batch": {
@@ -10021,7 +10374,20 @@
         "validity": "同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。",
         "invalidation": "切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。",
         "contribution_identity": "subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。",
-        "source_gap": "正常来源缓存与运行adapter尚待第10／13步接线。"
+        "source_gap": "正常来源缓存与运行adapter尚待第10／13步接线。",
+        "envelope": {
+          "mode": "group",
+          "subject_type": "world",
+          "cacheable": true,
+          "clock": true,
+          "topology": false,
+          "paired_streams": 0,
+          "passes": [
+            "Context",
+            "Value"
+          ],
+          "subject_field": ""
+        }
       },
       "contexts": {
         "batch": {
@@ -10053,19 +10419,16 @@
           "sequence": "world",
           "fields": [
             "present",
-            "amount",
-            "image"
+            "amount"
           ]
         }
       ],
       "conversions": {
-        "screen_hallucination_result_present_capture": "当前world hallucination pass有效性；缺图像不改隐藏。；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
-        "screen_hallucination_result_present_apply": "当前world hallucination pass有效性；缺图像不改隐藏。；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。",
-        "screen_hallucination_result_amount_capture": "6F89DE—6F8A33当前最终强度；ManagerFrame%4反馈选择复用D0。；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
-        "screen_hallucination_result_amount_apply": "6F89DE—6F8A33当前最终强度；ManagerFrame%4反馈选择复用D0。；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。",
-        "screen_hallucination_result_present_present__1": "present==1；只取同块先行字段，不读失效分支旧payload。",
-        "screen_hallucination_result_image_capture": "Game+25A98正常已完成前画面／同world完整recipe；来源内容闭包未成立时报Gap。；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
-        "screen_hallucination_result_image_apply": "Game+25A98正常已完成前画面／同world完整recipe；来源内容闭包未成立时报Gap。；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。"
+        "screen_hallucination_result_present_capture": "当前world hallucination pass有效性；本端无历史不改关闭，也不要求Host图像。；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
+        "screen_hallucination_result_present_apply": "当前world hallucination pass有效性；本端无历史不改关闭，也不要求Host图像。；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。",
+        "screen_hallucination_result_amount_capture": "6F89DE—6F8A33当前最终强度；本端历史反馈由本地owner管理，可复用D0相位。；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
+        "screen_hallucination_result_amount_apply": "6F89DE—6F8A33当前最终强度；本端历史反馈由本地owner管理，可复用D0相位。；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。",
+        "screen_hallucination_result_present_present__1": "present==1；只取同块先行字段，不读失效分支旧payload。"
       },
       "validators": {
         "present": {
@@ -10085,7 +10448,7 @@
         {
           "name": "present",
           "type": "u8",
-          "semantics": "当前world hallucination pass有效性；缺图像不改隐藏。",
+          "semantics": "当前world hallucination pass有效性；本端无历史不改关闭，也不要求Host图像。",
           "evidence": "docs/design/binary-state/8-run-presentation.md；presentation-result-batches.md；presentation-source-synchronization-review.md",
           "host": "screen_hallucination_result_present_capture",
           "client": "screen_hallucination_result_present_apply"
@@ -10093,7 +10456,7 @@
         {
           "name": "amount",
           "type": "f32",
-          "semantics": "6F89DE—6F8A33当前最终强度；ManagerFrame%4反馈选择复用D0。",
+          "semantics": "6F89DE—6F8A33当前最终强度；本端历史反馈由本地owner管理，可复用D0相位。",
           "evidence": "docs/design/binary-state/8-run-presentation.md；presentation-result-batches.md；presentation-source-synchronization-review.md",
           "host": "screen_hallucination_result_amount_capture",
           "client": "screen_hallucination_result_amount_apply",
@@ -10111,38 +10474,15 @@
               }
             }
           }
-        },
-        {
-          "name": "image",
-          "type": "u16",
-          "semantics": "Game+25A98正常已完成前画面／同world完整recipe；来源内容闭包未成立时报Gap。",
-          "evidence": "docs/design/binary-state/8-run-presentation.md；presentation-result-batches.md；presentation-source-synchronization-review.md",
-          "host": "screen_hallucination_result_image_capture",
-          "client": "screen_hallucination_result_image_apply",
-          "wire": {
-            "kind": "resource",
-            "type": "u16",
-            "host": "screen_hallucination_result_image_capture",
-            "client": "screen_hallucination_result_image_apply",
-            "target": "image-table",
-            "when": {
-              "field": "present",
-              "predicate": "screen_hallucination_result_present_present__1",
-              "test": {
-                "kind": "equal",
-                "value": 1
-              }
-            }
-          }
         }
       ],
-      "record_limit": 7,
+      "record_limit": 5,
       "presentation_contract": {
         "owner": "屏幕hallucination",
         "subject": "world／固定pass",
         "producer": "6F89DE—6F8C2A正常消费",
         "adapter": "screen_hallucination_fixed_adapter",
-        "dependencies": "D0、同world实际图像资源与固定SourceQuad规则。",
+        "dependencies": "同world效果参数与D0；本端已提交画面初始化历史，不声明Game+25A98或BE72B4的Host资源／Wait。",
         "dependency_types": [
           "PresentationDrawClock"
         ],
@@ -10151,7 +10491,20 @@
         "validity": "同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。",
         "invalidation": "切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。",
         "contribution_identity": "subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。",
-        "source_gap": "前画面纯world内容／坐标闭包及GPU物化仍待接线，不采个人菜单／Online画面。"
+        "source_gap": "本地缓存刷新／冻结／退休和纯显示leaf仍待第13步；共享背景变化由Host状态承担，不调用完整ShowHallucination。",
+        "envelope": {
+          "mode": "group",
+          "subject_type": "world",
+          "cacheable": true,
+          "clock": true,
+          "topology": false,
+          "paired_streams": 0,
+          "passes": [
+            "Context",
+            "Value"
+          ],
+          "subject_field": ""
+        }
       },
       "contexts": {
         "batch": {
@@ -10226,7 +10579,20 @@
         "validity": "同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。",
         "invalidation": "切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。",
         "contribution_identity": "subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。",
-        "source_gap": "正常来源缓存与运行adapter尚待第10／13步接线。"
+        "source_gap": "正常来源缓存与运行adapter尚待第10／13步接线。",
+        "envelope": {
+          "mode": "group",
+          "subject_type": "world",
+          "cacheable": true,
+          "clock": true,
+          "topology": false,
+          "paired_streams": 0,
+          "passes": [
+            "Context",
+            "Value"
+          ],
+          "subject_field": ""
+        }
       },
       "contexts": {
         "batch": {
@@ -10349,14 +10715,14 @@
           "name": "ScreenEffectsResult具名当前结果",
           "sequence": "world",
           "fields": [
-            "snapshot_overlays",
+            "local_history_overlays",
             "fades"
           ]
         }
       ],
       "conversions": {
-        "screen_effects_result_snapshot_overlays_capture": "6F7EF1／6F8425等各次snapshot实际内容／颜色及顺序，不合并最后alpha。；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
-        "screen_effects_result_snapshot_overlays_apply": "6F7EF1／6F8425等各次snapshot实际内容／颜色及顺序，不合并最后alpha。；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。",
+        "screen_effects_result_snapshot_overlays_capture": "Hallucination Snapshot的有序颜色／分支描述；历史画面取本端，冷连接以合法当前画面初始化，不形成Host图像依赖。；仅纯显示，不调用ShowHallucination／玩法更新。",
+        "screen_effects_result_snapshot_overlays_apply": "Hallucination Snapshot的有序颜色／分支描述；历史画面取本端，冷连接以合法当前画面初始化，不形成Host图像依赖。；仅纯显示，不调用ShowHallucination／玩法更新。",
         "screen_effects_result_fades_capture": "实际选中fade／插画与白色覆盖clamp(value/90,0,1)的有序结果；无输出须Host确认。；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
         "screen_effects_result_fades_apply": "实际选中fade／插画与白色覆盖clamp(value/90,0,1)的有序结果；无输出须Host确认。；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。"
       },
@@ -10367,21 +10733,22 @@
       "extent": "protocol",
       "synthetic_fields": [
         {
-          "name": "snapshot_overlays",
-          "type": "PresentationImageContribution",
-          "semantics": "6F7EF1／6F8425等各次snapshot实际内容／颜色及顺序，不合并最后alpha。",
-          "evidence": "docs/design/binary-state/8-run-presentation.md；presentation-result-batches.md；presentation-source-synchronization-review.md",
+          "name": "local_history_overlays",
+          "type": "LocalHistoryOverlay",
+          "semantics": "Hallucination Snapshot的有序颜色／分支描述；历史画面取本端，冷连接以合法当前画面初始化，不形成Host图像依赖。",
+          "evidence": "docs/design/binary-state/local-media-presentation.md；第9步版本61文字／本地历史合同",
           "host": "screen_effects_result_snapshot_overlays_capture",
           "client": "screen_effects_result_snapshot_overlays_apply",
           "wire": {
             "kind": "container",
-            "element": "PresentationImageContribution",
+            "element": "LocalHistoryOverlay",
             "storage": "aggregate",
             "stride": 0,
             "limit": 32,
             "count_type": "u16",
             "host": "screen_effects_result_snapshot_overlays_capture",
-            "client": "screen_effects_result_snapshot_overlays_apply"
+            "client": "screen_effects_result_snapshot_overlays_apply",
+            "max_bytes": 1474
           }
         },
         {
@@ -10419,7 +10786,22 @@
         "validity": "同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。",
         "invalidation": "切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。",
         "contribution_identity": "subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。",
-        "source_gap": "全部纯world图像内容与坐标解释仍待落实；无完整贡献不接受目标。"
+        "source_gap": "本地历史缓存及固定显示adapter仍待第13步；fades等独立本地资源必要依赖仍须完整。",
+        "envelope": {
+          "mode": "group",
+          "subject_type": "world",
+          "cacheable": false,
+          "clock": true,
+          "topology": false,
+          "paired_streams": 0,
+          "passes": [
+            "Context",
+            "Value",
+            "LocalHistory",
+            "Fade"
+          ],
+          "subject_field": ""
+        }
       },
       "contexts": {
         "batch": {
@@ -10435,7 +10817,7 @@
       }
     },
     {
-      "type": "RoomTransitionResult",
+      "type": "BossVersusResult",
       "layout": 374,
       "native_size": 0,
       "parent": null,
@@ -10447,23 +10829,20 @@
       "blocks": [
         {
           "id": 0,
-          "name": "RoomTransitionResult具名当前结果",
+          "name": "BossVersusResult独立肖像有序贡献",
           "sequence": "world",
           "fields": [
             "present",
-            "sprites",
-            "images"
+            "sprites"
           ]
         }
       ],
       "conversions": {
-        "room_transition_result_present_capture": "Host已确认该共享显示实例有效；0不读旧payload，来源未闭合不是0。；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
-        "room_transition_result_present_apply": "Host已确认该共享显示实例有效；0不读旧payload，来源未闭合不是0。；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。",
-        "room_transition_result_sprites_capture": "正常有序最终Sprite贡献；逐layer／track／分支完整。；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
-        "room_transition_result_sprites_apply": "正常有序最终Sprite贡献；逐layer／track／分支完整。；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。",
-        "room_transition_result_present_present__1": "present==1；只取同块先行字段，不读失效分支旧payload。",
-        "room_transition_result_images_capture": "正常有序图像／遮罩／道具贡献及实际内容。；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
-        "room_transition_result_images_apply": "正常有序图像／遮罩／道具贡献及实际内容。；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。"
+        "boss_versus_result_present_capture": "Host已确认该共享显示实例有效；0不读旧payload，来源未闭合不是0。；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
+        "boss_versus_result_present_apply": "Host已确认该共享显示实例有效；0不读旧payload，来源未闭合不是0。；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。",
+        "boss_versus_result_sprites_capture": "正常有序最终Sprite贡献；逐layer／track／分支完整。；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
+        "boss_versus_result_sprites_apply": "正常有序最终Sprite贡献；逐layer／track／分支完整。；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。",
+        "boss_versus_result_present_present__1": "present==1；只取同块先行字段，不读失效分支旧payload。"
       },
       "validators": {
         "present": {
@@ -10473,7 +10852,7 @@
       },
       "members": [],
       "public_owners": [],
-      "notes": "",
+      "notes": " 版本61从旧RoomTransitionResult收窄并更名，编号374保留；只承接Boss versus独立Sprite／逐layer内容，不发送普通滑动／surface、路由或生产器。",
       "extent": "protocol",
       "synthetic_fields": [
         {
@@ -10481,16 +10860,16 @@
           "type": "u8",
           "semantics": "Host已确认该共享显示实例有效；0不读旧payload，来源未闭合不是0。",
           "evidence": "docs/design/binary-state/8-run-presentation.md；presentation-result-batches.md；presentation-source-synchronization-review.md",
-          "host": "room_transition_result_present_capture",
-          "client": "room_transition_result_present_apply"
+          "host": "boss_versus_result_present_capture",
+          "client": "boss_versus_result_present_apply"
         },
         {
           "name": "sprites",
           "type": "PresentationSpriteContribution",
           "semantics": "正常有序最终Sprite贡献；逐layer／track／分支完整。",
           "evidence": "docs/design/binary-state/8-run-presentation.md；presentation-result-batches.md；presentation-source-synchronization-review.md",
-          "host": "room_transition_result_sprites_capture",
-          "client": "room_transition_result_sprites_apply",
+          "host": "boss_versus_result_sprites_capture",
+          "client": "boss_versus_result_sprites_apply",
           "wire": {
             "kind": "container",
             "element": "PresentationSpriteContribution",
@@ -10498,11 +10877,11 @@
             "stride": 0,
             "limit": 512,
             "count_type": "u16",
-            "host": "room_transition_result_sprites_capture",
-            "client": "room_transition_result_sprites_apply",
+            "host": "boss_versus_result_sprites_capture",
+            "client": "boss_versus_result_sprites_apply",
             "when": {
               "field": "present",
-              "predicate": "room_transition_result_present_present__1",
+              "predicate": "boss_versus_result_present_present__1",
               "test": {
                 "kind": "equal",
                 "value": 1
@@ -10510,42 +10889,15 @@
             },
             "max_bytes": 4194304
           }
-        },
-        {
-          "name": "images",
-          "type": "PresentationImageContribution",
-          "semantics": "正常有序图像／遮罩／道具贡献及实际内容。",
-          "evidence": "docs/design/binary-state/8-run-presentation.md；presentation-result-batches.md；presentation-source-synchronization-review.md",
-          "host": "room_transition_result_images_capture",
-          "client": "room_transition_result_images_apply",
-          "wire": {
-            "kind": "container",
-            "element": "PresentationImageContribution",
-            "storage": "aggregate",
-            "stride": 0,
-            "limit": 4096,
-            "count_type": "u16",
-            "host": "room_transition_result_images_capture",
-            "client": "room_transition_result_images_apply",
-            "when": {
-              "field": "present",
-              "predicate": "room_transition_result_present_present__1",
-              "test": {
-                "kind": "equal",
-                "value": 1
-              }
-            },
-            "max_bytes": 1048576
-          }
         }
       ],
       "record_limit": 8388608,
       "presentation_contract": {
-        "owner": "Room切换显示",
+        "owner": "Boss versus独立显示",
         "subject": "world／具体显示实例",
-        "producer": "8273C0／827618—827741正常已变换提交；前后surface与结构事务绑定",
-        "adapter": "room_transition_result_fixed_adapter",
-        "dependencies": "同world结构／显示代次、成员／资源及有序贡献；不重复发送route／mode／Scene帧／Dogma／生产树。",
+        "producer": "Host正常Boss versus肖像／逐layer Sprite贡献消费",
+        "adapter": "boss_versus_result_fixed_adapter",
+        "dependencies": "同world显示代次、D0及具名Sprite本地资源；普通切房完整目标直接提交，不声明旧／新surface。",
         "dependency_types": [
           "PresentationDrawClock"
         ],
@@ -10554,7 +10906,21 @@
         "validity": "同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。",
         "invalidation": "切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。",
         "contribution_identity": "subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。",
-        "source_gap": "各用途完整来源覆盖、逻辑坐标及资源内容闭包仍待第10／13步落实；现有原生UNKNOWN保留。"
+        "source_gap": "Boss versus完整正常来源与固定显示adapter仍待第10／13步；普通切房不创建必需结果组或surface Wait。",
+        "envelope": {
+          "mode": "group",
+          "subject_type": "world",
+          "cacheable": false,
+          "clock": true,
+          "topology": false,
+          "paired_streams": 0,
+          "passes": [
+            "Context",
+            "Value",
+            "Sprite"
+          ],
+          "subject_field": ""
+        }
       },
       "contexts": {
         "batch": {
@@ -10689,7 +11055,22 @@
         "validity": "同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。",
         "invalidation": "切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。",
         "contribution_identity": "subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。",
-        "source_gap": "各用途完整来源覆盖、逻辑坐标及资源内容闭包仍待第10／13步落实；现有原生UNKNOWN保留。"
+        "source_gap": "各用途完整来源覆盖、逻辑坐标及资源内容闭包仍待第10／13步落实；现有原生UNKNOWN保留。",
+        "envelope": {
+          "mode": "group",
+          "subject_type": "world",
+          "cacheable": false,
+          "clock": true,
+          "topology": false,
+          "paired_streams": 0,
+          "passes": [
+            "Context",
+            "Value",
+            "Sprite",
+            "Image"
+          ],
+          "subject_field": ""
+        }
       },
       "contexts": {
         "batch": {
@@ -10876,7 +11257,22 @@
         "validity": "同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。",
         "invalidation": "切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。",
         "contribution_identity": "subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。",
-        "source_gap": "各用途完整来源覆盖、逻辑坐标及资源内容闭包仍待第10／13步落实；现有原生UNKNOWN保留。"
+        "source_gap": "各用途完整来源覆盖、逻辑坐标及资源内容闭包仍待第10／13步落实；现有原生UNKNOWN保留。",
+        "envelope": {
+          "mode": "group",
+          "subject_type": "world",
+          "cacheable": false,
+          "clock": true,
+          "topology": false,
+          "paired_streams": 0,
+          "passes": [
+            "Context",
+            "Value",
+            "Sprite",
+            "Image"
+          ],
+          "subject_field": ""
+        }
       },
       "contexts": {
         "batch": {
@@ -10956,7 +11352,21 @@
         "validity": "同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。",
         "invalidation": "切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。",
         "contribution_identity": "subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。",
-        "source_gap": "正常来源缓存与运行adapter尚待第10／13步接线。"
+        "source_gap": "正常来源缓存与运行adapter尚待第10／13步接线。",
+        "envelope": {
+          "mode": "group",
+          "subject_type": "world",
+          "cacheable": false,
+          "clock": true,
+          "topology": false,
+          "paired_streams": 0,
+          "passes": [
+            "Context",
+            "Value",
+            "Fade"
+          ],
+          "subject_field": ""
+        }
       },
       "contexts": {
         "batch": {
@@ -11132,7 +11542,20 @@
         "validity": "同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。",
         "invalidation": "切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。",
         "contribution_identity": "subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。",
-        "source_gap": "正常来源缓存与运行adapter尚待第10／13步接线。"
+        "source_gap": "正常来源缓存与运行adapter尚待第10／13步接线。",
+        "envelope": {
+          "mode": "group",
+          "subject_type": "world",
+          "cacheable": true,
+          "clock": true,
+          "topology": false,
+          "paired_streams": 2,
+          "passes": [
+            "Context",
+            "Value"
+          ],
+          "subject_field": ""
+        }
       },
       "contexts": {
         "batch": {
@@ -11287,7 +11710,20 @@
         "validity": "同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。",
         "invalidation": "切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。",
         "contribution_identity": "subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。",
-        "source_gap": "正常来源缓存与运行adapter尚待第10／13步接线。"
+        "source_gap": "正常来源缓存与运行adapter尚待第10／13步接线。",
+        "envelope": {
+          "mode": "group",
+          "subject_type": "world",
+          "cacheable": true,
+          "clock": true,
+          "topology": false,
+          "paired_streams": 0,
+          "passes": [
+            "Context",
+            "Value"
+          ],
+          "subject_field": ""
+        }
       },
       "contexts": {
         "batch": {
@@ -11319,11 +11755,11 @@
           "sequence": "world",
           "fields": [
             "present",
-            "text_image_0",
-            "text_image_1",
-            "text_image_2",
-            "text_image_3",
-            "text_image_4",
+            "text_0",
+            "text_1",
+            "text_2",
+            "text_3",
+            "text_4",
             "selection",
             "paper"
           ]
@@ -11335,18 +11771,19 @@
         "generic_prompt_result_paper_capture": "共享Prompt当前纸张资源／姿态。；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
         "generic_prompt_result_paper_apply": "共享Prompt当前纸张资源／姿态。；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。",
         "generic_prompt_result_present_present__1": "present==1；只取同块先行字段，不读失效分支旧payload。",
-        "generic_prompt_result_text_image_0_capture": "固定文字槽实际可空图像；未就绪不是Null。；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
-        "generic_prompt_result_text_image_0_apply": "固定文字槽实际可空图像；未就绪不是Null。；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。",
-        "generic_prompt_result_text_image_1_capture": "固定文字槽实际可空图像；未就绪不是Null。；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
-        "generic_prompt_result_text_image_1_apply": "固定文字槽实际可空图像；未就绪不是Null。；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。",
-        "generic_prompt_result_text_image_2_capture": "固定文字槽实际可空图像；未就绪不是Null。；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
-        "generic_prompt_result_text_image_2_apply": "固定文字槽实际可空图像；未就绪不是Null。；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。",
-        "generic_prompt_result_text_image_3_capture": "固定文字槽实际可空图像；未就绪不是Null。；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
-        "generic_prompt_result_text_image_3_apply": "固定文字槽实际可空图像；未就绪不是Null。；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。",
-        "generic_prompt_result_text_image_4_capture": "固定文字槽实际可空图像；未就绪不是Null。；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
-        "generic_prompt_result_text_image_4_apply": "固定文字槽实际可空图像；未就绪不是Null。；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。",
         "generic_prompt_result_selection_capture": "当前共享显示选择，不执行提交。；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
-        "generic_prompt_result_selection_apply": "当前共享显示选择，不执行提交。；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。"
+        "generic_prompt_result_selection_apply": "当前共享显示选择，不执行提交。；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。",
+        "genericpromptresult_present_is_one": "present==1；只读同块先行字段，缺席不读取旧负载。",
+        "genericpromptresult_text_0_capture": "固定文字槽0，前二标题／后三说明；保留缺席与实际空串；字体／颜色由合法来源封存。；正常Host已封存的具名文字／样式，非指针解引用许可；缺源报Gap。",
+        "genericpromptresult_text_0_apply": "固定文字槽0，前二标题／后三说明；保留缺席与实际空串；字体／颜色由合法来源封存。；交本地纯显示缓存owner；不调用整段HUD Update／Show或Lua。",
+        "genericpromptresult_text_1_capture": "固定文字槽1，前二标题／后三说明；保留缺席与实际空串；字体／颜色由合法来源封存。；正常Host已封存的具名文字／样式，非指针解引用许可；缺源报Gap。",
+        "genericpromptresult_text_1_apply": "固定文字槽1，前二标题／后三说明；保留缺席与实际空串；字体／颜色由合法来源封存。；交本地纯显示缓存owner；不调用整段HUD Update／Show或Lua。",
+        "genericpromptresult_text_2_capture": "固定文字槽2，前二标题／后三说明；保留缺席与实际空串；字体／颜色由合法来源封存。；正常Host已封存的具名文字／样式，非指针解引用许可；缺源报Gap。",
+        "genericpromptresult_text_2_apply": "固定文字槽2，前二标题／后三说明；保留缺席与实际空串；字体／颜色由合法来源封存。；交本地纯显示缓存owner；不调用整段HUD Update／Show或Lua。",
+        "genericpromptresult_text_3_capture": "固定文字槽3，前二标题／后三说明；保留缺席与实际空串；字体／颜色由合法来源封存。；正常Host已封存的具名文字／样式，非指针解引用许可；缺源报Gap。",
+        "genericpromptresult_text_3_apply": "固定文字槽3，前二标题／后三说明；保留缺席与实际空串；字体／颜色由合法来源封存。；交本地纯显示缓存owner；不调用整段HUD Update／Show或Lua。",
+        "genericpromptresult_text_4_capture": "固定文字槽4，前二标题／后三说明；保留缺席与实际空串；字体／颜色由合法来源封存。；正常Host已封存的具名文字／样式，非指针解引用许可；缺源报Gap。",
+        "genericpromptresult_text_4_apply": "固定文字槽4，前二标题／后三说明；保留缺席与实际空串；字体／颜色由合法来源封存。；交本地纯显示缓存owner；不调用整段HUD Update／Show或Lua。"
       },
       "validators": {
         "present": {
@@ -11366,121 +11803,6 @@
           "evidence": "docs/design/binary-state/8-run-presentation.md；presentation-result-batches.md；presentation-source-synchronization-review.md",
           "host": "generic_prompt_result_present_capture",
           "client": "generic_prompt_result_present_apply"
-        },
-        {
-          "name": "text_image_0",
-          "type": "u16",
-          "semantics": "固定文字槽实际可空图像；未就绪不是Null。",
-          "evidence": "docs/design/binary-state/8-run-presentation.md；presentation-result-batches.md；presentation-source-synchronization-review.md",
-          "host": "generic_prompt_result_text_image_0_capture",
-          "client": "generic_prompt_result_text_image_0_apply",
-          "wire": {
-            "kind": "resource",
-            "type": "u16",
-            "host": "generic_prompt_result_text_image_0_capture",
-            "client": "generic_prompt_result_text_image_0_apply",
-            "target": "image-table",
-            "when": {
-              "field": "present",
-              "predicate": "generic_prompt_result_present_present__1",
-              "test": {
-                "kind": "equal",
-                "value": 1
-              }
-            }
-          }
-        },
-        {
-          "name": "text_image_1",
-          "type": "u16",
-          "semantics": "固定文字槽实际可空图像；未就绪不是Null。",
-          "evidence": "docs/design/binary-state/8-run-presentation.md；presentation-result-batches.md；presentation-source-synchronization-review.md",
-          "host": "generic_prompt_result_text_image_1_capture",
-          "client": "generic_prompt_result_text_image_1_apply",
-          "wire": {
-            "kind": "resource",
-            "type": "u16",
-            "host": "generic_prompt_result_text_image_1_capture",
-            "client": "generic_prompt_result_text_image_1_apply",
-            "target": "image-table",
-            "when": {
-              "field": "present",
-              "predicate": "generic_prompt_result_present_present__1",
-              "test": {
-                "kind": "equal",
-                "value": 1
-              }
-            }
-          }
-        },
-        {
-          "name": "text_image_2",
-          "type": "u16",
-          "semantics": "固定文字槽实际可空图像；未就绪不是Null。",
-          "evidence": "docs/design/binary-state/8-run-presentation.md；presentation-result-batches.md；presentation-source-synchronization-review.md",
-          "host": "generic_prompt_result_text_image_2_capture",
-          "client": "generic_prompt_result_text_image_2_apply",
-          "wire": {
-            "kind": "resource",
-            "type": "u16",
-            "host": "generic_prompt_result_text_image_2_capture",
-            "client": "generic_prompt_result_text_image_2_apply",
-            "target": "image-table",
-            "when": {
-              "field": "present",
-              "predicate": "generic_prompt_result_present_present__1",
-              "test": {
-                "kind": "equal",
-                "value": 1
-              }
-            }
-          }
-        },
-        {
-          "name": "text_image_3",
-          "type": "u16",
-          "semantics": "固定文字槽实际可空图像；未就绪不是Null。",
-          "evidence": "docs/design/binary-state/8-run-presentation.md；presentation-result-batches.md；presentation-source-synchronization-review.md",
-          "host": "generic_prompt_result_text_image_3_capture",
-          "client": "generic_prompt_result_text_image_3_apply",
-          "wire": {
-            "kind": "resource",
-            "type": "u16",
-            "host": "generic_prompt_result_text_image_3_capture",
-            "client": "generic_prompt_result_text_image_3_apply",
-            "target": "image-table",
-            "when": {
-              "field": "present",
-              "predicate": "generic_prompt_result_present_present__1",
-              "test": {
-                "kind": "equal",
-                "value": 1
-              }
-            }
-          }
-        },
-        {
-          "name": "text_image_4",
-          "type": "u16",
-          "semantics": "固定文字槽实际可空图像；未就绪不是Null。",
-          "evidence": "docs/design/binary-state/8-run-presentation.md；presentation-result-batches.md；presentation-source-synchronization-review.md",
-          "host": "generic_prompt_result_text_image_4_capture",
-          "client": "generic_prompt_result_text_image_4_apply",
-          "wire": {
-            "kind": "resource",
-            "type": "u16",
-            "host": "generic_prompt_result_text_image_4_capture",
-            "client": "generic_prompt_result_text_image_4_apply",
-            "target": "image-table",
-            "when": {
-              "field": "present",
-              "predicate": "generic_prompt_result_present_present__1",
-              "test": {
-                "kind": "equal",
-                "value": 1
-              }
-            }
-          }
         },
         {
           "name": "selection",
@@ -11522,6 +11844,91 @@
               "value": 1
             }
           }
+        },
+        {
+          "name": "text_0",
+          "type": "DisplayTextRun",
+          "semantics": "固定文字槽0，前二标题／后三说明；保留缺席与实际空串；字体／颜色由合法来源封存。",
+          "evidence": "docs/design/binary-state/local-media-presentation.md；第9步版本61文字／本地历史合同",
+          "status": "已核",
+          "host": "genericpromptresult_text_0_capture",
+          "client": "genericpromptresult_text_0_apply",
+          "when": {
+            "field": "present",
+            "predicate": "genericpromptresult_present_is_one",
+            "test": {
+              "kind": "equal",
+              "value": 1
+            }
+          }
+        },
+        {
+          "name": "text_1",
+          "type": "DisplayTextRun",
+          "semantics": "固定文字槽1，前二标题／后三说明；保留缺席与实际空串；字体／颜色由合法来源封存。",
+          "evidence": "docs/design/binary-state/local-media-presentation.md；第9步版本61文字／本地历史合同",
+          "status": "已核",
+          "host": "genericpromptresult_text_1_capture",
+          "client": "genericpromptresult_text_1_apply",
+          "when": {
+            "field": "present",
+            "predicate": "genericpromptresult_present_is_one",
+            "test": {
+              "kind": "equal",
+              "value": 1
+            }
+          }
+        },
+        {
+          "name": "text_2",
+          "type": "DisplayTextRun",
+          "semantics": "固定文字槽2，前二标题／后三说明；保留缺席与实际空串；字体／颜色由合法来源封存。",
+          "evidence": "docs/design/binary-state/local-media-presentation.md；第9步版本61文字／本地历史合同",
+          "status": "已核",
+          "host": "genericpromptresult_text_2_capture",
+          "client": "genericpromptresult_text_2_apply",
+          "when": {
+            "field": "present",
+            "predicate": "genericpromptresult_present_is_one",
+            "test": {
+              "kind": "equal",
+              "value": 1
+            }
+          }
+        },
+        {
+          "name": "text_3",
+          "type": "DisplayTextRun",
+          "semantics": "固定文字槽3，前二标题／后三说明；保留缺席与实际空串；字体／颜色由合法来源封存。",
+          "evidence": "docs/design/binary-state/local-media-presentation.md；第9步版本61文字／本地历史合同",
+          "status": "已核",
+          "host": "genericpromptresult_text_3_capture",
+          "client": "genericpromptresult_text_3_apply",
+          "when": {
+            "field": "present",
+            "predicate": "genericpromptresult_present_is_one",
+            "test": {
+              "kind": "equal",
+              "value": 1
+            }
+          }
+        },
+        {
+          "name": "text_4",
+          "type": "DisplayTextRun",
+          "semantics": "固定文字槽4，前二标题／后三说明；保留缺席与实际空串；字体／颜色由合法来源封存。",
+          "evidence": "docs/design/binary-state/local-media-presentation.md；第9步版本61文字／本地历史合同",
+          "status": "已核",
+          "host": "genericpromptresult_text_4_capture",
+          "client": "genericpromptresult_text_4_apply",
+          "when": {
+            "field": "present",
+            "predicate": "genericpromptresult_present_is_one",
+            "test": {
+              "kind": "equal",
+              "value": 1
+            }
+          }
         }
       ],
       "record_limit": 1048576,
@@ -11530,7 +11937,7 @@
         "subject": "world／显示代次",
         "producer": "正常已完成Prompt纸张／文字消费",
         "adapter": "generic_prompt_fixed_adapter",
-        "dependencies": "同world显示代次与资源；submittedSelection和本地菜单不发。",
+        "dependencies": "同world显示代次、实际文字／有限样式、paper本地资源；不依赖Host文字图。",
         "dependency_types": [
           "PresentationDrawClock"
         ],
@@ -11539,7 +11946,20 @@
         "validity": "同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。",
         "invalidation": "切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。",
         "contribution_identity": "subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。",
-        "source_gap": "共享Prompt最终文字图像合法来源仍待第10步接线，不能调用原生提交／Lua补值。"
+        "source_gap": "五槽实际文字／字体与安全本地生成仍待第10／13步接线；缺源报Gap，不能读旧图或调用提交／Lua补值。",
+        "envelope": {
+          "mode": "group",
+          "subject_type": "world",
+          "cacheable": true,
+          "clock": true,
+          "topology": false,
+          "paired_streams": 0,
+          "passes": [
+            "Context",
+            "Value"
+          ],
+          "subject_field": ""
+        }
       },
       "contexts": {
         "batch": {
@@ -11607,7 +12027,8 @@
             "pan",
             "loop",
             "world_paused",
-            "segment"
+            "segment",
+            "mix_rule"
           ]
         }
       ],
@@ -11627,7 +12048,9 @@
         "audio_voice_parameters_world_paused_capture": "明确world期望暂停，个人失焦／设备暂停不广播。；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
         "audio_voice_parameters_world_paused_apply": "明确world期望暂停，个人失焦／设备暂停不广播。；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。",
         "audio_voice_parameters_segment_capture": "0=sample、1=intro、2=main；实际逻辑段，不伪装硬件游标。；仅正常Host已完成生产／消费或已核纯值投影，封存自有字节；缺源／关系失效报具名Gap，不额外Getter／Lua／随机／Render／Update。",
-        "audio_voice_parameters_segment_apply": "0=sample、1=intro、2=main；实际逻辑段，不伪装硬件游标。；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。"
+        "audio_voice_parameters_segment_apply": "0=sample、1=intro、2=main；实际逻辑段，不伪装硬件游标。；完整目标、主体use/shape、成员／资源及贡献依赖就绪后交具名显示owner；等待不改Null，不完整不安装／不ACK；不执行玩法生产器。",
+        "audio_voice_parameters_mix_rule_capture": "封存正常实际混音分支；不是Host Options，也不从静音后端反推。",
+        "audio_voice_parameters_mix_rule_apply": "Client仅按已选有限规则与本地Options混音；不额外运行SFX／Music生产器。"
       },
       "validators": {
         "volume_class": {
@@ -11667,6 +12090,14 @@
             1,
             2
           ]
+        },
+        "mix_rule": {
+          "kind": "enum",
+          "scalar": "u8",
+          "values": [
+            0,
+            1
+          ]
         }
       },
       "members": [],
@@ -11686,7 +12117,8 @@
             "type": "u16",
             "host": "audio_voice_parameters_asset_capture",
             "client": "audio_voice_parameters_asset_apply",
-            "target": "audio-table"
+            "target": "audio-table",
+            "value_rule": "non-null"
           }
         },
         {
@@ -11744,9 +12176,17 @@
           "evidence": "docs/design/binary-state/8-run-presentation.md；presentation-result-batches.md；presentation-source-synchronization-review.md",
           "host": "audio_voice_parameters_segment_capture",
           "client": "audio_voice_parameters_segment_apply"
+        },
+        {
+          "name": "mix_rule",
+          "type": "u8",
+          "semantics": "0：Options后min(gain*本地音量,1)，用于907C60／907F60；1：Options后线性乘法，用于908340等已核无显式min来源。不反除Host后端值。",
+          "evidence": "J273 907E69—907E76／907FC7—907FD7／9083EF；二进制第10步第五项静态复读",
+          "host": "audio_voice_parameters_mix_rule_capture",
+          "client": "audio_voice_parameters_mix_rule_apply"
         }
       ],
-      "record_limit": 18
+      "record_limit": 19
     },
     {
       "type": "AudioVoiceState",
@@ -11801,7 +12241,7 @@
           "client": "audio_voice_state_logical_start_frame_apply"
         }
       ],
-      "record_limit": 22,
+      "record_limit": 23,
       "presentation_contract": {
         "owner": "逻辑音频voice",
         "subject": "稳定voice实例／代次",
@@ -11814,7 +12254,20 @@
         "validity": "同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。",
         "invalidation": "切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。",
         "contribution_identity": "subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。",
-        "source_gap": "全部音乐Options前writer／逻辑包络、world用途退休、segment与seek恢复及视频音轨仍未闭合；必要来源不全则Gap，不从后端补成功／Stop。"
+        "source_gap": "全部音乐Options前writer／逻辑包络、world用途退休、segment与seek恢复及视频音轨仍未闭合；必要来源不全则Gap，不从后端补成功／Stop。",
+        "envelope": {
+          "mode": "group",
+          "subject_type": "world",
+          "cacheable": true,
+          "clock": false,
+          "topology": false,
+          "paired_streams": 0,
+          "passes": [
+            "Context",
+            "Value"
+          ],
+          "subject_field": ""
+        }
       },
       "contexts": {
         "batch": {
@@ -11951,7 +12404,7 @@
           }
         }
       ],
-      "record_limit": 19,
+      "record_limit": 20,
       "presentation_contract": {
         "owner": "world音频事件",
         "subject": "稳定voice／明确Clear用途范围",
@@ -11964,7 +12417,17 @@
         "validity": "同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。",
         "invalidation": "切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。",
         "contribution_identity": "subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。",
-        "source_gap": "第9步必须固定事件封装和Clear范围；第10步须分开world资格与本地Play提交成功，不把后端重试当新Start。"
+        "source_gap": "第9步必须固定事件封装和Clear范围；第10步须分开world资格与本地Play提交成功，不把后端重试当新Start。",
+        "envelope": {
+          "mode": "event",
+          "subject_type": "world",
+          "cacheable": false,
+          "clock": false,
+          "topology": false,
+          "paired_streams": 0,
+          "passes": [],
+          "subject_field": ""
+        }
       },
       "contexts": {
         "batch": {
@@ -11978,6 +12441,355 @@
           "evidence": "docs/design/binary-state/8-run-presentation.md；presentation-result-batches.md；presentation-source-synchronization-review.md"
         }
       }
+    },
+    {
+      "type": "DisplayTextRun",
+      "layout": 422,
+      "native_size": 0,
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（协议自有纯值，非原生结构或字体编号）",
+        "rva": 0
+      },
+      "ranges": [],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "DisplayTextRun有界显示描述",
+          "sequence": "world",
+          "fields": [
+            "present",
+            "font",
+            "style",
+            "color",
+            "color_space",
+            "utf8"
+          ]
+        }
+      ],
+      "conversions": {
+        "displaytextrun_present_capture": "0为Host确认无此文字槽，仅1B；1允许实际空串；未知来源不能编码为0。；只消费已封存自有纯值；来源缺失报Gap，不额外调用生产器。",
+        "displaytextrun_present_apply": "0为Host确认无此文字槽，仅1B；1允许实际空串；未知来源不能编码为0。；仅供固定本地显示adapter，不运行玩法／随机／Lua，不凭解码成功ACK。",
+        "displaytextrun_present_is_one": "present==1；只读同块先行字段，缺席不读取旧负载。",
+        "displaytextrun_font_capture": "自有字体profile：0 Latin、1 Japanese、2 Korean、3 SimplifiedChinese、4 TraditionalChinese、5 Cyrillic；固定本地字体映射缺失报Gap，非原生Font编号。；只消费已封存自有纯值；来源缺失报Gap，不额外调用生产器。",
+        "displaytextrun_font_apply": "自有字体profile：0 Latin、1 Japanese、2 Korean、3 SimplifiedChinese、4 TraditionalChinese、5 Cyrillic；固定本地字体映射缺失报Gap，非原生Font编号。；仅供固定本地显示adapter，不运行玩法／随机／Lua，不凭解码成功ACK。",
+        "displaytextrun_style_capture": "自有样式：0 BannerMain、1 BannerSubtitle、2 CurseMain、3 CurseSubtitle、4 Fortune、5 PromptTitle、6 PromptBody；特殊原生首码须先按具名映射转成允许样式，未知不得原样当指令或丢弃。；只消费已封存自有纯值；来源缺失报Gap，不额外调用生产器。",
+        "displaytextrun_style_apply": "自有样式：0 BannerMain、1 BannerSubtitle、2 CurseMain、3 CurseSubtitle、4 Fortune、5 PromptTitle、6 PromptBody；特殊原生首码须先按具名映射转成允许样式，未知不得原样当指令或丢弃。；仅供固定本地显示adapter，不运行玩法／随机／Lua，不凭解码成功ACK。",
+        "displaytextrun_color_capture": "实际必要KColor的RGBA，保留有限浮点位模式；不是Host缓存像素。；只消费已封存自有纯值；来源缺失报Gap，不额外调用生产器。",
+        "displaytextrun_color_apply": "实际必要KColor的RGBA，保留有限浮点位模式；不是Host缓存像素。；仅供固定本地显示adapter，不运行玩法／随机／Lua，不凭解码成功ACK。",
+        "displaytextrun_color_space_capture": "同实际KColor的颜色空间标记；不把全部文字颜色强制转成线性。；只消费已封存自有纯值；来源缺失报Gap，不额外调用生产器。",
+        "displaytextrun_color_space_apply": "同实际KColor的颜色空间标记；不把全部文字颜色强制转成线性。；仅供固定本地显示adapter，不运行玩法／随机／Lua，不凭解码成功ACK。",
+        "displaytextrun_utf8_capture": "严格UTF-8字节串，u16字节数，最多2048B；无NUL、C0/C1控制码、代理项、过长编码或尾部终止符；保留实际Host文字，不重查翻译。；只消费已封存自有纯值；来源缺失报Gap，不额外调用生产器。",
+        "displaytextrun_utf8_apply": "严格UTF-8字节串，u16字节数，最多2048B；无NUL、C0/C1控制码、代理项、过长编码或尾部终止符；保留实际Host文字，不重查翻译。；仅供固定本地显示adapter，不运行玩法／随机／Lua，不凭解码成功ACK。"
+      },
+      "validators": {
+        "present": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "font": {
+          "kind": "enum",
+          "scalar": "u8",
+          "values": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        "style": {
+          "kind": "enum",
+          "scalar": "u8",
+          "values": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        "color": {
+          "kind": "finite",
+          "scalar": "f32"
+        }
+      },
+      "members": [],
+      "public_owners": [],
+      "extent": "protocol",
+      "synthetic_fields": [
+        {
+          "name": "present",
+          "type": "u8",
+          "semantics": "0为Host确认无此文字槽，仅1B；1允许实际空串；未知来源不能编码为0。",
+          "evidence": "docs/design/binary-state/local-media-presentation.md；第9步版本61文字／本地历史合同",
+          "host": "displaytextrun_present_capture",
+          "client": "displaytextrun_present_apply"
+        },
+        {
+          "name": "font",
+          "type": "u8",
+          "semantics": "自有字体profile：0 Latin、1 Japanese、2 Korean、3 SimplifiedChinese、4 TraditionalChinese、5 Cyrillic；固定本地字体映射缺失报Gap，非原生Font编号。",
+          "evidence": "docs/design/binary-state/local-media-presentation.md；第9步版本61文字／本地历史合同",
+          "host": "displaytextrun_font_capture",
+          "client": "displaytextrun_font_apply",
+          "wire": {
+            "kind": "convert",
+            "type": "u8",
+            "host": "displaytextrun_font_capture",
+            "client": "displaytextrun_font_apply",
+            "when": {
+              "field": "present",
+              "predicate": "displaytextrun_present_is_one",
+              "test": {
+                "kind": "equal",
+                "value": 1
+              }
+            }
+          }
+        },
+        {
+          "name": "style",
+          "type": "u8",
+          "semantics": "自有样式：0 BannerMain、1 BannerSubtitle、2 CurseMain、3 CurseSubtitle、4 Fortune、5 PromptTitle、6 PromptBody；特殊原生首码须先按具名映射转成允许样式，未知不得原样当指令或丢弃。",
+          "evidence": "docs/design/binary-state/local-media-presentation.md；第9步版本61文字／本地历史合同",
+          "host": "displaytextrun_style_capture",
+          "client": "displaytextrun_style_apply",
+          "wire": {
+            "kind": "convert",
+            "type": "u8",
+            "host": "displaytextrun_style_capture",
+            "client": "displaytextrun_style_apply",
+            "when": {
+              "field": "present",
+              "predicate": "displaytextrun_present_is_one",
+              "test": {
+                "kind": "equal",
+                "value": 1
+              }
+            }
+          }
+        },
+        {
+          "name": "color",
+          "type": "f32[4]",
+          "semantics": "实际必要KColor的RGBA，保留有限浮点位模式；不是Host缓存像素。",
+          "evidence": "docs/design/binary-state/local-media-presentation.md；第9步版本61文字／本地历史合同",
+          "host": "displaytextrun_color_capture",
+          "client": "displaytextrun_color_apply",
+          "wire": {
+            "kind": "convert",
+            "type": "f32[4]",
+            "host": "displaytextrun_color_capture",
+            "client": "displaytextrun_color_apply",
+            "when": {
+              "field": "present",
+              "predicate": "displaytextrun_present_is_one",
+              "test": {
+                "kind": "equal",
+                "value": 1
+              }
+            }
+          }
+        },
+        {
+          "name": "color_space",
+          "type": "u32",
+          "semantics": "同实际KColor的颜色空间标记；不把全部文字颜色强制转成线性。",
+          "evidence": "docs/design/binary-state/local-media-presentation.md；第9步版本61文字／本地历史合同",
+          "host": "displaytextrun_color_space_capture",
+          "client": "displaytextrun_color_space_apply",
+          "wire": {
+            "kind": "convert",
+            "type": "u32",
+            "host": "displaytextrun_color_space_capture",
+            "client": "displaytextrun_color_space_apply",
+            "when": {
+              "field": "present",
+              "predicate": "displaytextrun_present_is_one",
+              "test": {
+                "kind": "equal",
+                "value": 1
+              }
+            }
+          }
+        },
+        {
+          "name": "utf8",
+          "type": "u8",
+          "semantics": "严格UTF-8字节串，u16字节数，最多2048B；无NUL、C0/C1控制码、代理项、过长编码或尾部终止符；保留实际Host文字，不重查翻译。",
+          "evidence": "docs/design/binary-state/local-media-presentation.md；第9步版本61文字／本地历史合同",
+          "host": "displaytextrun_utf8_capture",
+          "client": "displaytextrun_utf8_apply",
+          "wire": {
+            "kind": "container",
+            "element": "u8",
+            "storage": "array",
+            "stride": 1,
+            "limit": 2048,
+            "count_type": "u16",
+            "count_from": "已封存UTF-8实际字节数",
+            "value_rule": "display-utf8",
+            "host": "displaytextrun_utf8_capture",
+            "client": "displaytextrun_utf8_apply",
+            "when": {
+              "field": "present",
+              "predicate": "displaytextrun_present_is_one",
+              "test": {
+                "kind": "equal",
+                "value": 1
+              }
+            }
+          }
+        }
+      ],
+      "record_limit": 2073,
+      "notes": "设计编号及预算，不推导为原生读取／运行adapter已实现。 原生wchar_t为J273的UTF-16；读取上限与合法窗口由来源owner负责，转码拒绝未配对代理项、控制码及超预算，不替换或截断。EntityText和其他原始字节串不应用此规则。"
+    },
+    {
+      "type": "FortuneText",
+      "layout": 423,
+      "native_size": 0,
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（协议自有纯值，非原生结构或字体编号）",
+        "rva": 0
+      },
+      "ranges": [],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "FortuneText有界显示描述",
+          "sequence": "world",
+          "fields": [
+            "present",
+            "lines"
+          ]
+        }
+      ],
+      "conversions": {
+        "fortunetext_present_capture": "当前fortune文字是否有效；0仅1B且不读旧行；1时保留实际有序行，包括有效空行。；只消费已封存自有纯值；来源缺失报Gap，不额外调用生产器。",
+        "fortunetext_present_apply": "当前fortune文字是否有效；0仅1B且不读旧行；1时保留实际有序行，包括有效空行。；仅供固定本地显示adapter，不运行玩法／随机／Lua，不凭解码成功ACK。",
+        "fortunetext_present_is_one": "present==1；只读同块先行字段，缺席不读取旧负载。",
+        "fortunetext_lines_capture": "最多8行有序文字；不排序、不合并；总行数／文字／HUD及帧预算同时适用。；只消费已封存自有纯值；来源缺失报Gap，不额外调用生产器。",
+        "fortunetext_lines_apply": "最多8行有序文字；不排序、不合并；总行数／文字／HUD及帧预算同时适用。；仅供固定本地显示adapter，不运行玩法／随机／Lua，不凭解码成功ACK。"
+      },
+      "validators": {
+        "present": {
+          "kind": "boolean",
+          "scalar": "u8"
+        }
+      },
+      "members": [],
+      "public_owners": [],
+      "extent": "protocol",
+      "synthetic_fields": [
+        {
+          "name": "present",
+          "type": "u8",
+          "semantics": "当前fortune文字是否有效；0仅1B且不读旧行；1时保留实际有序行，包括有效空行。",
+          "evidence": "docs/design/binary-state/local-media-presentation.md；第9步版本61文字／本地历史合同",
+          "host": "fortunetext_present_capture",
+          "client": "fortunetext_present_apply"
+        },
+        {
+          "name": "lines",
+          "type": "DisplayTextRun",
+          "semantics": "最多8行有序文字；不排序、不合并；总行数／文字／HUD及帧预算同时适用。",
+          "evidence": "docs/design/binary-state/local-media-presentation.md；第9步版本61文字／本地历史合同",
+          "host": "fortunetext_lines_capture",
+          "client": "fortunetext_lines_apply",
+          "wire": {
+            "kind": "container",
+            "element": "DisplayTextRun",
+            "storage": "aggregate",
+            "stride": 0,
+            "limit": 8,
+            "count_type": "u8",
+            "max_bytes": 16585,
+            "host": "fortunetext_lines_capture",
+            "client": "fortunetext_lines_apply",
+            "when": {
+              "field": "present",
+              "predicate": "fortunetext_present_is_one",
+              "test": {
+                "kind": "equal",
+                "value": 1
+              }
+            }
+          }
+        }
+      ],
+      "record_limit": 16586,
+      "notes": "设计编号及预算，不推导为原生读取／运行adapter已实现。"
+    },
+    {
+      "type": "LocalHistoryOverlay",
+      "layout": 424,
+      "native_size": 0,
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（协议自有纯值，非原生结构或字体编号）",
+        "rva": 0
+      },
+      "ranges": [],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "LocalHistoryOverlay有界显示描述",
+          "sequence": "world",
+          "fields": [
+            "branch",
+            "color"
+          ]
+        }
+      ],
+      "conversions": {
+        "localhistoryoverlay_branch_capture": "0为6F7EF1振荡叠加、1为6F8425白色叠加；列表保留Host实际pass顺序。只消费Client本端Snapshot，不传Host图像／坐标／GPU指令。；只消费已封存自有纯值；来源缺失报Gap，不额外调用生产器。",
+        "localhistoryoverlay_branch_apply": "0为6F7EF1振荡叠加、1为6F8425白色叠加；列表保留Host实际pass顺序。只消费Client本端Snapshot，不传Host图像／坐标／GPU指令。；仅供固定本地显示adapter，不运行玩法／随机／Lua，不凭解码成功ACK。",
+        "localhistoryoverlay_color_capture": "正常消费的最终ColorMod十一值；保留两次独立贡献，不恢复Host RNG／历史像素；本地取景范围由adapter固定。；只消费已封存自有纯值；来源缺失报Gap，不额外调用生产器。",
+        "localhistoryoverlay_color_apply": "正常消费的最终ColorMod十一值；保留两次独立贡献，不恢复Host RNG／历史像素；本地取景范围由adapter固定。；仅供固定本地显示adapter，不运行玩法／随机／Lua，不凭解码成功ACK。"
+      },
+      "validators": {
+        "branch": {
+          "kind": "enum",
+          "scalar": "u16",
+          "values": [
+            0,
+            1
+          ]
+        },
+        "color": {
+          "kind": "finite",
+          "scalar": "f32"
+        }
+      },
+      "members": [],
+      "public_owners": [],
+      "extent": "protocol",
+      "synthetic_fields": [
+        {
+          "name": "branch",
+          "type": "u16",
+          "semantics": "0为6F7EF1振荡叠加、1为6F8425白色叠加；列表保留Host实际pass顺序。只消费Client本端Snapshot，不传Host图像／坐标／GPU指令。",
+          "evidence": "docs/design/binary-state/local-media-presentation.md；第9步版本61文字／本地历史合同",
+          "host": "localhistoryoverlay_branch_capture",
+          "client": "localhistoryoverlay_branch_apply"
+        },
+        {
+          "name": "color",
+          "type": "f32[11]",
+          "semantics": "正常消费的最终ColorMod十一值；保留两次独立贡献，不恢复Host RNG／历史像素；本地取景范围由adapter固定。",
+          "evidence": "docs/design/binary-state/local-media-presentation.md；第9步版本61文字／本地历史合同",
+          "host": "localhistoryoverlay_color_capture",
+          "client": "localhistoryoverlay_color_apply"
+        }
+      ],
+      "record_limit": 46,
+      "notes": "设计编号及预算，不推导为原生读取／运行adapter已实现。"
     }
   ]
 }

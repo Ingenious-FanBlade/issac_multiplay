@@ -1,13 +1,13 @@
 # Minimap
 
-由唯一布局源生成。布局编号 325；布局版本 60；原生大小 0x628；未知 109B；完整：否。
+由唯一布局源生成。布局编号 325；布局版本 71；原生大小 0x628；未知 109B；完整：否。
 
  原生字节事实保留；委派范围按本表具名结果承接，不按原生owner全量复制。
 
 具名显示结果合同（接线声明，不表示运行实现）：
 
-| owner：地图唯一显示owner | subject：floor／维度及两配置用途 | producer：9635B0正常焦点／资源，966300完整徽标，966680最终震动／淡出 | adapter：minimap_deterministic_adapter | dependencies：完整L0—L3、双RoomConfigVisual、300—303、两边框／icons／itemIcons与资源epoch共同提交；本地查看／视口／Options另施加。 | dependency_types：LevelGamePrefix, RoomDescriptor, MapFocusPair, MapBadgeList, MinimapQuestionImageBinding | sequence：world | atomic_scope：world-target | validity：同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。 | invalidation：切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。 | contribution_identity：subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。 | source_gap：正常焦点／徽标缓存与安全地图合成待10／13步；不调用Refresh／Update／分数重算；169无合法描述必须Gap。 |
-|---|---|---|---|---|---|---|---|---|---|---|---|
+| owner：地图唯一显示owner | subject：floor／维度及两配置用途 | producer：9635B0正常焦点／资源，966300完整徽标，966680最终震动／淡出 | adapter：minimap_deterministic_adapter | dependencies：完整L0—L3、双RoomConfigVisual、300—303、两边框／icons／itemIcons与资源epoch共同提交；本地查看／视口／Options另施加。 | dependency_types：LevelGamePrefix, RoomDescriptor, MapFocusPair, MapBadgeList, MinimapQuestionImageBinding | sequence：world | atomic_scope：world-target | validity：同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。 | invalidation：切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。 | contribution_identity：subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。 | source_gap：正常焦点／徽标缓存与安全地图合成待10／13步；不调用Refresh／Update／分数重算；169无合法描述必须Gap。 | envelope：{'mode': 'group', 'subject_type': 'world', 'cacheable': True, 'clock': False, 'topology': False, 'paired_streams': 0, 'passes': ['Context', 'Value'], 'subject_field': ''} |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
 
 记录编码预算≤4194304B；body组≤0B，超出body预算改ordinary body-joint，超记录或帧总预算报缺口，不截断。各块上限不能同时取满。
 

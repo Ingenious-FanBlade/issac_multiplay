@@ -1,5 +1,11 @@
 # 第7步：必要显示与资源设计补齐
 
+**2026-11-12 版本69接线与新决定**：[第10步来源闭合](10-grid-room-level-capture.md)已实现背景正常生产recipe／实际pass绑定和完整光照投影。用户决定水面／波纹由Client纯显示推进，经典／反射为本地画质选择；286取消mode，289改显示锚点，434承接实际Idle资源／稳定外观。`Backdrop+0x20`实际是追加floorSurface2 pass，非替换selector；recipe允许有界跨边tile并由本地FBO裁剪。下方原始设计／版本事实保留；具体当前布局以版本69唯一源为准。
+
+**2026-11-11 正式资源协议，版本63**：[第9步第四项](9-resource-protocol.md)已完成本地typed payload与图形允许集，309补齐ColorOffset上下文为212B。当前禁止像素／blob，沿用本地生成合同；以下旧像素／原196B及草稿“待注册”保持历史时点，现行格式以版本63同源表为准。
+
+**2026-11-11 资源传输路线调整**：[本地生成合同](local-media-presentation.md)替代本页默认像素／压缩blob兜底。文件资源本地加载；背景等程序内容优先采用已核本地资源＋有界显示描述／有限recipe，未闭合用途列具体Gap，不额外运行背景玩法Init／RNG。当前不启用通用原始媒体传输；既有RGBA8读回证据、304—309生成事实及UNKNOWN保持，但不再构成必须实现网络像素流的要求。
+
 **2026-11-11 第9步公共合同，版本59**：[正式结构](9-public-wire-contract.md)。304资源固定头更新为8B显式table、306 blob头更新为15B；table/index与kind分离，已固定表的字段仍只传u16引用。旧7B／14B为版本57事实；完整typed payload、table/kind矩阵与物化仍待第9步后续。32MiB只作内存／解码保护，不能替代10Mbps总上行／7.5Mbps持续、首次准备1MiB／10秒的真实计费。
 
 2026-11-10；官方 REPENTOGON 1.1.3／Repentance+ v1.9.7.12.J273／Win32。本次完成第7步的**显示／资源设计**：配置投影、背景内容来源、小地图重建输入、水／光／波纹结果、资源依赖与失效、Client安全消费及后续接线职责。它不是生产布局或运行实现；整数布局版本仍56，未构建、启动游戏或测试。原生字节事实分别沿用 [Room](room-byte-ledger.md)、[Level](level-byte-ledger.md)、[Descriptor](room-descriptor-byte-ledger.md)、[Presentation](presentation-byte-ledger.md)；新增配置字节表见[机器设计表](room-display-resource-design.json)和本文第3节。UNKNOWN不借本次设计消除。

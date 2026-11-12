@@ -1,13 +1,13 @@
 # StatHUD
 
-由唯一布局源生成。布局编号 318；布局版本 60；原生大小 0x2B0；未知 17B；完整：否。
+由唯一布局源生成。布局编号 318；布局版本 71；原生大小 0x2B0；未知 17B；完整：否。
 
 官方Patch启用row8；其显示资格含Host进度406与本地显示偏好，须拆为Host最终资格+本地偏好，不能读取Client进度代替。 原生字节事实保留；委派范围按本表具名结果承接，不按原生owner全量复制。
 
 具名显示结果合同（接线声明，不表示运行实现）：
 
-| owner：共享Stat资源／组合语义 | subject：run／组显示用途 | producer：83C9B0正常消费 | adapter：stat_hud_shared_fixed_adapter | dependencies：实际Stat资源及所属组选择；每身体三值另随其body目标提交。 | dependency_types：ControlGroupHudSelection | sequence：world | atomic_scope：world-target | validity：同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。 | invalidation：切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。 | contribution_identity：subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。 | source_gap：正常来源缓存与运行adapter尚待第10／13步接线。 |
-|---|---|---|---|---|---|---|---|---|---|---|---|
+| owner：共享Stat资源／组合语义 | subject：run／组显示用途 | producer：83C9B0正常消费 | adapter：stat_hud_shared_fixed_adapter | dependencies：实际Stat资源及所属组选择；每身体三值另随其body目标提交。 | dependency_types：ControlGroupHudSelection | sequence：world | atomic_scope：world-target | validity：同session/run、来源修订、owner代次及必要成员／资源／拓扑依赖均成立；内容不变不代表来源仍有效。 | invalidation：切房／换层／恢复、subject/use/shape或绑定变化、用途退休、资源替换按实际影响撤销；瞬态贡献不得跨来源窗口复用。 | contribution_identity：subject/use/shape＋固定用途＋pass＋branch/layer/track＋Host批内有序贡献身份；第9步登记外层精确封装，不用Client访问计数。 | source_gap：正常来源缓存与运行adapter尚待第10／13步接线。 | envelope：{'mode': 'group', 'subject_type': 'world', 'cacheable': True, 'clock': False, 'topology': False, 'paired_streams': 2, 'passes': ['Context', 'Value'], 'subject_field': ''} |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
 
 记录编码预算≤4194304B；body组≤0B，超出body预算改ordinary body-joint，超记录或帧总预算报缺口，不截断。各块上限不能同时取满。
 

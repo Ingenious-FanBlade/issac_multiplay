@@ -1391,7 +1391,7 @@
           "client": "stateappliedackentry_event_watermark_decode"
         }
       ],
-      "notes": "21B；ACK不能跨scope/route或把解码成功当安装成功。 本表仅定义固定封装字节；不再包12B状态记录头，也不表示完整消息编解码已实现。"
+      "notes": "21B；ACK不能跨scope/route或把解码成功当安装成功。 本表仅定义固定封装字节；不再包12B状态记录头，也不表示完整消息编解码已实现。 版本64：只承认实际完整提交凭据；旧base触发合并重发原ACK，joint不得拆项；污染序列重建前不重发历史ACK。"
     },
     {
       "type": "StateResyncHeader",
@@ -1487,7 +1487,739 @@
           "client": "stateresyncheader_installed_body_decode"
         }
       ],
-      "notes": "11B；普通恢复不重置Host目标计数或直接解决回绕。 本表仅定义固定封装字节；不再包12B状态记录头，也不表示完整消息编解码已实现。"
+      "notes": "11B；普通恢复不重置Host目标计数或直接解决回绕。 本表仅定义固定封装字节；不再包12B状态记录头，也不表示完整消息编解码已实现。 版本64：reason5表示原生状态可能污染，installed仅为历史成功版本，Host必须base=0重建，不得据此继续增量。"
+    },
+    {
+      "type": "ResourcePath",
+      "layout": 425,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "自有不可变本地资源描述；不含原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "ResourcePath资源值",
+          "sequence": "world",
+          "fields": [
+            "bytes"
+          ]
+        }
+      ],
+      "conversions": {
+        "resource_bytes_encode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_bytes_decode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。"
+      },
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "synthetic_fields": [
+        {
+          "name": "bytes",
+          "type": "u8",
+          "semantics": "bytes",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_bytes_encode",
+          "client": "resource_bytes_decode",
+          "wire": {
+            "kind": "container",
+            "element": "u8",
+            "storage": "array",
+            "stride": 1,
+            "limit": 4096,
+            "host": "resource_bytes_encode",
+            "client": "resource_bytes_decode"
+          }
+        }
+      ],
+      "notes": "版本63资源描述；无文件内容／纹理像素／PCM／指针，表到达不等于本地物化ready。"
+    },
+    {
+      "type": "ResourceImageFile",
+      "layout": 426,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "自有不可变本地资源描述；不含原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "ResourceImageFile资源值",
+          "sequence": "world",
+          "fields": [
+            "path",
+            "logical_w",
+            "logical_h",
+            "stored_w",
+            "stored_h"
+          ]
+        }
+      ],
+      "conversions": {
+        "resource_path_encode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_path_decode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_logical_w_encode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_logical_w_decode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_logical_h_encode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_logical_h_decode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_stored_w_encode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_stored_w_decode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_stored_h_encode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_stored_h_decode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。"
+      },
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "synthetic_fields": [
+        {
+          "name": "path",
+          "type": "ResourcePath",
+          "semantics": "path",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_path_encode",
+          "client": "resource_path_decode",
+          "wire": {
+            "kind": "nested",
+            "type": "ResourcePath"
+          }
+        },
+        {
+          "name": "logical_w",
+          "type": "u16",
+          "semantics": "实际逻辑／储存几何；不含像素",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_logical_w_encode",
+          "client": "resource_logical_w_decode"
+        },
+        {
+          "name": "logical_h",
+          "type": "u16",
+          "semantics": "实际逻辑／储存几何；不含像素",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_logical_h_encode",
+          "client": "resource_logical_h_decode"
+        },
+        {
+          "name": "stored_w",
+          "type": "u16",
+          "semantics": "实际逻辑／储存几何；不含像素",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_stored_w_encode",
+          "client": "resource_stored_w_decode"
+        },
+        {
+          "name": "stored_h",
+          "type": "u16",
+          "semantics": "实际逻辑／储存几何；不含像素",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_stored_h_encode",
+          "client": "resource_stored_h_decode"
+        }
+      ],
+      "notes": "版本63资源描述；无文件内容／纹理像素／PCM／指针，表到达不等于本地物化ready。"
+    },
+    {
+      "type": "ResourceBuiltinShader",
+      "layout": 427,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "自有不可变本地资源描述；不含原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "ResourceBuiltinShader资源值",
+          "sequence": "world",
+          "fields": [
+            "shader_type"
+          ]
+        }
+      ],
+      "conversions": {
+        "resource_shader_type_encode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_shader_type_decode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。"
+      },
+      "validators": {
+        "shader_type": {
+          "kind": "range",
+          "scalar": "u8",
+          "min": 0,
+          "max": 19
+        }
+      },
+      "members": [],
+      "public_owners": [],
+      "synthetic_fields": [
+        {
+          "name": "shader_type",
+          "type": "u8",
+          "semantics": "官方20种内置shader类型；不传路径／地址／参数字典",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_shader_type_encode",
+          "client": "resource_shader_type_decode"
+        }
+      ],
+      "notes": "版本63资源描述；无文件内容／纹理像素／PCM／指针，表到达不等于本地物化ready。"
+    },
+    {
+      "type": "ResourceAnimation",
+      "layout": 428,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "自有不可变本地资源描述；不含原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "ResourceAnimation资源值",
+          "sequence": "world",
+          "fields": [
+            "file",
+            "name",
+            "length",
+            "layers",
+            "null_layers"
+          ]
+        }
+      ],
+      "conversions": {
+        "resource_file_encode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_file_decode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_name_encode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_name_decode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_length_encode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_length_decode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_layers_encode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_layers_decode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_null_layers_encode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_null_layers_decode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。"
+      },
+      "validators": {
+        "length": {
+          "kind": "range",
+          "scalar": "u32",
+          "min": 0,
+          "max": 2147483647
+        }
+      },
+      "members": [],
+      "public_owners": [],
+      "synthetic_fields": [
+        {
+          "name": "file",
+          "type": "u16",
+          "semantics": "file",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_file_encode",
+          "client": "resource_file_decode",
+          "wire": {
+            "kind": "resource",
+            "type": "u16",
+            "target": "anm2-files",
+            "host": "resource_file_encode",
+            "client": "resource_file_decode",
+            "value_rule": "non-null"
+          }
+        },
+        {
+          "name": "name",
+          "type": "ResourceName",
+          "semantics": "name",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_name_encode",
+          "client": "resource_name_decode",
+          "wire": {
+            "kind": "nested",
+            "type": "ResourceName"
+          }
+        },
+        {
+          "name": "length",
+          "type": "u32",
+          "semantics": "length",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_length_encode",
+          "client": "resource_length_decode"
+        },
+        {
+          "name": "layers",
+          "type": "ResourceAnimationLayer",
+          "semantics": "layers",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_layers_encode",
+          "client": "resource_layers_decode",
+          "wire": {
+            "kind": "container",
+            "element": "ResourceAnimationLayer",
+            "storage": "aggregate",
+            "stride": 0,
+            "limit": 256,
+            "host": "resource_layers_encode",
+            "client": "resource_layers_decode"
+          }
+        },
+        {
+          "name": "null_layers",
+          "type": "ResourceAnimationLayer",
+          "semantics": "null_layers",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_null_layers_encode",
+          "client": "resource_null_layers_decode",
+          "wire": {
+            "kind": "container",
+            "element": "ResourceAnimationLayer",
+            "storage": "aggregate",
+            "stride": 0,
+            "limit": 256,
+            "host": "resource_null_layers_encode",
+            "client": "resource_null_layers_decode"
+          }
+        }
+      ],
+      "notes": "版本63资源描述；无文件内容／纹理像素／PCM／指针，表到达不等于本地物化ready。"
+    },
+    {
+      "type": "ResourceName",
+      "layout": 429,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "自有不可变本地资源描述；不含原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "ResourceName资源值",
+          "sequence": "world",
+          "fields": [
+            "bytes"
+          ]
+        }
+      ],
+      "conversions": {
+        "resource_bytes_encode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_bytes_decode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。"
+      },
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "synthetic_fields": [
+        {
+          "name": "bytes",
+          "type": "u8",
+          "semantics": "bytes",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_bytes_encode",
+          "client": "resource_bytes_decode",
+          "wire": {
+            "kind": "container",
+            "element": "u8",
+            "storage": "array",
+            "stride": 1,
+            "limit": 2048,
+            "host": "resource_bytes_encode",
+            "client": "resource_bytes_decode",
+            "value_rule": "display-utf8"
+          }
+        }
+      ],
+      "notes": "版本63资源描述；无文件内容／纹理像素／PCM／指针，表到达不等于本地物化ready。"
+    },
+    {
+      "type": "ResourceAnimationLayer",
+      "layout": 430,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "自有不可变本地资源描述；不含原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "ResourceAnimationLayer资源值",
+          "sequence": "world",
+          "fields": [
+            "layer_id",
+            "frame_count"
+          ]
+        }
+      ],
+      "conversions": {
+        "resource_layer_id_encode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_layer_id_decode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_frame_count_encode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_frame_count_decode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。"
+      },
+      "validators": {
+        "frame_count": {
+          "kind": "range",
+          "scalar": "u32",
+          "min": 0,
+          "max": 2147483647
+        }
+      },
+      "members": [],
+      "public_owners": [],
+      "synthetic_fields": [
+        {
+          "name": "layer_id",
+          "type": "u16",
+          "semantics": "layer_id",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_layer_id_encode",
+          "client": "resource_layer_id_decode"
+        },
+        {
+          "name": "frame_count",
+          "type": "u32",
+          "semantics": "frame_count",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_frame_count_encode",
+          "client": "resource_frame_count_decode"
+        }
+      ],
+      "notes": "版本63资源描述；无文件内容／纹理像素／PCM／指针，表到达不等于本地物化ready。"
+    },
+    {
+      "type": "ResourceItemConfig",
+      "layout": 431,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "自有不可变本地资源描述；不含原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "ResourceItemConfig资源值",
+          "sequence": "world",
+          "fields": [
+            "type",
+            "id",
+            "cooldown",
+            "image",
+            "costume_file"
+          ]
+        }
+      ],
+      "conversions": {
+        "resource_type_encode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_type_decode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_id_encode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_id_decode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_cooldown_encode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_cooldown_decode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_image_encode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_image_decode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_costume_file_encode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_costume_file_decode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。"
+      },
+      "validators": {
+        "type": {
+          "kind": "enum",
+          "scalar": "u32",
+          "values": [
+            1,
+            3,
+            4
+          ]
+        }
+      },
+      "members": [],
+      "public_owners": [],
+      "synthetic_fields": [
+        {
+          "name": "type",
+          "type": "u32",
+          "semantics": "type",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_type_encode",
+          "client": "resource_type_decode"
+        },
+        {
+          "name": "id",
+          "type": "u32",
+          "semantics": "id",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_id_encode",
+          "client": "resource_id_decode"
+        },
+        {
+          "name": "cooldown",
+          "type": "i32",
+          "semantics": "cooldown",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_cooldown_encode",
+          "client": "resource_cooldown_decode"
+        },
+        {
+          "name": "image",
+          "type": "u16",
+          "semantics": "image",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_image_encode",
+          "client": "resource_image_decode",
+          "wire": {
+            "kind": "resource",
+            "type": "u16",
+            "target": "image-table",
+            "host": "resource_image_encode",
+            "client": "resource_image_decode"
+          }
+        },
+        {
+          "name": "costume_file",
+          "type": "u16",
+          "semantics": "costume_file",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_costume_file_encode",
+          "client": "resource_costume_file_decode",
+          "wire": {
+            "kind": "resource",
+            "type": "u16",
+            "target": "anm2-files",
+            "host": "resource_costume_file_encode",
+            "client": "resource_costume_file_decode"
+          }
+        }
+      ],
+      "notes": "版本63资源描述；无文件内容／纹理像素／PCM／指针，表到达不等于本地物化ready。"
+    },
+    {
+      "type": "ResourceEntityConfig",
+      "layout": 432,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "自有不可变本地资源描述；不含原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "ResourceEntityConfig资源值",
+          "sequence": "world",
+          "fields": [
+            "type",
+            "variant",
+            "subtype",
+            "anm2",
+            "portrait",
+            "shadow_size"
+          ]
+        }
+      ],
+      "conversions": {
+        "resource_type_encode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_type_decode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_variant_encode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_variant_decode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_subtype_encode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_subtype_decode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_anm2_encode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_anm2_decode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_portrait_encode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_portrait_decode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_shadow_size_encode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_shadow_size_decode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。"
+      },
+      "validators": {
+        "shadow_size": {
+          "kind": "finite",
+          "scalar": "f32"
+        }
+      },
+      "members": [],
+      "public_owners": [],
+      "synthetic_fields": [
+        {
+          "name": "type",
+          "type": "u32",
+          "semantics": "type",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_type_encode",
+          "client": "resource_type_decode"
+        },
+        {
+          "name": "variant",
+          "type": "u32",
+          "semantics": "variant",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_variant_encode",
+          "client": "resource_variant_decode"
+        },
+        {
+          "name": "subtype",
+          "type": "i32",
+          "semantics": "subtype",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_subtype_encode",
+          "client": "resource_subtype_decode"
+        },
+        {
+          "name": "anm2",
+          "type": "u16",
+          "semantics": "anm2",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_anm2_encode",
+          "client": "resource_anm2_decode",
+          "wire": {
+            "kind": "resource",
+            "type": "u16",
+            "target": "anm2-files",
+            "host": "resource_anm2_encode",
+            "client": "resource_anm2_decode"
+          }
+        },
+        {
+          "name": "portrait",
+          "type": "i32",
+          "semantics": "portrait",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_portrait_encode",
+          "client": "resource_portrait_decode"
+        },
+        {
+          "name": "shadow_size",
+          "type": "f32",
+          "semantics": "shadow_size",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_shadow_size_encode",
+          "client": "resource_shadow_size_decode"
+        }
+      ],
+      "notes": "版本63资源描述；无文件内容／纹理像素／PCM／指针，表到达不等于本地物化ready。"
+    },
+    {
+      "type": "ResourceAudio",
+      "layout": 433,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "自有不可变本地资源描述；不含原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "ResourceAudio资源值",
+          "sequence": "world",
+          "fields": [
+            "audio_class",
+            "has_intro",
+            "main",
+            "intro"
+          ]
+        }
+      ],
+      "conversions": {
+        "resource_audio_class_encode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_audio_class_decode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_main_encode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_main_decode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_has_intro_encode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_has_intro_decode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_intro_encode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "resource_intro_decode": "有界自有纯值资源编解码，不读取原生对象或执行Lua。",
+        "audio_has_intro": "仅has_intro=1时读取真实已选的本地intro路径；0不读旧payload。"
+      },
+      "validators": {
+        "audio_class": {
+          "kind": "enum",
+          "scalar": "u8",
+          "values": [
+            0,
+            1,
+            2
+          ]
+        },
+        "has_intro": {
+          "kind": "boolean",
+          "scalar": "u8"
+        }
+      },
+      "members": [],
+      "public_owners": [],
+      "synthetic_fields": [
+        {
+          "name": "audio_class",
+          "type": "u8",
+          "semantics": "0选定sample、1音乐声部、2jingle；不是sound ID",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_audio_class_encode",
+          "client": "resource_audio_class_decode"
+        },
+        {
+          "name": "main",
+          "type": "ResourcePath",
+          "semantics": "main",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_main_encode",
+          "client": "resource_main_decode",
+          "wire": {
+            "kind": "nested",
+            "type": "ResourcePath"
+          }
+        },
+        {
+          "name": "has_intro",
+          "type": "u8",
+          "semantics": "has_intro",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_has_intro_encode",
+          "client": "resource_has_intro_decode"
+        },
+        {
+          "name": "intro",
+          "type": "ResourcePath",
+          "semantics": "intro",
+          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "host": "resource_intro_encode",
+          "client": "resource_intro_decode",
+          "wire": {
+            "kind": "nested",
+            "type": "ResourcePath",
+            "when": {
+              "field": "has_intro",
+              "predicate": "audio_has_intro",
+              "test": {
+                "kind": "equal",
+                "value": 1
+              }
+            }
+          }
+        }
+      ],
+      "notes": "版本63资源描述；无文件内容／纹理像素／PCM／指针，表到达不等于本地物化ready。"
     }
   ],
   "protocol_constants": [
@@ -1531,7 +2263,7 @@
       "domain": "message",
       "name": "ResourceBlobChunk",
       "value": 24,
-      "semantics": "公共协议Kind编号；仅合同登记，运行stream_codec尚未接通"
+      "semantics": "公共协议Kind24仅保留编号；版本61正文禁用306，不启用原始媒体／blob，也未接通运行stream_codec"
     },
     {
       "domain": "resource_table",
@@ -1585,61 +2317,61 @@
       "domain": "resource_kind",
       "name": "ANM2File",
       "value": 0,
-      "semantics": "typed payload分派编号；完整payload及table/kind允许集由第9步后续登记"
+      "semantics": "版本63已完成typed payload与table/kind数字矩阵；仅本地资源描述／有限recipe，不包含媒体文件内容。"
     },
     {
       "domain": "resource_kind",
       "name": "ImageFile",
       "value": 1,
-      "semantics": "typed payload分派编号；完整payload及table/kind允许集由第9步后续登记"
+      "semantics": "版本63已完成typed payload与table/kind数字矩阵；仅本地资源描述／有限recipe，不包含媒体文件内容。"
     },
     {
       "domain": "resource_kind",
       "name": "BuiltinShader",
       "value": 2,
-      "semantics": "typed payload分派编号；完整payload及table/kind允许集由第9步后续登记"
+      "semantics": "版本63已完成typed payload与table/kind数字矩阵；仅本地资源描述／有限recipe，不包含媒体文件内容。"
     },
     {
       "domain": "resource_kind",
       "name": "RoomConfigVisual",
       "value": 3,
-      "semantics": "typed payload分派编号；完整payload及table/kind允许集由第9步后续登记"
+      "semantics": "版本63已完成typed payload与table/kind数字矩阵；仅本地资源描述／有限recipe，不包含媒体文件内容。"
     },
     {
       "domain": "resource_kind",
       "name": "SurfaceRecipe",
       "value": 4,
-      "semantics": "typed payload分派编号；完整payload及table/kind允许集由第9步后续登记"
+      "semantics": "版本63已完成typed payload与table/kind数字矩阵；仅本地资源描述／有限recipe，不包含媒体文件内容。"
     },
     {
       "domain": "resource_kind",
       "name": "SurfacePixels",
       "value": 5,
-      "semantics": "typed payload分派编号；完整payload及table/kind允许集由第9步后续登记"
+      "semantics": "typed payload分派编号；完整payload及table/kind允许集由第9步后续登记；版本61仅保留编号，当前不启用、不接受原始媒体"
     },
     {
       "domain": "resource_kind",
       "name": "AnimationTable",
       "value": 6,
-      "semantics": "typed payload分派编号；完整payload及table/kind允许集由第9步后续登记"
+      "semantics": "版本63已完成typed payload与table/kind数字矩阵；仅本地资源描述／有限recipe，不包含媒体文件内容。"
     },
     {
       "domain": "resource_kind",
       "name": "ItemConfig",
       "value": 7,
-      "semantics": "typed payload分派编号；完整payload及table/kind允许集由第9步后续登记"
+      "semantics": "版本63已完成typed payload与table/kind数字矩阵；仅本地资源描述／有限recipe，不包含媒体文件内容。"
     },
     {
       "domain": "resource_kind",
       "name": "EntityConfig",
       "value": 8,
-      "semantics": "typed payload分派编号；完整payload及table/kind允许集由第9步后续登记"
+      "semantics": "版本63已完成typed payload与table/kind数字矩阵；仅本地资源描述／有限recipe，不包含媒体文件内容。"
     },
     {
       "domain": "resource_kind",
       "name": "Audio",
       "value": 9,
-      "semantics": "typed payload分派编号；完整payload及table/kind允许集由第9步后续登记"
+      "semantics": "版本63已完成typed payload与table/kind数字矩阵；仅本地资源描述／有限recipe，不包含媒体文件内容。"
     },
     {
       "domain": "stream",
@@ -1734,26 +2466,26 @@
     {
       "domain": "budget",
       "name": "total_mod_bytes_per_second",
-      "value": 937500,
-      "semantics": "三端模组持续7.5Mbps；包含全部通道／重传／封装"
+      "value": 1125000,
+      "semantics": "三端模组持续9Mbps；包含全部通道／重传／封装"
     },
     {
       "domain": "budget",
       "name": "peer_bytes_per_second",
-      "value": 312500,
+      "value": 375000,
       "semantics": "默认每Peer持续额度，三端合计不得越过总额"
     },
     {
       "domain": "budget",
       "name": "world_bytes_per_second",
-      "value": 120000,
-      "semantics": "每Peer world额度；30Hz平均4000B，不是每帧固定大小"
+      "value": 150000,
+      "semantics": "每Peer world额度；30Hz平均5000B，含实际封装，不是每帧固定大小"
     },
     {
       "domain": "budget",
       "name": "body_bytes_per_second",
-      "value": 120000,
-      "semantics": "每Peer body额度；60Hz平均2000B"
+      "value": 150000,
+      "semantics": "每Peer body额度；60Hz平均2500B，含实际封装"
     },
     {
       "domain": "budget",
@@ -1764,7 +2496,7 @@
     {
       "domain": "budget",
       "name": "reliable_bytes_per_second",
-      "value": 47500,
+      "value": 50000,
       "semantics": "每Peer可靠表／资源／准备／恢复额度"
     },
     {
@@ -1949,9 +2681,9 @@
     },
     {
       "domain": "result_purpose",
-      "name": "RoomTransitionResult",
+      "name": "BossVersusResult",
       "value": 374,
-      "semantics": "用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分"
+      "semantics": "版本61收窄旧374，仅Boss versus独立有序Sprite贡献；普通切房不建surface结果／依赖"
     },
     {
       "domain": "result_purpose",
@@ -2012,6 +2744,1018 @@
       "name": "Baseline",
       "value": 1,
       "semantics": "Section bit0，当且仅当base_version=0"
+    },
+    {
+      "domain": "display_font",
+      "name": "Latin",
+      "value": 0,
+      "semantics": "协议自有有限显示profile，非原生编号；本地字体／样式映射由第10／13步核定，缺失报Gap，不执行任意首码命令"
+    },
+    {
+      "domain": "display_font",
+      "name": "Japanese",
+      "value": 1,
+      "semantics": "协议自有有限显示profile，非原生编号；本地字体／样式映射由第10／13步核定，缺失报Gap，不执行任意首码命令"
+    },
+    {
+      "domain": "display_font",
+      "name": "Korean",
+      "value": 2,
+      "semantics": "协议自有有限显示profile，非原生编号；本地字体／样式映射由第10／13步核定，缺失报Gap，不执行任意首码命令"
+    },
+    {
+      "domain": "display_font",
+      "name": "SimplifiedChinese",
+      "value": 3,
+      "semantics": "协议自有有限显示profile，非原生编号；本地字体／样式映射由第10／13步核定，缺失报Gap，不执行任意首码命令"
+    },
+    {
+      "domain": "display_font",
+      "name": "TraditionalChinese",
+      "value": 4,
+      "semantics": "协议自有有限显示profile，非原生编号；本地字体／样式映射由第10／13步核定，缺失报Gap，不执行任意首码命令"
+    },
+    {
+      "domain": "display_font",
+      "name": "Cyrillic",
+      "value": 5,
+      "semantics": "协议自有有限显示profile，非原生编号；本地字体／样式映射由第10／13步核定，缺失报Gap，不执行任意首码命令"
+    },
+    {
+      "domain": "display_style",
+      "name": "BannerMain",
+      "value": 0,
+      "semantics": "协议自有有限显示profile，非原生编号；本地字体／样式映射由第10／13步核定，缺失报Gap，不执行任意首码命令"
+    },
+    {
+      "domain": "display_style",
+      "name": "BannerSubtitle",
+      "value": 1,
+      "semantics": "协议自有有限显示profile，非原生编号；本地字体／样式映射由第10／13步核定，缺失报Gap，不执行任意首码命令"
+    },
+    {
+      "domain": "display_style",
+      "name": "CurseMain",
+      "value": 2,
+      "semantics": "协议自有有限显示profile，非原生编号；本地字体／样式映射由第10／13步核定，缺失报Gap，不执行任意首码命令"
+    },
+    {
+      "domain": "display_style",
+      "name": "CurseSubtitle",
+      "value": 3,
+      "semantics": "协议自有有限显示profile，非原生编号；本地字体／样式映射由第10／13步核定，缺失报Gap，不执行任意首码命令"
+    },
+    {
+      "domain": "display_style",
+      "name": "Fortune",
+      "value": 4,
+      "semantics": "协议自有有限显示profile，非原生编号；本地字体／样式映射由第10／13步核定，缺失报Gap，不执行任意首码命令"
+    },
+    {
+      "domain": "display_style",
+      "name": "PromptTitle",
+      "value": 5,
+      "semantics": "协议自有有限显示profile，非原生编号；本地字体／样式映射由第10／13步核定，缺失报Gap，不执行任意首码命令"
+    },
+    {
+      "domain": "display_style",
+      "name": "PromptBody",
+      "value": 6,
+      "semantics": "协议自有有限显示profile，非原生编号；本地字体／样式映射由第10／13步核定，缺失报Gap，不执行任意首码命令"
+    },
+    {
+      "domain": "contribution_pass",
+      "name": "Context",
+      "value": 0,
+      "semantics": "C/S自有有限贡献类别；不是原生枚举。Context只作父链，Value为根值，其余须命中对应typed节点；随机主／次／递归由第10步具名来源绑定，不按Client访问次数推断。"
+    },
+    {
+      "domain": "contribution_pass",
+      "name": "Value",
+      "value": 1,
+      "semantics": "C/S自有有限贡献类别；不是原生枚举。Context只作父链，Value为根值，其余须命中对应typed节点；随机主／次／递归由第10步具名来源绑定，不按Client访问次数推断。"
+    },
+    {
+      "domain": "contribution_pass",
+      "name": "Sprite",
+      "value": 2,
+      "semantics": "C/S自有有限贡献类别；不是原生枚举。Context只作父链，Value为根值，其余须命中对应typed节点；随机主／次／递归由第10步具名来源绑定，不按Client访问次数推断。"
+    },
+    {
+      "domain": "contribution_pass",
+      "name": "Image",
+      "value": 3,
+      "semantics": "C/S自有有限贡献类别；不是原生枚举。Context只作父链，Value为根值，其余须命中对应typed节点；随机主／次／递归由第10步具名来源绑定，不按Client访问次数推断。"
+    },
+    {
+      "domain": "contribution_pass",
+      "name": "LocalHistory",
+      "value": 4,
+      "semantics": "C/S自有有限贡献类别；不是原生枚举。Context只作父链，Value为根值，其余须命中对应typed节点；随机主／次／递归由第10步具名来源绑定，不按Client访问次数推断。"
+    },
+    {
+      "domain": "contribution_pass",
+      "name": "Fade",
+      "value": 5,
+      "semantics": "C/S自有有限贡献类别；不是原生枚举。Context只作父链，Value为根值，其余须命中对应typed节点；随机主／次／递归由第10步具名来源绑定，不按Client访问次数推断。"
+    },
+    {
+      "domain": "contribution_pass",
+      "name": "RandomPrimary",
+      "value": 6,
+      "semantics": "C/S自有有限贡献类别；不是原生枚举。Context只作父链，Value为根值，其余须命中对应typed节点；随机主／次／递归由第10步具名来源绑定，不按Client访问次数推断。"
+    },
+    {
+      "domain": "contribution_pass",
+      "name": "RandomSecondary",
+      "value": 7,
+      "semantics": "C/S自有有限贡献类别；不是原生枚举。Context只作父链，Value为根值，其余须命中对应typed节点；随机主／次／递归由第10步具名来源绑定，不按Client访问次数推断。"
+    },
+    {
+      "domain": "contribution_pass",
+      "name": "RandomRecursive",
+      "value": 8,
+      "semantics": "C/S自有有限贡献类别；不是原生枚举。Context只作父链，Value为根值，其余须命中对应typed节点；随机主／次／递归由第10步具名来源绑定，不按Client访问次数推断。"
+    },
+    {
+      "domain": "presentation_budget",
+      "name": "max_result_groups",
+      "value": 1024,
+      "semantics": "整批数量保护；还须同时满足整消息字节、字段访问次数、调用者scratch及实际发送预算，不是常态发送额度。"
+    },
+    {
+      "domain": "presentation_budget",
+      "name": "max_result_dependencies",
+      "value": 8192,
+      "semantics": "整批数量保护；还须同时满足整消息字节、字段访问次数、调用者scratch及实际发送预算，不是常态发送额度。"
+    },
+    {
+      "domain": "presentation_budget",
+      "name": "max_result_contributions",
+      "value": 8192,
+      "semantics": "整批数量保护；还须同时满足整消息字节、字段访问次数、调用者scratch及实际发送预算，不是常态发送额度。"
+    },
+    {
+      "domain": "presentation_budget",
+      "name": "max_audio_events",
+      "value": 4096,
+      "semantics": "整批数量保护；还须同时满足整消息字节、字段访问次数、调用者scratch及实际发送预算，不是常态发送额度。"
+    },
+    {
+      "domain": "resource_graphics_use",
+      "name": "SurfaceQuad",
+      "value": 0,
+      "semantics": "资源唯一源的固定shader用途；精确shader允许集见resource_protocol，不是任意GPU参数分派。"
+    },
+    {
+      "domain": "resource_graphics_use",
+      "name": "PresentationImage",
+      "value": 1,
+      "semantics": "资源唯一源的固定shader用途；精确shader允许集见resource_protocol，不是任意GPU参数分派。"
+    },
+    {
+      "domain": "resource_graphics_use",
+      "name": "Sprite",
+      "value": 2,
+      "semantics": "资源唯一源的固定shader用途；精确shader允许集见resource_protocol，不是任意GPU参数分派。"
+    },
+    {
+      "domain": "resource_graphics_use",
+      "name": "Bloom",
+      "value": 3,
+      "semantics": "资源唯一源的固定shader用途；精确shader允许集见resource_protocol，不是任意GPU参数分派。"
+    },
+    {
+      "domain": "resource_graphics_use",
+      "name": "Pixelation",
+      "value": 4,
+      "semantics": "资源唯一源的固定shader用途；精确shader允许集见resource_protocol，不是任意GPU参数分派。"
+    },
+    {
+      "domain": "resource_graphics_use",
+      "name": "Retrovision",
+      "value": 5,
+      "semantics": "资源唯一源的固定shader用途；精确shader允许集见resource_protocol，不是任意GPU参数分派。"
+    },
+    {
+      "domain": "resource_graphics_use",
+      "name": "Hallucination",
+      "value": 6,
+      "semantics": "资源唯一源的固定shader用途；精确shader允许集见resource_protocol，不是任意GPU参数分派。"
+    },
+    {
+      "domain": "resource_graphics_use",
+      "name": "ColorMod",
+      "value": 7,
+      "semantics": "资源唯一源的固定shader用途；精确shader允许集见resource_protocol，不是任意GPU参数分派。"
+    },
+    {
+      "domain": "resource_graphics_use",
+      "name": "Water",
+      "value": 8,
+      "semantics": "资源唯一源的固定shader用途；精确shader允许集见resource_protocol，不是任意GPU参数分派。"
+    },
+    {
+      "domain": "resource_graphics_use",
+      "name": "Wave",
+      "value": 9,
+      "semantics": "资源唯一源的固定shader用途；精确shader允许集见resource_protocol，不是任意GPU参数分派。"
+    },
+    {
+      "domain": "resource_graphics_use",
+      "name": "Background",
+      "value": 10,
+      "semantics": "资源唯一源的固定shader用途；精确shader允许集见resource_protocol，不是任意GPU参数分派。"
+    },
+    {
+      "domain": "resource_graphics_use",
+      "name": "Fade",
+      "value": 11,
+      "semantics": "资源唯一源的固定shader用途；精确shader允许集见resource_protocol，不是任意GPU参数分派。"
+    },
+    {
+      "domain": "acceptance_policy",
+      "name": "binary_state_capability",
+      "value": 1,
+      "semantics": "独立二进制状态能力；同时协商精确整数布局版本，不回退旧Range"
+    },
+    {
+      "domain": "acceptance_policy",
+      "name": "world_candidates",
+      "value": 1,
+      "semantics": "普通world至多保留最新一个候选"
+    },
+    {
+      "domain": "acceptance_policy",
+      "name": "joint_candidates",
+      "value": 1,
+      "semantics": "joint至多保留最新一个完整候选"
+    },
+    {
+      "domain": "acceptance_policy",
+      "name": "inflight_applies",
+      "value": 1,
+      "semantics": "同Peer一次最多一个原生应用批次"
+    },
+    {
+      "domain": "acceptance_policy",
+      "name": "member_entries",
+      "value": 65535,
+      "semantics": "完整成员表上限，FFFF不占真实项"
+    },
+    {
+      "domain": "acceptance_policy",
+      "name": "frame_records",
+      "value": 65535,
+      "semantics": "整帧记录总量保护，不替代实际消息及速率预算"
+    },
+    {
+      "domain": "compression",
+      "name": "world_body_zstd",
+      "value": 1,
+      "semantics": "版本66：只在双方显式协商后允许world/body独立消息zstd；不改变可靠性／字段／64KiB解压保护"
+    },
+    {
+      "domain": "compression",
+      "name": "zstd_level",
+      "value": 3,
+      "semantics": "沿用独立帧zstd level3；动态压缩结果严格更小时使用，否则保留原文"
+    },
+    {
+      "domain": "compression",
+      "name": "zstd_window_bytes",
+      "value": 8388608,
+      "semantics": "沿用8MiB窗口保护；不使用跨消息字典，普通解压仍最多64KiB"
+    }
+  ],
+  "resource_protocol": {
+    "entries": [
+      {
+        "table": 2,
+        "kind": 0,
+        "type": "ResourcePath",
+        "recipe": false
+      },
+      {
+        "table": 1,
+        "kind": 1,
+        "type": "ResourceImageFile",
+        "recipe": false
+      },
+      {
+        "table": 6,
+        "kind": 2,
+        "type": "ResourceBuiltinShader",
+        "recipe": false
+      },
+      {
+        "table": 5,
+        "kind": 3,
+        "type": "RoomConfig_Room",
+        "recipe": false
+      },
+      {
+        "table": 1,
+        "kind": 4,
+        "type": "SurfaceRecipeHeader",
+        "recipe": true
+      },
+      {
+        "table": 0,
+        "kind": 6,
+        "type": "ResourceAnimation",
+        "recipe": false
+      },
+      {
+        "table": 3,
+        "kind": 7,
+        "type": "ResourceItemConfig",
+        "recipe": false
+      },
+      {
+        "table": 4,
+        "kind": 8,
+        "type": "ResourceEntityConfig",
+        "recipe": false
+      },
+      {
+        "table": 7,
+        "kind": 9,
+        "type": "ResourceAudio",
+        "recipe": false
+      }
+    ],
+    "blend_profiles": [
+      {
+        "id": 0,
+        "values": [
+          0,
+          1,
+          0,
+          1,
+          0
+        ]
+      },
+      {
+        "id": 1,
+        "values": [
+          0,
+          1,
+          7,
+          1,
+          7
+        ]
+      },
+      {
+        "id": 2,
+        "values": [
+          0,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "id": 3,
+        "values": [
+          0,
+          0,
+          2,
+          0,
+          2
+        ]
+      },
+      {
+        "id": 4,
+        "values": [
+          0,
+          4,
+          7,
+          4,
+          7
+        ]
+      },
+      {
+        "id": 5,
+        "values": [
+          0,
+          0,
+          2,
+          1,
+          1
+        ]
+      },
+      {
+        "id": 6,
+        "values": [
+          0,
+          4,
+          8,
+          4,
+          7
+        ]
+      },
+      {
+        "id": 7,
+        "values": [
+          0,
+          6,
+          7,
+          1,
+          7
+        ]
+      },
+      {
+        "id": 8,
+        "values": [
+          0,
+          6,
+          1,
+          1,
+          1
+        ]
+      }
+    ],
+    "sampler_profiles": [
+      {
+        "id": 0,
+        "values": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "id": 1,
+        "values": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "id": 2,
+        "values": [
+          0,
+          1,
+          0,
+          0
+        ]
+      },
+      {
+        "id": 3,
+        "values": [
+          1,
+          1,
+          0,
+          0
+        ]
+      },
+      {
+        "id": 4,
+        "values": [
+          0,
+          0,
+          1,
+          0
+        ]
+      },
+      {
+        "id": 5,
+        "values": [
+          1,
+          0,
+          1,
+          0
+        ]
+      },
+      {
+        "id": 6,
+        "values": [
+          0,
+          1,
+          1,
+          0
+        ]
+      },
+      {
+        "id": 7,
+        "values": [
+          1,
+          1,
+          1,
+          0
+        ]
+      },
+      {
+        "id": 8,
+        "values": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "id": 9,
+        "values": [
+          1,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "id": 10,
+        "values": [
+          0,
+          1,
+          0,
+          1
+        ]
+      },
+      {
+        "id": 11,
+        "values": [
+          1,
+          1,
+          0,
+          1
+        ]
+      },
+      {
+        "id": 12,
+        "values": [
+          0,
+          0,
+          1,
+          1
+        ]
+      },
+      {
+        "id": 13,
+        "values": [
+          1,
+          0,
+          1,
+          1
+        ]
+      },
+      {
+        "id": 14,
+        "values": [
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "id": 15,
+        "values": [
+          1,
+          1,
+          1,
+          1
+        ]
+      }
+    ],
+    "graphics_uses": [
+      {
+        "id": 0,
+        "name": "SurfaceQuad",
+        "shaders": [
+          0
+        ],
+        "blend_mask": 511,
+        "sampler_mask": 65535
+      },
+      {
+        "id": 1,
+        "name": "PresentationImage",
+        "shaders": [
+          0
+        ],
+        "blend_mask": 511,
+        "sampler_mask": 65535
+      },
+      {
+        "id": 2,
+        "name": "Sprite",
+        "shaders": [
+          0,
+          10
+        ],
+        "blend_mask": 511,
+        "sampler_mask": 65535
+      },
+      {
+        "id": 3,
+        "name": "Bloom",
+        "shaders": [
+          2
+        ],
+        "blend_mask": 511,
+        "sampler_mask": 65535
+      },
+      {
+        "id": 4,
+        "name": "Pixelation",
+        "shaders": [
+          1
+        ],
+        "blend_mask": 511,
+        "sampler_mask": 65535
+      },
+      {
+        "id": 5,
+        "name": "Retrovision",
+        "shaders": [
+          6
+        ],
+        "blend_mask": 511,
+        "sampler_mask": 65535
+      },
+      {
+        "id": 6,
+        "name": "Hallucination",
+        "shaders": [
+          8
+        ],
+        "blend_mask": 511,
+        "sampler_mask": 65535
+      },
+      {
+        "id": 7,
+        "name": "ColorMod",
+        "shaders": [
+          9
+        ],
+        "blend_mask": 511,
+        "sampler_mask": 65535
+      },
+      {
+        "id": 8,
+        "name": "Water",
+        "shaders": [
+          7,
+          11,
+          13
+        ],
+        "blend_mask": 511,
+        "sampler_mask": 65535
+      },
+      {
+        "id": 9,
+        "name": "Wave",
+        "shaders": [
+          5
+        ],
+        "blend_mask": 511,
+        "sampler_mask": 65535
+      },
+      {
+        "id": 10,
+        "name": "Background",
+        "shaders": [
+          12
+        ],
+        "blend_mask": 511,
+        "sampler_mask": 65535
+      },
+      {
+        "id": 11,
+        "name": "Fade",
+        "shaders": [
+          0
+        ],
+        "blend_mask": 511,
+        "sampler_mask": 65535
+      }
+    ],
+    "limits": {
+      "entries": 65535,
+      "edges": 131072,
+      "dependency_depth": 16,
+      "directory_bytes": 33554432,
+      "recipe_operations": 4096,
+      "surface_dimension": 2048,
+      "recipe_layout": 1
+    }
+  },
+  "budget_policy": {
+    "envelope_bytes": 40,
+    "fragment_header_bytes": 64,
+    "fragment_payload_bytes": 1136,
+    "datagram_bytes": 1200,
+    "bundle_header_bytes": 28,
+    "bundle_entry_bytes": 22,
+    "bundle_entries": 16,
+    "ip_udp_bytes": 48,
+    "link_bytes_per_second": 1250000,
+    "host_utilization_percent": 90,
+    "host_bytes_per_second": 1125000,
+    "peer_bytes_per_second": 375000,
+    "control_bytes_per_second": 25000,
+    "world_bytes_per_second": 150000,
+    "body_bytes_per_second": 150000,
+    "reliable_bytes_per_second": 50000,
+    "host_burst_bytes": 24576,
+    "peer_burst_bytes": 8192,
+    "control_burst_bytes": 2048,
+    "world_burst_bytes": 4096,
+    "body_burst_bytes": 4096,
+    "reliable_burst_bytes": 8192,
+    "world_hz": 30,
+    "body_hz": 60,
+    "ordinary_message_bytes": 65536,
+    "reliable_message_bytes": 33554432,
+    "prepare_wire_bytes": 1048576,
+    "prepare_send_ms": 8000,
+    "prepare_total_ms": 10000,
+    "progress_ms": 2000,
+    "recovery_attempts": 2,
+    "world_wait_ms": 100,
+    "joint_wait_ms": 500,
+    "baseline_wait_ms": 10000,
+    "body_send_ms": 50,
+    "world_send_ms": 100,
+    "body_stale_ms": 250,
+    "world_stale_ms": 500,
+    "ack_repeat_ms": 50,
+    "resync_repeat_ms": 250,
+    "sent_targets": 192,
+    "sent_recovery_slots": 2,
+    "sent_target_bytes": 67108864,
+    "sent_age_ms": 2000,
+    "event_count": 4096,
+    "event_bytes": 262144,
+    "event_age_ms": 500,
+    "result_cache_groups": 1024,
+    "table_snapshots": 5,
+    "peer_value_bytes": 134217728,
+    "peer_wire_bytes": 25165824,
+    "workspace_job_bytes": 100663296,
+    "workspace_jobs": 1,
+    "pool_value_bytes": 536870912,
+    "pool_wire_bytes": 134217728,
+    "pool_workspace_bytes": 134217728,
+    "shared_value_bytes": 67108864,
+    "shared_wire_bytes": 33554432,
+    "world_body_zstd": 1,
+    "zstd_level": 3,
+    "zstd_window_bytes": 8388608
+  },
+  "budget_workloads": [
+    {
+      "name": "空world",
+      "kind": "world",
+      "hz": 30,
+      "terms": []
+    },
+    {
+      "name": "空body",
+      "kind": "body",
+      "hz": 60,
+      "terms": []
+    },
+    {
+      "name": "四身体E1与P0标量下界",
+      "kind": "body",
+      "hz": 60,
+      "terms": [
+        {
+          "type": "EntityPlayer",
+          "count": 4,
+          "blocks": [
+            1,
+            10
+          ]
+        }
+      ]
+    },
+    {
+      "name": "八身体E1与P0标量下界",
+      "kind": "body",
+      "hz": 60,
+      "terms": [
+        {
+          "type": "EntityPlayer",
+          "count": 8,
+          "blocks": [
+            1,
+            10
+          ]
+        }
+      ]
+    },
+    {
+      "name": "八身体另带13Sprite动画投影下界",
+      "kind": "body",
+      "hz": 60,
+      "terms": [
+        {
+          "type": "EntityPlayer",
+          "count": 8,
+          "blocks": [
+            1,
+            10,
+            20
+          ]
+        }
+      ]
+    },
+    {
+      "name": "64颗Tear运动块",
+      "kind": "world",
+      "hz": 30,
+      "terms": [
+        {
+          "type": "EntityTear",
+          "count": 64,
+          "blocks": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "稠密运动设计负载",
+      "kind": "world",
+      "hz": 30,
+      "terms": [
+        {
+          "type": "EntityTear",
+          "count": 64,
+          "blocks": [
+            1
+          ]
+        },
+        {
+          "type": "EntityProjectile",
+          "count": 32,
+          "blocks": [
+            1
+          ]
+        },
+        {
+          "type": "EntityNPC",
+          "count": 16,
+          "blocks": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "八身体全部body成员投影下界",
+      "kind": "body",
+      "hz": 0,
+      "terms": [
+        {
+          "type": "EntityPlayer",
+          "count": 8
+        }
+      ]
+    },
+    {
+      "name": "四参与者八身体及稠密房间成员Baseline下界",
+      "kind": "baseline",
+      "hz": 0,
+      "terms": [
+        {
+          "type": "PlayerParticipant",
+          "count": 4
+        },
+        {
+          "type": "PlayerControlGroup",
+          "count": 4,
+          "extra_bytes": 4
+        },
+        {
+          "type": "EntityPlayer",
+          "count": 8
+        },
+        {
+          "type": "EntityTear",
+          "count": 64
+        },
+        {
+          "type": "EntityProjectile",
+          "count": 32
+        },
+        {
+          "type": "EntityNPC",
+          "count": 16
+        },
+        {
+          "type": "GridEntity",
+          "count": 128
+        },
+        {
+          "type": "Room",
+          "count": 1
+        },
+        {
+          "type": "LevelGamePrefix",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "648项本地资源声明设计样例",
+      "kind": "resources",
+      "hz": 0,
+      "terms": [
+        {
+          "type": "ResourcePath",
+          "count": 100,
+          "extra_bytes": 64
+        },
+        {
+          "type": "ResourceImageFile",
+          "count": 200,
+          "extra_bytes": 64
+        },
+        {
+          "type": "ResourceAnimation",
+          "count": 100,
+          "extra_bytes": 16,
+          "extra_layouts": [
+            {
+              "type": "ResourceAnimationLayer",
+              "count": 8
+            }
+          ]
+        },
+        {
+          "type": "ResourceItemConfig",
+          "count": 80
+        },
+        {
+          "type": "ResourceEntityConfig",
+          "count": 64
+        },
+        {
+          "type": "RoomConfig_Room",
+          "count": 20
+        },
+        {
+          "type": "ResourceBuiltinShader",
+          "count": 20
+        },
+        {
+          "type": "ResourceAudio",
+          "count": 64,
+          "extra_bytes": 64
+        }
+      ]
+    },
+    {
+      "name": "单个100Quad纯值recipe资源",
+      "kind": "resources",
+      "hz": 0,
+      "terms": [
+        {
+          "type": "SurfaceRecipeHeader",
+          "count": 1,
+          "extra_layouts": [
+            {
+              "type": "SurfaceRecipeClear",
+              "count": 1
+            },
+            {
+              "type": "SurfaceRecipeQuad",
+              "count": 100
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "八身体独立HUD时钟完整消息设计下界",
+      "kind": "body",
+      "hz": 60,
+      "terms": [
+        {
+          "type": "PlayerHUDLocalClock",
+          "count": 8,
+          "result_envelope": true,
+          "extra_layouts": [
+            {
+              "type": "StateDependencyEntry",
+              "count": 3
+            },
+            {
+              "type": "StateContributionEntry",
+              "count": 2
+            }
+          ]
+        }
+      ]
     }
   ]
 }

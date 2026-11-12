@@ -1,4 +1,5 @@
 #include "game/observation/world_bridge.h"
+#include "game/observation/binary_entities.h"
 #include "core/capture_cost.h"
 #include "replica/stream_e2e.h"
 #include "replica/stream_resource_e2e.h"
@@ -17,6 +18,48 @@
 #include <exception>
 
 namespace cs::game {
+namespace {
+BinaryEntities *scene_producer=nullptr;unsigned scene_producer_depth=0;
+unsigned scene_clear_depth=0;
+std::shared_ptr<WorldCapture> scene_target_capture;
+std::uint32_t scene_target_owner=0;
+}
+BinarySceneBuildScope::BinarySceneBuildScope(void *backdrop,bool replace,bool enabled) noexcept:exceptions_(std::uncaught_exceptions()) {
+  if(!enabled || !IsMain() || ClientBusy())return;if(scene_target_capture)BinarySceneGraphicsFinish();capture_=CurrentWorldRecording();
+  if(!capture_ || !capture_->binary_entities || (scene_producer && scene_producer!=capture_->binary_entities.get())){capture_.reset();return;}
+  backdrop_=world::PackWord(backdrop);scene_producer=capture_->binary_entities.get();++scene_producer_depth;
+  scene_producer->SceneBuild(backdrop_,true,false,replace);
+}
+BinarySceneBuildScope::~BinarySceneBuildScope() noexcept {
+  if(!backdrop_ || !capture_)return;capture_->binary_entities->SceneBuild(backdrop_,false,exceptions_==std::uncaught_exceptions(),false);
+  if(!--scene_producer_depth)scene_producer=nullptr;
+}
+bool BinarySceneGraphicsActive() noexcept {return IsMain() && scene_producer_depth!=0;}
+void BinarySceneGraphicsBoundary() noexcept {if(BinarySceneGraphicsActive())scene_producer->SceneGraphicsBoundary();}
+// 非Init的正常辅助surface写入同样捕获；借用在下一次切target／提交批次前结束。
+void BinarySceneTargetAfter(void *backdrop,bool enabled) noexcept {
+  if(!enabled || !IsMain() || ClientBusy() || scene_producer_depth)return;auto current=CurrentWorldRecording();
+  if(!current || !current->binary_entities)return;scene_target_capture=std::move(current);scene_target_owner=world::PackWord(backdrop);
+  scene_producer=scene_target_capture->binary_entities.get();scene_producer_depth=1;scene_producer->SceneBuild(scene_target_owner,true,false,false);
+}
+void BinarySceneGraphicsFinish() noexcept {
+  BinarySceneGraphicsBoundary();if(!IsMain() || !scene_target_capture || scene_clear_depth)return;
+  scene_producer->SceneBuild(scene_target_owner,false,true,false);scene_target_owner=0;scene_producer_depth=0;scene_producer=nullptr;scene_target_capture.reset();
+}
+BinarySceneClearScope::BinarySceneClearScope() noexcept:exceptions_(std::uncaught_exceptions()),main_(IsMain()) {
+  if(main_){++scene_clear_depth;BinarySceneGraphicsBoundary();}
+}
+BinarySceneClearScope::~BinarySceneClearScope() noexcept {
+  if(!main_)return;--scene_clear_depth;
+  if(exceptions_==std::uncaught_exceptions())BinarySceneClear();
+  else if(scene_target_capture){scene_producer->SceneBuild(scene_target_owner,false,false,false);scene_target_owner=0;scene_producer_depth=0;scene_producer=nullptr;scene_target_capture.reset();}
+}
+void BinarySceneClear() noexcept {if(BinarySceneGraphicsActive())scene_producer->SceneClear();}
+void BinarySceneImageBefore(void *image,const void *source,const void *destination,const void *tl,const void *tr,const void *bl,const void *br) noexcept {
+  if(BinarySceneGraphicsActive())scene_producer->SceneImageBefore(world::PackWord(image),world::PackWord(source),world::PackWord(destination),
+    {world::PackWord(tl),world::PackWord(tr),world::PackWord(bl),world::PackWord(br)});
+}
+void BinarySceneImageAfter(const void *vertices) noexcept {if(BinarySceneGraphicsActive())scene_producer->SceneImageAfter(world::PackWord(vertices));}
 WorldJoinEffectSourceScope::WorldJoinEffectSourceScope() noexcept:exceptions_(std::uncaught_exceptions()) {
   capture::Cost cost(capture::CostPart::Control);
   if(!IsMain()){world::ReportEntityReconfigurationFault(world::ObservationFault::WrongThread);return;}
@@ -31,6 +74,7 @@ WorldJoinEffectSourceScope::~WorldJoinEffectSourceScope() noexcept {
 StreamResourceScope::StreamResourceScope(void *object,bool retired,bool constructing,void *copy_source,const char *operation) noexcept:exceptions_(std::uncaught_exceptions()) {
   if(!IsMain()||!object)return;capture_=CurrentWorldRecording();
   capture::Cost cost(capture::CostPart::Control);
+  if(capture_&&capture_->binary_entities)capture_->binary_entities->ResourceChanged(world::PackWord(object));
   if(!capture_||!capture_->live_consumer){capture_.reset();return;}
   auto &c=*capture_;retired_=retired;constructing_=constructing;address_=world::PackWord(object);
   const auto old=c.stream_resources.find(address_);
@@ -155,6 +199,8 @@ WorldPlayerChildSourceScope::~WorldPlayerChildSourceScope() noexcept {
 void WorldPlayerChildSourceScope::Returned(bool body_reached) noexcept {
   returned_=true;body_reached_=body_reached;if(counters_.completed)counters_.completed->fetch_add(1,std::memory_order_relaxed);
 }
+// 构造／析构均在BinaryEntities完整定义处生成，其他使用方不实例化其不完整类型清理代码。
+WorldCapture::WorldCapture()=default;
 WorldCapture::~WorldCapture() {
   if(reserve_charged) ledger.Release(world::kObservationReserveBytes);
   if (faults.unreadable) {
@@ -373,6 +419,7 @@ void StopWorldRecording() noexcept {
   if (IsMain())
     activation_pending = false;
   if (auto *collector = Collector()) {
+    if(recording->binary_entities)recording->binary_entities->Active(false);
     recording->observation.RequestStop();
     collector->Stop();
   }
@@ -412,6 +459,7 @@ bool DetachClosedWorld(const std::shared_ptr<WorldRecording> &closed) noexcept {
   return true;
 }
 void WorldFrameBegin(std::uint64_t loop) noexcept {
+  if(scene_target_capture)BinarySceneGraphicsFinish();
   capture::FrameBegin(loop,recording&&recording->live_consumer&&RunActive());
   capture::Cost cost(capture::CostPart::Native);
   auto *collector = Collector();
@@ -429,11 +477,13 @@ void WorldFrameBegin(std::uint64_t loop) noexcept {
   frame_prepared = false;
   ObserveFailures(*collector);
   if (!collector->Participating()) {
+    if(recording->binary_entities)recording->binary_entities->Invalidate();
     recording->live.Invalidate("live_collector_not_participating");
     recording->stream.Invalidate("live_collector_not_participating");
     return;
   }
   collector->BeginOuter(loop, OwnerToken(Owner::Manager), RunActive());
+  if(recording->binary_entities)recording->binary_entities->FrameBegin();
   // 原生run/room撤销即取消活动上下文，不等待可选Lua回调或下一次30tick采集。
   auto &location=recording->hierarchy;
   if(location.valid&&(location.run!=collector->CurrentRunToken()||location.room!=collector->CurrentRoomToken())) {
@@ -516,8 +566,10 @@ void WorldRefreshAnchors() noexcept {
   for(unsigned slot=0;slot<values.size();++slot) previous[slot]=collector->CurrentAnchor(slot);
   // 根切换会重排身体槽；先撤销全部变化槽，再赋新值，避免同一个Entity身份被旧槽清掉。
   for (unsigned slot = 0; slot < values.size(); ++slot)
-    if (!(collector->CurrentAnchor(slot) == values[slot]))
+    if (!(collector->CurrentAnchor(slot) == values[slot])) {
+      if(recording->binary_entities)recording->binary_entities->RetireBody(previous[slot].player);
       collector->RevokePlayer(slot);
+    }
   for (unsigned slot = 0; slot < values.size(); ++slot)
     collector->AnchorPlayer(slot, values[slot]);
   for(unsigned slot=0;slot<values.size();++slot) if(!(previous[slot]==values[slot]))
@@ -560,6 +612,7 @@ void WorldRevokePlayer(unsigned ordinal) noexcept {
     for (unsigned b = 0; b < kMaximumGroupBodies; ++b) {
       const auto slot=ordinal*kMaximumGroupBodies+b;
       const auto before=collector->CurrentAnchor(slot);
+      if(recording&&recording->binary_entities)recording->binary_entities->RetireBody(before.player);
       collector->RevokePlayer(slot);
       if(recording){const auto &source=recording->pending_bodies[slot].source;if(source)recording->pending_body_bytes-=source->Bytes();recording->pending_bodies[slot]={};recording->body_status[slot].reason="player_post_binding_revoked";}
       if(before.valid) ObservationControlChange(slot,before,{},"explicit_binding_revocation");
@@ -599,6 +652,7 @@ void WorldPreparePostState(bool normal) noexcept {
   capture::Cost cost(capture::CostPart::Native);
   if (auto *collector = Collector()) {
     if (!collector->Participating()) {
+      if(recording->binary_entities)recording->binary_entities->Invalidate();
       prepared_post = {};
       frame_prepared = true;
       return;
@@ -606,6 +660,7 @@ void WorldPreparePostState(bool normal) noexcept {
     WorldRefreshAnchors();
     ObserveFailures(*collector);
     prepared_post = collector->PreparePostState(normal);
+    if(recording->binary_entities)recording->binary_entities->Prepare(normal);
     frame_prepared = true;
     if(recording->live_consumer&&normal)for(unsigned slot=0;slot<world::kControlAnchorCapacity;++slot){
       world::PlayerPostWitness before{},after{};
@@ -655,6 +710,8 @@ core::TickPostState WorldPostState(std::uint64_t tick) noexcept {
 void WorldPublishPostState(bool committed,
                            const core::TickPostState &post) noexcept {
   capture::Cost cost(capture::CostPart::Handoff);
+  // 在Collector关闭本outer前提交独立二进制源；不受旧Lua／JSON资源路径成败影响。
+  if(recording&&recording->binary_entities)recording->binary_entities->Commit(committed,post);
   if (auto *collector = Collector())
     collector->PublishPostState(committed, post);
   if(!recording||!recording->live_consumer)return;
@@ -693,12 +750,21 @@ void WorldFrameEnd() noexcept {
   capture::Cost cost(capture::CostPart::Control);
   if(recording)for(auto &body:recording->pending_bodies)if(body.source){body={};recording->stream.BodyGap("player_post_missing_outer_commit");}
   if(recording)recording->pending_body_bytes=0;
+  if(recording&&recording->binary_entities)recording->binary_entities->FrameEnd();
   if (auto *collector = Collector())
     collector->EndOuter();
   }
   capture::FrameEnd();
 }
 
+BinaryFloorScope::BinaryFloorScope() noexcept:exceptions_(std::uncaught_exceptions()) {
+  if(!IsMain() || !recording || !recording->binary_entities)return;
+  active_=true;recording->binary_entities->FloorBoundary(true,false);
+}
+BinaryFloorScope::~BinaryFloorScope() noexcept {
+  if(active_ && IsMain() && recording && recording->binary_entities)
+    recording->binary_entities->FloorBoundary(false,exceptions_==std::uncaught_exceptions());
+}
 WorldBoundaryScope::WorldBoundaryScope(WorldBoundary kind, const void *object,
                                        bool enabled) noexcept
     : kind_(kind), exceptions_(std::uncaught_exceptions()) {

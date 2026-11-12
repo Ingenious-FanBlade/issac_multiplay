@@ -8,7 +8,7 @@ namespace cs::net::live {
 namespace stream = replica::stream;
 // 只记录实际物理包；共同头按条目摊销，统计缺失不影响协议处理。
 void ObservePacket(stream::Metrics &,std::span<const std::uint8_t>,const char *direction="client-receive") noexcept;
-// 总桶与每Peer桶只有socket线程访问；P2也保留单Peer的312500 byte/s额度。
+// 总桶与每Peer桶只有socket线程访问；P2也保留单Peer的375000 byte/s额度。
 class Uplink final {
 public:
   Uplink() noexcept {Configure(stream::RuntimeConfig{});}

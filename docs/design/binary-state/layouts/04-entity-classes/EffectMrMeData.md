@@ -1,6 +1,6 @@
 # EffectMrMeData
 
-由唯一布局源生成。布局编号 25；布局版本 60；原生大小 0x128；未知 14B；完整：否。
+由唯一布局源生成。布局编号 25；布局版本 71；原生大小 0x128；未知 14B；完整：否。
 
 MrMe Render只在State=2、Target非空、可空Sprite资源就绪时于CarryPos绘制+8 ANM2。外部16B私有状态归Host；ANM2内原UNKNOWN仍保留。
 

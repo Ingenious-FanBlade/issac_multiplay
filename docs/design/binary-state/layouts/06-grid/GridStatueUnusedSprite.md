@@ -1,6 +1,6 @@
 # GridStatueUnusedSprite
 
-由唯一布局源生成。布局编号 216；布局版本 60；原生大小 0x114；未知 14B；完整：否。
+由唯一布局源生成。布局编号 216；布局版本 71；原生大小 0x114；未知 14B；完整：否。
 
 版本52：仅适用于原版Statue真实RTTI。slot3=4291D0空函数，Init不装Sprite，Light无type21分支；不传ANM2状态或glitch选择。递归UNKNOWN14B仍登记，不能抹为填充。实际雕像Entity正常独立同步，不能以空Render省略Entity成员。
 

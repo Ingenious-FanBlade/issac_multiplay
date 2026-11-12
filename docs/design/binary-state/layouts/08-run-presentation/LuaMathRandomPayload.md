@@ -1,6 +1,6 @@
 # LuaMathRandomPayload
 
-由唯一布局源生成。布局编号 404；布局版本 60；原生大小 0x20；未知 0B；完整：否。
+由唯一布局源生成。布局编号 404；布局版本 71；原生大小 0x20；未知 0B；完整：否。
 
 只登记32B payload；GC/Userdata头、closure、registry均不在该范围，不冒充完整Lua对象 原生地址／guard只作证据，不成为线上身份；本类型无发送块。
 

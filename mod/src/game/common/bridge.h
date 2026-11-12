@@ -1,5 +1,6 @@
 #pragma once
 #include "game/client/room/client_backdrop_native.h"
+#include "game/observation/binary_production.h"
 // 首个Player只在具名构建窗口隔离起始统计链；安装资格检查真实trampoline。
 namespace cs::game {
 bool ClientObjectSkipPlayerPreStats() noexcept;
@@ -13,6 +14,31 @@ bool ClientObjectPreStatsIsolationInstalled() noexcept;
 
 namespace cs::game {
 struct WorldCapture;
+// 正常背景生产栈的只读观察。图像Hook只在这个短借栈启用，不额外执行任何原生绘制。
+class BinarySceneBuildScope final {
+public:
+  BinarySceneBuildScope(void *backdrop,bool replace,bool enabled) noexcept;
+  ~BinarySceneBuildScope() noexcept;
+private:
+  std::shared_ptr<WorldCapture> capture_;
+  std::uint32_t backdrop_=0;
+  int exceptions_=0;
+};
+class BinarySceneClearScope final {
+public:
+  BinarySceneClearScope() noexcept;
+  ~BinarySceneClearScope() noexcept;
+private:
+  int exceptions_=0;
+  bool main_=false;
+};
+bool BinarySceneGraphicsActive() noexcept;
+void BinarySceneGraphicsBoundary() noexcept;
+void BinarySceneGraphicsFinish() noexcept;
+void BinarySceneTargetAfter(void *backdrop,bool enabled) noexcept;
+void BinarySceneClear() noexcept;
+void BinarySceneImageBefore(void *image,const void *source,const void *destination,const void *tl,const void *tr,const void *bl,const void *br) noexcept;
+void BinarySceneImageAfter(const void *vertices) noexcept;
 // SDK公开ANM2资源写入的只读观察：original恰好一次，进入即撤旧资格，异常保持撤销。
 class StreamResourceScope final {
 public:
@@ -39,6 +65,15 @@ void ClientTestDestroyVm(void *) noexcept;
 bool PlayerIsHologram(void *player) noexcept;
 // SDK-facing 的 world 作用域只传值，不包含 C++20 核心或 SDK 对象方法。
 enum class WorldBoundary : unsigned { Owner, Room, Tail, Lifecycle, RunEnd, RunStart };
+  // Level::Init整条正常链的只读生命周期证言；只撤销来源，不改变原函数调用。
+  class BinaryFloorScope final {
+  public:
+    BinaryFloorScope() noexcept;
+    ~BinaryFloorScope() noexcept;
+  private:
+    int exceptions_=0;
+    bool active_=false;
+  };
 class WorldBoundaryScope final {
 public:
   WorldBoundaryScope(WorldBoundary kind, const void *object = nullptr,

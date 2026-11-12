@@ -1,6 +1,6 @@
 # RunAmbush
 
-由唯一布局源生成。布局编号 231；布局版本 60；原生大小 0x4C；未知 3B；完整：否。
+由唯一布局源生成。布局编号 231；布局版本 71；原生大小 0x4C；未知 3B；完整：否。
 
 Game+25B40。全部已知玩法字节留Host；+21..23仍UNKNOWN。REPENTOGON外部ambushWaves/bossAmbushWaves不伪造为对象字段。
 

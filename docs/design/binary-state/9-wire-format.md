@@ -1,5 +1,21 @@
 # 9：线格式
 
+**2026-11-12 HUD代码迁移，版本70**：布局由69升至70；315撤销三项重复缓存，311/312采用显式条件分支，新增41B的PlayerHUDLocalClock(435)及正式通用编解码；436为真实缺口补准确历史P8输入，不恢复护盾bool下行。 具体接口、事实及剩余接线见[实施说明](hud-local-implementation.md)。第15步唯一统一验收，未运行测试。
+
+**2026-11-12 HUD本地化后续迁移（仅文档）**：按[现行合同第7节](hud-local-presentation.md)修订315等HUD布局与依赖：撤销低血强度、护盾资格及普通图标／中心、Drop逐帧结果的重复下行，登记最小critical_health与实际消费Drop驱动／更新锚点／恢复相位；特殊图像、三色／充能闪烁、有序列表、Stat三值与概率仍保留。基础格式化／多人排版不增加Host文字／坐标负载。后续须同源修改schema、递增整数版本并核预算，不在现有版本直接省字节；world／body两序列及提交规则不变。本次未修改或生成任何布局／代码，原已实现线格式是迁移前事实，无构建或测试。
+
+**2026-11-11 版本66补充**：按用户要求仅新增[world/body独立zstd](9-world-body-zstd.md)，补齐能力协商、动态发送／有界接收及预算；不改变字段、增量粒度、动画／音频、可靠性和各项容量／时间／带宽。公共头保持349布局／2806字段／85条件，未运行测试。
+
+**2026-11-11 第9步全部工作完成，版本65**：[预算与容量收尾](9-budget-capacity.md)和[同源静态账本](layouts/09-wire-format/budget-plan.md)完成完整消息计费、设计负载／声明上下界、90%带宽、有效峰值、初建借用、容量／截止时间和文档统一。模组持续总额改9Mbps＝1125000B/s，三端各375000B/s，旧7.5Mbps记录保留原时点。普通／可靠完整消息保护包含40B信封，正文65496／33554392B；固定头尺寸不变。线格式及纯值库完成，不表示10—14步运行链或第15步验收完成，也不把密集负载超预算写成通过。
+
+**2026-11-11 第五项完成，版本64**：[版本、接受与恢复](9-acceptance-recovery.md)及[同源数字合同](layouts/09-wire-format/state-protocol-plan.md)完成完整StateFrame／成员表／控制报文与纯值接受／恢复状态机。先定界再判旧base补ACK；整目标原生成功才确认，部分应用失败停用受影响事务并base=0重建。349布局／2806字段／85条件，公共固定头尺寸不变；预算核算和10—14步运行接线仍待后续，无测试。
+
+**2026-11-11 第四项完成，版本63**：[资源协议](9-resource-protocol.md)与[同源表](layouts/09-wire-format/resource-protocol-plan.md)实现typed资源矩阵、有限recipe、图形允许集、资源消息、不可变目录／epoch与依赖图。349布局／2806字段／85条件，新增425—433；309／366为212／213B，其他公共头不变，像素／blob禁用。完整StateFrame／成员表／控制报文、最终会话接受与预算核算仍待后续，不启用部分新Kind或提前ACK。
+
+**2026-11-11 第三项完成，版本62**：[显示批次外层封装](9-presentation-envelope.md)与[生成合同](layouts/09-wire-format/presentation-envelope-plan.md)实现组／依赖／贡献／事件及整批编解码，精确主体／来源／缓存epoch、用途／pass、typed定位、窄依赖和连续事件校验。仍340布局／2772字段／84条件，公共尺寸不变，无Presentation确认序列。完整资源payload／图形允许集、完整Frame／表／最终接受入口及运行接线继续待后续；只生成与纯编译，第15步唯一验收。
+
+**2026-11-11 资源与显示迁移实施，版本61**：[现行本地生成合同](local-media-presentation.md)已落实到[第二项正文实现](9-domain-body-codec.md)：新增422—424文字／有序行／本地历史颜色描述，替换HUD／Prompt文字图引用、删除Hallucination的Host图引用，374收窄为BossVersusResult并移除切房surface贡献。305／306固定字节保留但正文禁用，304拒绝kind5；u32 mask、12B记录头和其他公共固定头尺寸保持。当前340布局／2772字段／84条件；完整本地资源payload、整消息和10—13步运行接线仍待后续，第15步统一验收。
+
 **2026-11-11 第9步各域正文实现，版本60**：[正文实现与边界](9-domain-body-codec.md)、[同源数字计划](layouts/09-wire-format/body-codec-plan.md)。各域正文与12B记录编解码已实现，布局版本60；公共结构尺寸沿用59。新state/body_codec.*使用同源state_body_codec.inc覆盖337布局／2763字段／79条件，输出块／可选根字段视图与投影事实；缺base或资源仍不得安装／ACK。完整typed资源、用途允许集、Frame装配与会话接受入口仍待后续。
 
 **2026-11-11 第9步第一项完成，版本59**：[公共报文结构正式合同](9-public-wire-contract.md)、[同源固定头／常量表](layouts/09-wire-format/README.md)。保留u32块掩码与12B记录头；50B公共上下文、1／2分段共同提交、按Peer body确认、u32 GameFrame、显式资源空间、结果组／贡献／事件外层已入源。三端总上行10Mbps、模组持续7.5Mbps；32MiB仅为旧可靠大消息／解码内存保护，普通帧按实际预算发送。完整资源payload、用途允许集、接受规则与运行编解码仍待本步后续；第15步唯一验收。以下较早交接保留原时点，结构冲突以正式合同为准。
@@ -14,7 +30,7 @@
 
 **2026-11-10 第8步资源／屏幕来源交接**：[具体来源与结果合同](presentation-resource-screen-sources.md)补核RGBA8、内置shader表及固定pass格式、前后surface、Nightmare条件内容和BossOverlay。9.10.6中的“Nightmare条件payload／运行模式显示owner完全未核”由该文的具体结论修订：条件结果来源已核，模式4为原版Deathmatch而排除，Pause仅密码1B排除；其余孔仍UNKNOWN。正式结果布局、固定shader资源表示与typed表项kind的对应、完整recipe／blob分派和预算仍待本步实施，不把来源目录当可接受报文或恢复Mod shader旁表依赖。版本57不变，无构建或测试。
 
-状态：公共结构与各域正文已实现并同源生成；完整资源payload、整消息装配、详细接受规则与运行接线未实施。上级：[总计划](README.md)。
+状态：公共结构、各域正文、显示批次、资源、完整消息及纯值接受／恢复规则已实现并同源生成；本步预算核算已完成，实际运行接线归10—14步。上级：[总计划](README.md)。
 
 **2026-11-10 各域编码交接统一整理**：现行交接入口为 **9.10**，逐项列出来源、特殊编码规则、版本依赖和待落实项；显示／资源、RoomSave／Exploration与其余域按同一结构登记。本次静态审阅读取的唯一布局源整数版本为 **57**，已包含同期登记的Room／Level及部分显示／资源值布局；完整消息、Presentation其余投影和运行接线仍分项列为待落实。本次只整理文档，不修改布局源、生成表或实现，不构建、不运行测试；原版本提示移至文末历史说明。
 
@@ -28,7 +44,7 @@
 
 - **传输封套**：64B分片头＋40B逻辑消息信封；前者固定64字节（`mod/src/replica/stream_codec.h:20-28,57`）。
 - **报文与分片**：报文最大 1200 字节，分片正文 1136 字节（`stream_config.h:21`）。
-- **保护上限与速率**：配置中的world 32MiB是可靠大消息／内存保护，普通非可靠world/body还受EncodeBlob的64KiB收紧；均不是发送额度。三端总上行10Mbps、模组持续7.5Mbps，按最终分片／合包／重传字节计费，见[正式合同第9节](9-public-wire-contract.md#9-带宽消息保护与准备预算)。
+- **保护上限与速率**：配置中的world 32MiB是可靠大消息／内存保护，普通非可靠world/body还受EncodeBlob的64KiB收紧；均不是发送额度。三端总上行10Mbps、模组持续9Mbps（2026-11-11用户修订），按最终分片／合包／重传字节计费，见[正式合同第9节](9-public-wire-contract.md#9-带宽消息保护与准备预算)。
 - **通道**：`Control`、`Baseline`、`Context`、`WorldDynamic`、`PlayerFast`、`Input`。其中 `Baseline` 和 `Context` 是可靠通道（`stream_transport.cpp:62`）；`WorldDynamic` 和 `PlayerFast` 只保留最新。
 - **消息种类**：`ScenePrepare`、`Range`、`ReceiveAck`、`ContextReady`、`AppliedAck`、`Resync` 等（`stream_codec.h:6`）。
 - **现在的正文**：`Range` 的正文是带字段编号的树形编码，固定 payload schema=2（`stream_codec.h:47`），必须先还原成范围模型才能使用。
@@ -36,8 +52,8 @@
 
 ### 各域资料与当前状态
 
-- **唯一布局源**：[`version.json`](../../../mod/binding/state/version.json)当前为60，公共结构尺寸沿用59；包含前13份域源与新增`wire.json`，共14份；公共固定头408—421及304／306的更新与常量同源生成。字段、布局号、条件、序列和预算以源及[生成表](layouts/README.md)为准，正文编解码已实现，完整消息运行入口仍未接通。
-- **设计来源与同期入源**：第2—8步及其职责核对、字节账本、补证文档提供语义和未决项。原资料中的版本56“Room／Level／新显示结果未注册”保留其时点；[第7步版本57实现说明](implementation-7-room-level.md)与实际`room.json`／`level.json`提供同期入源范围。本清单据此区分已入源值布局、待定完整消息与尚未注册结果，不宣称第9步协议已接通，也不让旧版本提前接受新字段。
+- **唯一布局源**：[`version.json`](../../../mod/binding/state/version.json)当前为66，公共结构尺寸沿用59；包含前13份域源与新增`wire.json`，共14份；公共固定头408—421、304／306及常量同源生成，305／306当前正文禁用。字段、布局号、条件、序列和预算以源及[生成表](layouts/README.md)为准，正文及显示组／事件编解码已实现，完整消息运行入口仍未接通。
+- **设计来源与同期入源**：第2—8步及其职责核对、字节账本、补证文档提供语义和未决项。原资料中的版本56“Room／Level／新显示结果未注册”保留其时点；[第7步版本57实现说明](implementation-7-room-level.md)与实际`room.json`／`level.json`提供同期入源范围。本清单中的原版本事实保持，现行值布局／完整消息／允许集及预算已由版本65定稿；真实来源和运行owner仍归10—14步，不让旧版本提前接受新字段。
 - **版本含义**：布局版本、类型布局编号、成员／资源epoch、world／body版本及专用拓扑／显示修订分别承担不同职责。布局已经生成不表示第9步报文或第10—13步采集、发布、解码、安装已经接通；历史版本不作为当前兼容分支。
 
 ## 设计
@@ -88,7 +104,9 @@
 
 304资源头现为8B：`table:u8 + index:u16 + kind:u8 + payload_bytes:u32`；306 blob头现为15B：`resource_epoch:u32 + table:u8 + index:u16 + offset:u32 + bytes:u32`。原号保留、版本59更新，不保留同义头。
 
-八张资源表使用明确u8编号，typed字段已知空间时仍只传u16引用；FFFF Null与非Null资源Wait／失败分开。一个run内同表资源号只增不改，内容变化分配新号；表到达、内容收齐、依赖ready与物化成功分别记录。完整payload、table/kind矩阵与shader／blend／sampler允许集仍待本步后续，不能仅因固定头生成而接受新资源。见[正式合同第4节](9-public-wire-contract.md#4-成员表资源表与blob)。
+八张资源表使用明确u8编号，typed字段已知空间时仍只传u16引用；FFFF Null与非Null资源Wait／失败分开。一个run内同表资源号只增不改，内容变化分配新号；表到达、内容收齐、依赖ready与物化成功分别记录。版本63已完成完整本地payload、table/kind矩阵与shader／blend／sampler允许集，见[资源协议](9-resource-protocol.md)；表到达仍不代表实际物化ready。见[正式合同第4节](9-public-wire-contract.md#4-成员表资源表与blob)。
+
+**当前资源正文范围（2026-11-11）**：只为已安装资源声明身份／路径／选中sample、必要配置及有界本地生成描述，不传图像文件、纹理、音频文件或PCM。版本61正文入口拒绝305／306及像素kind5；文字／有限样式、Boss versus与Hallucination布局／依赖已沿唯一源迁移，具体见[第二项实现](9-domain-body-codec.md)。实际采集／发布／本地生成和完整资源接受仍待接线，不能只让Client忽略旧必需引用后声称完整。
 
 ### 9.7 结果组、贡献、事件与当前范围（公共壳定稿）
 
@@ -96,9 +114,9 @@
 
 第三方Mod自描述值、任意GPU命令、函数／getter参数字典继续不在范围内；未知来源、旧UNKNOWN及音频恢复Gap保持。
 
-### 9.8 Client校验与接受规则（结构原则已定，详细实现待后续）
+### 9.8 Client校验与接受规则（版本64定稿）
 
-完整目标必须同时满足：整数布局版本、完整scope/route、精确表快照、base/target、生成布局／mask／长度、具名用途允许集、全部必要来源／资源／拓扑及共同提交关系。Gap／Wait不能规范化为空；无完整合法目标不安装、不ACK。
+完整目标必须同时满足：整数布局版本、完整scope/route、精确表快照、base/target、生成布局／mask／长度、具名用途允许集、全部必要来源／资源／拓扑及共同提交关系。Gap／Wait不能规范化为空；无完整合法目标不安装、不ACK。版本64的错误分类、先定界／旧base补ACK、候选限界、原始joint凭据、Host发送账本和污染恢复以[第五项合同](9-acceptance-recovery.md)为准；结构成功不代替第12步完整候选或第13步原生提交。
 
 ContextReady只确认元数据可解析；AppliedAck在原生提交成功后才确认目标。双分段一次确认两项，事件只随world回报连续水位；不是单独Presentation ACK。Host只接受实际发送目标的准确回报。普通Resync以base=0恢复、保持target单调；版本将回绕时须先退休旧复制代次，不能在原路由重置。见[正式合同第8节](9-public-wire-contract.md#8-确认基线回绕与接受边界)。
 
@@ -107,17 +125,17 @@ ContextReady只确认元数据可解析；AppliedAck在原生提交成功后才�
 - world和body独立，body按Peer覆盖其全部身体；不按身体另建序列。
 - Player P0和已安装P6须使用相等的u32绘制拓扑，保持成员／资源与相关结果的窄依赖；双分段结构事务明确共同提交，不扩大普通body对整个地图的依赖。
 - GameFrame保留u32，来源与事件身份用u64；不能以GameFrame代替来源修订或Peer目标。
-- 三端总上行10Mbps／模组持续7.5Mbps。每Peer world120000B/s、body120000B/s对应30/60Hz平均4000/2000B，另留控制／可靠额度。首次准备状态、表和资源合计≤1MiB、≤10秒，所有发送及重传均计费；32MiB旧保护不是正常world许可，64KiB普通消息保护也不是常态发送额度。见[正式合同第9节](9-public-wire-contract.md#9-带宽消息保护与准备预算)。
+- 三端总上行10Mbps／模组持续9Mbps。每Peer world150000B/s、body150000B/s对应30/60Hz平均5000/2500B，另留control25000及reliable50000B/s；初建／恢复只借本Peer被停用的流。首次准备状态、表和资源合计≤1MiB、≤10秒，所有发送及重传均计费；32MiB旧保护不是正常world许可，64KiB普通消息保护也不是常态发送额度。见[正式合同第9节](9-public-wire-contract.md#9-带宽消息保护与准备预算)。
 
 ### 9.10 各域编码交接清单
 
-以下按第1—8步的来源统一核对，不以页首修订提示代表覆盖范围。表中的“已入源”只指布局与生成元数据；“待注册”指设计已有、生产schema仍未登记。第9步负责将现有决定落实为正式有界线格式；第10／11／12／13步分别承接来源、发布、解码和应用，第14步退出旧链，第15步才执行统一整体验收。公共外层已经版本59入源；表中第2—8步来源事实按原时点保留，外层尺寸／编号以本页9.2—9.9及正式合同为准，后续运行实现与测试尚未进行。
+以下按第1—8步的来源统一核对，不以页首修订提示代表覆盖范围。表中的来源事实按各自版本阅读；本步公共封装／结果／资源／完整消息现已入源，旧“待注册”说明不恢复为现行缺口。第9步负责将现有决定落实为正式有界线格式；第10／11／12／13步分别承接来源、发布、解码和应用，第14步退出旧链，第15步才执行统一整体验收。公共外层已经版本59入源；表中第2—8步来源事实按原时点保留，外层尺寸／编号以本页9.2—9.9及正式合同为准，后续运行实现与测试尚未进行。
 
 #### 9.10.1 布局源、基础类型与公共封装
 
 | 范围与来源 | 特殊编码规则 | 版本／提交依赖 | 待落实项 |
 |---|---|---|---|
-| 布局与封装：[第1步](1-layout-source.md)、[第0—2步实现](implementation-0-2.md)、`state/*.json`及9.2—9.9 | 父块号、空预留块、最多32块及生成字段顺序保持；空块不要求发送零长字段。`native_view_of`／`nested_views`按声明选择具体子布局，报文不提供原生偏移、大小或函数。Control／Input保持原职责，不将输入命令或结构操作冒充状态字段 | u16布局版本与u16类型布局编号分开；成员key/use/shape、member/resource epoch及base/target版本按各自语义使用 | 公共头408—421、资源头304／306和消息编号已按版本59生成；body按Peer／GameFrame u32已定。各域正文已在版本60实现；完整资源payload、严格接受规则与整消息运行入口仍待本步后续，不把固定头当可运行协议 |
+| 布局与封装：[第1步](1-layout-source.md)、[第0—2步实现](implementation-0-2.md)、`state/*.json`及9.2—9.9 | 父块号、空预留块、最多32块及生成字段顺序保持；空块不要求发送零长字段。`native_view_of`／`nested_views`按声明选择具体子布局，报文不提供原生偏移、大小或函数。Control／Input保持原职责，不将输入命令或结构操作冒充状态字段 | u16布局版本与u16类型布局编号分开；成员key/use/shape、member/resource epoch及base/target版本按各自语义使用 | 公共头408—421、资源头304／306和消息编号已按版本59生成；body按Peer／GameFrame u32已定。正文60、显示62、资源63、完整消息与接受64、预算65已完成；真正运行入口归11／12步，不把纯值codec当完整运行链 |
 | 纯值与动画：[第2步](2-base-types.md)、[动画／资源复核](animation-resource-synchronization-review.md)、`base.json` | Vector8B、ColorMod44B、KColor20B、BlendMode20B按真实字段消费；专用裁剪视图不反改通用类型。AnimationState保留独立selector、帧、playing，ANM2保留playback_speed；事件位和ColorParams队列不恢复传输。资源有无并入可空引用，Host loaded原字节不发 | selector依据同资源／动画上下文，不能以Sprite总层数替代当前动画层数；路径元数据与实际Image独立，资源表收到不等于图像ready | 编解码递归使用生成布局及具名校验；资源／shader的具体owner接线见9.10.6，不靠重播动画事件或Update补值 |
 | 容器、共享payload与引用：[第1步1.3](1-layout-source.md#13-区间合并规则)、[嵌套规则](2-base-types.md#21-嵌套规则)、[正式Player生成能力](implementation-5-player.md) | 普通容器每投影默认u16 count，显式count_type例外按源；同容器投影计数一致，不同容器仅按声明的count_groups求和，不强行等长。fixed_count真实固定槽不附count；aggregate的stride=0，不把聚合pair当map节点。shared-owner按具体present／投影编码，不复制holder、vector/deque头；引用为u16成员号／FFFF，目标空间显式声明 | 同目标版本的存在性、投影计数、计数组、真实引用及资源闭包齐备后由同一owner提交；有效缺席可用布局定义的最短编码，来源失败不能伪装缺席 | 消费生成的条件、计数宽度、max_bytes及整记录预算；注册具体reader／decoder／owner。现有4／8／12B等具名deque来源不能外推成任意STL ABI支持 |
 
@@ -175,6 +193,8 @@ ContextReady只确认元数据可解析；AppliedAck在原生提交成功后才�
 
 Run的`run.json`布局230—238已在版本56入源；同期版本57又在room／level源登记配置、地图结果及资源固定值（263、300—309等）。Presentation根／HUD、D0、逐用途随机结果和音频已随版本58登记310—383等值布局；版本59补公共外层。下面旧待注册措辞保留原交接时点，现行仍待完整payload／允许集和运行接线，不能把小记录或固定头当完整可接受报文。按文件归档不改变Presentation对地图显示结果的唯一职责。
 
+2026-11-11修订后，下表中HUD消息图像、前后surface、Host反馈内容和像素／blob部分作为旧布局迁移定位资料；现行要求为[文字／本地资源描述、直接切房和本端hallucination](local-media-presentation.md)。优先完成文字输入／样式的正式布局和本地缓存归属，删除取消用途的结果依赖；其他HUD、Run、地图、随机alpha和voice状态／事件仍按唯一owner承接。原始媒体不因旧表存在而重新纳入当前允许集。
+
 | 范围与来源 | 特殊编码规则 | 版本／提交依赖 | 待落实项 |
 |---|---|---|---|
 | Run／Seeds／分数：[Run核对](run-synchronization-review.md)、`run.json` | GameRun固定132B，复用内嵌子布局不再独立发第二份。TimeCounter是u32模2^32帧基准，GameFrame只在帧头；种子显示u8低7位仅8/9/10/29/30/78/79，bit7=0；ascent只取bit48布尔、daily只取id非零。ColorModState只发current六f32，两个黑暗值均保留，最终分数64B及最终进度图标另按源编码 | 帧基准用同world已应用game_frame还原i32；分数／资格结果必须对应真实显示批次，当前Game缓存与旧结算副本不能混用；Room／HUD等跨域上下文不重复归属 | 新转换／handler及解码分派；实际结算／标题／暂停显示交对应Presentation owner，不能调用Calculate、每日Init或排行榜请求补值。Ambush／ChallengeParam／种子树无负载类型不创建状态记录 |
@@ -184,18 +204,17 @@ Run的`run.json`布局230—238已在版本56入源；同期版本57又在room�
 | 逐用途随机结果及Random边界：[Random交接第3节](room-random-handoff.md)、[Random职责](random-synchronization-review.md) | Pickup alt pedestal／Familiar颜色栈各取正常已产出alpha；标量为u8 state（0确认无覆盖，1随后f32），1/5B。保留实际f32舍入，不靠数学开区间误拒端点。玩法RNG／池／CRT／MT／Lua与音频选样本流不建网络记录；药丸揭示／实际名称与Loot有序预览由具名显示结果承接 | 结果需subject/use/shape、world state revision、presentation revision、member/resource epoch及pass／调用／递归身份；同GameFrame或本地遍历顺序不够。未产生、旧残值不能当state0或本次alpha | 值布局357—361及公共外层已登记；用途允许集、整目标实际预算与缺口处理待接线；正常生产点缓存、颜色栈／CPU队列及显示adapter待接线，不额外Render／抽取 |
 | 地图Presentation：level.json的300—303、[显示资源设计第6节](room-display-resource-design.md#6-地图完整事实独立查看)、[两域核对](room-save-exploration-synchronization-review.md) | MapFocusResult300为present＋i32锚点＋u16描述成员，1/7B；MapFocusPair301分small／large两配置结果。MapBadgeList302显式count_type=u8、count0..7＋i8[count]，恰好1+count字节，非负ID仅0/1/2/4/5、负ID−1..−9，顺序保留。303承接2B nullable question_image；边框／icons／itemIcons资源与最终震动另由对应显示owner承接 | 与完整可显示L0—L3、challenge32真实锚点／描述、地图／成员／资源及显示修订一致；两配置焦点未证明相同不可共用，169不授权访问第169格。查看／长按／展开／视口／Options各端本地，徽标不是L2或Sprite最后帧 | 按已入源u8计数、枚举／条件长度及真实成员关系解码，补齐地图显示根／世界限制和外层修订；同world来源、独立地图adapter及资源就绪仍待接线。Gap不变空徽标或present0，不发Host窗口前缀／裁剪FBO |
 | 配置资源：room.json的263、[显示资源设计第3节](room-display-resource-design.md#3-配置资源发送显示投影不传生成配方) | RoomConfigVisual固定15B：i32 stage_id/type/subtype、i8 width/height、u8 shape(1..12)。原生shape先核再窄化；Data／OverrideData独立nullable u16资源引用，不发送Spawn／Merged图／权重，不以stage/type/variant拼唯一身份 | 不可变资源号关联真实owner/use与内容版本；同15B不证明同对象连续性，原位内容变化分配新号。地图Home隐藏条件为Data.StageId35且Type16；Door Light的StageId依赖按其已核消费者，不误写成Type35 | kind3完整表项分派消费已入源15B投影／尺寸／shape规则，引用随同world提交；本地只显示承载／owner待13步，不借配置加载、Merge或随机选房生成状态 |
-| 图像／ANM2／shader／surface：room.json的304—309、[动画资源复核](animation-resource-synchronization-review.md)、[typed资源设计第4节](room-display-resource-design.md#4-图像内容资源表和获取时点)、9.6 | 原版本57资源项7B头已由59的8B显式table头替代；旧kind0/1/2路径草稿不是完整payload，kind3配置15B，kind4固定SurfaceRecipe（16B头，Clear21B／Quad196B），kind5为16B像素描述。SourceQuad区分pixel／UV及padding；format0为精确RGBA8，不无声量化特殊格式。blob头现15B含table，offset／bytes显式u32，非通用u16容器 | 一个run资源号只增不改；依赖无环，完整内容和本地图像安装后才ready。路径、实际Image及default／layer普通／champion shader选择独立，不把地址、GPU handle或名字当内容身份 | 已入源固定头／操作值之外，完整kind分派、recipe／shader允许集与blob消息仍待定稿；乘加／chunk冲突／闭包预算需落实：路径≤4096B、chunk≤256KiB、像素≤16MiB且每边≤2048、操作≤4096、深度≤16、待安装内容≤32MiB。图形ABI／缓存／物化接线待后续 |
+| 图像／ANM2／shader／surface：304—309、[typed资源](9-resource-protocol.md)及[预算](9-budget-capacity.md) | 当前资源项8B显式table；本地文件／动画／配置／shader／audio及有限recipe完整分派，recipe16B头、Clear21B、Quad212B；source区分pixel／UV与padding。kind5／305／306／Kind24正文禁用，不把旧像素草稿当必发 | 同run资源号只增不改，精确epoch、真实依赖闭包及本地物化；shader／blend／sampler按用途允许集 | 资源编解码／闭包已完成；真实来源／图形ABI／缓存／物化归10／13步。路径4096B、recipe4096操作、深度16、目录65535项／32MiB及整消息／episode共同限界；不是任意媒体传送 |
 | Music／SFX／环境声：[当前同步职责](presentation-source-synchronization-review.md)、[音频具体来源](presentation-audio-sources.md) | world Start／明确retrigger／Stop及有范围退休事件；逻辑voice当前实际资源、最终Options前gain／pitch／必要pan／loop／world pause。crossfade保留所有有逻辑用途的并存声部，不发固定14空槽；mask／mix_mode／mul／权重／组current／ducking／全局pitch不与最终参数重复。FrameDelay不上线，来源clamp规则仍区分 | 资源／逻辑voice身份／代次、事件序号／水位与world关联；baseline不重播历史one-shot，未开始的实例不因控制补播。jingle使用本地SFX音量类别；个人设备失败／抢占不广播Stop，后端重试不自动Start。硬件游标／PCM队列非必需world状态；必要逻辑段／起点与可靠续接仍待来源 | 值布局381—383及版本59的40B事件外层／Clear范围已定；完整资源payload、去重／恢复运行实现仍待9／11／12步；全部音乐逻辑gain writer、world用途／退休、后端结果污染隔离、视频音轨与本地adapter待补证和10／13步。已核本地提交不等于world资格闭合，未知不补零 |
 
-#### 9.10.7 跨域版本依赖与本步剩余事项
+#### 9.10.7 版本65完成状态与后续交接
 
-- **公共上下文与专用依赖分开登记**：版本59的50B公共头／52B分段头已表达scope、来源／显示批次和Peer目标；414—417表达具名结果依赖、贡献与事件。P0/P6的u32拓扑仍取原字段，不重复发送；用途允许集和完整payload尚待本步后续，不能以通用封装替代来源闭合。
-- **资源空间与kind分开登记**：字段的`wire.target`必须对应版本源声明的`anm2-animation-table`、`image-table`、`anm2-files`、`item-config`、`entity-configs`、`room-config-visual`、`shader-table`或`audio-table`；同为u16不表示可以跨表替换。9.6的table编号与kind分开；公共空间／epoch语义已在正式合同定稿，完整payload分派仍须在本步后续登记；Player条件效果的配置身份和shader的default／layer覆盖不能靠路径或整数相等猜测。
-- **结构先行与内容就绪**：成员关系、配置／资源闭包和目标状态必须能对应同一合法事务；world的Room几何、描述拓扑、L2、地图焦点及必要显示批次共同提交。body仅遵循成员／资源与P0—P6的窄依赖，不因完整地图／显示资源等待而让Authority等待全员输入或ACK。
-- **确认含义不扩大**：解码成功、表epoch已安装、blob字节已收齐与原生应用成功是不同状态。必要内容／结果不全时不回复该目标AppliedAck，也不将Gap、Wait或失败替换为Null／零mask／空集合；合法已确认空值仍按各布局消费。旧批次只在其原world／use仍有效时可继续显示。
-- **失效与恢复必须有编码归属**：切房／换层、Maze交换／红房／维度、资源或双配置原位变化、Hourglass／Ascent／合法Continue及成员use/shape退休由对应结构／状态／资源事务承接；探索不要求单调增长。旧seed、ordinal、地址或ESSM ID不能续接新身份，不能用Save／Restore／Update／随机Refresh补Client状态。
-- **预算覆盖全部通道**：普通消息64KiB保护、旧可靠大消息32MiB解码保护与实际速率／突发预算分别检查，均不能充当常态发送额度；Context表、recipe、压缩blob、结构和Baseline均计入首次准备≤1MiB／≤10秒及三端总持续7.5Mbps目标，不能换通道漏计或截断／降质后宣称满足。具体组帧调度与实际效果待11／15步，本文不产生性能结论。
-- **当前仍待落实**：把表中待注册投影纳入唯一源并在实际变更时递增整数布局版本；在已生成公共固定头／外层语义上完成typed payload与用途完整允许集、严格接受规则及运行编解码；随后按10—14步接通运行链。第9步当前不因清单整理而标记实现完成，文末历史记录不作为兼容或执行依据。
+- **本步已完成**：公共头／记录／成员表、全部已登记域正文、显示组／贡献／事件、typed资源矩阵／有限recipe／图形允许集、完整Frame及控制消息、严格版本／接受／恢复规则、静态成本／容量／时间及文档统一。同源资料见[生成索引](layouts/09-wire-format/README.md)。
+- **静态预算结论**：[现行核算](9-budget-capacity.md)按用户9Mbps额度计全部封装／重传；具体设计负载既有可容纳的下界，也有超过单流配额／首次准备总额的上界。不得把格式保护当性能许可，或据样例下界称全部原版内容已达标。
+- **第10步**：实际J273来源、非空条件／容器与合法完整封存，保留原始UNKNOWN及来源Gap，不用Lua／生产器补值。
+- **第11步**：握手／信封／分片／合包／压缩与新正文一次接通，真实逐Peer差分／缓存、三级桶、最终包成本、初建借用、账本／事件与工作区／owner配额；不靠可靠通道或降低必要内容绕过预算。
+- **第12／13步**：完整候选／继承／引用／资源闭包／缓存与窄拓扑、候选／快照／年龄回收、主线程唯一提交及污染清理／完整恢复；结构有关时共同恢复，实际物化完成前不ACK。
+- **第14／15步**：完整换接后退役旧链；第15步唯一统一整体验收验证真实完整内容及功能／性能。Kind24、305／306与像素kind5仍禁用，原版Online／Isaac Sync隔离保持。
 
 ## 改动范围
 
@@ -214,20 +233,26 @@ Run的`run.json`布局230—238已在版本56入源；同期版本57又在room�
 
 ## 完成内容
 
+- **2026-11-11第四项完成**：版本63实现本地资源typed payload、有限recipe／图形规则、完整资源消息、不可变目录与按目标闭包，见[实现与边界](9-resource-protocol.md)。
+
+- **2026-11-11第三项完成**：版本62实现显示区域prefix／整批编解码、用途和贡献类别、完整身份／缓存／真实节点／窄依赖及事件序号／Clear／冲突校验。固定头、28条用途规则与聚合依赖同源生成；不启用网络或提前ACK，见[实现及边界](9-presentation-envelope.md)。
+
 - **2026-11-11各域正文完成**：版本60新增BodyValueSource／有界编码解码、同源数字条件及校验计划、共享／计数组事实和根字段视图；337布局含空值类型统一处理，12B头与u32掩码保持。详见[正文实现](9-domain-body-codec.md)。
 - **2026-11-11第一项完成**：保留u32掩码和12B记录头，公共头／分段／表／结果组／贡献／事件／ACK／Resync结构及预算定稿；版本59新增408—421并更新304／306，固定头／常量及单行表同源生成。实施结果与边界见[正式合同](9-public-wire-contract.md)。
-- **后续交付**：完整typed资源payload与table/kind矩阵、各用途pass／shader／blend／sampler允许集、详细可执行接受规则和运行编解码。后续接线按10—14步，第15步唯一统一整体验收。
+- **2026-11-11第五项完成**：版本64的完整StateFrame／成员表／控制报文与纯值接受／恢复规则，见[第五项合同](9-acceptance-recovery.md)。
+- **2026-11-11收尾完成**：版本65的典型／稠密设计负载与声明上下界静态核算、90%带宽、有效峰值、容量／时间与文档统一，见[预算合同](9-budget-capacity.md)。
+- **后续交付**：第9步已完成；10—14步接真实运行链，第15步唯一统一整体验收。
 - **旧工作事实**：2026-11-10的9.10整理只维护交接，未改当时版本57或运行实现；其后版本58完成第8步结果登记。本次不把新合同回写成当时已实现。
 
 ## 未决问题
 
 - body按Peer确认、GameFrame u32、公共上下文／结果组／贡献／事件身份与Clear范围已定，不再列为未决。
-- typed资源完整payload、table/kind合法组合、用途／pass及图形允许集和实际编码调度仍待本步后续完成；已有来源Gap及UNKNOWN不变。
-- 正常目标的真实大小、有效峰值与积压时限还需按布局静态核算；仅内存保护容得下不代表满足10Mbps／频率／延迟目标。
+- typed资源payload、table/kind、用途／pass与固定图形允许集已完成；实际来源／原生物化及完整报文运行调度仍待后续，纯值接受／恢复规则已由第五项完成，已有Gap／UNKNOWN不变。
+- 静态大小／有效峰值／积压时限已定，稠密负载有明确超额；实际变化分布、非空完整目标、真实网络与原生耗时仍需10—14步及第15步确定，不能以保护上限替代达标结论。
 
 ## 历史修订提示
 
-以下集中保留本页原有修订提示，按各自时点阅读；其中“当前版本”“未生成”“待注册”等不覆盖本文输入事实与9.10的现行状态。版本40／47的已入源修订已延续至57；版本46时的Player草稿已由正式源取代。版本56当时未注册的Room／Level／地图结果及资源固定值已部分在57入源，具体范围见9.10；其余待注册投影、完整消息和运行接线仍未完成。
+以下集中保留本页原有修订提示，按各自时点阅读；其中“当前版本”“未生成”“待注册”等不覆盖本文输入事实与9.10的现行状态。版本40／47的已入源修订已延续至57；版本46时的Player草稿已由正式源取代。版本56当时未注册的Room／Level／地图结果及资源固定值已部分在57入源，具体范围见9.10；旧“其余待注册／完整消息未完成”保留原时点；版本65已完成第9步，真实运行接线仍归10—14步。
 
 **版本40 Effect布局引用**：见[后续五项处理](effect-next-five-evidence.md)。记录与帧头格式不变，整数布局版本递增为40；新增137—141及102移出113由生成布局表分派。所有Effect FX0=16B、FX1=13B，FX2空预留，Trail节点块为u16 count＋count×64B、count≤127（最大8130B）。不将原生VarData／holder地址塞入扩展块，不复用旧8／21B或16384上限。其他容器的独立上限不受影响，真实记录／帧字节预算保持；未运行测试。
 

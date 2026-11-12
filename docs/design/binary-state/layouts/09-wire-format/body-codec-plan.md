@@ -1,10 +1,12 @@
 # 各域正文数字编解码计划
 
-布局版本 60；由同一布局源生成，不是运行测试报告。
+布局版本 71；由同一布局源生成，不是运行测试报告。
 
-共337种布局、2763个字段计划、79个条件字段；最大根字段数117。无负载的Host权威类型只登记空值布局，不补造状态。
+共352种布局、2838个字段计划、96个条件字段；最大根字段数117。无负载的Host权威类型只登记空值布局，不补造状态。
 
 条件、资源空间、整数／浮点校验、计数组和规范零负载在构建时转成数字规则；正文热路径不按名称解释。字段／引用的图关系、资源ready和原生应用成功仍由完整目标处理。
+
+当前禁用正文布局：305 SurfacePixelsDescriptor、306 ResourceBlobChunkHeader。保留固定字节表不表示允许媒体下行。
 
 | 域源 | 布局数（含继承／变体） | 字段数 |
 |---|---|---|
@@ -16,12 +18,13 @@
 | player.json | 48 | 209 |
 | grid.json | 5 | 40 |
 | grid-classes.json | 27 | 206 |
-| room.json | 53 | 187 |
+| room.json | 54 | 209 |
 | level.json | 18 | 41 |
 | run.json | 9 | 40 |
-| presentation.json | 74 | 200 |
+| presentation.json | 77 | 211 |
+| hud-local.json | 2 | 12 |
 | random.json | 24 | 0 |
-| wire.json | 14 | 85 |
+| wire.json | 23 | 115 |
 
 ## 条件数字规则
 
@@ -49,10 +52,16 @@
 | 288/4 special_background | 0 | any-bits | 8 | 0 |
 | 289/1 a_world_center | 0 | any-bits | 1 | 0 |
 | 289/2 a_radius_used | 0 | any-bits | 1 | 0 |
-| 289/3 a_gain_used | 0 | any-bits | 1 | 0 |
-| 289/4 b_world_center | 0 | any-bits | 2 | 0 |
-| 289/5 b_radius_used | 0 | any-bits | 2 | 0 |
-| 289/6 b_gain_used | 0 | any-bits | 2 | 0 |
+| 289/3 a_strength | 0 | any-bits | 1 | 0 |
+| 289/4 a_radius_step | 0 | any-bits | 1 | 0 |
+| 289/5 a_elapsed | 0 | any-bits | 1 | 0 |
+| 289/6 a_duration | 0 | any-bits | 1 | 0 |
+| 289/7 b_world_center | 0 | any-bits | 2 | 0 |
+| 289/8 b_radius_used | 0 | any-bits | 2 | 0 |
+| 289/9 b_strength | 0 | any-bits | 2 | 0 |
+| 289/10 b_radius_step | 0 | any-bits | 2 | 0 |
+| 289/11 b_elapsed | 0 | any-bits | 2 | 0 |
+| 289/12 b_duration | 0 | any-bits | 2 | 0 |
 | 290/1 focus | 0 | equal | 1 | 0 |
 | 291/1 group | 0 | equal | 1 | 0 |
 | 293/1 payload | 0 | equal | 1 | 0 |
@@ -70,8 +79,14 @@
 | 300/1 focus_safe_index | 0 | equal | 1 | 0 |
 | 300/2 descriptor_member | 0 | equal | 1 | 0 |
 | 310/1 visible_payload | 0 | equal | 1 | 0 |
-| 319/1 text_image | 0 | equal | 1 | 0 |
-| 319/2 streak | 0 | equal | 1 | 0 |
+| 311/1 visual_id | 0 | equal | 2 | 0 |
+| 311/2 item_image | 0 | equal | 2 | 0 |
+| 312/1 visual_id | 0 | equal | 2 | 0 |
+| 312/3 image | 0 | equal | 2 | 0 |
+| 312/4 draw_center | 0 | equal | 2 | 0 |
+| 319/1 main_text | 0 | equal | 1 | 0 |
+| 319/2 sub_text | 0 | equal | 1 | 0 |
+| 319/3 streak | 0 | equal | 1 | 0 |
 | 353/5 overlay_animation | 0 | equal | 1 | 0 |
 | 354/9 row_8 | 0 | equal | 1 | 0 |
 | 357/1 alpha | 0 | equal | 1 | 0 |
@@ -85,10 +100,8 @@
 | 368/1 amount | 0 | equal | 1 | 0 |
 | 369/1 amount | 0 | equal | 1 | 0 |
 | 370/1 amount | 0 | equal | 1 | 0 |
-| 370/2 image | 0 | equal | 1 | 0 |
 | 372/2 image | 0 | equal | 1 | 0 |
 | 374/1 sprites | 0 | equal | 1 | 0 |
-| 374/2 images | 0 | equal | 1 | 0 |
 | 375/1 sprites | 0 | equal | 1 | 0 |
 | 375/2 images | 0 | equal | 1 | 0 |
 | 376/1 body | 0 | equal | 1 | 0 |
@@ -100,11 +113,18 @@
 | 378/3 sprite | 0 | equal | 1 | 0 |
 | 378/4 mega_mush | 0 | equal | 2 | 0 |
 | 379/1 sprite | 0 | equal | 1 | 0 |
-| 380/1 text_image_0 | 0 | equal | 1 | 0 |
-| 380/2 text_image_1 | 0 | equal | 1 | 0 |
-| 380/3 text_image_2 | 0 | equal | 1 | 0 |
-| 380/4 text_image_3 | 0 | equal | 1 | 0 |
-| 380/5 text_image_4 | 0 | equal | 1 | 0 |
+| 380/1 text_0 | 0 | equal | 1 | 0 |
+| 380/2 text_1 | 0 | equal | 1 | 0 |
+| 380/3 text_2 | 0 | equal | 1 | 0 |
+| 380/4 text_3 | 0 | equal | 1 | 0 |
+| 380/5 text_4 | 0 | equal | 1 | 0 |
 | 380/6 selection | 0 | equal | 1 | 0 |
 | 380/7 paper | 0 | equal | 1 | 0 |
 | 383/1 parameters | 0 | one-of | 0 | 19 |
+| 422/1 font | 0 | equal | 1 | 0 |
+| 422/2 style | 0 | equal | 1 | 0 |
+| 422/3 color | 0 | equal | 1 | 0 |
+| 422/4 color_space | 0 | equal | 1 | 0 |
+| 422/5 utf8 | 0 | equal | 1 | 0 |
+| 423/1 lines | 0 | equal | 1 | 0 |
+| 433/3 intro | 1 | equal | 1 | 0 |

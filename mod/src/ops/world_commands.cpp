@@ -2,6 +2,7 @@
 #include "runtime.h"
 #include "binding/world_layout.h"
 #include "game/observation/world_bridge.h"
+#include "game/observation/binary_entities.h"
 #include "game/observation/sources/lua_entity.h"
 #include "game/authority/tick.h"
 #include "world/observe.h"
@@ -87,6 +88,7 @@ bool Prepare(WorldJob &j,game::WorldRecording &r) {
   r.reserve_charged=true;
   // reserve 同时覆盖最多三个 pending payload、两个最新值及编码在途值，发布队列另计。
   r.collector=std::make_unique<world::Collector>(r.storage,r.identities,j.memory,std::uint32_t(r.epoch));
+  r.binary_entities=std::make_unique<game::BinaryEntities>(r,r.binary_thread,std::this_thread::get_id());
   return true;
 }
 bool OpenRecorder(WorldJob &j,RecordingRequest &q) {
@@ -164,6 +166,7 @@ DWORD WINAPI Work(void *parameter) noexcept {
   if(!prepared&&r.storage.Status().state==world::StorageState::Idle) { j->closed.store(true,std::memory_order_release); while(!j->retired.load()) Sleep(5); return 0; }
   if(!prepared) r.storage.RequestStop(world::Reason::Stopped);
   for(;;) {
+    if(r.binary_entities)r.binary_entities->Background(j->producer_done.load(std::memory_order_acquire)||!prepared);
     if(!current) {
       current=j->next_consumer.load(std::memory_order_acquire);
       if(current) {
@@ -207,6 +210,7 @@ DWORD WINAPI Work(void *parameter) noexcept {
   }
   if(j->test_thread) { WaitForSingleObject(j->test_thread,INFINITE); CloseHandle(j->test_thread); j->test_thread=nullptr; }
   if(r.storage.Status().state!=world::StorageState::Idle) while(!r.storage.Close(10)) Sleep(5);
+  if(r.binary_entities)r.binary_entities->Background(true);
   j->closed.store(true,std::memory_order_release);
   while(!j->retired.load(std::memory_order_acquire)) Sleep(5);
   return 0;
@@ -224,6 +228,7 @@ bool EnsureJob() {
   if(next_epoch==UINT32_MAX) return false;
   job=std::make_shared<WorldJob>(); job->recording=std::make_shared<game::WorldRecording>();
   job->recording->epoch=++next_epoch;
+  job->recording->binary_thread=std::this_thread::get_id();
   static const auto process_started=GetTickCount64();
   job->recording->session_key=(std::uint64_t(GetCurrentProcessId())<<32)|(process_started&UINT32_MAX);
   job->root=Settings.world_output_dir; job->timeout=Settings.world_close_timeout_ms;
@@ -252,6 +257,12 @@ void Publish(WorldJob &j) {
     "\nwriter_gaps="+std::to_string(writer.gaps_written)+"\nwriter_result="+std::to_string(writer.result_written)+
     "\nobservation_epoch="+std::to_string(j.recording->epoch)+"\nobservation_active="+std::to_string(j.attached&&!j.stopping)+
     "\nv2_records="+std::to_string(q?q->v2_written.load():0)+"\n";
+  if(ready&&j.recording->binary_entities){const auto binary=j.recording->binary_entities->Statistics();
+    snapshot+="binary_entity_active="+std::to_string(binary.active)+"\nbinary_entity_ordinary="+std::to_string(binary.ordinary)+
+      "\nbinary_entity_bodies="+std::to_string(binary.bodies)+"\nbinary_entity_joint="+std::to_string(binary.joint)+
+      "\nbinary_entity_gaps="+std::to_string(binary.gaps)+"\nbinary_entity_failure="+std::to_string(unsigned(binary.failure.reason))+
+      "\nbinary_entity_layout="+std::to_string(binary.failure.layout)+"\nbinary_entity_field="+std::to_string(binary.failure.field)+
+      "\nbinary_entity_exchange_failed="+std::to_string(binary.exchange.failed)+"\n";}
 }
 }
 bool WorldCommandBusy() noexcept { return job&&job->consumer&&!job->consumer->closed.load(); }

@@ -1,5 +1,7 @@
 # 第8步：资源、屏幕与转场的必要来源
 
+**2026-11-11 当前网络职责修订**：[本地生成合同](local-media-presentation.md)替代本文旧文字图／前后surface／Host hallucination图下行设计：分别采用文字与样式、本阶段直接切房、本端历史合成。原生对象、读取点、RGBA8事实与UNKNOWN仍保留；发现原生Image不证明必须传像素。当前不为正式同步执行纹理读回／音频内容采集，特殊程序内容改核本地资源与有界描述；运行实现尚待迁移。
+
 **2026-11-10同步职责复核**：[53项来源的当前同步决定](presentation-source-synchronization-review.md)及[逐项JSON](presentation-source-synchronization-review.json)优先解释本文“来源”的网络职责。采用最终有序贡献后，不再同时发Nightmare路线14值／场景帧／Dogma等生产输入；Run／D0与本地尺寸可派生的量不重复。资源按用途引用、按需声明，recipe／精确内容择一；原生后端、个人Options和隔离内容不上线。账本修订5仅改职责，50视图及UNKNOWN范围不变，生产版本57，未构建或测试。
 
 2026-11-10；目标为官方 REPENTOGON 1.1.3／v1.9.7.12.J273 Win32。按本轮用户要求，先查本地 Wiki，再查官方 SDK／源码，只有具体来源、ABI或副作用未被公开资料解释时才只读 J273 IDB。本文补齐**正常 Host 已采用资源和最终显示结果的静态来源合同**；机器目录见[来源表](presentation-resource-screen-sources.json)，原生字节修订见[账本修订3](presentation-byte-ledger.md)。
