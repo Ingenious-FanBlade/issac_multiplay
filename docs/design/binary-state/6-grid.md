@@ -1,5 +1,13 @@
 # 6：GridEntity
 
+**2026-11-12 显示委托修订**：
+
+- Grid 重标：保留 type／variant／State、Sprite 帧，以及门、便便、石头等可见状态。
+- 水面裁剪等本地显示项移出同步，`client_grid_water_*` hook 默认删除。
+- 见[修改方案](client-display-delegation.md)第 5、9 节。
+
+本次只修订文档，未改代码，未运行测试。
+
 **2026-11-10 第6步剩余描述编码完成**：[实现与边界](grid-description-implementation.md)。`ClientGridDescription`现在由完整已校验的影子记录生成，按同源数字索引提供公共／Door值、真实Sprite投影及Fire／Rock容器访问，不再拥有字符串字段字典。旧JSON链显式使用`LegacyClientGrid*`，等待第13／14步换接／退役；第10／12／13步的输入生产、网络解码及原生运行接线均未提前实施。线布局未改，UNKNOWN保持，按规范不运行测试。
 
 本轮新增`isaac_cs_grid_description`库及完整Release／Win32 `zhlIsaacCS.dll`纯编译／链接通过，E2E工具关闭。并行产品构建停滞后中止，改串行MSBuild完成，具体记录见上方实现说明；没有测试、部署或游戏操作。

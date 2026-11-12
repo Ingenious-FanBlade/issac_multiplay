@@ -1,5 +1,15 @@
 # 13：Client 原生应用
 
+**2026-11-12 显示委托修订**：
+
+- 13.4：漂移校正的前提改为新的 Client 边界。
+- 13.5：补入 Client 自协调绘制的退役项。
+- 13.6：由帧号方案B 取代展示时钟的借用。
+- 13.8（新增）：显示边界、帧号写入、注入与事件播放。
+- 见[修改方案](client-display-delegation.md)。
+
+本次只修订文档，未改代码，未运行测试。
+
 **2026-11-12 HUD代码迁移，版本70**：已新增纯值HUD派生、普通／特殊图标准备、图像中心、材料／法术绘制描述、六项基础value格式、多人本地排版和原子候选owner。真实资源后端、原生writer／绘制及整批安装尚未接通。 具体接口、事实及剩余接线见[实施说明](hud-local-implementation.md)。第15步唯一统一验收，未运行测试。
 
 **2026-11-12 HUD本地化应用交接，仅文档**：[现行合同](hud-local-presentation.md)要求以纯显示adapter生成低血周期闪烁、P8护盾资格、普通主动／饰品图标及图像中心、P3材料／法术队列、Drop渐变、基础属性文字和多人排版。复用同目标状态／资源／显示时钟，Drop按实际消费驱动，Stat基础格式只用Host最终value；不调用完整HUD Update、EvaluateItems、概率／合成重算、设备／Online路径。特殊结果／触发相位／有序列表／概率继续安装，本地资源准备及原子提交成功后才ACK，退休等待实际借用退出。下方旧重复缓存安装要求按新用途迁移；当前schema／代码未改，本次无生成、构建或测试。
@@ -117,7 +127,9 @@ Client 的原生对象可能偏离影子状态。Client 不运行原生 Update�
 - **检测方式**：按同一状态布局建立Client合法读回／规范投影，再与对应影子目标比较；直接字段、具名owner值、Synthetic缓存、条件派生和展示借用分别取有证据的读回来源，不能把Host采集计划机械地用作Client根偏移读取，或为读回执行Getter／生产器。不一致的实际应用块进入恢复／重写；派生／本地scratch及已裁字段不要求原值相等。
 - **执行频率**：轮转执行，每帧只检查一部分成员，总耗时计入安装预算。
 - **前提（已定）**：Client 不运行原生 Update。这是 tx-04-17 的隔离设计：现有 Client 拦截 Game、Room、EntityList、Player、PostUpdate 等入口（`client.cpp:28,142-146`），本地不会按玩法推进任何字段。
+  - **2026-11-12 修订**：Client 仍不运行玩法 Update。但它会运行“显示推进”根中已核实的显示子更新，以及包装放行的原生 `Game::Render`，见 13.8 和[修改方案](client-display-delegation.md)第 4 节。
 - **待核问题**：可能造成偏离的只剩 Client 仍在运行的原生路径，即 Render 和维护 helper。例如 base draw `0x6AC4E0` 会写 Entity `+0x1A4/+0x1A8`（tx-04-17 R3）。本步逐类核对这些路径会写哪些字段，据此决定哪些块需要每帧校正，哪些只需要轮转检查。
+  - **2026-11-12 起**，核对范围扩大到显示推进与原生 Render 的全部写集和随机消耗（RE-6）。只改显示缓存的写入允许发生；改到已同步字段的写入，进入校正或在 Render 后置阶段覆盖。
 
 ### 13.5 退役的部分
 
@@ -126,13 +138,27 @@ Client 的原生对象可能偏离影子状态。Client 不运行原生 Update�
 - `GetWaterClipFlags` 改由Entity／Grid各自已核owner消费typed结果；缺writer／adapter是待实施项，不能回退Lua或仅因尚未接线改称派生。
 - Player 记录上的 `application_draw` 及其 JSON 校验（`client_entity_class_model.cpp:118-124`），改读影子状态中的绘制输入块 D0（13.6）。
 - draw 期间逐实体重新锚定 `+0x328`（`client_entity_draw_native.cpp:128,185,195`），以及每次展示前重新锚定 `Room+0x11F0`（`client_room_native.cpp:132-135`）。它们由 13.6 的展示时钟取代。
+- **2026-11-12 补入：Client 自协调绘制**。退役以下内容：
+  - `ClientMenuRenderBoundary` 的场景绘制；
+  - `RenderPublished`；
+  - `DrawImpl` 及其 `FrameBorrow`、`FXDrawContext`、手工阴影／光照调用、FX `0x56db20` 和 `ClientRoomWaterPreDraw`；
+  - `client_resource_shaders_native.cpp`。
+
+  D0 取消后，上文“改读影子状态中的绘制输入块 D0”作废；Player 绘制直接读已安装的状态。
 
 ### 13.6 展示时钟与帧锚点
 
+> **2026-11-12 修订（帧号方案B）**：本节的“展示时钟”现在就是 Client 的 `Game+0x25A70`。
+>
+> - 每装好一个 world 帧，就在同一安装点把它写成帧头的 game_frame，并保持到下一个 world 帧。
+> - 下文“展示期间”的借用与恢复、`Manager._framecount` 借用和 D0 全部取消。
+> - 锚点、Effect Timeout 和第 4 步子类计数的规则继续有效，其中“展示时钟”一律读作 `Game+0x25A70`。还原在安装点完成，不在 Render 中进行。
+> - 详见 13.8 和[修改方案](client-display-delegation.md)第 3 节。
+
 - **定义**：展示时钟是 Client 最近已应用 world 帧头中的 game_frame（第 9 步 9.3）。
   - 它只在装好新的 world 帧后前进。Host 在静止场景中也发送空帧（第 11 步 11.3），所以时钟会照常推进。
-  - Client 自己的 `Game+0x25A70` 不代表 Host 时间，不能作为换算基准。
-- **展示期间**：沿用现有借用方式（`client_presentation_native.cpp:826-829`、`client_entity_draw_native.cpp:238-241`），进入展示时换入下列 Host 值，结束后恢复 Client 原值（同文件 136-145 行）：
+  - Client 自己的 `Game+0x25A70` 不代表 Host 时间，不能作为换算基准。（2026-11-12 起不再适用：方案B 把它对齐为 Host 帧号。）
+- **展示期间**（2026-11-12 取消，原文保留）：沿用现有借用方式（`client_presentation_native.cpp:826-829`、`client_entity_draw_native.cpp:238-241`），进入展示时换入下列 Host 值，结束后恢复 Client 原值（同文件 136-145 行）：
   - `Game._frameCount`（`+0x25A70`）← 展示时钟；
   - `Manager._framecount`（`+0x4A8B8`）与paused来自5B D0；Pickup／Familiar使用具名随机结果批次，不写两份原生全局RNG（见第8步8.2.1及room-random-handoff.md）。上下文与结果绑定同一已完成world／presentation修订。
 - **帧锚点字段**：`Entity+0x328`、`Room+0x11F0` 的基准按原值写回，不再逐次重新锚定。展示期间，FrameCount 和 `Room:GetFrameCount()` 由原生 getter 用"时钟 − 基准"自然得出。
@@ -171,6 +197,47 @@ Client 的原生对象可能偏离影子状态。Client 不运行原生 Update�
 | 配置／图像／shader／音频：[资源设计](room-display-resource-design.md)、[同步职责复核](presentation-source-synchronization-review.md) | 15B配置仅显示承载，图像采用完整recipe或精确内容，自有owner物化并保护图形状态；声音按已选sample／所有必要并存逻辑voice的最终参数执行，不随机Play或重复消费混音树；重复state不播历史one-shot | 内容／依赖ready、资源epoch与目标批次一致；按资源音量类别应用本地Options及对应clamp，实例／world事件／用途匹配；个人设备失败不改world意图，普通自然完成本地收尾 | GPU／字体／shader及非随机音频adapter、world用途／退休隔离和必要逻辑段／续接能力仍待落实；资源表／描述生成不等于应用成功，Host绝对屏幕坐标不直接跨端复用 |
 
 所有受控显示修改在正确主线程／图形／音频owner边界执行；临时字节、颜色栈、FBO与CPU待消费资源须完整恢复／安全退休，不能恢复已被原生SetAnimation释放的旧数组。漂移只对实际安装投影及同版本依赖比较，本地UI／scratch和Host生产输入不回填。缺source／ABI／资源／拓扑或应用失败不确认新target，后续性能与隔离统一留第15步。
+
+### 13.8 显示边界、帧号写入、注入与事件播放（2026-11-12）
+
+依据：用户 2026-11-12 的决定和[修改方案](client-display-delegation.md)。逆向任务 RE-1—RE-7 归入本步，RE-8 归入第 8 步。
+
+**显示边界**：
+
+- 每个 Client 入口判为放行、拦截或拆分，未分类的一律拦截，并记为 RejectedEntry。
+- 继续用 `ClientEntryDecision`、`CountDispatch` 和 `kExpectedNestedMask`，新增入口都登记为具名入口。
+- `Game::Update`（`0x2F6D30`）继续拦截原函数。拦截点内运行 Client 自有的“显示推进”根，按 RE-1 白名单依次调用显示子更新，例如 `HUD::Update`、`PlayerHUD::Update`、`Minimap::Update`、`ItemOverlay::Update` 和 Camera 更新。
+- 只有某项显示工作内联在玩法函数中、无法单独调用时，才对那个函数改用拆分。
+
+**`Game::Render` 包装**：
+
+- `Game::Render`（`0x2F7A80`）分前置、原函数、后置三段，`Room::PreRender`、`Room::Render` 和 `render_sort` 随之放行。
+- **前置**：确认 world 安装事务没有进行到一半，并确认帧号已对齐。
+- **后置**：恢复作用域，记录写集，交给 13.4 处理。
+- `MenuManager::Render` 只绘制原生菜单。
+
+**安装点顺序**：world 安装事务成功提交后，在同一主线程安装点依次执行：
+
+1. 把 `Game+0x25A70` 写成帧头的 game_frame；
+2. 按新帧号还原 Effect Timeout 等计数；
+3. 写入注入值。
+
+安装写前失败或部分写入时，帧号不前进，避免锚点与帧号不配套。若放行范围内仍有原生帧递增或 `Room+0x11F0` 递增（RE-3），就拦截它，或在 Render 前写回。
+
+**注入（Q3）**：
+
+- 优先用原生 setter 或 REPENTOGON API 写入 Client 原生字段，没有 API 时才直接写内存。
+- 只有 Client 上没有对应存储，或者值依赖 Host 专属状态时，才挂 getter 并返回已同步的值。
+- 同一个值不能同时由字段和 getter 两处提供。
+- 注入点见 RE-7。
+
+**事件播放**：
+
+- 事件队列由第 12 步接收。Client 在帧号到达事件帧时，在主线程播放音效、音乐和文字。
+- 落后超过限定帧数的纯外观事件直接丢弃。
+- 事件只驱动本地播放，不修改已同步状态。
+
+**失败方式**：见[修改方案](client-display-delegation.md)第 12 节第 1—9、13—17 条。
 
 ## 改动范围
 

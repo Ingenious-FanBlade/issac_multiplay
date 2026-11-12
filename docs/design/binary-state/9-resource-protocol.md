@@ -1,5 +1,14 @@
 # 第9步第四项：资源协议
 
+**2026-11-12 显示委托修订**：
+
+- 只保留实体、Grid、costume 等资源引用。
+- 本地 recipe 和 shader／blend／sampler 规则不再下发，由 Client 原生代码本地加载。
+- “不传原始媒体”的原则不变。
+- 见[修改方案](client-display-delegation.md)第 7、8 节。
+
+本次只修订文档，未改代码，未运行测试。
+
 **2026-11-11 第9步收尾，版本65**：[预算合同](9-budget-capacity.md)已核资源／recipe及完整Context成本；32MiB完整消息含40B信封，ResourceTable正文上限33554392B。目录仍同run只增不改、65535项／32MiB／131072边；实际物化和共享池owner在后续接线。模组额度现9Mbps，不启用媒体blob。
 
 **2026-11-11 第五项交接，版本64**：[接受与恢复合同](9-acceptance-recovery.md)保持普通Resync／换route不自动清空同run目录。仅在旧复制route排空退休后，RebaseStateResourceEpoch以新route的epoch=1全量重新绑定，并逐项保持全部已知资源号／kind／精确payload；它不回收编号，也不允许在旧route重置。资源物化仍由第13步真实owner完成。

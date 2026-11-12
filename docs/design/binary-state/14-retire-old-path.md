@@ -1,5 +1,18 @@
 # 14：退役旧路径与产品边界
 
+**2026-11-12 显示委托修订**：
+退役清单补入[修改方案](client-display-delegation.md)第 9 节的内容：
+
+- Client 自协调绘制：`DrawImpl`、`FrameBorrow`、`RenderPublished`、`ClientMenuRenderBoundary` 的场景绘制和 `client_resource_shaders_native.cpp`；
+- Host 显示生产；
+- 显示包络；
+- 绘制随机观测；
+- 默认删除的绘制 hook。
+
+删除前逐项确认没有其他调用方。
+
+本次只修订文档，未改代码，未运行测试。
+
 **2026-11-12 HUD代码迁移，版本70**：新布局已退出重复HUD缓存；旧可运行legacy采集／安装／漂移比较继续保留，等正常来源与原生显示实际接管后退役，不能仅因纯值模块编译成功删除唯一运行来源。 具体接口、事实及剩余接线见[实施说明](hud-local-implementation.md)。第15步唯一统一验收，未运行测试。
 
 **2026-11-12 HUD本地化退役交接，仅文档**：按[现行合同](hud-local-presentation.md)在新schema、真实来源及Client纯显示owner接管后，退役low_health_flash／holy_mantle_visible、普通图标／中心、逐帧Drop渐变和Host布局缓存的重复采集／发送／安装／原值比较。保留实际驱动、完整心格／三色及充能闪烁、特殊资源、有序列表、Stat三值／概率与正常本地资源生命周期；不恢复Player六项玩法属性或因本地化开启整段HUD Update。当前未删除代码、未改生成表／版本，无构建或测试；旧可运行路径仍按真正接管时序退出。

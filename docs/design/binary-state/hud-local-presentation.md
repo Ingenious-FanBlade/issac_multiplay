@@ -1,5 +1,7 @@
 # HUD：Client本地生成与保留同步的边界
 
+**2026-11-12 已被取代**：HUD 改由原生 `HUD::Update`／`PlayerHUD::Update` 和 `Game::Render` 产生。本合同列出的输入依赖保留，作为需求清单的参照。原文、事实与 UNKNOWN 保留。见[修改方案](client-display-delegation.md)。
+
 **2026-11-12 当前停点**：用户要求暂缓概率查询部分，已保留当前接口选择和未验收代码，详细进度与恢复事项见[第五项停点](10-run-presentation-capture.md#当前停点概率查询暂缓)。下述已确认的路线保持，不能视为概率功能已经完成。
 
 **2026-11-12 后续用户决定：每人详细面板与概率接口**。每个参与者显示自己控制组对应的属性面板与道具获得历史，Host自有逐身体Stat／History生产不受原生两槽限制。概率优先复用同scope／当前有效的原HUD结果；用户随后明确采纳“直接复用C++概率查询接口”，允许Host在有效主线程显示边界集中查询`Room::GetDevilRoomChance()`与`Game::GetPlanetariumChance()`，不经Lua API。`Level:GetAngelRoomChance()`是既有修正值，结合原生HUD同义资格与天使／恶魔拆分提供最终显示结果。此具名例外覆盖下文对这些概率查询的禁止，不扩大到HUD Update／Recompute、随机推进或其它getter；六项属性／变化相位、全部其他HUD边界维持。星象房必须保留官方REPENTOGON查询中的可用性／挑战资格修正，不自行复制一套原版公式覆盖它。详见[第10步第五项](10-run-presentation-capture.md)。

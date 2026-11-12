@@ -1,5 +1,7 @@
 # 第7步与Random：原生归属、显示结果与交接核对
 
+**2026-11-12 已被取代**：逐用途随机交接中的绘制随机项退役，只保留 Host 选出的结果。原文、事实与 UNKNOWN 保留。见[修改方案](client-display-delegation.md)。
+
 2026-11-10；官方REPENTOGON 1.1.3／Repentance+ v1.9.7.12.J273 Win32。**本次完成静态交接核对与同步决定**，不是正式reader／writer、Hook或可玩同步实现。生产布局版本仍56，无构建、游戏操作、随机调用或测试。机器决定表：[room-random-handoff.json](room-random-handoff.json)；[第7步](7-room-level.md)；[Random职责](random-synchronization-review.md)。地址为VA，imagebase=`400000h`，RVA=VA−`400000h`；仅只读IDB。
 
 本次纠正旧D0全局seed重放草稿：**D0仅保留Manager相位和paused，共5B；Pickup／Familiar随机绘制改发正常Host已产生的逐用途alpha和资格**。两个游标不再发送，原13B／37B草稿及旧运行事实保留，正式编码尚未接通。发现并登记独立的音效选sample流`BD0F40`，它同样不下发。挑战32的随机结果还影响地图窗口和描述上下文，不能只理解为一张标记的位置。

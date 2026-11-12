@@ -1,5 +1,13 @@
 # 2：基础值类型与嵌套规则
 
+**2026-11-12 显示委托修订**：
+
+- 基础类型保留，ANM2、LayerState、ColorMod 等显示所需类型继续使用。
+- RNG 不再作为同步状态，只同步由它选出的结果。
+- 见[修改方案](client-display-delegation.md)第 7 节。
+
+本次只修订文档，未改代码，未运行测试。
+
 **2026-11-09 当前版本39：Player装备与Plus展示依赖。** [完整消费者与安装复核](player-equipment-plus-synchronization-review.md)将ActiveItemDesc来源池／定时充能冷却、Weapon五项非展示输入及KnifePlus.hitboxSource留Host；保留主动槽六值、Weapon充能三值与类型、TemporaryEffect三值及Plus公共nullable覆盖。新增135号UmbilicalWhip真实主引用、136号TemporaryEffects外层disabled／列表，并补Familiar+D76绘制抑制字节。原已排除Plus项不恢复，其他UNKNOWN保持。源、生成表、正式Plus读取接口和第5／8／10—15步已修订，未构建或测试，运行时仍待接线。
 
 状态：基础布局、共用代码和本轮静态核对已入源，普通 Release 纯编译／链接通过（2026-11-08）；仍有明确的 SDK 声明、未知区与跨域未决，见末节。上级：[总计划](README.md)。实现入口：[第 0—2 步实现说明](implementation-0-2.md)。下方手写表仍为实施前草稿，当前事实以布局源、生成表和证据文档为准。

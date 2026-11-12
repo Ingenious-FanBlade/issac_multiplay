@@ -1,4 +1,9 @@
-**2026-11-12 二进制状态同步方向调整，仅文档**：[客机显示委托与按需采集修改方案](design/binary-state/client-display-delegation.md)：Host 只采集客机需要的状态，Client 包装原生 `Game::Render` 本地显示，帧号用方案B；Q1—Q4 待确认，规范与各步文档尚未修订，未改代码，未运行测试。
+**2026-11-12 二进制状态同步方向调整，仅文档**：[客机显示委托与按需采集修改方案](design/binary-state/client-display-delegation.md)：Host 只采集客机需要的状态，Client 包装原生 `Game::Render` 本地显示，帧号用方案B。
+
+- Q1—Q4 已按推荐确认。
+- 改动前的快照为 `3977b46e`。
+- [规范第 17 节](refactor/project-conventions.md#17-原生二进制状态同步重构)、`AGENTS.md`、总计划、第 0—15 步文档和被取代的文档已修订或加标注。
+- 未改代码，未运行测试。下一步是逆向 RE-1—RE-8。
 
 **2026-11-12 HUD布局与纯值模块，版本70**：[实施说明](design/binary-state/hud-local-implementation.md)记录正式布局迁移、独立显示时钟、普通／特殊图标边界与Client纯值模块。正常采集、正式发布和原生资源／绘制尚未接通；产品DLL纯编译／链接完成，无测试，第15步唯一统一验收。
 

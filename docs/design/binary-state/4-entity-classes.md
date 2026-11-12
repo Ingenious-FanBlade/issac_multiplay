@@ -1,5 +1,14 @@
 # 4：Entity 子类
 
+**2026-11-12 显示委托修订**：
+
+- 各子类按需求清单重标，只保留可见字段。
+- Effect 各变体（E32）收窄到可见状态。
+- 原先按展示时钟还原的子类计数（Familiar FireCooldown、Pickup DropDelay、Effect Timeout 等），改为在安装点按 `Game+0x25A70` 还原。
+- 见[修改方案](client-display-delegation.md)第 3、5 节。
+
+本次只修订文档，未改代码，未运行测试。
+
 **2026-11-09 当前版本46：Delirium未决事项。** [静态证据与处理](delirium-residual-evidence.md)将BD8—BDF、BE0—BE7核为Host的两个8B打包存储，原BDD三字节及BE4四字节不再独立未知；BD4—BD7的4B仍无填充证明。根未知597→590B，普通NPC仍586B，两臂最小线状态仍710B、17／18空预留。池槽残留已有静态可达路径，未作实机观察；补核4A13B0的独立companion创建与BE8登记，当前展示依赖闭合为独立成员／实际线上关系，BE8继续留Host。正式接线仍归第10／13步，第15步统一验收；下文旧版本记录保留各自时点。
 
 **2026-11-09 版本45：Projectile展示来源与Effect残余。** [J273静态证据与逐臂结论](projectile-effect-residual-evidence.md)闭合Projectile+440开关、+460/+464冻结绘制锚点的构造／Init／生产链，新增9B独立PR2，PR0保留4B Height、最小状态404B、根未知350B。Effect新增148号167臂与149号19/71/194内部flags臂，167的+430核为Host生成伤害快照；+434及后8B仍未知。119尾部确认一个callback的8B DamageFlags特例，通用臂仍保持未知。41C／44C／4BC没有语义或填充证明；此前五项不重做。普通Release／Win32产品纯编译与链接通过，未运行测试；正式接线仍按第10／13步。

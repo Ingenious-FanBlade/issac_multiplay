@@ -1,5 +1,15 @@
 # 7：Room、Level、RoomSave 与 Exploration
 
+**2026-11-12 显示委托修订**：
+
+- Room／Level 保留房间描述、探索状态和需要的房间状态。
+- 光照、水面、显示资源投影和地图绘制结果，改由 Client 原生 `Room::Init`、Render 和 Minimap 本地产生。
+- Host 随机选出的装饰结果仍然同步。
+- `Room+0x11F0` 按 Host 原值安装。
+- 见[修改方案](client-display-delegation.md)第 5、7 节。
+
+本次只修订文档，未改代码，未运行测试。
+
 **2026-11-10 第8步地图交接已登记，版本58**：[Minimap325与MapDisplaySprite355](implementation-8-presentation.md#地图唯一owner)复用300—303，承接两边框／icons／itemIcons、最终地图震动与world转场alpha；L0—L3与Room字段保持唯一owner。正常来源与确定性地图adapter仍待10／13步；下方旧待布局表述保留原时点。
 
 **2026-11-10 Room／Level影子状态描述生成层完成**：[接口与实现](room-level-description-implementation.md)。正式`ClientDescribeRoomLevel`提供Room／Level／Descriptor／双配置的类型化纯值与完整显示投影，检查同world根、L3／入口象限／有序成员、L2和八门关系；52个数字角色与图标帧界由布局源生成，旧输入明确改名Legacy。版本仍57、UNKNOWN保持；描述库及产品Release／Win32纯编译／链接通过，没有运行测试。实际解码调度与原生writer仍归12／13步。

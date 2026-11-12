@@ -1,5 +1,7 @@
 # 第8步 Random：原生字节归属与同步职责核对
 
+**2026-11-12 已被取代**：绘制随机不再同步，接受外观差异（Q4）。只保留 Host 选出、影响布局或规则的结果。原文、事实与 UNKNOWN 保留。见[修改方案](client-display-delegation.md)。
+
 2026-11-10；目标为官方 REPENTOGON 1.1.3／Repentance+ v1.9.7.12.J273 Win32。本轮完成随机域的静态核对、原生字节账本和旧54行目录回映射。第7步交接修订2另见[交接补证](room-random-handoff.md)：D0现5B、随机绘制发逐用途结果，新核音效选样本流留Host；旧13B决定已替代。它不是第8步整体完成，也不是正式reader／writer／Hook接线完成。设计数据为[字节账本JSON](random-byte-ledger.json)／[单行表](random-byte-ledger.md)、[成员JSON](random-member-map.json)／[逐行表](random-member-map.md)。不修改生产布局版本56，不构建，不运行游戏、测试或随机调用。
 
 ## 1. 资料顺序与结论依据

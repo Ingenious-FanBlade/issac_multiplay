@@ -1,5 +1,7 @@
 # 第7步：必要显示与资源设计补齐
 
+**2026-11-12 已被取代**：由原生 `Room::Init`、Render 和 Minimap 本地产生的显示资源和地图绘制改为本地，房间描述和 Host 选出的结果仍然同步。原文、事实与 UNKNOWN 保留。见[修改方案](client-display-delegation.md)。
+
 **2026-11-12 版本69接线与新决定**：[第10步来源闭合](10-grid-room-level-capture.md)已实现背景正常生产recipe／实际pass绑定和完整光照投影。用户决定水面／波纹由Client纯显示推进，经典／反射为本地画质选择；286取消mode，289改显示锚点，434承接实际Idle资源／稳定外观。`Backdrop+0x20`实际是追加floorSurface2 pass，非替换selector；recipe允许有界跨边tile并由本地FBO裁剪。下方原始设计／版本事实保留；具体当前布局以版本69唯一源为准。
 
 **2026-11-11 正式资源协议，版本63**：[第9步第四项](9-resource-protocol.md)已完成本地typed payload与图形允许集，309补齐ColorOffset上下文为212B。当前禁止像素／blob，沿用本地生成合同；以下旧像素／原196B及草稿“待注册”保持历史时点，现行格式以版本63同源表为准。
