@@ -1,6 +1,6 @@
 # tx-04-08 ST2：完整采样阶段、Hook 次序与短路静态核验
 
-日期：2026-10-26，Asia/Shanghai。范围为[迁移设计第 4.3 节 ST2](../design/tx-04-08/tx-04-08-implementation-plan.md#43-后续静态工作-st1st8)及第 5 节。用户明确指定一个 **GPT-6 Luna / max** 子智能体逆向，主智能体审阅；代理材料见[逆向笔记](tx-04-08-st2-agent-notes.md)。本报告区分目标指令 `STATIC_CONFIRMED`、本地代码 `CURRENT_SOURCE`、静态推导与拟接线 `DESIGN`，不增加运行时观察。
+日期：2026-10-26，Asia/Shanghai。范围为迁移设计第 4.3 节 ST2（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-implementation-plan.md`）及第 5 节。用户明确指定一个 **GPT-6 Luna / max** 子智能体逆向，主智能体审阅；代理材料见[逆向笔记](tx-04-08-st2-agent-notes.md)。本报告区分目标指令 `STATIC_CONFIRMED`、本地代码 `CURRENT_SOURCE`、静态推导与拟接线 `DESIGN`，不增加运行时观察。
 
 本次工作范围为读取 IDB、源码和既有记录并编辑研究文档，没有运行游戏、构建、生成器、离线工具或功能测试，没有计算/校验哈希，没有修改 IDB、生产实现、Hook 清单或部署文件。**过程偏差：代理额外执行了一次用于判断文件正确性的 JSON 语法校验，违反分析期间不运行校验脚本的约定**；命令、输出与主审处理见[原始记录](../../artifacts/repentogon/tx-04-08-static/st2-agent/process-deviation.md)。不得将其改称零校验或授权验收。ST2 是同一 tx-04-08 内的静态资料工作，不另作子项测试验收；完整 tx-04-08 和唯一整体 E2E 尚未完成。
 

@@ -31,7 +31,7 @@
 
 ## 当前 Player 读取依据与撤销通知
 
-- DESIGN：规范第 11 节已接受 USER_ACCEPTED_CURRENT_PLAYER_UPDATE_WITNESS（basis 3）：有效 Authority 模拟窗口、真实 PlayerUpdate 正常返回、目标原生 body 到达、generation 与已绑定 exact pair 仍一致后，当前专用 Player 字段才可读；绑定失效立即撤销，再次满足后才恢复。它不给出生或 Init 历史，Player-only 更新也不授予完整 world 样本资格。见 [现行规范 §11](../refactor/project-conventions.md#11-已采纳的-t0-06-当前-player-字段读取规则) 与 [tx-04-08 设计 §6.2](../design/tx-04-08/tx-04-08-implementation-plan.md#62-对象身份与出生)。
+- DESIGN：规范第 11 节已接受 USER_ACCEPTED_CURRENT_PLAYER_UPDATE_WITNESS（basis 3）：有效 Authority 模拟窗口、真实 PlayerUpdate 正常返回、目标原生 body 到达、generation 与已绑定 exact pair 仍一致后，当前专用 Player 字段才可读；绑定失效立即撤销，再次满足后才恢复。它不给出生或 Init 历史，Player-only 更新也不授予完整 world 样本资格。见 [现行规范 §11](../refactor/project-conventions.md#11-已采纳的-t0-06-当前-player-字段读取规则) 与 tx-04-08 设计 §6.2（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-implementation-plan.md`）。
 - CURRENT_SOURCE：hooks.json 把 Player Update 同地址 0x37BD40 注册为 player_update（priority -10000）和 player_native（priority +10000）。生成器进入前者建立 PlayerScope；后者在调用 super 前执行 PlayerNativeReached。若进入后者，它记录的是 Hook 到达该转接点；链下游/其他 Hook 全部执行的覆盖仍不能仅由此标志证明。
 - CURRENT_SOURCE：PlayerScope 构造时按 ControlledOrdinal 归类并保存当时 participant generation。析构时仅要求本线程、无异常、同一 simulation tick、native_reached，再比较 BoundValid、generation 和当前 bound Player 指针后读取 MoveDirection/velocity/shoot fields。随后才调用 RefreshLifecycle(*r,false)。具体顺序见 [consumers.cpp](../../mod/src/game/consumers.cpp#L218)。
 - CURRENT_SOURCE：这个后置比较没有重读 PlayerManager list/ordinal、controller key/K 所有权、完整 Topology::pair、run/room/epoch 或 Authority window 的结束状态。且 ControlledOrdinal 可使用缓存 controlled_player/旧 topology 关联给调用中的 Player 归 ordinal。因此该 metrics 采样不是 basis 3 的完整授权。即使后续输出 player_fields_known=true，仍不能视为 world 读取资格。

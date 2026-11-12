@@ -62,7 +62,7 @@ tx-04-05补充（2026-10-24）：[循环、输入与生命周期静态确认](..
 
 ## 范围与证据口径
 
-tx-04-08 清单与生成器补充（2026-10-27）：唯一清单 `mod/binding/hooks.json` 已升级为 schema 2，新增 19 项 world 观察入口（逐参数 ABI、完成含义、SDK `flags/argdata` 交叉校验），并新增 `mod/binding/world_layout.json` 登记 78 项字段偏移/证据、15 个来源、10 个 RTTI 类与目标版本常量；`mod/tools/gen_binding.py` 生成 wrapper/容量常量/布局表/清单，生成期显式报告 ABI、容量（60/64）与几何关系问题。world 组当前不安装（`WorldObservationArmed()` 固定 false）。本目录原有的原型点位与 ST1–ST8 静态结论不变；本次只做一次临时目录生成与纯编译，未运行游戏或测试。见[布局与 Hook 清单实现说明](../design/tx-04-08/tx-04-08-layout-hook-manifest.md)。
+tx-04-08 清单与生成器补充（2026-10-27）：唯一清单 `mod/binding/hooks.json` 已升级为 schema 2，新增 19 项 world 观察入口（逐参数 ABI、完成含义、SDK `flags/argdata` 交叉校验），并新增 `mod/binding/world_layout.json` 登记 78 项字段偏移/证据、15 个来源、10 个 RTTI 类与目标版本常量；`mod/tools/gen_binding.py` 生成 wrapper/容量常量/布局表/清单，生成期显式报告 ABI、容量（60/64）与几何关系问题。world 组当前不安装（`WorldObservationArmed()` 固定 false）。本目录原有的原型点位与 ST1–ST8 静态结论不变；本次只做一次临时目录生成与纯编译，未运行游戏或测试。见布局与 Hook 清单实现说明（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-layout-hook-manifest.md`）。
 
 tx-04-08 ST6–ST8 补充（2026-10-26）：[owner、生命周期与工程边界核验](../research/tx-04-08-st6-st8-static-confirmation.md)已按每项一个 GPT-6 Luna / max 子智能体逆向、主智能体独立取证审阅完成。确认公开 Spawn/Morph/Grid 桥、恢复/替换完成边界及当前 Player witness 接线不足；主审纠正 Replace 分支倒置、补齐 Morph Lua 路由。41 行/40 RVA、pending64 与同址 GridFactory 定义已核对，注册不等于安装；Shutdown 在 Manager 循环后，完整退出协调仍待实现。具体 UNKNOWN 与 B 部分撤销分支缺口保留。ST1–ST8 静态工作完成；未改生产绑定或 IDB，未构建/运行游戏/测试，实现和整体 E2E 待完成。下方旧说明保留当时范围。
 

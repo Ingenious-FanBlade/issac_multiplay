@@ -1,10 +1,10 @@
 # tx-04-08 A/C 静态补充笔记
 
-> 主审后记：本文引用的layout InitUnknown是补正前状态；当前已根据下方原始指令更正并接入限定当前值规则，见[ABC实现与主审](../design/tx-04-08/tx-04-08-abc-implementation.md)。候选建议与UNKNOWN保留代理原始含义；Grid有限补查之后，主审另以实际空地/自建rock/路径0等约束接入场景，不能据此声称已实机安全。
+> 主审后记：本文引用的layout InitUnknown是补正前状态；当前已根据下方原始指令更正并接入限定当前值规则，见ABC实现与主审（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-abc-implementation.md`）。候选建议与UNKNOWN保留代理原始含义；Grid有限补查之后，主审另以实际空地/自建rock/路径0等约束接入场景，不能据此声称已实机安全。
 
 日期：2026-10-27。目标二进制为 `isaac-ng-v1.9.7.12.exe.unpacked.exe`，IDA imagebase `0x400000`；源码使用本机 `F:/projects_isaac/REPENTOGON-1.1.3`。本文仅为静态资料补充，供主审复读；没有运行游戏、测试、构建或校验脚本，没有改 IDB，也没有修改生产代码。
 
-先前依照 `AGENTS.md`、`docs/refactor/project-conventions.md`、[tx-04-08 当前工程任务](../design/tx-04-08/tx-04-08-current-engineering-tasks.md)及 ST3/ST6/ST7/ST8 既有报告阅读。下面把新的有限证据与历史结论区分开。
+先前依照 `AGENTS.md`、`docs/refactor/project-conventions.md`、tx-04-08 当前工程任务（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-current-engineering-tasks.md`）及 ST3/ST6/ST7/ST8 既有报告阅读。下面把新的有限证据与历史结论区分开。
 
 ## A：`Entity.removed_by_factory +0x177`
 

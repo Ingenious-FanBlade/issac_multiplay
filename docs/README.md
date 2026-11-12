@@ -251,61 +251,61 @@
 
 > **tx-04-08 V1/V10 完成（2026-10-30）**：[联合专项结果](../artifacts/repentogon/tx-04-08-v1-v10-e2e-01/README.md)。单一入口、两次顺序启动均正常退出，V1与V10 PASS，L1–L5全通过；482组原生调用四边界配对无误，五份离线源文件逐字节未改，清理无报错。按用户本次授权直接启动，最终统一资料落盘；其余V项/L6/L7本次NOT_RUN，整个tx-04-08不据此宣称完成。
 
-> **tx-04-08 输入边沿与线程分类修复（2026-10-29）**：[实现与范围](design/tx-04-08/tx-04-08-edge-thread-fix.md)。e2e-12原始sample3757有SPACE edge2，下一采样覆盖后提交edge0；A输入源现用16项有界FIFO保存未提交真实边沿，成功统一admission才消费，换代/屏蔽清空。world桥按分类型通知区分WrongThread与异常展开，两个收束位置共用分类。原703/故障验收条件保持，纯编译后执行一次整体E2E，原失败保留。
+> **tx-04-08 输入边沿与线程分类修复（2026-10-29）**：实现与范围（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-edge-thread-fix.md`）。e2e-12原始sample3757有SPACE edge2，下一采样覆盖后提交edge0；A输入源现用16项有界FIFO保存未提交真实边沿，成功统一admission才消费，换代/屏蔽清空。world桥按分类型通知区分WrongThread与异常展开，两个收束位置共用分类。原703/故障验收条件保持，纯编译后执行一次整体E2E，原失败保留。
 
 > **tx-04-08 e2e-12（2026-10-29）**：[执行记录](../artifacts/repentogon/tx-04-08-e2e-12/execution-notes.md)。录制身份等待修复实测覆盖14次start，各跳过1次旧快照并成功进入新Recording。主稳定段253/250通过；11类故障执行，10类归约通过，thread因实际UNPAIRED_SCOPE与预期WRONG_THREAD不符而FAIL。Continue后703准备及一次SPACE已发出，第33项等待新Player Init超时，整体FAIL；第二进程未启动。完整报告生成、环境恢复无报错，游戏正常清理退出0，无自动重跑。
 
-> **tx-04-08 录制等待修复（2026-10-29）**：[修改与边界](design/tx-04-08/tx-04-08-recording-wait-fix.md)。所有录制等待关联 start 回复的 request/generation/recording，停止也按录制身份等待，避免旧 Closed 误判新请求。e2e-11 的28次 UnknownEntity 已追到同一 Type6/Variant19 Laser，保留不支持类别及不完整资格。用户本会话要求修复后直接整体测试、无需准备询问；逐启动仍提示停止操作，结果另记新 artifact，原失败保留。
+> **tx-04-08 录制等待修复（2026-10-29）**：修改与边界（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-recording-wait-fix.md`）。所有录制等待关联 start 回复的 request/generation/recording，停止也按录制身份等待，避免旧 Closed 误判新请求。e2e-11 的28次 UnknownEntity 已追到同一 Type6/Variant19 Laser，保留不支持类别及不完整资格。用户本会话要求修复后直接整体测试、无需准备询问；逐启动仍提示停止操作，结果另记新 artifact，原失败保留。
 
 > **tx-04-08 e2e-11（2026-10-29）**：[执行记录](../artifacts/repentogon/tx-04-08-e2e-11/execution-notes.md)。主稳定段254/250通过；Grid variant仅观察生效，岩石创建、删除后同格生成便便及移除到达，原生旧退休→新出生关联通过。切房/B死亡复活/换层动作已到达。随后启动故障录制时harness误将旧primary/generation1的Closed作为新generation2终态而FAIL；新录制实际稍后Recording并被正常清理。仍有28次UNKNOWN_CLASS未分类。最终报告生成、环境恢复，未启动第二进程、未改代码或自动重跑。
 
-> **tx-04-08 Grid variant策略调整（2026-10-29）**：[实现与边界](design/tx-04-08/tx-04-08-grid-recreation-fix.md)。按用户要求，Grid创建/到达/替换/删除与最终重建归约不再严格比对variant；同时保存请求、实际及先前观察值。位置、类型、seed、varData和原生身份/生命周期要求不变。e2e-10失败保留，新策略只修改与纯编译，未自动测试。
+> **tx-04-08 Grid variant策略调整（2026-10-29）**：实现与边界（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-grid-recreation-fix.md`）。按用户要求，Grid创建/到达/替换/删除与最终重建归约不再严格比对variant；同时保存请求、实际及先前观察值。位置、类型、seed、varData和原生身份/生命周期要求不变。e2e-10失败保留，新策略只修改与纯编译，未自动测试。
 
 > **tx-04-08 e2e-10（2026-10-29）**：[执行记录](../artifacts/repentogon/tx-04-08-e2e-10/execution-notes.md)。主稳定段254/250通过；首次Grid创建的空地检查通过且API返回true，但实际岩石variant2与请求0不符，后态检查失败。删除后生成便便场景未执行，变体变化原因未核定。整体FAIL；全量报告正常生成，游戏正常退出0、环境恢复，未启动第二进程、未改代码或自动重跑。
 
-> **tx-04-08 Grid夹具修正（2026-10-29）**：[本地Wiki核对与实现](design/tx-04-08/tx-04-08-grid-recreation-fix.md)。按用户指出的公开API约束，将完整岩石上直接重复Spawn改为明确删除、自有同格跨帧空地复核、固定seed创建POOP；ToPoop只取派生接口。原生归约要求旧身份退休→后续新owner出生，不声称单次原生覆盖。e2e-09失败保留，本次修改与纯编译，不自动测试。
+> **tx-04-08 Grid夹具修正（2026-10-29）**：本地Wiki核对与实现（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-grid-recreation-fix.md`）。按用户指出的公开API约束，将完整岩石上直接重复Spawn改为明确删除、自有同格跨帧空地复核、固定seed创建POOP；ToPoop只取派生接口。原生归约要求旧身份退休→后续新owner出生，不声称单次原生覆盖。e2e-09失败保留，本次修改与纯编译，不自动测试。
 
 > **tx-04-08 e2e-09（2026-10-29）**：[执行记录](../artifacts/repentogon/tx-04-08-e2e-09/execution-notes.md)。30秒/主250目标已完成254份连续完整普通样本，253条odd-only gap按规则保留。随后第25项Grid直接替换返回false，夹具grid_spawn_false，整体FAIL；第二进程及后续场景未执行。全量报告已生成，L1/L3/L4/L5/L7通过，游戏正常退出0、环境恢复，无自动重跑或本轮实现修改。
 
 > **tx-04-08 e2e-08 与规模调整（2026-10-29）**：[实机记录](../artifacts/repentogon/tx-04-08-e2e-08/execution-notes.md)。提前录制生效，首份完整样本23个Effect均有初始化资格；30秒取得797份完整样本，因未达该次2,000目标而FAIL。全量报告已生成，游戏正常退出、环境恢复，未启动第二进程。用户随后要求目标随时间调整，当前主250/对照32份，实时与最终归约统一读scenario；原失败保留，新规模仅修改与纯编译，未重跑。
 
-> **tx-04-08 开局记录时机修复（2026-10-29）**：[实现与限制](design/tx-04-08/tx-04-08-early-recording-fix.md)。两次初始录制均前移到第二档角色页，等真正 Recording 再 New Run 和 seed 重开，补存时序状态与 checkpoint。初始化见证/字段资格、2,000 次稳定段和完整报告条件不变；Rust 最终纯编译成功、harness 产物已更新。本轮未部署或测试，e2e-07 失败保持原样。
+> **tx-04-08 开局记录时机修复（2026-10-29）**：实现与限制（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-early-recording-fix.md`）。两次初始录制均前移到第二档角色页，等真正 Recording 再 New Run 和 seed 重开，补存时序状态与 checkpoint。初始化见证/字段资格、2,000 次稳定段和完整报告条件不变；Rust 最终纯编译成功、harness 产物已更新。本轮未部署或测试，e2e-07 失败保持原样。
 
-> **tx-04-08 e2e-07（2026-10-29）**：[结果](design/tx-04-08/tx-04-08-e2e-results.md)。Grid分类扩展已实测有效，无UNKNOWN_CLASS；Effect缺读取资格导致240秒完整采集仍0。全量索引正常核对28,672 tick/480Ack，匹配错误均0，最终自动报告完整生成（最后save_after后约5.05秒）；L1/L7通过。游戏正常清理、环境恢复无报错，第二进程未启动，整体仍FAIL，未重跑。
+> **tx-04-08 e2e-07（2026-10-29）**：结果（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-e2e-results.md`）。Grid分类扩展已实测有效，无UNKNOWN_CLASS；Effect缺读取资格导致240秒完整采集仍0。全量索引正常核对28,672 tick/480Ack，匹配错误均0，最终自动报告完整生成（最后save_after后约5.05秒）；L1/L7通过。游戏正常清理、环境恢复无报错，第二进程未启动，整体仍FAIL，未重跑。
 
-> **tx-04-08 Grid/全量索引修复（2026-10-29）**：[实现与边界](design/tx-04-08/tx-04-08-grid-and-fullscan-fix.md)、[静态主审](research/tx-04-08-grid-kinds-static-confirmation.md)。指定GPT-6 Luna/max补核Grid根+17派生类，主智能体独立复读RTTI/Factory/Init，补入16个遗漏类，核定41个未知对象为Wall。全量输入/Ack/持久调用/采集阶段/L6对齐改为分组索引查询，保留重复与原判据，不采样。DLL与Rust纯编译成功，未部署或运行验收；e2e-06失败及人工停止记录保留。
+> **tx-04-08 Grid/全量索引修复（2026-10-29）**：实现与边界（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-grid-and-fullscan-fix.md`）、[静态主审](research/tx-04-08-grid-kinds-static-confirmation.md)。指定GPT-6 Luna/max补核Grid根+17派生类，主智能体独立复读RTTI/Factory/Init，补入16个遗漏类，核定41个未知对象为Wall。全量输入/Ack/持久调用/采集阶段/L6对齐改为分组索引查询，保留重复与原判据，不采样。DLL与Rust纯编译成功，未部署或运行验收；e2e-06失败及人工停止记录保留。
 
-> **tx-04-08 e2e-06（2026-10-29）**：[记录](design/tx-04-08/tx-04-08-e2e-results.md)。Host监听等待已修复并实测握手/A/B Active成功；240秒稳定窗口完整采集为0，主要因Grid域UNKNOWN_CLASS。14,430次attempt、7,199不完整capture、117事件与2checkpoint正常收口，环境恢复无报错。最终trace归约重复全表扫描而长耗时，按用户明确要求停止，原始证据全部保留；最终自动report未生成，整体仍未通过，未重跑。
+> **tx-04-08 e2e-06（2026-10-29）**：记录（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-e2e-results.md`）。Host监听等待已修复并实测握手/A/B Active成功；240秒稳定窗口完整采集为0，主要因Grid域UNKNOWN_CLASS。14,430次attempt、7,199不完整capture、117事件与2checkpoint正常收口，环境恢复无报错。最终trace归约重复全表扫描而长耗时，按用户明确要求停止，原始证据全部保留；最终自动report未生成，整体仍未通过，未重跑。
 
-> **tx-04-08 e2e-05（2026-10-29）**：[记录](design/tx-04-08/tx-04-08-e2e-results.md)。按用户要求修复writer扩展盘符路径处理并纯编译，整体入口实际进入Recording，13条gap与1checkpoint正常drain/flush；原路径问题获得限定实机覆盖。随后远端首包报10054、未握手，发现Host排队回复后未等监听就绪即启动远端的时序缺口。第一进程正常退出、环境恢复无报错、无新增crash；L1/L7通过，稳定段/第二进程未完成，整体仍FAIL，未自动重跑。
+> **tx-04-08 e2e-05（2026-10-29）**：记录（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-e2e-results.md`）。按用户要求修复writer扩展盘符路径处理并纯编译，整体入口实际进入Recording，13条gap与1checkpoint正常drain/flush；原路径问题获得限定实机覆盖。随后远端首包报10054、未握手，发现Host排队回复后未等监听就绪即启动远端的时序缺口。第一进程正常退出、环境恢复无报错、无新增crash；L1/L7通过，稳定段/第二进程未完成，整体仍FAIL，未自动重跑。
 
-> **tx-04-08 e2e-04（2026-10-29）**：[记录](design/tx-04-08/tx-04-08-e2e-results.md)。用户要求开始并确认第一次启动，S0与setup通过；world在根目录准备阶段`PREPARE_FAILED / root_directory`，attempt=0，Host与第二进程未启动。静态定位writer未处理`\\?\F:\`路径根前缀；仅记录，未改实现或重跑。第一进程正常清理退出0、环境恢复无报错、无新增crash；L7完整导入通过，整体仍FAIL。
+> **tx-04-08 e2e-04（2026-10-29）**：记录（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-e2e-results.md`）。用户要求开始并确认第一次启动，S0与setup通过；world在根目录准备阶段`PREPARE_FAILED / root_directory`，attempt=0，Host与第二进程未启动。静态定位writer未处理`\\?\F:\`路径根前缀；仅记录，未改实现或重跑。第一进程正常清理退出0、环境恢复无报错、无新增crash；L7完整导入通过，整体仍FAIL。
 
-> **tx-04-08 e2e-03（2026-10-28）**：[记录](design/tx-04-08/tx-04-08-e2e-results.md)。用户许可修正后再执行；已进入第二档单A新局，S0因harness遗漏tx08结构化players分支而误拒绝合法观测。L7实际完整导入通过（15820条记录/6335完整capture/9485gap/93事件）。第一进程正常失败清理，第二进程/world未启动，环境恢复；已修正schema分支，仅纯编译未再运行。
+> **tx-04-08 e2e-03（2026-10-28）**：记录（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-e2e-results.md`）。用户许可修正后再执行；已进入第二档单A新局，S0因harness遗漏tx08结构化players分支而误拒绝合法观测。L7实际完整导入通过（15820条记录/6335完整capture/9485gap/93事件）。第一进程正常失败清理，第二进程/world未启动，环境恢复；已修正schema分支，仅纯编译未再运行。
 
-> **tx-04-08 用户许可重执行结果（2026-10-28）**：[e2e-02](design/tx-04-08/tx-04-08-e2e-results.md)在第一进程启动后、最初counters上因主线程尚未就绪而超时；L7实际导入另拒绝旧gap的15个零来源头。第一进程正常失败清理，第二进程/world未启动，指定mod与环境已恢复。已修正菜单等待顺序与显式legacy空头兼容，Rust纯编译成功；未再运行游戏或CLI，原FAIL与冻结材料保留。
+> **tx-04-08 用户许可重执行结果（2026-10-28）**：e2e-02（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-e2e-results.md`）在第一进程启动后、最初counters上因主线程尚未就绪而超时；L7实际导入另拒绝旧gap的15个零来源头。第一进程正常失败清理，第二进程/world未启动，指定mod与环境已恢复。已修正菜单等待顺序与显式legacy空头兼容，Rust纯编译成功；未再运行游戏或CLI，原FAIL与冻结材料保留。
 
-> **tx-04-08 首次整体入口结果（2026-10-28）**：[结果记录](design/tx-04-08/tx-04-08-e2e-results.md)。e2e-01 在启动前发现 `arknights_terra_a_journey_3631023221` 仍启用而失败，实际游戏启动0次，未部署/采集；Helper已恢复，未自动重跑。原自动FAIL与缺材料状态保留，完整功能仍未验收。
+> **tx-04-08 首次整体入口结果（2026-10-28）**：结果记录（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-e2e-results.md`）。e2e-01 在启动前发现 `arknights_terra_a_journey_3631023221` 仍启用而失败，实际游戏启动0次，未部署/采集；Helper已恢复，未自动重跑。原自动FAIL与缺材料状态保留，完整功能仍未验收。
 
-> **tx-04-08 剩余工程续作（2026-10-28，D32）**：[实现与主审](design/tx-04-08/tx-04-08-defg-implementation.md)。已接入 Entity/Grid 完整复制窗口的 RNG 前后四字、main 原生关闭判断的非阻塞收口、原始证据归约与索引、精确离线差异/输入关联及旧仓库六文件原始录制。特殊 Player Replace 已按 Type1/Variant0、703/slot0/charge1、公开 GetItemState()==0 和一次自然 SPACE 接线，安排在 Continue 后，实际成功与旧对象保留由 DLL 证据判定。退出/Player 逆向由 GPT-6 Luna/max 执行，主智能体独立复读原始指令并纠正返回变量与角色类型假设。完整 DLL/Rust 纯编译成功，产物已更新；未部署/测试，唯一整体 E2E 等待逐次启动准备确认。下方历史记录保留原时点。
+> **tx-04-08 剩余工程续作（2026-10-28，D32）**：实现与主审（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-defg-implementation.md`）。已接入 Entity/Grid 完整复制窗口的 RNG 前后四字、main 原生关闭判断的非阻塞收口、原始证据归约与索引、精确离线差异/输入关联及旧仓库六文件原始录制。特殊 Player Replace 已按 Type1/Variant0、703/slot0/charge1、公开 GetItemState()==0 和一次自然 SPACE 接线，安排在 Continue 后，实际成功与旧对象保留由 DLL 证据判定。退出/Player 逆向由 GPT-6 Luna/max 执行，主智能体独立复读原始指令并纠正返回变量与角色类型假设。完整 DLL/Rust 纯编译成功，产物已更新；未部署/测试，唯一整体 E2E 等待逐次启动准备确认。下方历史记录保留原时点。
 
-> **tx-04-08 A/B/C 工程续作（2026-10-27，D32）**：[实现、静态主审与未覆盖项](design/tx-04-08/tx-04-08-abc-implementation.md)。A 修正 +177 跨字段初始化漏项并接入本轮用户采纳的当前值/撤销规则；B 接通受token/generation限定的11类故障、独立录制编排和实际证据归约；C 加入七类Entity/Grid具体参数、真实覆盖/移除与episode索引。特殊Player Replace资格仍UNKNOWN/默认禁用，复用与重复发布须实际观察。Rust及完整DLL纯编译成功，未部署、启动游戏或测试。D–G与唯一整体E2E仍未完成。
+> **tx-04-08 A/B/C 工程续作（2026-10-27，D32）**：实现、静态主审与未覆盖项（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-abc-implementation.md`）。A 修正 +177 跨字段初始化漏项并接入本轮用户采纳的当前值/撤销规则；B 接通受token/generation限定的11类故障、独立录制编排和实际证据归约；C 加入七类Entity/Grid具体参数、真实覆盖/移除与episode索引。特殊Player Replace资格仍UNKNOWN/默认禁用，复用与重复发布须实际观察。Rust及完整DLL纯编译成功，未部署、启动游戏或测试。D–G与唯一整体E2E仍未完成。
 
-> **tx-04-08 工程任务索引（2026-10-27，D32）**：[A–G任务清单](design/tx-04-08/tx-04-08-current-engineering-tasks.md)保留本轮前缺口与交付要求，以上方ABC续作更新为当前状态；仍不是“只剩运行验收”。下方代码交付/纯编译记录保留原时点。
+> **tx-04-08 工程任务索引（2026-10-27，D32）**：A–G任务清单（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-current-engineering-tasks.md`）保留本轮前缺口与交付要求，以上方ABC续作更新为当前状态；仍不是“只剩运行验收”。下方代码交付/纯编译记录保留原时点。
 
-> **tx-04-08 Lua 夹具与统一 E2E harness（2026-10-27，D32）**：已编写 F8 世界动作扩展、两次启动独立确认、2,000/256 次文件归约、真实关闭/Continue、L1–L7 CLI 编排及环境恢复，见[实现说明与未覆盖项](design/tx-04-08/tx-04-08-harness.md)。仅纯编译，未部署、启动游戏或测试；具体世界动作参数、故障注入入口、RNG 前后见证和直接退出等限制如实保留，整个 tx-04-08 未验收。下方历史进度保留其原时点。
+> **tx-04-08 Lua 夹具与统一 E2E harness（2026-10-27，D32）**：已编写 F8 世界动作扩展、两次启动独立确认、2,000/256 次文件归约、真实关闭/Continue、L1–L7 CLI 编排及环境恢复，见实现说明与未覆盖项（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-harness.md`）。仅纯编译，未部署、启动游戏或测试；具体世界动作参数、故障注入入口、RNG 前后见证和直接退出等限制如实保留，整个 tx-04-08 未验收。下方历史进度保留其原时点。
 
-> **tx-04-08 离线 replay／compare（2026-10-27，D32）**：已接入 harness 的两个独立文件命令，完成严格模型、全量 canonical 重编码、生命周期/checkpoint 读取、显式 legacy 导入、构建/布局兼容检查、对齐证据和分层比较，见[实现、命令与 alignment 格式](design/tx-04-08/tx-04-08-world-offline.md)。Rust Release 纯编译成功；未运行 replay/compare、测试或游戏，L1–L7 与唯一整体 E2E 仍未执行。下方历史未实现记录保留原时点。
+> **tx-04-08 离线 replay／compare（2026-10-27，D32）**：已接入 harness 的两个独立文件命令，完成严格模型、全量 canonical 重编码、生命周期/checkpoint 读取、显式 legacy 导入、构建/布局兼容检查、对齐证据和分层比较，见实现、命令与 alignment 格式（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-world-offline.md`）。Rust Release 纯编译成功；未运行 replay/compare、测试或游戏，L1–L7 与唯一整体 E2E 仍未执行。下方历史未实现记录保留原时点。
 
-> **tx-04-08 cs world 命令（2026-10-27，D32）**：已编写 `start/stop/status/checkpoint`、异步 Preparing/关闭、Manager 边界接收与独立 checkpoint 产物。见[命令、线程和范围说明](design/tx-04-08/tx-04-08-world-commands.md)及[纯编译链接记录](../artifacts/repentogon/tx-04-08-world-commands/README.md)。完整 DLL 编译链接成功；未测试、未启动游戏、未部署，完整 tx-04-08 的唯一整体 E2E、2,000 次及双进程比较仍未执行。下方历史“命令未实现”与构建失败记录保留原时点。
+> **tx-04-08 cs world 命令（2026-10-27，D32）**：已编写 `start/stop/status/checkpoint`、异步 Preparing/关闭、Manager 边界接收与独立 checkpoint 产物。见命令、线程和范围说明（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-world-commands.md`）及[纯编译链接记录](../artifacts/repentogon/tx-04-08-world-commands/README.md)。完整 DLL 编译链接成功；未测试、未启动游戏、未部署，完整 tx-04-08 的唯一整体 E2E、2,000 次及双进程比较仍未执行。下方历史“命令未实现”与构建失败记录保留原时点。
 
 > **tx-04-08 SDK 构建兼容修复（2026-10-27，D32）**：已修复完整 DLL 的 `friend static` 编译阻断。`JoinMode/JoinCreate` 声明移到 C++17 `bridge.h`，Host 补丁移除 C++20 状态头依赖，Host/Odd 两个 SDK 适配单元单独用 C++17；核心继续 C++20，SDK、汇编与补丁行为未修改。在全新构建目录完成全部 DLL 单元及 core/net/world 的编译和链接，产物 `out/repentogon/zhlIsaacCS.dll`。见[修改与完整构建日志](../artifacts/repentogon/tx-04-08-sdk-build-fix/README.md)。仅纯构建，未测试、未启动游戏；下方构建失败记录保留其原时点。
 
-> **tx-04-08 collector、主线程桥与 post-state（2026-10-27，D32）**：已完成本项代码编写，见[实现说明与保守范围](design/tx-04-08/tx-04-08-collector-bridge.md)。新增主线程只读 collector、Manager/阶段/生命周期与 A/B witness 桥、六种本地 post-state、clock 提交后匹配批次发布；19 项观察由同一清单派生内层 native witness，待注册 **79/96**（distinct RVA 59）。world 能力由独立配置允许注册，录制仍需后续命令/后台准备编排。`InitUnknown` 字段保留 UNCONFIRMED，含该字段的批次不冒称完整，2,000 次仍未达成。仅代码生成与纯编译，未测试、未启动游戏；整 DLL 仍有既有 SDK `friend static` 编译错误。命令/离线工具/夹具/统一整体 E2E 待继续，下方记录保留原时点。
+> **tx-04-08 collector、主线程桥与 post-state（2026-10-27，D32）**：已完成本项代码编写，见实现说明与保守范围（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-collector-bridge.md`）。新增主线程只读 collector、Manager/阶段/生命周期与 A/B witness 桥、六种本地 post-state、clock 提交后匹配批次发布；19 项观察由同一清单派生内层 native witness，待注册 **79/96**（distinct RVA 59）。world 能力由独立配置允许注册，录制仍需后续命令/后台准备编排。`InitUnknown` 字段保留 UNCONFIRMED，含该字段的批次不冒称完整，2,000 次仍未达成。仅代码生成与纯编译，未测试、未启动游戏；整 DLL 仍有既有 SDK `friend static` 编译错误。命令/离线工具/夹具/统一整体 E2E 待继续，下方记录保留原时点。
 
-> **tx-04-08 layout/Hook 清单与生成器（2026-10-27，D32）**：按用户指示完成“实际工程改动的 layout/Hook 清单与生成器”，见[布局与 Hook 清单实现说明](design/tx-04-08/tx-04-08-layout-hook-manifest.md)。唯一清单 `mod/binding/hooks.json` 升级为 schema 2：41 条既有行不变，新增 19 项 `world_observations`（逐参数 ABI、完成含义、SDK `flags/argdata` 交叉校验）；新增 `mod/binding/world_layout.json` 登记 78 项字段偏移/证据、15 个来源、10 个 RTTI 类与目标版本常量。`mod/tools/gen_binding.py` 生成 wrapper、容量常量、布局表与 machine-readable 清单，生成期拒绝 ABI/容量/字段/几何关系不一致；`binding/world_layout.*` 提供只读访问，`world/observe.*` 提供不进入会话失败路径的 world 观察策略。待注册 **60/64**（既有 41 + world 19，distinct RVA 59）；world 组当前不安装（`WorldObservationArmed()` 固定 false），桥接项接入配置后启用。本轮只做一次临时目录生成与纯编译，未运行测试、未启动游戏；DLL 整体链接仍被既有 `ASMPatch` 头的 `friend static` 与 C++20 组合挡住，且确认 `host_patch.cpp` 不能整体降级 C++17，留给“必要纯编译链接”项。下方历史记录保留当时状态。
+> **tx-04-08 layout/Hook 清单与生成器（2026-10-27，D32）**：按用户指示完成“实际工程改动的 layout/Hook 清单与生成器”，见布局与 Hook 清单实现说明（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-layout-hook-manifest.md`）。唯一清单 `mod/binding/hooks.json` 升级为 schema 2：41 条既有行不变，新增 19 项 `world_observations`（逐参数 ABI、完成含义、SDK `flags/argdata` 交叉校验）；新增 `mod/binding/world_layout.json` 登记 78 项字段偏移/证据、15 个来源、10 个 RTTI 类与目标版本常量。`mod/tools/gen_binding.py` 生成 wrapper、容量常量、布局表与 machine-readable 清单，生成期拒绝 ABI/容量/字段/几何关系不一致；`binding/world_layout.*` 提供只读访问，`world/observe.*` 提供不进入会话失败路径的 world 观察策略。待注册 **60/64**（既有 41 + world 19，distinct RVA 59）；world 组当前不安装（`WorldObservationArmed()` 固定 false），桥接项接入配置后启用。本轮只做一次临时目录生成与纯编译，未运行测试、未启动游戏；DLL 整体链接仍被既有 `ASMPatch` 头的 `friend static` 与 C++20 组合挡住，且确认 `host_patch.cpp` 不能整体降级 C++17，留给“必要纯编译链接”项。下方历史记录保留当时状态。
 
-> **tx-04-08 world 核心代码（2026-10-27，D32）**：按用户指示完成“实际工程改动的第一项”——纯值模型、身份表、槽/队列/事件环缓冲与 writer 的代码编写，见[world 核心实现说明](design/tx-04-08/tx-04-08-world-core.md)。新增独立静态库 `isaac_cs_world`（不依赖 SDK/游戏头，`/W4` 无警告），包含 78 项 `min-read-v1` 字段声明、33 位 radix 本地身份、三槽 `FREE→WRITING→PREPARED→READY→READING→FREE` 状态机、64 MiB/64 项双上限值队列、gap 控制环、`isaac.cs.world-record` v1 的 manifest/captures/lifecycle-events/diagnostics/result 编码与两个后台线程的有界收口。本轮只做纯编译，未运行测试、未启动游戏；DLL 整体链接被既有 `ASMPatch` 头的 `friend static` 与当前 MSVC C++20 组合挡住（非本次改动引入，留给“必要纯编译链接”项）。主线程桥、命令、离线工具、harness 与统一 E2E 仍待继续，下方历史记录保留当时状态。
+> **tx-04-08 world 核心代码（2026-10-27，D32）**：按用户指示完成“实际工程改动的第一项”——纯值模型、身份表、槽/队列/事件环缓冲与 writer 的代码编写，见world 核心实现说明（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-world-core.md`）。新增独立静态库 `isaac_cs_world`（不依赖 SDK/游戏头，`/W4` 无警告），包含 78 项 `min-read-v1` 字段声明、33 位 radix 本地身份、三槽 `FREE→WRITING→PREPARED→READY→READING→FREE` 状态机、64 MiB/64 项双上限值队列、gap 控制环、`isaac.cs.world-record` v1 的 manifest/captures/lifecycle-events/diagnostics/result 编码与两个后台线程的有界收口。本轮只做纯编译，未运行测试、未启动游戏；DLL 整体链接被既有 `ASMPatch` 头的 `friend static` 与当前 MSVC C++20 组合挡住（非本次改动引入，留给“必要纯编译链接”项）。主线程桥、命令、离线工具、harness 与统一 E2E 仍待继续，下方历史记录保留当时状态。
 
 > **tx-04-08 ST6–ST8 静态工作（2026-10-26，D32）**：每项各由一个 GPT-6 Luna / max 子智能体逆向，主智能体独立取证并逐项审阅，完成[owner/生命周期/工程边界报告](research/tx-04-08-st6-st8-static-confirmation.md)。核对 Spawn/Morph/Restore/Replace/Grid 嵌套完成、公开夹具参数、Player 读取依据与撤销、41 行/40 RVA 的注册与容量、内存预算和 Shutdown 窗口。主审纠正 Replace 分支倒置、补齐 Morph Lua 注册，并确认 B 部分 Invalidate 返回未统一撤销及退出后无 Manager drain 窗口。ST1–ST8 静态工作完成，具体 UNKNOWN 和实现缺口保留；功能实现与整体 E2E 待继续。未构建、测试、启动游戏或修改 IDB。
 
@@ -313,7 +313,7 @@
 
 > **tx-04-08 ST2 静态工作（2026-10-26，D32）**：按用户要求由一个 GPT-6 Luna / max 子智能体逆向，主智能体独立读取 IDB/源码并审阅，完成[完整采样阶段、Hook 次序与短路核验](research/tx-04-08-st2-static-confirmation.md)。普通 Room 返回后还有 Game 后处理和标准尾部；1026 可跳过整轮，1160 可跳过 Player 派生更新；复制应在 Manager 下游链正常返回后、EndManager 发布/退休前准备。ST1/ST2 已完成，ST3–ST8、实现和整体 E2E 待继续；未构建或执行 E2E。代理额外 JSON 语法校验已如实记录为[过程偏差](../artifacts/repentogon/tx-04-08-static/st2-agent/process-deviation.md)。下方 ST1 记录保留其当时状态。
 
-> **tx-04-08 ST1 静态工作（2026-10-26，D32）**：按用户要求由 GPT-6 Luna / max 子智能体逆向、主智能体独立审阅，已完成[19 项入口与 ABI 登记](research/tx-04-08-st1-static-confirmation.md)。已区分 GridFactory 的 ECX/EDX 与官方同址定义差异、Replace 两 Player 参数/AL 返回、基类析构与删除包装。ST2–ST8、实现及整体 E2E 尚未完成，没有构建或测试。完整迁移范围、DLL 本地采集、2,000 次稳定段与两个顺序进程安排见[迁移设计](design/tx-04-08/tx-04-08-implementation-plan.md)和[E2E 方案](design/tx-04-08/tx-04-08-e2e-plan.md)；历史记录保持原样。
+> **tx-04-08 ST1 静态工作（2026-10-26，D32）**：按用户要求由 GPT-6 Luna / max 子智能体逆向、主智能体独立审阅，已完成[19 项入口与 ABI 登记](research/tx-04-08-st1-static-confirmation.md)。已区分 GridFactory 的 ECX/EDX 与官方同址定义差异、Replace 两 Player 参数/AL 返回、基类析构与删除包装。ST2–ST8、实现及整体 E2E 尚未完成，没有构建或测试。完整迁移范围、DLL 本地采集、2,000 次稳定段与两个顺序进程安排见迁移设计（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-implementation-plan.md`）和E2E 方案（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-e2e-plan.md`）；历史记录保持原样。
 
 > **tx-04-07 已完成（用户正式接受，D31，2026-10-26）**：用户明确将 e2e-11 的整体 E2E 视为全部通过，整体验收正式通过。原始自动 FAIL、S17 停止与未执行项保持原样，不再安排本轮补测。见[验收记录](../artifacts/repentogon/tx-04-07-e2e-11/acceptance.md)与[历次结果](design/tx-04-07-results.md)。下方均为历史时点记录。
 
@@ -412,11 +412,11 @@
 21. [tx-04-06：实现方案](design/tx-04-06-implementation-plan.md)：DLL 内网络与新协议、按 v1.9.7.12 重做的虚拟设备 K、原生 Join、B 的远端输入与断开退休、Rust 远端客户端。D24 已确认拆分（relay、B 死亡复活、异常 Join 等移到 tx-04-07，world_record 顺延到 tx-04-08）；U1–U4 已确认（D25）。2026-10-25 完成 [ST1](research/tx-04-06-static-confirmation.md) 和 [ST2–ST9](research/tx-04-06-static-remaining.md) 静态研究与主审。Join 四处调用点之外还需 K 通知/UI 兼容处理。后续第 3.1 节 [net 代码](design/tx-04-06-net.md)已编写并纯构建成功，尚未接入主线程 Host 会话；其余工程及整体 E2E 待完成，没有执行测试。
 
 22. [tx-04-07：实现方案](design/tx-04-07/tx-04-07-implementation-plan.md)与[结果](design/tx-04-07/tx-04-07-results.md)：按 D31 用户正式接受 e2e-11 整体通过，tx-04-07 完成；原自动失败和未执行项保留，不再补测。
-23. [tx-04-08：world_record 迁移设计](design/tx-04-08/tx-04-08-implementation-plan.md)：D32 的完整迁移范围、本地 artifact、2,000 次稳定段、只读时序/身份/有界缓冲；[ST1 入口/ABI](research/tx-04-08-st1-static-confirmation.md)、[ST2 采样阶段/短路](research/tx-04-08-st2-static-confirmation.md)、[ST3–ST5 字段/来源/分类身份](research/tx-04-08-st3-st5-static-confirmation.md)及[ST6–ST8 owner/生命周期/工程边界](research/tx-04-08-st6-st8-static-confirmation.md)静态核验和主审已完成，具体 UNKNOWN 与实现缺口保留，功能实现待继续。[E2E 方案](design/tx-04-08/tx-04-08-e2e-plan.md)覆盖两次顺序启动和离线比较，尚未执行；没有构建或执行功能测试，ST2 的额外 JSON 校验偏差见报告。
+23. tx-04-08：world_record 迁移设计（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-implementation-plan.md`）：D32 的完整迁移范围、本地 artifact、2,000 次稳定段、只读时序/身份/有界缓冲；[ST1 入口/ABI](research/tx-04-08-st1-static-confirmation.md)、[ST2 采样阶段/短路](research/tx-04-08-st2-static-confirmation.md)、[ST3–ST5 字段/来源/分类身份](research/tx-04-08-st3-st5-static-confirmation.md)及[ST6–ST8 owner/生命周期/工程边界](research/tx-04-08-st6-st8-static-confirmation.md)静态核验和主审已完成，具体 UNKNOWN 与实现缺口保留，功能实现待继续。E2E 方案（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-e2e-plan.md`）覆盖两次顺序启动和离线比较，尚未执行；没有构建或执行功能测试，ST2 的额外 JSON 校验偏差见报告。
 
-24. [tx-04-08：world 核心实现说明](design/tx-04-08/tx-04-08-world-core.md)：第一项代码改动（`mod/src/world/`）的值布局与预算、线程与槽状态机、身份规则、`isaac.cs.world-record` v1 五个文件的格式、失败归属、故障开关、构建状态与给后续项的接口约定。新增 `isaac_cs_world` 静态库完成一次纯编译，未运行测试、未启动游戏，DLL 整体链接受既有 SDK 头与当前工具链组合影响，留给“必要纯编译链接”项。
+24. tx-04-08：world 核心实现说明（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-world-core.md`）：第一项代码改动（`mod/src/world/`）的值布局与预算、线程与槽状态机、身份规则、`isaac.cs.world-record` v1 五个文件的格式、失败归属、故障开关、构建状态与给后续项的接口约定。新增 `isaac_cs_world` 静态库完成一次纯编译，未运行测试、未启动游戏，DLL 整体链接受既有 SDK 头与当前工具链组合影响，留给“必要纯编译链接”项。
 
-25. [tx-04-08：布局与 Hook 清单实现说明](design/tx-04-08/tx-04-08-layout-hook-manifest.md)：Hook 清单 schema 2（41 条既有行 + 19 项 `world_observations`，逐参数 ABI 与 SDK 元数据交叉校验）、容量 60/64 与生成/注册两端的显式报告、world 观察策略层、`world_layout.json` 的 78 项字段/15 个来源/10 个 RTTI 类与编译期几何校验、生成产物与校验清单、world 组延后安装状态、构建验证与保留 UNKNOWN。一次临时目录生成与纯编译，未运行测试、未启动游戏，DLL 整体链接仍未完成。
+25. tx-04-08：布局与 Hook 清单实现说明（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-layout-hook-manifest.md`）：Hook 清单 schema 2（41 条既有行 + 19 项 `world_observations`，逐参数 ABI 与 SDK 元数据交叉校验）、容量 60/64 与生成/注册两端的显式报告、world 观察策略层、`world_layout.json` 的 78 项字段/15 个来源/10 个 RTTI 类与编译期几何校验、生成产物与校验清单、world 组延后安装状态、构建验证与保留 UNKNOWN。一次临时目录生成与纯编译，未运行测试、未启动游戏，DLL 整体链接仍未完成。
 
 `refactor/`与`isaac-sync/`为迁入的历史资料；旧gate、哈希、独立角色与重复验收条款已由现行规范覆盖。新增`hooks/`与`design/`用于后续状态同步研究，不表示对应Replica生产功能已经实现。
 

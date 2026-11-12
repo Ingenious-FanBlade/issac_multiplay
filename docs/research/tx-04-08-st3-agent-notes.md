@@ -1,6 +1,6 @@
 # tx-04-08 ST3 静态逆向代理笔记
 
-> 2026-10-27 A项补正：原字段表的 `removed_by_factory +0x177` InitUnknown 漏掉基 Init VA0x6A4BD6的16位清零。后续[原始证据与主审](../design/tx-04-08/tx-04-08-abc-implementation.md)已将layout改为InitConfirmed，并独立接入用户采纳的当前值资格。下面保留原ST3记录，不将旧UNKNOWN继续作为当前结论。
+> 2026-10-27 A项补正：原字段表的 `removed_by_factory +0x177` InitUnknown 漏掉基 Init VA0x6A4BD6的16位清零。后续原始证据与主审（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-abc-implementation.md`）已将layout改为InitConfirmed，并独立接入用户采纳的当前值资格。下面保留原ST3记录，不将旧UNKNOWN继续作为当前结论。
 
 日期：2026-10-26  
 目标：`isaac-ng-v1.9.7.12.exe.unpacked.exe`，IDA imagebase `0x400000`；SDK `F:/projects_isaac/REPENTOGON-1.1.3`。  

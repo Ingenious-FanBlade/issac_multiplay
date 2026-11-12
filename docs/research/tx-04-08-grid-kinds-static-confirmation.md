@@ -1,6 +1,6 @@
 # tx-04-08：Grid 类型补核与主审
 
-> **后续实机范围**：e2e-07中44个Grid全部识别、整份录制无UNKNOWN_CLASS，证明本次场景的分类扩表路径有效；并不表示所有17个派生类均获动态覆盖。完整采集仍因Effect读取依据失败，见[结果](../design/tx-04-08/tx-04-08-e2e-results.md)。本报告主体仍为静态事实。
+> **后续实机范围**：e2e-07中44个Grid全部识别、整份录制无UNKNOWN_CLASS，证明本次场景的分类扩表路径有效；并不表示所有17个派生类均获动态覆盖。完整采集仍因Effect读取依据失败，见结果（已删除，原文 `39ddcfd6^:docs/design/tx-04-08/tx-04-08-e2e-results.md`）。本报告主体仍为静态事实。
 
 2026-10-29，Asia/Singapore。用户要求先补充Grid种类，再修复全量核对性能；逆向指定一个GPT-6 Luna/max子智能体，主智能体复核。代理完成[研究笔记](tx-04-08-grid-kinds-agent-notes.md)，主智能体随后独立读取同一目标IDB的18类RTTI、Factory及Grid ctor/Init原始指令。没有运行游戏、离线工具、测试或哈希，也没有修改IDB。
 
