@@ -6,6 +6,7 @@
 - 光照、水面、显示资源投影和地图绘制结果，改由 Client 原生 `Room::Init`、Render 和 Minimap 本地产生。
 - Host 随机选出的装饰结果仍然同步。
 - `Room+0x11F0` 按 Host 原值安装。
+- 切房走原生过渡（Q5）：Client 按 Host 参数回放转场，换房点由 Client 构建新房间目标，见修改方案 4.5。
 - 见[修改方案](client-display-delegation.md)第 5、7 节。
 
 本次只修订文档，未改代码，未运行测试。

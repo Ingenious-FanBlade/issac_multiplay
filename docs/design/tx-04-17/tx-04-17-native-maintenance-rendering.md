@@ -1,5 +1,7 @@
 # tx-04-17 R3：停止玩法后的原生维护与绘制
 
+**2026-11-12 结论调整**：Client 改为包装放行原生 `Game::Render`，本文的手工 pass 拼合、FX 绘制上下文与帧借用适配随之退役。本文的 J273 事实保留，可作为 RE-5、RE-9 的起点。见[客机显示委托与按需采集修改方案](../binary-state/client-display-delegation.md)。
+
 当前记录：2026-11-02，Asia/Singapore。目标为官方 REPENTOGON 1.1.3 与 Repentance+ v1.9.7.12.J273。**I4代表路径已实现，并由根智能体在同一tx的第21次U统一实机验收通过。** 根亲自对照Source P与Client U三图：baseline除FPS外无可见差异，Player身体完整、Lost小图问号／curse图标正确、多余黑椭圆消失；pose目标光束正确。14个自动用例全部通过，正常退出码0、严格存档比对通过。这里是人工视觉对照结果，不声明逐像素相等或全内容支持；I4未自行构建、运行测试或控制游戏。
 
 第20次T已证实Player body实际提交透明顶点、小图原生Frame也已执行；阴影位置／顶点与viewport均正确，故不是缺资源、缺draw调用或实体offset。根与I4复核确认：graphics+0xD4只有一个共享depth renderbuffer，切RT仅更换color texture；`PresentWithoutSwap`消费队列后把`BA4714`深度序列重置为-1，却不清depth。原版`RoomPreRender 803E6C`调用`Present 9E4170`，在非空RT上于`9E41D0`清共享depth。旧组合错用WithoutSwap留下半尺寸shadow深度，挡住主floor形成左上黑点；主画面中途多次flush重置z，又挡住已提交的body／minimap。第19次S的14个自动用例虽已通过，仍有这些视觉缺口，未据此提前接受。

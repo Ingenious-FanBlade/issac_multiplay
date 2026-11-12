@@ -206,7 +206,8 @@ Client 的原生对象可能偏离影子状态。Client 不运行原生 Update�
 
 - 每个 Client 入口判为放行、拦截或拆分，未分类的一律拦截，并记为 RejectedEntry。
 - 继续用 `ClientEntryDecision`、`CountDispatch` 和 `kExpectedNestedMask`，新增入口都登记为具名入口。
-- `Game::Update`（`0x2F6D30`）继续拦截原函数。拦截点内运行 Client 自有的“显示推进”根，按 RE-1 白名单依次调用显示子更新，例如 `HUD::Update`、`PlayerHUD::Update`、`Minimap::Update`、`ItemOverlay::Update` 和 Camera 更新。
+- `Game::Update`（`0x2F6D30`）继续拦截原函数。拦截点内运行 Client 自有的“显示推进”根，按 RE-1 白名单依次调用显示子更新，例如 `RoomTransition::Update`、`HUD::Update`、`PlayerHUD::Update`、`Minimap::Update`、地图缓存刷新、`HUD::PostUpdate` 和 Camera 更新；候选与暂定顺序见[修改方案 6.2 节](client-display-delegation.md#62-显示推进的白名单与调用顺序re-1)。
+- `ItemOverlay::Update` 不进白名单：它会治疗玩家、切房，并在动画标记处放音效。全屏演出按状态同步，由原生 `ItemOverlay::Render` 绘制。
 - 只有某项显示工作内联在玩法函数中、无法单独调用时，才对那个函数改用拆分。
 
 **`Game::Render` 包装**：
@@ -220,7 +221,7 @@ Client 的原生对象可能偏离影子状态。Client 不运行原生 Update�
 
 1. 把 `Game+0x25A70` 写成帧头的 game_frame；
 2. 按新帧号还原 Effect Timeout 等计数；
-3. 写入注入值。
+3. 写入注入值，顺序为库存与 Player → 诅咒 → 其余注入值（修改方案 6.3）。
 
 安装写前失败或部分写入时，帧号不前进，避免锚点与帧号不配套。若放行范围内仍有原生帧递增或 `Room+0x11F0` 递增（RE-3），就拦截它，或在 Render 前写回。
 
@@ -229,15 +230,27 @@ Client 的原生对象可能偏离影子状态。Client 不运行原生 Update�
 - 优先用原生 setter 或 REPENTOGON API 写入 Client 原生字段，没有 API 时才直接写内存。
 - 只有 Client 上没有对应存储，或者值依赖 Host 专属状态时，才挂 getter 并返回已同步的值。
 - 同一个值不能同时由字段和 getter 两处提供。
-- 注入点见 RE-7。
+- 各值的方式与 J273 现状见[修改方案 6.3 节](client-display-delegation.md#63-不可算值的注入方式re-7)。getter hook 只在 Client 会话期间返回同步值。
 
 **事件播放**：
 
 - 事件队列由第 12 步接收。Client 在帧号到达事件帧时，在主线程播放音效、音乐和文字。
 - 落后超过限定帧数的纯外观事件直接丢弃。
 - 事件只驱动本地播放，不修改已同步状态。
+- **表现状态**（2026-11-12 追加）：房间音乐请求、正在播放的循环音效集合、各控制器的 ItemOverlay 状态按状态安装，不走事件。音乐按请求调用原生，并拦截 Client 房间初始化里的原生选曲；循环音效按集合启停；ItemOverlay 在 id 变化时先调原生 `Show`，再写状态。
+- **音效去重（Q7）**：Client 放行的原生显示代码发出的音效直接本地播放；Host 只把显示作用域外的玩法路径音效作为事件发送。回放事件调用 `SFXManager::Play` 时带“回放”标志。来源判定见[修改方案 6.4 节](client-display-delegation.md#64-事件与状态re-8)。
+- 道具横幅和 fortune 按本地化键在本机语言下解析。
 
-**失败方式**：见[修改方案](client-display-delegation.md)第 12 节第 1—9、13—17 条。
+**原生切房过渡（Q5）**：
+
+- 转场事件到达后，Client 用 Host 参数调用原生转场启动入口回放，不重新选路。
+- `RoomTransition::Update` 由“显示推进”调用。
+- `RoomTransition::ChangeRoom` 拦截原函数，改由 NativeBuild／NativeApply 安装 Host 的新房间目标。目标未就绪时，转场停在换房点。
+- 细节与 RE-9 见[修改方案 4.5 节](client-display-delegation.md#45-原生切房过渡q5)。
+
+**回调分派（Q6）**：Client 放行路径上的 Lua 回调分派一律放行，不逐个白名单。仍拦截的玩法路径不运行，其中的回调自然不触发。
+
+**失败方式**：见[修改方案](client-display-delegation.md)第 12 节第 1—9、13—31 条。
 
 ## 改动范围
 
