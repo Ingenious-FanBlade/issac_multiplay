@@ -2,6 +2,8 @@
 
 **2026-11-12 显示委托修订**：按[修改方案](client-display-delegation.md)第 10 节修订验收内容。
 
+**2026-11-12 RE-10 静态交接**：E36／E37 按[Manager 分类与音频调度第 5 节](client-display-delegation/RE-10/audio-and-schedule.md#5-第-15-步覆盖与未决)补入：音乐在相机被 paused 跳过时仍更新，SFX 当前乘数安装与本机 Options 的 dirty 刷新（ClearVolumeModifier，取代下文开题时“通用 SFX tick”措辞）、音乐种子效果 41—44／dizzy／红房读取需求、jingle／layer、输入泵复用、本机普通路径 A／B 保持及不运行共享 callback／截图／Online。FrameDelay=0 不能绕过调用前已存在的同 id 节流截止，覆盖本地显示 Play 后紧接回放的场景。只登记本步统一覆盖，未执行测试。
+
 - **修订**：15.2 的 E09／E20，15.3 的 E27、E28、E30、E32、E33、E34。同日 RE-1—RE-3 完成后，E28 补入 Q8，E36 补入显示推进的调度。
 - **删除**：E35。
 - **新增**：E36—E40。E39 是原生切房过渡，由 Q5 追加；E40 是帧号消费者，由 RE-4 审阅后追加。

@@ -1,5 +1,7 @@
 # 原生二进制状态同步重构：总计划
 
+**2026-11-12 RE-10 静态完成**：[Manager 50 个业务调用点与音频／本地维护](client-display-delegation/RE-10/README.md)已逐项分类。音乐 tick 不随相机 paused 跳过；SDK `SoundEffects::ClearVolumeModifier` 是条件性混音刷新，撤销“通用 SFX tick”猜测。当前 SFX 乘数、音乐读取的种子效果／dizzy／红房位、输入泵复用、本机 A／B 保持与回放旧节流处理交第 8／10／13 步，E36／E37 仅登记至第 15 步。下方“新开／待做”保留审阅时点，当前 RE-10 静态工作已完成；未改运行代码／wire／版本，未测试。
+
 **2026-11-12 RE-1 补遗与 RE-7—RE-9 审阅，仅文档**：经 IDA J273 复核后，用户决定 Q11（RoomTransition 显示字段同步 Host 当前值，Client 不运行转场 FSM）与 Q12（保留 `client_entity_draw_paused`，Host 发送 paused 位与终结分支枚举），新开 RE-10（Manager 尾部非 Game 调用分类，待做）；并采纳 HUD 可见性 `Game+0x22E90` 按 Q8 同步、诅咒同步 raw 字段、SFX 回放 FrameDelay=0、Pα 由已安装 alpha 判定。见[修改方案](client-display-delegation.md)及下方第 1 节决定 13、14。未改代码，未测试。
 
 **2026-11-12 RE-7—RE-9 静态研究完成**：本地 Wiki／REPENTOGON SDK 优先，补齐[不可算值注入](client-display-delegation/RE-7/README.md)、[音频／文字／演出来源与 Q7 作用域](client-display-delegation/RE-8/README.md)、[原生转场 ABI／阶段与显示拆分](client-display-delegation/RE-9/README.md)。完整 RoomTransition Start／Update 含玩法写入，不能只替换 ChangeRoom 后放行；最终目标按 Host 实际换房结果关联。仅文档，版本71不变，未改运行代码或运行测试；布局收缩、采集与 Client adapter 继续后续步骤，第15步唯一统一验收。
@@ -452,6 +454,6 @@ Client 主线程（2026-11-12 起）
    - Q10（同日追加）：保留 `client_entity_draw_projectile` 作 PositionOffset 恢复作用域。
    - Q11（同日追加）：转场显示字段同步 Host 当前值，Client 不运行转场 FSM。
    - Q12（同日追加）：保留 `client_entity_draw_paused`；Host 发送 paused 位与终结分支枚举。
-   - 待办：RE-10（Manager 尾部调用分类）；地图拾取图标的 Client 接法待定。
+   - RE-10 静态分类已完成，音频状态需求与本地维护接线待第 8／10／13 步实施；地图拾取图标的 Client 接法待定。
 
    不为 Client 边界改造单设验收点。改动前的快照已提交为 `3977b46e`。

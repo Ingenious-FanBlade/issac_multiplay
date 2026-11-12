@@ -2,6 +2,8 @@
 
 状态：修改方案已确认，规范与各步文档已修订；代码未实施。上级：[总计划](README.md)。日期：2026-11-12。
 
+**2026-11-12 RE-10 静态完成**：[Manager 调用分类与音频调度](client-display-delegation/RE-10/README.md)列全 50 个业务 call site（另有 3 个栈保护点）。音乐 `0x7D7DA0` 按有效 Manager 尾部周期更新，不受相机 paused 条件限制；`0x908340` 已由 SDK 核为 `SoundEffects::ClearVolumeModifier`，是条件性混音刷新，不是通用 SFX tick。补入当前 SFX 乘数、音乐读取的种子效果／dizzy／红房标志、已有输入泵复用及回放不能只靠 FrameDelay=0 绕过旧截止的交接。下方“疑为 SFX tick／待做”的历史开题事实保留于修订记录，当前调度以 6.2 和 RE-10 为准。仅文档，未实施／未测试。
+
 **用户决定（2026-11-12）**：
 
 - 借鉴 isaac-lan 的做法：Host 只采集客机需要的状态，显示交给客机本地完成。
@@ -216,7 +218,7 @@
     - **相机阶段**：每个 Manager 帧有调度机会，对应原生 Manager 尾部。本机关闭插值（`OptionsConfig._enableInterpolation`，`Manager+0x2A1FB`）且更新前 M 为奇数时先快返，不跑相机；通常在 `0x92E441` 写 M+1，但 `Manager+0x4A8C0!=0 && +0x4A8C1==0` 时不递增。Client 使用本机设置和同一控制条件。**RE-1 补遗已核**：主循环随后仍调用 Manager::Render；绘制体按更新后 M 判 `I || (Mpost&1)`，普通快返自增至偶数后跳过绘制，保持奇数的例外仍可绘制。详见[绘制节拍与真值表](client-display-delegation/RE-1/manager-render-cadence.md)，不以 Host 帧或更新前 M 代替绘制判断。
   - **RE-3 已核**：Manager 原链被跳过后，当前 Client 没有递增本机 `Manager+0x4A8B8`。显示推进 owner 须明确推进这个原生本地字段并保持相机／Render 相位顺序，不借用 Host 值，也不另设独立展示时钟，见[接线交接](client-display-delegation/RE-3/apply-contract.md#3-manager-的本地推进责任)。
   - 显示推进根按 RE-1／RE-2 白名单直接调用具名入口，帧号不会被本地递增，也与默认拒绝一致。
-  - **RE-10（2026-11-12 新开，待做）**：Manager 原链整体跳过时，Manager::Update 尾部的非 Game 调用（约 50 个 call site）也一并不运行。审阅已确认至少两项须在显示推进根中运行：音乐逐帧 tick `0x7D7DA0`（唯一调用者 `0x92EB49`）和 `0x908340`（`0x92EB3E` 调用，疑为 SFX tick）。其余调用由 RE-10 逐项分类为放行／拦截／本地，分类前不新增放行。
+  - **RE-10（2026-11-12 静态完成）**：[全部调用分类](client-display-delegation/RE-10/manager-call-sites.md)核得整个 Manager 共 50 个业务 call site，另有 3 个栈保护点，并非 Game 返回后还有 50 个 helper。音乐 tick `0x7D7DA0`（caller `0x92EB49`）在有效尾部周期运行；`0x908340`（caller `0x92EB3E`）是 SDK `SoundEffects::ClearVolumeModifier`，改为音频状态／本机选项变脏后的本地混音维护。输入复用现有 `ClientPollInput`，光标属本地，其余混合路径继续拦截；具体条件、前置状态和调用顺序见 6.2。普通路径的本机 A／B 条件也能在 `0x92E826` 直接保持 M 并跳过尾部，须由唯一 M owner 处理。
   - 只有某项显示工作内联在玩法函数里、无法单独调用时，才对那个函数改用拆分。`Game::Update`／`Room::Update` 的内联显示标量不拆分，按 Q8 同步当前值（4.6）。
 
 ### 4.2 包装原生 `Game::Render`
@@ -398,13 +400,13 @@
 | Entity 子类 | 各类型可见字段：Tear 高度、Laser 端点与采样、Knife、Bomb 外观标志、Pickup 价格／充能／状态、Familiar、Effect 各变体的可见状态、NPC 冠军色、Slot 显示 Sprite | 原生 owner |
 | Player | costume 层、身体与头部 Sprite、颜色；HUD 读取的库存、主动道具与充能、口袋、饰品、心、显示用属性、持物；Jacob／Esau 等多身体 | 原生 owner；HUD 由原生代码读取 |
 | Grid | type／variant／State、Sprite 帧、门状态、便便与石头状态 | 原生 owner |
-| Room／Level | 房间描述（DisplayFlags、VisitedCount、Clear、类型、形状、图标）、raw 诅咒 `Level+0xC`（2026-11-12 审阅，6.3）、stage／stageType、背景类型；由 Host 随机选出的装饰结果，同步选中结果，不同步 RNG；Host 选定的背景 id 与 FX 资源选择（RE-2）；Q8 的 Room 显示标量（4.6）；当前房间描述的 SpawnSeed（`+0x5C`，4 字节，2026-11-12 用户决定，见表后说明） | 原生 owner；地图由原生 Minimap 绘制 |
-| Run | 硬币、炸弹、钥匙；挑战编号、种子效果（Seeds 对象 `Game+0x1BBD8`）、难度、计时；贪婪波次；Game 级 raw 诅咒 `Game+0x25AC8`（2026-11-12 审阅，6.3） | 原生 setter；raw 诅咒按普通字段安装 |
+| Room／Level | 房间描述（DisplayFlags、VisitedCount、Clear、类型、形状、图标；当前房间描述 Flags `+0x44` 的红房位 `0x400`，消费方为音乐 tick `0x7D810A—0x7D811B`，RE-10）、raw 诅咒 `Level+0xC`（2026-11-12 审阅，6.3）、stage／stageType、背景类型；由 Host 随机选出的装饰结果，同步选中结果，不同步 RNG；Host 选定的背景 id 与 FX 资源选择（RE-2）；Q8 的 Room 显示标量（4.6）；当前房间描述的 SpawnSeed（`+0x5C`，4 字节，2026-11-12 用户决定，见表后说明） | 原生 owner；地图由原生 Minimap 绘制 |
+| Run | 硬币、炸弹、钥匙；挑战编号、种子效果（Seeds 对象 `Game+0x1BBD8`；其中 41—44 的存在性由音乐 tick 内联树读取消费，RE-10）、难度、计时；贪婪波次；Game 级 raw 诅咒 `Game+0x25AC8`（2026-11-12 审阅，6.3） | 原生 setter；raw 诅咒按普通字段安装 |
 | Game 显示标量（Q8） | 4.6 表中的 Game 字段：Bloom、震屏倒计时、Hallucination、颜色、闪电、暗度、眩晕、Retrovision、fade／开场遮罩 alpha；HUD 可见性 `+0x22E90`（2026-11-12 审阅） | 安装点直接写当前值，并补做阈值动作（4.6） |
 | 转场状态（Q11） | RoomTransition 的 mode、counter、duration、progress、direction、roomIndex、dimension、animation、Boss 标记（4.5） | 随 world 帧原子安装，Client 不运行转场 FSM |
 | 分支与暂停（Q12） | 每个 world 帧：Host `Game::IsPaused` 的结果（1 位），以及 Host 按原生优先级在 Update 后状态上算出的终结分支枚举（6.2） | 随 world 帧安装，供显示推进选分支、相机和 `client_entity_draw_paused` 读取 |
 | 注入值 | 见 6.3：恶魔房／天使房几率、药丸效果与识别、故障道具定义、地图拾取图标、水流向量等。~~诅咒~~ 改为同步 raw 字段（上两行） | 2.3 注入 |
-| 按状态同步的表现 | 房间音乐请求、正在播放的循环音效集合、各控制器的全屏演出（ItemOverlay 的状态、延时和 Sprite） | 原生 owner；见 2.3、6.4 |
+| 按状态同步的表现 | 房间音乐请求、正在播放的循环音效集合、各控制器的全屏演出（ItemOverlay 的状态、延时和 Sprite）；当前 SFX 全局乘数 `SoundEffects+0x10`（`Manager+0x2A170`，f32，RE-10）：有限值即合法，**可为负**（玩法路径 `sub_4A7380` 在 `0x4A8CED` 写 -10.0，再按步长逐帧恢复），不得限制到 [0,1] | 原生 owner；见 2.3、6.4；乘数直接写当前值，`max(m,0)` 变化时置本地混音 dirty（RE-10 第 2 节） |
 | 事件 | 非循环音效（只含玩法路径产生的，Q7；Q11 后含全部转场声音）、Boss 开场、道具横幅、fortune 文字（均带本地化键）、转场序号与最终目标关联（4.5） | 2.3 事件队列；见 6.4 |
 
 **地图拾取图标（待定）**：RE-7 已定位来源，但 Client 上的接法尚未决定，候选两种：① 镜像最小的 SavedEntities 条目，让原生 Minimap 构建照常读取；② 原生构建完缓存后按 Host 摘要修补图标缓存。实施前在第 8／13 步选定，见 13 节。
@@ -430,7 +432,7 @@
 | RE-7 | 6.3 各注入值在 J273 上的字段、getter 或 API；天使占比 getter、药丸识别、地图拾取图标 | [静态成果已完成](client-display-delegation/RE-7/README.md)：注入表、原生ABI、混合setter与地图／程序道具的实现交接；未实施／未测试 |
 | RE-8 | 6.4 各事件与状态在 J273 上的 Host 采集点和 Client 播放点，以及 Q7 的音效来源判定 | [静态成果已完成](client-display-delegation/RE-8/README.md)：入口、载荷语义、文字list／本地化、作用域与回放标志；未实施／未测试 |
 | RE-9 | 原生切房过渡（4.5），共五项，见表后列表 | [静态成果已完成](client-display-delegation/RE-9/README.md)：启动ABI、mode阶段、换房链／Render写集、Host最终目标关联与等待／拆分交接；未实施／未测试。其中的自有显示驱动建议已被 Q11 取代（4.5） |
-| RE-10（2026-11-12 新开） | Manager::Update（`0x92E3E0`）尾部的非 Game 调用（约 50 个 call site）逐项分类：显示推进根放行、继续拦截或本地维护。已知必须放行：音乐逐帧 tick `0x7D7DA0`（唯一调用者 `0x92EB49`）、`0x908340`（`0x92EB3E`，疑为 SFX tick） | **待做**。产出放行／拦截表、前置状态与调用顺序，并入 6.2 相机／音频阶段 |
+| RE-10 | Manager::Update（`0x92E3E0`）被整体跳过的调用逐项分类；核音乐更新与 SFX 混音、前置状态、输入／本地维护及顺序 | [静态成果已完成](client-display-delegation/RE-10/README.md)：50 个业务点＋3 个栈保护点、放行／拦截／本地表和 6.2 音频交接；`0x908340` 核为 ClearVolumeModifier，撤销通用 SFX tick 猜测；未实施／未测试 |
 
 RE-9 的五项：
 
@@ -480,18 +482,20 @@ isaac-lan 排除不了的点：
 
 | 阶段 | 时机 | 调用 | 说明 |
 | --- | --- | --- | --- |
-| 0 | 每个 Manager 帧，显示推进之前 | world 安装、库存与注入、帧号写回、Q8 标量安装及阈值补做 | 第 3 节、4.6、6.3 |
+| 0 | 每个 Manager 帧，显示推进之前 | world 安装、库存与注入、帧号写回、Q8 标量安装及阈值补做、音频请求／当前 SFX 乘数安装 | 第 3 节、4.6、6.3；RE-10 音频需求仍待第 8／10／13 步落实 |
 | 1 | 30Hz 批次 | `HUD::Update`（`0x57ACF0`） | 原生在终结分支之前调用；更早的 Console helper 阻断可跳过 U，见补遗 |
 | 2 | 30Hz 批次，Host 终结分支为 RoomTransition 时 | 转场本地显示工作（Q11：Boss 标记非零时推进 versus／肖像 ANM2；按已安装 mode2／3 提出 HUD 刷新请求）→ `Minimap::Update` → `HUD::PostUpdate`，本批结束 | 保留原生相对顺序。Client 不推进转场 mode／counter／progress，它们随 world 安装（4.5 Q11）；旧／新 surface 在安装事务中捕获，不在本阶段。~~具名转场显示拆分~~（RE-9 建议，已被 Q11 取代）；完整`RoomTransition::Update`（RVA`0x426430`）含直接玩法写入，继续拦截 |
 | 3 | 30Hz 批次，普通分支 | `Minimap::Update`（`0x565DB0`）；地图输入安装或缓存失效后 `Minimap::Refresh`（`0x565D60`） | Refresh 没有固定的原生调用点，按依赖调用 |
 | 4 | 30Hz 批次，普通分支 | renderEL 排序 → FXLayers 更新 `0x56BF40(false)` → Backdrop floor 两路 AnimationState、地狱横移背景 Sprite | 对应原生 `Room::Update` 内的顺序。排序用自有有界全排，不调原生 `render_sort`（scratch 容量、空表、GameFrame 奇偶渐进三个问题） |
 | 5 | 30Hz 批次，普通分支 | `HUD::PostUpdate`（`0x57AE90`） | 内部完成 PlayerHUD、HistoryHUD、StatHUD，外层不重复调 PlayerHUD |
 | 6 | 每个 Manager 帧，Render 前 | 相机阶段：CameraStyle 为 2 调 `UpdateDrag2`（`0x51E5E0`），否则调 `UpdateUltrasmooth(本机半帧奇偶)`（`0x51D840`）；按原生规则清 `Camera+0x8C` | Host 暂停时跳过，例外是转场 mode 非零且 animation `Game+0x1B858`（RoomTransition `+0x1C`）为 19（MINECART）（RE-1；审阅更正：`+0x1C` 是 Start 写入的 animation 参数，不是“阶段 19”）。暂停取 Q12 同步的 Host paused 位，mode／animation 取 Q11 已安装值。本机关闭插值时，奇数帧按原生快返条件跳过（4.1） |
-| 6a（RE-10 待核） | 每个 Manager 帧，与相机同属 Manager 尾部 | 音乐逐帧 tick `0x7D7DA0`、`0x908340`（疑为 SFX tick）；其余尾部调用待 RE-10 分类 | 原生在 `0x92EB49`／`0x92EB3E` 调用，走与相机相同的 Manager 尾部路径（含插值快返）。不运行时 Client 的音乐淡入淡出／排队曲目和 SFX 内部状态不前进。具体条件、顺序与前置状态以 RE-10 为准 |
+| 6a（RE-10 已核） | 每个有资格到达公共尾部的本机 M 周期，相机之后、M 加一之前 | SFX 混音 dirty 时 `SoundEffects::ClearVolumeModifier`（RVA `0x508340`）→ 音乐 tick（RVA `0x3D7DA0`）一次 | 原生 caller VA 为 `0x92EB3E`／`0x92EB49`。音乐不受相机 paused 条件限制；插值快返和本机 A／B 保持条件跳过整个尾部。SFX 原生条件是有 Game、未暂停、乘数!=1、步长!=0，先恢复再 Clear；Client 只安装 Host 当前乘数、按 dirty 刷新，不复制该恢复生产段。具体 ABI、音乐读取和顺序见 [RE-10](client-display-delegation/RE-10/audio-and-schedule.md) |
+| 6b（RE-10 已核） | 音频之后、M 加一之前 | 本机开启 mouse control 且 owner 有效时维护 cursor 动画、鼠标位置／闲置计数 | 纯本地，输入查询可能消费过渡态，置于既有输入泵之后且只执行一次。不发送 Host 鼠标／cursor，不调用共享弹窗、截图或全局热键链 |
 | 7 | 每个主循环 Manager 周期，更新／保持本机 M 后 | 主循环调用原生 `Manager::Render`，实际到达 `Game::Render` 时包装放行（4.2） | 绘制体要求本机插值开启或 Mpost 为奇数；还受当前 Manager 场景／资源分派约束，不额外补调 Game::Render |
 
 - 30Hz 批次在本机 Manager 帧为偶数时运行，不等 world 帧到达；计数来源见 [RE-3](client-display-delegation/RE-3/apply-contract.md)。[RE-4 调度交接](client-display-delegation/RE-4/handling.md)规定每本地周期的批次／相机去重、周期HUD请求合并及安装后缓存刷新；不以F相同跳过整个本地批次或Render。
 - `CommitRemovedEntities` 不进入显示推进；确需处理官方 staged remove 时，放进实际安装或退休事务（RE-1）。
+- **RE-10 音频／本地维护**：现有 `ClientPollInput → VA 0x9EC130` 已执行窗口事件、平台输入和 InputManager 更新，不再从 Manager 复制第二组调用。音乐 tick 使用 Mpre，不按 world 到包或 ΔF 补跑；其直接读取的音乐种子效果 41—44、Q8 dizzy、当前 RoomDescriptor.Flags bit `0x400` 必须具备正常本地 owner 与已提交值，不能只挂 HasSeedEffect getter 代替内联树读取。Clear 依据当前 SFX 乘数／本机 Options 变化刷新，不重置乘数、不递减播放间隔；正式需求与回放旧截止的窄处理交第 8／10／13 步。完整分类与普通路径 A／B 保持例外见 [RE-10](client-display-delegation/RE-10/README.md)。
 - **提前返回分支（RE-1 补遗，静态完成）**：[分支表](client-display-delegation/RE-1/early-return-branches.md)列出 Console、`Game+0x25A6C>0`、GameOver、Leaderboard、StageTransition、RoomTransition、ItemOverlay／暂停组合、Prompt、次级 fade、PauseScreen 和额外 UI 的优先级与 U／P／M 调用。相机的综合 paused 与这些分支不等价；fade 前段的 Pα 也不是 return，同次原生 Update 可再调 P。Client 不运行 Q8 生产段，Pα 的当前状态资格／合并策略由第 13 步收口，不补演 Host 调用历史。
 - **终结分支与暂停（Q12，2026-11-12 用户决定）**：
   - Host 每个 world 帧发送两项：本帧 `Game::IsPaused`（`0x6F92A0`）的结果（1 位），以及按原生优先级在 Update 之后的状态上算出的终结分支枚举（按[分支表](client-display-delegation/RE-1/early-return-branches.md#3-终结分支表严格按出现次序)的次序：Console 阻断、hold（`+0x25A6C>0`）、GameOver、Leaderboard、StageTransition、RoomTransition、ItemOverlay ACTIVE（6a）、Prompt、未命名 UI 字节 `+0x24ECC`、次级 fade、PauseScreen、额外 UI、普通）。Client 按枚举选 30Hz 批次的序列（阶段 1—5 的 U／M／P 组合见补遗分支表），不在本机重算谓词，也不复制菜单／平台／指针对象。
@@ -569,7 +573,7 @@ isaac-lan 排除不了的点：
 
 | 内容 | 形式 | isaac-lan（J460）的做法 | Host 采集点（J273） | Client 播放点 |
 | --- | --- | --- | --- | --- |
-| 非循环音效 | 事件 | Play请求带序号、tick、听众、id、volume、FrameDelay、loop、pitch、pan；参照工程用512条缓冲和10tick期限 | `Play 0x907C60`正常逻辑资格／节流后采玩法事件（Q7），不是每次POST回调 | C/S回放scope内按原生ABI播放；FrameDelay是重播间隔，已接受事件不能因本机批量到达再被二次节流。**回放时 FrameDelay 传 0**（2026-11-12 审阅）：节流 `0x907D2F—0x907D5A` 仅在 `now < next` 且 `next ≥ 0` 时跳过，播放后写 `next = now + FrameDelay`；Host 已做过节流，传 0 使回放不被本机节流，也不为后续本地显示音效设下新的间隔 |
+| 非循环音效 | 事件 | Play请求带序号、tick、听众、id、volume、FrameDelay、loop、pitch、pan；参照工程用512条缓冲和10tick期限 | `Play 0x907C60`正常逻辑资格／节流后采玩法事件（Q7），不是每次POST回调 | C/S回放scope内按原生ABI播放；FrameDelay是重播间隔，已接受事件不能因本机批量到达再被二次节流。**回放时 FrameDelay 传 0**：播放通过后写 `next = now + FrameDelay`，不为后续本地声音设新的非零间隔。**RE-10 更正**：`now` 是本机 `M>>1`，调用前已有同 id 本地声音留下的非零 next 时，`now < next && next >= 0` 仍会先阻断；须由 replay scope 窄绕过或已核执行 leaf 处理，不能仅靠参数 0 或全局清节流缓存 |
 | 循环音效 | 状态 | 参照工程按IsPlaying筛集合 | 正常Play／Stop／Adjust／Ambient来源，维护逻辑实例与显式world Stop；不额外调用会清pending的IsPlaying建baseline | 按完整集合协调Play／Stop和当前参数；同id多sample与本机设备失效另行处理，窄adapter待实施 |
 | 房间音乐 | 状态 | hook Play／Crossfade，记录模式、id、参数、排队曲目；13B只是参照请求体 | Play=`0x7D8360`、Crossfade=`0x7D8480`、Queue=`0x7D8A80`及queued正常消费 | 按请求版本／播放代次调用；同曲新代次也重播，未变状态不重播；拦截Client房间／Boss初始化自选曲 |
 | 道具横幅 | 事件 | hook `HUD::ShowItemText`／`ShowItemTextCustomUTF8`，带本地化键 | 同名函数（zhl 已声明） | 原生同名函数 |
@@ -628,10 +632,10 @@ isaac-lan 排除不了的点：
 | `entity-text-dummy.json` | 2／7KB | 保留（E2E 夹具） |
 | `player.json` | 48／1775KB | 重标；玩法内部容器移出同步，HUD 读取的库存类字段保留 |
 | `grid.json`、`grid-classes.json` | 5／97KB、27／289KB | 重标；水面裁剪等本地显示项移出 |
-| `room.json` | 54／587KB | 保留描述与房间状态；光照、水面和显示资源投影移出 |
+| `room.json` | 54／587KB | 保留描述与房间状态；光照、水面和显示资源投影移出；当前房间描述 Flags 须保留红房位 `0x400`（RE-10 音乐 tick） |
 | `level.json` | 18／350KB | 保留房间描述与探索状态；地图绘制结果移出 |
-| `run.json` | 9／293KB | 只保留第 5 节的 Run 项与注入值，以及 Q8 的 Game 显示标量（4.6；这些字段现已在本文件中） |
-| `presentation.json` | 77／596KB | 显示结果 310—407、D0 356 退役；保留项并入事件或注入；新增 6.4 的表现状态（音乐请求、循环音效集合、各控制器 ItemOverlay 状态） |
+| `run.json` | 9／293KB | 只保留第 5 节的 Run 项与注入值，以及 Q8 的 Game 显示标量（4.6；这些字段现已在本文件中）；种子效果 41—44 的存在性须在保留范围内（RE-10 音乐 tick） |
+| `presentation.json` | 77／596KB | 显示结果 310—407、D0 356 退役；保留项并入事件或注入；新增 6.4 的表现状态（音乐请求、循环音效集合、各控制器 ItemOverlay 状态）及 RE-10 的当前 SFX 全局乘数（f32，允许负的有限值，只拒 NaN／无穷） |
 | `hud-local.json` | 2／16KB | 版本70的纯值模块，凡是原生 HUD 能产生的部分退役；只保留原生 HUD 做不到的项（Q2 之后再评估） |
 | `random.json` | 24／81KB | 随机 alpha 357／358 及绘制随机退役；只保留 Host 选出的结果，并入相应域 |
 | `wire.json` | 23／148KB | 删去显示包络；新增事件队列段；收窄资源协议 |
@@ -681,7 +685,7 @@ isaac-lan 排除不了的点：
 
 - “显示推进”根，挂在 Manager 边界（`ClientManagerBoundary`）的 world 安装之后，按 6.2 的阶段调度（4.1）。它直接调用 RE-1／RE-2 已核的具名入口，不为这些入口新增 hook；FXLayers 更新 `0x56BF40` 等新调用登记为 `ClientEntryDecision` 具名入口；
 - `RoomTransition::ChangeRoom` 的拦截点（Client 只作守卫），以及转场启动入口的 Host 采集（RE-9）。Q11 后 Client 不回放 Start；
-- 显示推进根内的 Manager 尾部音频 tick：音乐 `0x7D7DA0`、`0x908340`（疑为 SFX），其余尾部调用待 RE-10 分类（6.2 阶段 6a）；
+- 显示推进根内的 Manager 尾部音频：音乐 VA `0x7D7DA0`（无显式参数、ECX=this）和 SDK `SoundEffects::ClearVolumeModifier` VA `0x908340`（dirty 刷新）；本地 cursor 与其余拦截项见 RE-10，不能整体放行尾部（6.2 阶段 6a／6b）；
 - world 安装事务中的转场 surface 捕获：换房前捕获旧 surface，安装后捕获新 surface（Q11，4.5）；
 - world 安装提交点的帧号写入，以及跳过完整 Manager 后的本地计数推进（[RE-3](client-display-delegation/RE-3/apply-contract.md)）；
 - 注入 getter（RE-7，6.3）：`Room::GetDevilRoomChance` 和天使占比函数；
@@ -728,6 +732,8 @@ isaac-lan 排除不了的点：
 | 新增 E40 | 帧号消费者（[RE-4](client-display-delegation/RE-4/handling.md#5-第13步修改与第15步覆盖)）：HUD 周期刷新在 F 连续、29→31、跨多个周期和停在 30 时不漏、不重复重置，type 2 不被覆盖；Room 年龄 29→31、停在 30 和晚加入（年龄已超过 30）时，历史画面捕获不崩溃，当前 SpawnSeed 非零且等于 Host 值（Q9）；同一 M 换 world 后平均位置不读旧目标；StatHUD 冷绑定后属性值正确、不出虚假变化提示；F 相位与 M 相位各按来源工作；F 回退或 world 重建后清除旧的去重与缓存资格；本机关闭插值时相机按原生节奏运行（4.1）；Projectile 每次 Render 后 PositionOffset 逐位不变（Q10） |
 
 E36 中“默认拒绝入口的计数”不含 Q6 放行的回调分派；回调运行本身不算违规，只检查它们没有引起玩法写入或持久副作用。
+
+**RE-10 对 E36／E37 的当前补充**：E37 中开题时的“音乐／SFX tick”现具体为音乐按有效尾部周期更新、SFX 当前乘数安装后按 dirty 调 ClearVolumeModifier，不能当作两个无条件 tick。覆盖暂停但音乐继续、种子效果 41—44／dizzy／红房标志、本机音量、jingle／layer／Queue 和同 id 本地声音已留非零截止时的事件回放；FrameDelay=0 仍需窄处理旧截止。E36 加入本机普通路径 A／B 保持、输入泵不重复、共享 callback／截图／Online 不运行。完整条目见 [RE-10 第 5 节](client-display-delegation/RE-10/audio-and-schedule.md#5-第-15-步覆盖与未决)，仅登记于第 15 步，未执行。
 
 - 其余条目按原文执行，其中显示相关的内容按“同一权威结果”理解。
 - 第 15 步交接清单（15.5）中，按第 8 节退役的布局不再列入。
@@ -836,7 +842,7 @@ E36 中“默认拒绝入口的计数”不含 Q6 放行的回调分派；回调
 50. Host 的终结分支枚举按 Update 前的状态计算，与它实际执行的分支差一帧；或 Client 本地重算谓词，结果与 Host 不同。
 51. paused 位与旧 D0.paused、本地 Manager 状态混用；或 `client_entity_draw_paused` 被当作旧绘制 hook 删除，53 个原生调用者读到 Client 本机的非暂停结果，Host 暂停时 `Room::Render` 仍推进显示。
 52. Pα 判定读了未安装或过期的 alpha，alpha 已为 0 时仍调 PostUpdate；或同一批次把 Pα 与终结分支的 P 合并成一次，或多跑。
-53. Manager 尾部的音乐／SFX tick 不运行，音乐淡入淡出、Crossfade、Queue 卡住，SFX 内部状态不前进；或在 RE-10 分类完成前整体放行尾部，带出玩法调用。
+53. Manager 尾部音乐更新不运行或误随 paused 跳过，淡入淡出、Crossfade、Queue 卡住；SFX 当前乘数未安装／变脏不刷新，声音残留静音；或把 Clear 当成无条件 tick、把 Host 恢复生产搬入 Client，以及整体放行混合尾部。
 54. 回放 SFX 没把 FrameDelay 置 0，本机节流吞掉 Host 已接受的事件，或为随后的本地显示音效设下错误的间隔。
 55. raw 诅咒只装了 `Level+0xC` 与 `Game+0x25AC8` 中的一个，或者与 Seeds／stage／挑战／难度不在同一事务安装，有效诅咒短暂不一致；或者把 Host 的有效值写进 raw，种子效果被二次合成。
 56. 地图拾取图标的 adapter 与原生构建的时序不对：修补被下一次 Refresh 覆盖，或原生构建读到不完整的 SavedEntities 镜像。
@@ -852,6 +858,12 @@ E36 中“默认拒绝入口的计数”不含 Q6 放行的回调分派；回调
 63. （RE-9）特殊动画（同房、Hourglass、镜子、MINECART、复活、Death Certificate）在 Client 上沿动画编号恢复了对应玩法命令；animation 11／16 等不经 ChangeRoom 的转场让 Client 一直等待换房。
 64. （RE-8）同 id 多实例 SFX、同曲重播与 queued 音乐、循环空集合与重连处理错误；容量溢出、事件过期、资源未就绪、原生调用失败、设备丢失被当作“已回放”。
 65. （RE-8）fortune 文字按网络数组强转构造 list，或在 Client 重新抽选。
+
+**RE-10 静态完成后补充**（2026-11-12）：
+
+66. 音乐 tick 内联读种子效果树时只挂 HasSeedEffect getter、复制 Host 树指针，或漏装 41—44／dizzy／当前 descriptor 红房位；又或本地 tick 与 Host 最终混音双算、Queue 内部 Play 被当成新网络请求。
+67. 回放虽传 FrameDelay=0，调用前却已有同 id 本地显示声音留下的非零 next，仍被 `now<next` 吞掉；或者为解决此问题全局取消普通播放节流／清缓存。now 实为本机 `M>>1`，不是 Host F，Clear 不递减它。
+68. 已有 ClientPollInput 与复制出的 Manager 输入泵重复消费，或普通路径 `0x92E826` 的本机 A／B 保持例外被漏掉；共享弹窗 callback、截图、设备重绑或原版 Online 被当作本地显示放行。
 
 ## 13. 未决问题
 
@@ -874,7 +886,7 @@ E36 中“默认拒绝入口的计数”不含 Q6 放行的回调分派；回调
 
 **审阅后的待办（2026-11-12）**：
 
-- **RE-10**（新开，待做）：Manager::Update 尾部非 Game 调用的分类（第 6 节表、6.2 阶段 6a）。
+- **RE-10 静态已完成，接线待实施**：按已核调用表落实音乐更新、SFX 当前乘数／dirty 刷新、输入复用和本地 cursor；补齐音乐种子显示需求、回放旧节流窄处理及本机 A／B 保持（第 6 节表、6.2 阶段 6a／6b）。
 - **地图拾取图标的接法**（待定）：镜像最小 SavedEntities 条目，或构建后修补缓存（第 5 节表后、6.3），在第 8／13 步实施前选定。
 
 另一个可选项：是否为“Client 边界改造”单设一次验收点。现行规范只允许第 15 步统一验收，按推荐不单设。如果以后希望提前确认原生 Render 能在 Client 上安全运行，需要用户明确调整规范。
@@ -883,7 +895,7 @@ E36 中“默认拒绝入口的计数”不含 Q6 放行的回调分派；回调
 
 1. **快照**（已完成）：按用户要求，分支 `codex/step4-text-dummy` 上的未提交工作（版本60—71）已提交为 `3977b46e`。
 2. **文档修订**（已完成）：已按第 11 节修订。
-3. **逆向**：RE-1—RE-4 原任务、RE-1 新增补遗、收窄后的 RE-5／RE-6 及 RE-7—RE-9 静态成果已完成（2026-11-12），均未实施／未测试。RE-1 补遗含提前返回分支、需求缺口及本机关闭插值的 Update→Render 节拍；RE-7—RE-9 补齐注入 ABI／限制、音频文字与演出来源、转场混合副作用及具名显示拆分（其中自有显示驱动被 Q11 取代）。相关采集／布局／显示接线仍归第 7／8／10／13 步。**RE-10 待做**（2026-11-12 审阅新开）：Manager 尾部非 Game 调用分类，须在第 13 步接线显示推进根之前完成。RE-6 已并入 RE-5，排除项见 6.1；RE-5 其余写入交第 15 步 E28，不重新要求 Render 全树静态闭合。
+3. **逆向**：RE-1—RE-4 原任务、RE-1 新增补遗、收窄后的 RE-5／RE-6 及 RE-7—RE-10 静态成果已完成（2026-11-12），均未实施／未测试。RE-1 补遗含提前返回分支、需求缺口及本机关闭插值的 Update→Render 节拍；RE-7—RE-9 补齐注入 ABI／限制、音频文字与演出来源、转场混合副作用及具名显示拆分（其中自有显示驱动被 Q11 取代）。RE-10 补齐 Manager 的 50 个业务调用分类、音乐／SFX 真正语义及音频／输入／本地维护调度。相关采集／布局／显示接线仍归第 7／8／10／13 步。RE-6 已并入 RE-5，排除项见 6.1；RE-5 其余写入交第 15 步 E28，不重新要求 Render 全树静态闭合。
 4. **布局源**：重标并收缩布局源，升到版本72，生成器只为“Client 需要”的字段出计划。
 5. **Client 边界**：实现第 4 节的显示推进、`Game::Render` 包装、帧号方案B 和注入。
 6. **Host 采集**：收缩采集，接入事件队列。

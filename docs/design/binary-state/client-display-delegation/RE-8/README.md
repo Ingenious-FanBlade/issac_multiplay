@@ -2,6 +2,8 @@
 
 日期：2026-11-12。状态：**J273 静态来源、载荷语义与播放交接完成；未实施、未测试**。依据[方案 6.4](../../client-display-delegation.md#64-事件与状态re-8)，先查本地 Wiki／SDK／官方实现，再复读当前 J273 IDB。VA 基址 `0x400000`，RVA＝VA−基址。
 
+**同日 RE-10 后续完成／更正**：[音频调度](../RE-10/audio-and-schedule.md)确认 `0x908340` 是 SDK ClearVolumeModifier，非通用 SFX tick；音乐 tick 不受相机 paused 条件限制。下方审阅标注中“FrameDelay=0 不会被本机再次节流”只覆盖调用前未留非零截止的情况；`now=M>>1`，已有同 id 本地声音留下的 `next` 仍可先阻断，replay scope 还需窄绕过／执行 leaf。保留原始结论及修订经过，不将尚未实施的 shim 当作已完成。
+
 成果：
 
 - [采集／播放入口与载荷](sources-and-payloads.md)：SFX、循环声、音乐请求、横幅／fortune、ItemOverlay 与 Boss 开场。

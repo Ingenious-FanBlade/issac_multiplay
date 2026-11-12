@@ -187,7 +187,7 @@
   - **转场、暂停与 Manager 尾部（2026-11-12 追加，Q11／Q12／RE-10）**：
     - **Q11**：RoomTransition 的显示字段（mode、counter、duration、progress、direction、roomIndex、dimension、animation、Boss 标记）同步 Host 当前值，随 world 原子安装。Client 不运行 Start／Update，也不写自有 FSM 驱动；本地只做旧／新 surface 捕获（旧的在安装新房间 world 前、新的在安装后）、滚动补偿、versus／肖像动画和原生 Render。转场内声音全部作为 Host 事件。
     - **Q12**：`client_entity_draw_paused` 保留，向 `Game::IsPaused` 的原生调用者返回 Host 同步的 paused 位。Host 每个 world 帧还发送按原生优先级算出的终结分支枚举，Client 据此选显示批次序列，不在本机重算分支谓词。Pα 由已安装的 primary alpha 判定。本地菜单阻断的合并由第 13 步决定。
-    - **RE-10**：Client 跳过整条 Manager 原链时，尾部的音乐／SFX 逐帧 tick 也不运行；这两项须在显示推进根中运行，其余尾部调用由 RE-10 分类，分类前不放行。
+    - **RE-10（同日静态完成）**：[调用分类与音频交接](../design/binary-state/client-display-delegation/RE-10/README.md)已列全 50 个业务 call site，另有 3 个栈保护点。音乐 `0x7D7DA0` 在有效 Manager 尾部周期更新，不受相机 paused 条件限制；`0x908340` 已核为 SDK `SoundEffects::ClearVolumeModifier`，是条件性混音刷新，撤销通用 SFX tick 猜测。显示推进根承接音乐与本地混音维护；Host 当前 SFX 乘数与本地 dirty 刷新分开，不搬运原生恢复生产段。输入复用现有 ClientPollInput、光标属本地，其余混合调用继续拦截；实际采集／布局／接线仍待后续步骤。SFX 回放传 FrameDelay=0 之外，还须处理同 id 本地声音已留下的节流截止，不能把 0 当作绕过既有截止的开关。
     - 同次审阅还定为：HUD 可见性 `Game+0x22E90` 按 Q8 同步；诅咒同步 raw 字段，不注入有效值；SFX 回放时 FrameDelay 传 0。
   - **切房与回调（2026-11-12 追加，Q5／Q6）**：
     - **切房走原生过渡**：Client 用 Host 已决定的参数回放原生转场，不重新选路。换房点改由 Client 构建 Host 的新房间目标；目标未就绪时，转场停在换房点。这取代下面“资源与显示”条中的“直接切换”。（2026-11-12 Q11 修订：“回放”改为同步转场字段的当前值，Client 不调用启动入口；“停在换房点”由 world 原子安装天然得到，见上条。）

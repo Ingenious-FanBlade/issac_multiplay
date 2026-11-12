@@ -207,7 +207,7 @@ Client 的原生对象可能偏离影子状态。Client 不运行原生 Update�
 
 ### 13.8 显示边界、帧号写入、注入与事件播放（2026-11-12）
 
-依据：用户 2026-11-12 的决定和[修改方案](client-display-delegation.md)。逆向任务 RE-1—RE-7 归入本步，RE-8 归入第 8 步。RE-10（2026-11-12 审阅新开，待做）归入本步，须在接线显示推进根之前完成。
+依据：用户 2026-11-12 的决定和[修改方案](client-display-delegation.md)。逆向任务 RE-1—RE-7 归入本步，RE-8 归入第 8 步。[RE-10](client-display-delegation/RE-10/README.md)同日已完成静态分类与调度交接，实际音频需求／采集和本步接线仍待实施。
 
 **显示边界**：
 
@@ -222,7 +222,9 @@ Client 的原生对象可能偏离影子状态。Client 不运行原生 Update�
   - **RE-1 补遗静态完成**：[提前返回分支表](client-display-delegation/RE-1/early-return-branches.md)已列优先级和 U／P／M 调用，不能以一个 paused 选择普通分支。fade 前段的 Pα 可与终结分支的 P 同次出现；Q8 不运行生产段，第 13 步明确其当前显示资格／合并策略。[条件需求交接](client-display-delegation/RE-1/branch-demand-handoff.md)列出需在第 7／8 步落实的窄谓词；旧 UNKNOWN owner 占位和 D0.paused 不算新方案已经接通。
   - **终结分支与暂停（Q12，2026-11-12 用户决定）**：Client 按 Host 每个 world 帧发送的终结分支枚举选 30Hz 批次序列，不在本机重算分支谓词；paused 位供相机阶段（Host 暂停时跳过，转场 mode 非零且 animation `Game+0x1B858`=19 MINECART 例外）和保留的 `client_entity_draw_paused`（向 IsPaused 的 53 个原生调用者返回该位）。本地菜单／控制台阻断与 Host 分支的合并由本步实施时确定并写入本节。
   - **Pα**：已安装 primary alpha `Game+0x25B28 > 0` 时在 Pα 位置调用 `HUD::PostUpdate`，同批可与终结分支的 P 各调一次；alpha 恰在某 Host 帧归零的一帧差异按 Q4 接受。
-  - **Manager 尾部音频 tick（RE-10，待核）**：音乐逐帧 tick `0x7D7DA0`（原生 `0x92EB49`）与 `0x908340`（`0x92EB3E`，疑为 SFX tick）在显示推进根中按 Manager 尾部的位置运行，与相机同属每个 Manager 帧的尾部；其余约 50 个尾部调用按 RE-10 分类，分类前不新增放行。
+  - **Manager 尾部音频（RE-10，静态已核）**：相机之后、M 加一之前，SFX 混音 dirty 时调 SDK `SoundEffects::ClearVolumeModifier`（VA `0x908340`），随后音乐 tick（VA `0x7D7DA0`，无显式参数、ECX=this）一次。音乐不受相机 paused 条件限制；本机插值快返和普通路径 A／B 保持（`0x92E826`）会跳过整个尾部。Clear 不是通用 SFX tick，不递减节流截止；Host 当前乘数先安装，恢复生产段留 Host，本机 Options 改变合并为 dirty 刷新。音乐需要种子效果 41—44 的正常本地树、Q8 dizzy 和当前 descriptor Flags 红房位；不能用单个 getter hook 覆盖内联树读取。完整前置状态与 Queue scope 见 [RE-10 音频调度](client-display-delegation/RE-10/audio-and-schedule.md)。
+  - **RE-10 本地维护**：输入只复用现有 `ClientPollInput → 0x9EC130`，不再重复三段平台／InputManager 更新；光标在音频之后、输入泵之后按本机设置维护。50 个业务 call site 与 3 个栈保护点逐项见[调用分类](client-display-delegation/RE-10/manager-call-sites.md)，不整体放行 Manager／Online／热键／共享弹窗 callback／截图／设备重绑。
+  - **RE-10 回放节流补充**：回放仍传 FrameDelay=0，但进入 Play 前已有同 id 本地声音留下的 `next` 仍能阻断，now 为本机 `M>>1`。在 replay scope 内窄绕过该判定或使用已核执行 leaf，不能全局取消普通播放节流；具体 shim 未实施。
   - 完整阶段表见[修改方案 6.2 节](client-display-delegation.md#62-显示推进的白名单与调用顺序re-1)的“J273 核定后的显示推进”。
 - `ItemOverlay::Update` 不进白名单：它会治疗玩家、切房，并在动画标记处放音效。全屏演出按状态同步，由原生 `ItemOverlay::Render` 绘制。
 - 只有某项显示工作内联在玩法函数中、无法单独调用时，才对那个函数改用拆分。`Game::Update`／`Room::Update` 的内联显示标量不拆分，按 Q8 在安装点写入 Host 当前值（见下方安装点顺序和修改方案 4.6）。

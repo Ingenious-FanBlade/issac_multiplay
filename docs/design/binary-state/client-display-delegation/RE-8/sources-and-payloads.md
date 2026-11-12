@@ -2,6 +2,8 @@
 
 日期：2026-11-12。地址为 J273 VA；RVA＝VA−`0x400000`。本表是后续同源 schema／原生适配的输入，没有在本轮新增线格式或 Hook。
 
+**同日 RE-10 补充**：[音频与调度](../RE-10/audio-and-schedule.md)区分音乐 tick 与 ClearVolumeModifier 条件混音刷新；增加当前 SFX 乘数及音乐种子效果／dizzy／红房位的读取需求。SFX 回放仍传 FrameDelay=0，但该参数不会绕过进入 Play 前已有的同 id 非零截止，须由 replay scope 窄处理；now 是本机 M>>1。下文未实施的状态／事件限制继续保留。
+
 ## 1. 首要资料
 
 原版 [SFXManager.md](F:/projects_isaac/IsaacDocs/docs/SFXManager.md)、[MusicManager.md](F:/projects_isaac/IsaacDocs/docs/MusicManager.md)、[HUD.md](F:/projects_isaac/IsaacDocs/docs/HUD.md)；REPENTOGON [ItemOverlay.md](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/ItemOverlay.md)、[RoomTransition.md](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomTransition.md)。SDK 为 `libzhl/functions/{SFXManager,SoundEffects,Music,HUD,ItemOverlay,RoomTransition,StringTable}.zhl`，官方实现重点为 `LuaInterfaces/CustomCallbacks.cpp`、`LuaMusicManager.cpp`、`Room/LuaRoomTransition.cpp`。旧细节参照[音频来源](../../presentation-audio-sources.md)，其原始事实保留，新事件／状态职责按本方案。
