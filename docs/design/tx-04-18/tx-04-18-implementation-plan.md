@@ -25,7 +25,7 @@
 | --- | --- | --- |
 | [11 Grid 观测](../observation-expansion/tx-04-11-implementation.md) | 27 个非空类型、17 个派生接口、Desc、Sprite、成员和生命周期来源；统一 E2E 最终 5/5 PASS | 观测不是原生写回；逐类构造、状态安装、缓存和退休均需实现 |
 | [12 Room／Level 观测](../observation-expansion/tx-04-12-implementation.md)、[特殊场景补全](../observation-expansion/tx-04-12-supplement.md) | 活动房间、配置、descriptor、几何、环境、特殊索引／维度与结构来源 | 把值映射到本地承载；来源缺口按具体使用补齐，不推断所有私有缓存都已有值 |
-| [15 模型／协议](../tx-04-15.md) | 稳定 Key／Scope、值状态、成员完整性、资源姿态和复制归属 | 精确的 Room／Grid applier 能力、字段处理和依赖声明；不是直接转发 Lua 调用 |
+| 15 模型／协议（已删除，原文 `39ddcfd6^:docs/design/tx-04-15.md`） | 稳定 Key／Scope、值状态、成员完整性、资源姿态和复制归属 | 精确的 Room／Grid applier 能力、字段处理和依赖声明；不是直接转发 Lua 调用 |
 | [17 最新实现结果](../tx-04-17/tx-04-17-workflow.md) | 原生 Game／Room／Camera／Player／HUD、A→T 操作计划、资源、提交／失败／退休；代表场景统一验收完成 | 当前是普通 Isaac、Effect57、无 Grid 的普通 Basement；完整 Room／Grid 应用尚未实现 |
 | 17 原生房间代码 | 已有几何、配置加载、背景真实构建 seed／shift、水量和主线程 owner | `DescriptionValid` 仍限制 `room_index/safe_grid_index >= 0`、`list_index < 507`；Data／Override 差异被拒绝；这些是代表实现限制 |
 | 17 展示代码 | 已解决原生 FBO／深度顺序、冷 Client 资源及环境光束的实际问题 | 当前只允许代表实体／背景，地图采用来源真实的 Lost 问号分支；不能将其当作普通地图完成 |

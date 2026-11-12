@@ -1,6 +1,6 @@
 # tx-04-17 R6：模型、角色与原生应用器接线归并
 
-日期：2026-11-01，Asia/Singapore。目标为官方 REPENTOGON 1.1.3／Repentance+ v1.9.7.12.J273。同属 tx-04-17，本轮对照 [15复制合同](../tx-04-15.md)、[16真实Client](../tx-04-16.md)和现有源码，归并 [R1初始化](tx-04-17-client-scene-lifecycle.md#r1-results)、[R2对象生命周期](tx-04-17-native-object-lifecycle.md)、[R3维护绘制](tx-04-17-native-maintenance-rendering.md)、[R4资源寿命](tx-04-17-native-resource-lifetime.md)、[R5失败退休](tx-04-17-failure-retirement.md)。只更新设计文档，没有修改代码、绑定、Hook清单、游戏文件或IDB，没有构建、测试、游戏操作或artifact包。本轮没有新增需要逆向解释的native事实，不另开逆向子任务。
+日期：2026-11-01，Asia/Singapore。目标为官方 REPENTOGON 1.1.3／Repentance+ v1.9.7.12.J273。同属 tx-04-17，本轮对照 15复制合同（已删除，原文 `39ddcfd6^:docs/design/tx-04-15.md`）、16真实Client（已删除，原文 `39ddcfd6^:docs/design/tx-04-16.md`）和现有源码，归并 [R1初始化](tx-04-17-client-scene-lifecycle.md#r1-results)、[R2对象生命周期](tx-04-17-native-object-lifecycle.md)、[R3维护绘制](tx-04-17-native-maintenance-rendering.md)、[R4资源寿命](tx-04-17-native-resource-lifetime.md)、[R5失败退休](tx-04-17-failure-retirement.md)。只更新设计文档，没有修改代码、绑定、Hook清单、游戏文件或IDB，没有构建、测试、游戏操作或artifact包。本轮没有新增需要逆向解释的native事实，不另开逆向子任务。
 
 `SOURCE`表示当前工程直接事实；`DESIGN`表示待实现的接线合同和接口职责，名称不代表已有类／函数；`OPEN`表示尚未落实的具体原生或表达缺口。R1—R5的静态证据、主审纠错和UNKNOWN保持，不因本次归并改为运行通过。17提供公共机制及实际代表操作，18—20补完整类别应用，21—22接实时状态传输与ACK／恢复，23以后扩展整局；原生世界、代表操作和完整可玩同步分别报告。
 

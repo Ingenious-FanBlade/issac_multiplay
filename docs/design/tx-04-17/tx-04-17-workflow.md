@@ -145,7 +145,7 @@ Baseline直接恢复T；Delta(B,T)从不可变B重建完整目标T
 
 ## 2 当前基础与依赖安排
 
-现有[Hook清单](../../../mod/binding/hooks.json)及[主线程与owner管理](../../../mod/src/hooks/context.cpp)可复用。15已交付[纯值模型／协议合同](../tx-04-15.md)，16已交付[真实Client连接与输入](../tx-04-16.md)的当前范围；16的双机结果与四端暂缓仍按原记录，不扩成17通过。[client.cpp](../../../mod/src/game/client.cpp)的独立ClientRuntime已有Off／Connecting／AwaitingWorld／Retiring／Failed，在Manager原链前处理消息与输入并短路原链；其退休依赖无世界资源和MenuReady。它与Authority的SessionMode分开，不能再仅凭SessionMode只有None／Solo／Host就声称没有Client。17需扩展原生场景、应用与退休接线；现有输入消息泵、网络队列和观察Hook不等于这些能力已完成。
+现有[Hook清单](../../../mod/binding/hooks.json)及[主线程与owner管理](../../../mod/src/hooks/context.cpp)可复用。15已交付纯值模型／协议合同（已删除，原文 `39ddcfd6^:docs/design/tx-04-15.md`），16已交付真实Client连接与输入（已删除，原文 `39ddcfd6^:docs/design/tx-04-16.md`）的当前范围；16的双机结果与四端暂缓仍按原记录，不扩成17通过。[client.cpp](../../../mod/src/game/client.cpp)的独立ClientRuntime已有Off／Connecting／AwaitingWorld／Retiring／Failed，在Manager原链前处理消息与输入并短路原链；其退休依赖无世界资源和MenuReady。它与Authority的SessionMode分开，不能再仅凭SessionMode只有None／Solo／Host就声称没有Client。17需扩展原生场景、应用与退休接线；现有输入消息泵、网络队列和观察Hook不等于这些能力已完成。
 
 03-10—20主要是J460上的静态研究。其行为分析、失败反例和候选设计可以复用；实际需要的RVA、ABI、对象偏移、槽位及调用关系须在J273上核对。已经由04-05及04-08在J273解释的部分优先复用，不从旧地址作机械平移，也不为所有公开Lua成员重复做native对照。
 

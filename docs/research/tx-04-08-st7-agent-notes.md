@@ -27,7 +27,7 @@
 - CURRENT_SOURCE：首次 Host 菜单下发现 !run 且 !run_observed 时，RefreshLifecycle 保留 warmup，会丢弃输入边沿并更新观察状态，不退休会话；已观察过 run 后 run 消失才 StopSession(RunTeardown)。这与 tx-04-07 历史静态报告第 13.3 节发现的“Restore 一律提前退休”冲突已由当前源码修复。
 - CURRENT_SOURCE：B 死亡/ghost 被观察到时 ObserveRemoteLife 进入 Lost、记录 death event 并 InvalidateRemoteBinding，增加 participant generation、清输入队列并保留旧指针仅作中性归因。ghost=true 时还会按 Kill 调用返回情况关 BDeath 窗口。BRevive 期间在原生调用未正常返回前不因 ghost=false 变成 Revived；之后要求 RemoteHealthEligible，再在 stable Authority 重新 ReadTopology(1,K) 和绑定，不 Join、不新建 K。
 - CURRENT_SOURCE：Persistence 的 ObserveEntityKill/ObserveReviveGhost 只对当前 B 打开窗口和记请求；Revive 入口观察在原生函数之前。窗口不是对象身份/出生/连续性账本，未通知 future world revoke/rebind。
-- CURRENT_SOURCE：tx-04-07 E2E-09 实际选择 Continue 并回到 Active、players=2，恢复后的 B 创建/绑定编排完成；V13 的 invariants 与 save/load topology 字段为 true，但 coverage_complete=false，整项 NOT_OBSERVED。S21 的暂停菜单选择超时，未观察计划内 RunTeardown 终态，不能说 run teardown 已经 E2E 验证。见 [tx-04-07 结果](../design/tx-04-07/tx-04-07-results.md) 与 [e2e-09 报告](../../artifacts/repentogon/tx-04-07-e2e-09/report.md)。
+- CURRENT_SOURCE：tx-04-07 E2E-09 实际选择 Continue 并回到 Active、players=2，恢复后的 B 创建/绑定编排完成；V13 的 invariants 与 save/load topology 字段为 true，但 coverage_complete=false，整项 NOT_OBSERVED。S21 的暂停菜单选择超时，未观察计划内 RunTeardown 终态，不能说 run teardown 已经 E2E 验证。见 tx-04-07 结果（已删除，原文 `39ddcfd6^:docs/design/tx-04-07/tx-04-07-results.md`） 与 [e2e-09 报告](../../artifacts/repentogon/tx-04-07-e2e-09/report.md)。
 
 ## 当前 Player 读取依据与撤销通知
 
