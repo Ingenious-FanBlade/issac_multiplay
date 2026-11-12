@@ -1,8 +1,11 @@
 # 原生二进制状态同步重构：总计划
 
+**2026-11-12 RE-5／RE-6 静态研究完成**：[Render 覆盖与已知写集](client-display-delegation/RE-5/README.md)确认 Minimap／ItemOverlay 在 Game::Render 树内，定稿本地缓存、同步字段暂存恢复与 E28 漂移范围，纠正旧 Tear 十进制偏移误记。RE-6 已并入 RE-5；本次只补布局源说明／证据和研究文档，不改变 wire、版本或运行代码，未测试。其余 Render 写入不做静态闭合，交第 15 步 E28。
+
 **2026-11-12 方向调整，仅文档**：用户决定借鉴 isaac-lan，改为只采集客机需要的状态，显示交给客机本地完成（包装原生 `Game::Render`），帧号用方案B（Client 原生帧号对齐 Host）。[修改方案](client-display-delegation.md)列出各步、布局源、Hook、退役、验收和新增逆向任务的改动。
 
-- Q1—Q4 已按推荐确认；同日追加 Q5（切房走原生过渡）、Q6（放行回调分派）和 Q7（音效按来源去重）。
+- Q1—Q4 已按推荐确认；同日追加 Q5（切房走原生过渡）、Q6（放行回调分派）、Q7（音效按来源去重）和 Q8（内联显示标量同步当前值）。RE-3—RE-5 审阅后再追加 Q9（同步当前房间描述的 SpawnSeed）和 Q10（保留 `client_entity_draw_projectile` 作恢复作用域），并补入关闭插值时的相机节奏与验收 E40。
+- 逆向 RE-1—RE-4 原任务及收窄后的 RE-5／RE-6 已完成静态研究（[成果](client-display-delegation/README.md)）；据此修订：显示推进根改挂 Manager 边界，`render_sort` 改由 Client 自有全排维护，Backdrop 构图与生成隔离的 hook 保留，Minimap／ItemOverlay 不另设绘制调度，已知本地 Render 写入不作漂移比较。RE-1 提前返回分支表补遗及 RE-7—RE-9 仍待完成。
 - 改动前的快照已提交为 `3977b46e`。
 - 本文第 1、3、4、6、7、9 节、[规范第 17 节](../../refactor/project-conventions.md#17-原生二进制状态同步重构)和第 0—15 步文档已按方案修订。
 - 未改代码，未运行测试。
@@ -194,6 +197,7 @@
 3. **显示委托**：
    - Client 包装原生 `Game::Render`，由原生代码绘制。
    - `Game::Update` 继续拦截，改由 Client 的“显示推进”根调用已核实的显示子更新。
+   - 显示推进根挂在 Manager 边界、world 安装之后（RE-1／RE-3）：本机 Manager 偶数帧运行约 30Hz 的显示批次，每个 Manager 帧运行相机阶段（本机关闭插值时跳过奇数帧，与原生一致）；本机 Manager 帧由显示推进 owner 推进。
    - Host 不再发送 HUD 生产、光照、地图、D0、随机 alpha 等显示结果。
 4. **不可算的值与事件**：
    - 不可算的值同步后注入：优先原生 setter 或 REPENTOGON API，其次直接写内存，最后才挂 getter（Q3）。
@@ -216,6 +220,12 @@
    - Client 放行的原生显示代码发出的音效在本地播放，不进事件队列。
    - Host 按显示作用域排除这些音效，只发玩法路径的音效。
    - 音乐请求、循环音效和全屏演出按状态同步，其余瞬时内容走事件队列。
+10. **内联显示标量同步当前值（Q8，同日追加）**：
+    - 原生 `Game::Update`／`Room::Update` 内联推进的显示标量（震屏、颜色、闪电、暗度、眩晕、fade、水色、冲击波等）同步 Host 当前值，Client 不本地推进。
+    - 原生在阈值处对 Client 本地字段的清理由安装点补做。
+    - 相机、ANM2 动画、FXLayers 和 HUD／Minimap 自身的动画仍在本地，见修改方案 4.6。
+11. **同步当前房间描述的 SpawnSeed（Q9，同日 RE-4 审阅后追加）**：原生 Render 在房间年龄 30 时读它，为 0 即崩溃。只同步这一个 u32，按变化更新；其他 seed 和全局 RNG 游标仍留 Host，写入不授权 Client 运行生成路径。D1 谓词在布局收缩时评估退役。
+12. **保留 Projectile 恢复作用域（Q10，同日 RE-5 审阅后追加）**：`client_entity_draw_projectile` 不随绘制 hook 删除，改为保存并精确恢复已同步的 PositionOffset `+0x350`。
 
 上面的性能和网络目标不变。2026-11-11“资源本地生成”和 2026-11-12“HUD本地化”两项决定，改由原生显示委托实现，见修改方案第 8、11 节。
 
@@ -286,9 +296,10 @@ Host 后台构建线程
 网络线程（沿用现有通道、分片、补片和 zstd）
 Client
   → 有界解码与校验 → 更新影子状态 → 只写入变化块 → 原生安装成功后回 AppliedAck
-  → 同一安装点把 Game+0x25A70 写成帧头 game_frame（帧号方案B），注入不可算的值
+  → 同一安装点把 Game+0x25A70 写成帧头 game_frame（帧号方案B），写入 Q8 显示标量，注入不可算的值
 Client 主线程（2026-11-12 起）
-  → Game::Update 拦截点内运行“显示推进”根：只调用已核实的显示子更新
+  → Manager 边界内、world 安装之后运行“显示推进”根：只调用已核实的显示子更新
+     （本机偶数 Manager 帧跑 30Hz 批次，每帧跑相机阶段；Game::Update 不会被调用）
   → 包装原生 Game::Render：原生代码绘制房间、实体、HUD、地图和菜单
   → 按帧号播放事件队列中的音效、音乐和文字
 ```
@@ -429,5 +440,8 @@ Client 主线程（2026-11-12 起）
    - Q5（同日追加）：切房走原生过渡。
    - Q6（同日追加）：放行回调分派。
    - Q7（同日追加）：音效按来源去重。
+   - Q8（同日追加）：`Game::Update`／`Room::Update` 内联显示标量同步 Host 当前值，Client 不本地推进。
+   - Q9（同日追加）：同步当前房间描述的 SpawnSeed。
+   - Q10（同日追加）：保留 `client_entity_draw_projectile` 作 PositionOffset 恢复作用域。
 
    不为 Client 边界改造单设验收点。改动前的快照已提交为 `3977b46e`。

@@ -1640,8 +1640,8 @@
           "name": "window_resize_requested",
           "type": "bool",
           "category": "本地",
-          "semantics": "本机窗口重建请求，不跟随Host窗口尺寸；6F7A80会消费并清零",
-          "evidence": "Game.zhl；6F7A80入口",
+          "semantics": "本机窗口重建请求，不跟随Host窗口尺寸；6F7A80会消费并清零；RE-5：保持本地、不作漂移比较；703E40完整条件／其他写集归RE-9，不因本字节本地而宣称helper只读",
+          "evidence": "Game.zhl；6F7AC6比较25AAC/6F7ACF调用703E40/6F7AD4清零；docs/design/binary-state/client-display-delegation/RE-5/write-set.md",
           "status": "已核"
         },
         {

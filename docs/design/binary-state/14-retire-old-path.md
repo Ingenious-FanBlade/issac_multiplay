@@ -9,6 +9,16 @@
 - 绘制随机观测；
 - 默认删除的绘制 hook。
 
+**RE-1／RE-2 审阅后的例外（同日追加）**，以下不随绘制路径删除：
+
+- `FullSort`（`client_presentation_native.cpp:258`）：迁出保留，作为 renderEL 排序的 owner；`entitylist_render_sort` 保持拒绝。
+- 绘制前安装 Game 颜色、闪电、暗度当前值的代码：迁入 world 安装（Q8）。
+- Backdrop 构图与生成隔离：`client_backdrop_graphics`、`client_backdrop_wall`、`client_backdrop_effects` 和 byte patch `client_backdrop_effect_1`／`_2`。
+- `client_entity_draw_projectile`（RE-5 审阅后追加，Q10）：改作 Projectile PositionOffset `+0x350` 的保存／恢复作用域，只退役其中提供绘制输入的部分。
+- 见修改方案 9.1、9.2。
+
+**RoomDescriptor D1 谓词（RE-4 审阅后追加，Q9）**：当前房间描述的 SpawnSeed 改为同步后，下方 RoomDescriptor 退役补充中“不留本地 SpawnSeed 旁路”的前提已变。D1 的 1B `error_is_modeling_clay` 在布局收缩时评估退役，Error 饰品颜色可由官方纯函数按已同步的 seed 算出；不与完整 seed 双发同一信息。
+
 删除前逐项确认没有其他调用方。
 
 本次只修订文档，未改代码，未运行测试。

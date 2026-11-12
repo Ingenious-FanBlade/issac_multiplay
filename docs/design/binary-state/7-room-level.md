@@ -4,8 +4,11 @@
 
 - Room／Level 保留房间描述、探索状态和需要的房间状态。
 - 光照、水面、显示资源投影和地图绘制结果，改由 Client 原生 `Room::Init`、Render 和 Minimap 本地产生。
-- Host 随机选出的装饰结果仍然同步。
-- `Room+0x11F0` 按 Host 原值安装。
+  - **RE-2 修订（同日）**：Client 不调用完整 `Room::Init`，只拦 Spawn 不足以隔离它的副作用。显示资源由 NativeBuild／NativeApply 按 [RE-2 冷构建顺序](client-display-delegation/RE-2/room-init.md#4-建议的-client-冷构建顺序)复用已核的子段；Backdrop 构图在具名作用域内运行，装饰生成点继续隔离。
+- Host 随机选出的装饰结果仍然同步，包括 Host 选定的背景 id 与 FX 资源选择（RE-2）。
+- **Room 内联显示标量（Q8，同日追加）**：水色过渡的端点与 duration／countdown、两份冲击波、水量与熔岩强度、地狱横移背景位移，同步 Host 当前值，Client 不本地推进，见修改方案 4.6。
+- `Room+0x11F0` 按 Host 原值安装。RE-3 已核：它是 Room::Init 写入的入房基准，不逐帧自增。
+- **当前房间描述的 SpawnSeed（Q9，同日 RE-4 审阅后追加）**：同步 Host 当前值（`+0x5C`，u32），按变化更新。原因是放行的原生 Render 在房间年龄 30 时读它，为 0 即 `int3`。DecorSeed 等其他 seed、其他房间描述的 seed 和全局 RNG 游标仍留 Host；写入不授权 Client 运行补货、出生、奖励等生成路径。下方“种子”条款及 D1 条目中“原 SpawnSeed 留 Host”的部分由此取代；D1 的 1B 谓词在布局收缩时评估退役，不与完整 seed 双发。见修改方案第 5 节表后说明。
 - 切房走原生过渡（Q5）：Client 按 Host 参数回放转场，换房点由 Client 构建新房间目标，见修改方案 4.5。
 - 见[修改方案](client-display-delegation.md)第 5、7 节。
 

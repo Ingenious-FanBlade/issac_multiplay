@@ -247,8 +247,8 @@
           "type": "u8",
           "category": "派生",
           "status": "已核",
-          "semantics": "坑mask surface本地重建通知；同步决定：不上线；完整Grid／纹理依赖提交后本地dirty，重建81BB30，不放行混合PreRender",
-          "evidence": "70ED00/8044D6/8044E1/81BB30；tx-04-18-integration-native-research.md"
+          "semantics": "坑mask surface本地重建通知；同步决定：不上线；完整Grid／纹理依赖提交后本地dirty；RE-5：现行原生Render树中的PreRender在dirty==1时清零并调用81BB30，不作Host原值漂移校正；旧不放行混合PreRender的设计已由2026-11-12显示委托取代",
+          "evidence": "70ED00/8044CF比较11F6/8044DA清零/8044E1调用81BB30；tx-04-18-integration-native-research.md；docs/design/binary-state/client-display-delegation/RE-5/write-set.md"
         },
         {
           "offset": 4599,
@@ -444,8 +444,8 @@
           "type": "ANM2",
           "category": "派生",
           "status": "已核",
-          "semantics": "正常本地LightGradient／SpotLight资源；绘制逐灯覆写scale／颜色等；同步决定：不发通用整Sprite；若实际资源／图层被改变，发必要资源覆盖；最终light pass另有结果，不放行玩法查询",
-          "evidence": "7E8E34/7E9009 Load；803E20/7FC110/801BE0；client_presentation_native.cpp::RoomLight",
+          "semantics": "正常本地LightGradient资源；绘制逐灯覆写scale／颜色等；不发通用整Sprite，必要资源覆盖保持；RE-5：Room+6EDC/6EE0实际为本ANM2+9C的scale，由原生PreRender写，本地生成且不作漂移比较；旧最终light pass结果按显示委托退役，不放行玩法查询",
+          "evidence": "7E8E34 Load；803E20/7FC110/801BE0；ANM2.zhl scale+9C；804371/804387写Room+6EDC/6EE0；docs/design/binary-state/client-display-delegation/RE-5/write-set.md",
           "native_type": "ANM2"
         },
         {

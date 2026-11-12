@@ -1,5 +1,7 @@
 # 原生二进制布局源
 
+**2026-11-12 RE-5／RE-6 静态补注（仍为版本71）**：[已知 Render 写集](../../../docs/design/binary-state/client-display-delegation/RE-5/write-set.md)补入 Entity 屏幕坐标、Room LightGradient scale／坑纹理 dirty、Game resize／Render 反馈和 PlayerHUD 包围框的本地职责，并明确 Tear 暂存的是主 Sprite ColorMod。只改已有范围的语义／证据文字，不改变类别、块、wire、处理器或互通接受合同；没有生成、构建或测试。版本72的按需收缩及旧结果／相机偏移退役仍待实施，不把这些文字补注当成运行路径已迁移。
+
 生成布局文档按总计划步骤存放在 `docs/design/binary-state/layouts/02-base-types/` 至 `08-run-presentation/`；总索引与各步骤索引由生成器同时维护。目录号是计划步骤号，不是布局编号或版本号；变体随其所属域，共享类型不重复生成。第7步已登记的显示／资源结构仍随第7步归档。布局源中引用的 `layouts/EntitySaveState.md`、`layouts/GridEntityDesc.md` 旧证据路径保留跳转页。
 
 ## 版本56：第8步Run归属

@@ -10,6 +10,7 @@
 - **改为事件队列**：文字、横幅、Boss 开场、音乐和 SFX。
 - **改为注入值**：恶魔房／天使房几率、药丸识别、价格等。
 - **新增逆向**：事件源 RE-8。
+- **保留同步（Q8，同日追加）**：`Game::Update` 内联推进的显示标量（Bloom、震屏倒计时、Hallucination、颜色、闪电、暗度、眩晕、Retrovision、fade／开场遮罩 alpha）按 Host 当前值同步，不随显示结果退役。这些字段现位于 `run.json`，见修改方案 4.6。
 
 原第8步的布局与证据保留，作为参照。见[修改方案](client-display-delegation.md)第 5、8 节。
 

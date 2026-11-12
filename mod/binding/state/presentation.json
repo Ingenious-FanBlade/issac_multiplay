@@ -904,8 +904,8 @@
           "name": "crafting_bounds",
           "type": "f32[4]",
           "category": "派生",
-          "semantics": "839A80逐次min/max累计的绘制包围框scratch",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/PlayerHUD.zhl; J273 832C10/834930/835B40/837720/8378C0/839370/839A80/97EB40",
+          "semantics": "839A80逐次min/max累计的绘制包围框scratch；RE-5：HUD::Render起始重置本地八份包围框，不采集／安装／漂移比较",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/PlayerHUD.zhl; J273 832C10/834930/835B40/837720/8378C0/839370/839A80/97EB40；97C343起HUD+6C0、stride6E0八份重置；docs/design/binary-state/client-display-delegation/RE-5/write-set.md",
           "status": "已核"
         },
         {
@@ -7033,8 +7033,8 @@
           "name": "resize_request",
           "type": "bool",
           "category": "本地",
-          "semantics": "Game+25AAC窗口resize请求",
-          "evidence": "Game相对偏移；J273 6F7A80/6FF500/701450；详见职责说明",
+          "semantics": "Game+25AAC本机窗口resize请求；RE-5：原生Render消费并清零，不从Host安装、不作漂移比较；完整703E40写集归RE-9",
+          "evidence": "Game相对偏移；J273 6F7AC6/6F7ACF/6F7AD4；docs/design/binary-state/client-display-delegation/RE-5/write-set.md",
           "status": "已核"
         },
         {
@@ -7063,8 +7063,8 @@
           "name": "render_feedback",
           "type": "u8",
           "category": "本地",
-          "semantics": "Game+25AB8 Host Render反馈标记",
-          "evidence": "Game相对偏移；J273 6F7A80/6FF500/701450；详见职责说明",
+          "semantics": "Game+25AB8本端Render反馈标记；RE-5：Client原生Render同样写1，本地维护，不从Host复制或校正；相邻hallucination计时仍按Q8独立承接",
+          "evidence": "Game相对偏移；J273 6F7D38 mov byte ptr [edi+25AB8h],1；docs/design/binary-state/client-display-delegation/RE-5/write-set.md",
           "status": "已核"
         },
         {

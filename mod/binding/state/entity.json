@@ -279,7 +279,7 @@
           "name": "sprite",
           "type": "ANM2",
           "category": "状态",
-          "semantics": "Entity内嵌主Sprite，字节事实复用ANM2，分别投影外观/动画/图层",
+          "semantics": "Entity内嵌主Sprite，字节事实复用ANM2，分别投影外观/动画/图层；RE-5已核Tear Render暂存本Sprite的ColorMod（Entity+F0..11B，非公共Color+1B8），正常返回恢复44B；保持同步输入职责，纳入已知暂存／漂移检查，不将通用ANM2颜色裁成本地",
           "status": "已核",
           "evidence": "J273 ctor VA0x6A398E lea ecx,[edi+48]，VA0x6A39BB调用ANM2 ctor VA0x402B00；主审已复读指令边界；嵌套语义见第2步ANM2",
           "read_requires": "entity-current-window",
@@ -534,9 +534,9 @@
           "name": "screen_position_cache",
           "type": "Vector",
           "category": "本地",
-          "semantics": "当前Client屏幕/Camera坐标缓存；已核Render由世界坐标和屏幕参数计算，不跨进程复制",
+          "semantics": "当前Client屏幕/Camera坐标缓存；已核Render由世界坐标和屏幕参数计算，不跨进程复制；RE-5：属于Client本地显示写集，不作影子相等／漂移校正；Tear伪代码十进制420/424也是本范围，不是子类+420/+424",
           "status": "已核",
-          "evidence": "J273 vtable槽5=VA0x6AC4E0；VA0x6AC646/0x6AC64A写+1A4/+1A8，VA0x6AC64F调用主Sprite Render；依赖position/position_offset和本地屏幕参数；主审已复读"
+          "evidence": "J273 vtable槽5=VA0x6AC4E0；VA0x6AC646/0x6AC64A写+1A4/+1A8，VA0x6AC64F调用主Sprite Render；依赖position/position_offset和本地屏幕参数；主审已复读；RE-5复读675BE0 lea ebx,[esi+1A4h]及675C0B/675C0F写入；docs/design/binary-state/client-display-delegation/RE-5/write-set.md"
         },
         {
           "offset": "0x1ac",

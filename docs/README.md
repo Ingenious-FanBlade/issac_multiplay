@@ -1,9 +1,11 @@
+**2026-11-12 RE-5／RE-6 静态研究完成**：[原生 Render 覆盖与已知写集](design/binary-state/client-display-delegation/RE-5/README.md)确认 Minimap／ItemOverlay 已在 Game::Render 树内；定稿本地缓存与同步字段的暂存恢复／漂移范围，并补正旧 Tear 偏移误记。RE-6 已并入 RE-5；其余写集交第 15 步 E28。本次只补静态资料及布局源说明，未改 wire／版本／运行代码，未测试。
+
 **2026-11-12 二进制状态同步方向调整，仅文档**：[客机显示委托与按需采集修改方案](design/binary-state/client-display-delegation.md)：Host 只采集客机需要的状态，Client 包装原生 `Game::Render` 本地显示，帧号用方案B。
 
-- Q1—Q4 已按推荐确认；同日追加 Q5（切房走原生过渡）、Q6（放行回调分派）和 Q7（音效按来源去重）。
+- Q1—Q4 已按推荐确认；同日追加 Q5（切房走原生过渡）、Q6（放行回调分派）、Q7（音效按来源去重）和 Q8（内联显示标量同步当前值）。RE-3—RE-5 审阅后追加 Q9（同步当前房间描述的 SpawnSeed）和 Q10（保留 `client_entity_draw_projectile` 作恢复作用域），并补入关闭插值时的相机节奏与验收 E40。
 - 改动前的快照为 `3977b46e`。
 - [规范第 17 节](refactor/project-conventions.md#17-原生二进制状态同步重构)、`AGENTS.md`、总计划、第 0—15 步文档和被取代的文档已修订或加标注。
-- 未改代码，未运行测试。下一步是逆向 RE-1—RE-9：RE-6 已并入 RE-5，借鉴 isaac-lan 排除的点见方案 6.1；RE-1、RE-7、RE-8 的 isaac-lan 对照与候选表见方案 6.2—6.4。
+- 未改运行代码，未运行测试。逆向 RE-1—RE-4 原任务及收窄后的 RE-5／RE-6 已完成静态研究，见[逆向成果](design/binary-state/client-display-delegation/README.md)；显示推进根改挂 Manager 边界（方案 4.1、6.2）。剩余 RE-1 补遗（提前返回分支表）、RE-7—RE-9；RE-6 已并入 RE-5，其余写集交第 15 步 E28，借鉴 isaac-lan 排除的点见方案 6.1。
 
 **2026-11-12 HUD布局与纯值模块，版本70**：[实施说明](design/binary-state/hud-local-implementation.md)记录正式布局迁移、独立显示时钟、普通／特殊图标边界与Client纯值模块。正常采集、正式发布和原生资源／绘制尚未接通；产品DLL纯编译／链接完成，无测试，第15步唯一统一验收。
 

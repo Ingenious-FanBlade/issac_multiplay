@@ -2,6 +2,8 @@
 
 **2026-11-12 结论调整**：按用户决定，Client 改为包装放行原生 `Game::Render`（显示委托），并放行 Client 路径上的 Lua 回调分派（Q6）。本文“Client 不应原样执行完整 native render callback 树”和“隔离 PostRender／HUD 1022/1024／PRE_*_RENDER”两项结论不再执行。本文的 J273 事实保留，可作为 RE-5、RE-9 的起点。见[客机显示委托与按需采集修改方案](../binary-state/client-display-delegation.md)。
 
+**2026-11-12 RE-5 定位纠正**：下方 Tear 行的 `+420/+424` 来自伪代码十进制 420／424，实际是公共屏幕缓存 `+0x1A4/+0x1A8`，不是子类 Scale 字段 `+0x420/+0x424`。`0x675BE0 lea ebx,[esi+1A4h]` 与 `0x675C0B／0x675C0F` 的写入已复读。该函数暂存并恢复的 44B 颜色实际是 `Entity+0xF0=Entity._sprite(+0x48)._color(+0xA8)`，不是公共 `Entity.Color+0x1B8`；`0x675CA7—0x675D89` 与 SDK 已交叉确认。原行保留错误记录，后续按[RE-5 写集](../binary-state/client-display-delegation/RE-5/write-set.md)定位。本文 Room／Minimap 手工 pass 建议也按现行原生 Render 委托取代。
+
 ## 2026-11-01 当前设计与补充研究
 
 现行合同与执行顺序见[tx-04-17主流程](tx-04-17-workflow.md)。R1／R2已形成初始化范围与对象生命周期合同，R3形成[维护／绘制分派静态合同](tx-04-17-native-maintenance-rendering.md)；本轮[R4资源与在途寿命](tx-04-17-native-resource-lifetime.md)补原生析构／Morph资源变化、容器借用、Image保留及实际CPU使用退场。custom-render延后上下文分支当前关闭，只记条件风险。R5已补[失败退休与菜单交还](tx-04-17-failure-retirement.md)，R6已形成[接线归并](tx-04-17-model-role-applier-integration.md)，原生实现／统一E2E仍未完成；本轮只改设计文档，没有修改代码、构建或运行测试。

@@ -6,6 +6,7 @@
 - **保留**：采集窗口与执行器。复制计划随布局源收缩。
 - **退役评估**：Host 显示生产，即 `presentation_source`、`hud_production`、`hud_probability`、`scene_*` 以及 `run_source` 的显示部分。
 - **新增**：事件采集与注入值采集。
+- **Q8（同日追加）**：Game／Room 内联显示标量按 Host 当前值采集，分别属于 Run 与 Room 的窄投影，见修改方案 4.6。
 - 收缩后重新评估 tx-04-21 的瓶颈。性能指标不变。
 - 见[修改方案](client-display-delegation.md)第 7、9 节。
 

@@ -2,6 +2,8 @@
 
 2026-11-10，官方 REPENTOGON 1.1.3／Repentance+ v1.9.7.12.J273 Win32。完成本类 **B8h／184B 直属字节核对与44条公开成员回映射**，以及必要保存地图输入的设计。原24B未知已找到实际消费者，直属未归属字节24→0；这不等于所有私有语义、配置、保存体或正式同步已经完成。生产版本仍56，无构建、游戏、getter执行或测试。
 
+> **2026-11-12 标注（显示委托 Q9）**：用户决定同步当前房间描述的 SpawnSeed（`+0x5C`），因为放行的原生 `Game::Render` 在房间年龄 30 时读它，为 0 即 `int3`。第 4 节表中“+58／5C／60／64 四seed”一行的“当前 SpawnSeed 只取必要 Error 颜色谓词”，以及第 5 节 Error 饰品两段的“完整 seed 留 Host、只发 D1 的 1B 谓词”由此取代；D1 在布局收缩时评估退役，不与完整 seed 双发。其他三个 seed、其他房间描述的 seed 仍留 Host。见[修改方案第 5 节](client-display-delegation.md#5-仍需同步的显示相关状态候选)表后说明。原文与证据保留。
+
 数据入口：[原生账本JSON](room-descriptor-byte-ledger.json)／[单行表](room-descriptor-byte-ledger.md)，[44行目录JSON](room-descriptor-member-map.json)／[逐行表](room-descriptor-member-map.md)。同步回写[Level账本](level-byte-ledger.md)及[Level目录](level-member-map.md)，保留上轮24B未知、四位flags和非Greed Boss布尔清零的历史决定及本次纠正理由。Room同期补证另见[Room核对](room-synchronization-review.md)。
 
 ## 1. Wiki、官方源码和证据口径
