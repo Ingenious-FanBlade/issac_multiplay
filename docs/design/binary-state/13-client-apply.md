@@ -259,7 +259,7 @@ Client 的原生对象可能偏离影子状态。Client 不运行原生 Update�
 - 只有 Client 上没有对应存储，或者值依赖 Host 专属状态时，才挂 getter 并返回已同步的值。
 - 同一个值不能同时由字段和 getter 两处提供。
 - 各值的方式与 J273 现状见[修改方案 6.3 节](client-display-delegation.md#63-不可算值的注入方式re-7)。getter hook 只在 Client 会话期间返回同步值。
-- **RE-7静态交接（2026-11-12）**：[注入表](client-display-delegation/RE-7/injection-table.md)已核天使占比`0x7EF590`经XMM0返回，不能用普通float ABI；药丸识别15B在ItemPool+7E0，官方已有UnidentifyPill Lua扩展，正式安装复用其有界C++写法。诅咒使用Host有效值（审阅后改为同步 raw `Level+0xC`／`Game+0x25AC8`，原生 getter 在 Client 上即可算出相同有效值，见修改方案 6.3），Add／Remove混合setter不作任意最终值安装；价格保留Host最终Price／Sprite，不调用含Random／Spawn的SetPrice。地图摘要、程序道具配置／资源及进度查询的具体owner接线仍待实施，不能因来源已定位就宣称Client已支持。地图拾取图标的 Client 接法（镜像最小 SavedEntities 条目，或构建后修补缓存）在本步实施前选定。
+- **RE-7静态交接（2026-11-12）**：[注入表](client-display-delegation/RE-7/injection-table.md)已核天使占比`0x7EF590`经XMM0返回，不能用普通float ABI；药丸识别15B在ItemPool+7E0，官方已有UnidentifyPill Lua扩展，正式安装复用其有界C++写法。诅咒使用Host有效值（审阅后改为同步 raw `Level+0xC`／`Game+0x25AC8`，原生 getter 在 Client 上即可算出相同有效值，见修改方案 6.3），Add／Remove混合setter不作任意最终值安装；价格保留Host最终Price／Sprite，不调用含Random／Spawn的SetPrice。地图摘要、程序道具配置／资源及进度查询的具体owner接线仍待实施，不能因来源已定位就宣称Client已支持。~~地图拾取图标的 Client 接法（镜像最小 SavedEntities 条目，或构建后修补缓存）在本步实施前选定。~~ **Q13（2026-11-12 已定）**：本步包装地图缓存构建 `0x9635B0`（`Minimap::Refresh 0x965D60` 及 `sub_739AA0`／`sub_7415E0` 共用），作用域内把 descriptor `+0x74/+0x78`、`+0x68/+0x6C` 临时指向按 Host 摘要合成的最小条目，调用后 RAII 恢复；实施时核定“类别＋帧→代表条目”反推表与 `+0x3C` 门控。挑战 32 的 DecorSeed 选择另按 Host 选定标记接线。
 
 **事件播放**：
 

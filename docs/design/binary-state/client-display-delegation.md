@@ -409,7 +409,20 @@
 | 按状态同步的表现 | 房间音乐请求、正在播放的循环音效集合、各控制器的全屏演出（ItemOverlay 的状态、延时和 Sprite）；当前 SFX 全局乘数 `SoundEffects+0x10`（`Manager+0x2A170`，f32，RE-10）：有限值即合法，**可为负**（玩法路径 `sub_4A7380` 在 `0x4A8CED` 写 -10.0，再按步长逐帧恢复），不得限制到 [0,1] | 原生 owner；见 2.3、6.4；乘数直接写当前值，`max(m,0)` 变化时置本地混音 dirty（RE-10 第 2 节） |
 | 事件 | 非循环音效（只含玩法路径产生的，Q7；Q11 后含全部转场声音）、Boss 开场、道具横幅、fortune 文字（均带本地化键）、转场序号与最终目标关联（4.5） | 2.3 事件队列；见 6.4 |
 
-**地图拾取图标（待定）**：RE-7 已定位来源，但 Client 上的接法尚未决定，候选两种：① 镜像最小的 SavedEntities 条目，让原生 Minimap 构建照常读取；② 原生构建完缓存后按 Host 摘要修补图标缓存。实施前在第 8／13 步选定，见 13 节。
+**地图拾取图标（Q13，2026-11-12 用户决定）**：
+
+- **静态事实（IDA J273 复核）**：
+  - `0x9635B0` 不是 `MinimapConfig::Render`（SDK 特征码对应 `0x4ECA30`），而是地图缓存构建。`Minimap::Refresh 0x965D60`（特征码已核）对小／大两个 config（`this+0x18`、`+0x178`）各调一次；`sub_739AA0`、`sub_7415E0` 也直接调用。
+  - 它把地图画进 render target（FBO）。每房间图标聚合结果（mask、计数、各类最大帧）只是栈局部，算完立即绘制，最多 4 个小图标，位置随计数变化。没有可修补的数据缓存。
+  - 聚合读取：descriptor `+0x74/+0x78` SavedEntities（步长 0x78；type 5 按 variant／subtype 分类取帧、type 6 Slot、1000/161/980 → bit15；要求 `+0x14==0` 且位置不为 (0,0)），以及 `+0x68/+0x6C` 保存 Grid（步长 0x20；type 0x12 → bit14）。整段扫描受 descriptor `+0x3C` 非零门控。
+- **决定：构建作用域内临时镜像**（候选①的作用域版本，取代“常驻镜像”和候选②“构建后修补”）：
+  - 包装 `0x9635B0`（三个调用方共用的唯一点）。进入时，对有 Host 摘要的 descriptor 暂时把 `+0x74/+0x78` 和 `+0x68/+0x6C` 指向 Client 自有静态 POD 数组，内容按摘要为每个（类别，帧）合成一条代表性条目；调用原函数后用 RAII 恢复原指针。
+  - 原生聚合、4 图标布局、帧选择和绘制全部照旧；任何入口触发的 Refresh 都读到同一镜像，不会被下一次 Refresh 覆盖。
+  - 假条目只在这次同步构建内可见：存档序列化、Lua `GetEntitiesSaveState`、恢复路径等其他读取方看不到它们；不用游戏分配器，不涉及析构和换层重建。仅主线程。
+  - 线上数据沿用版本 71 的 Host 摘要 `FinalSavedMapIcons`／`SavedMapIconPayload`（布局 298／297：u16 mask＋各类最大帧），不同步原始 SavedEntities。布局 271 `RoomDescriptorSavedPickupMapInput` 只作字节参照，第 4 步按“Host 专属”标注。
+  - Host 摘要或影响地图的 descriptor 字段变化时，由显示推进请求一次 Refresh。
+- **仍待实施时核定**（第 13 步，不挡第 4 步）：“类别＋帧 → 代表条目”反推表逐项核（含 type 6 各分支与 1000/161/980）；Client 上 descriptor `+0x3C` 门控由同步状态满足。
+- **不在本决定内**：挑战 32 时 `0x963680—0x9636D9` 用当前房间描述 DecorSeed `+0x58` 和 `Game+0x182CC` 经 `sub_7DF4E0` 做种子选择；DecorSeed 按 Q9 留 Host，仍按原“Host 选定标记”另行接线，临时镜像不解决它。
 
 **SpawnSeed（Q9，2026-11-12 用户决定）**：
 
@@ -561,7 +574,7 @@ isaac-lan 排除不了的点：
 | 贪婪波次 | GreedModeWave setter | 合法范围用具名native setter，不调用SpawnGreedModeWave | 字段+18334；getter`0x7074C0`，setter`0x74D700`将值限制至0—12后普通赋值 |
 | 商店价格 | Price随Pickup；Keeper按买家重算 | 继续同步Host最终Price和价格Sprite；Client不重算 | `0x80B5A0`按全体玩家／商店历史计算，并非本机买家纯函数；`SetPrice 0x6DF890`还有Random／Spawn分支，不作窄writer |
 | 故障道具（TMTRAINER） | 负id的道具定义随生成结果同步 | 同步显示定义／资源，由Client自有配置owner注册并解析负id；不生成effects | Game+669BC vector；负id下标`~id`，`ItemConfig::GetCollectible 0x72A400`读ProceduralItem+0；本地atlas／owner接线仍待实施 |
-| 地图拾取图标 | 构建地图缓存时提供 | 地图刷新时提供每房间Host图标摘要；具名缓存adapter待实施。**接法待定**（第 5 节表后）：镜像最小 SavedEntities 条目，或构建后修补缓存 | `0x9635B0`扫描descriptor SavedEntities+74，步长78h，聚合Pickup／Slot；只装DisplayFlags／Refresh不足。挑战32另需Host选定标记 |
+| 地图拾取图标 | 构建地图缓存时提供 | 地图刷新时提供每房间Host图标摘要。**Q13 已定**（第 5 节表后）：包装缓存构建 `0x9635B0`，作用域内把 descriptor `+0x74/+0x78`、`+0x68/+0x6C` 临时指向按摘要合成的最小条目，调用后恢复；不常驻镜像、不构建后修补 | `0x9635B0`是 `Minimap::Refresh 0x965D60` 调用的FBO缓存构建（RE-7 原称 MinimapConfig::Render 有误，后者为`0x4ECA30`），扫描descriptor SavedEntities+74（步长78h）与保存Grid+68（步长20h），聚合Pickup／Slot；只装DisplayFlags／Refresh不足。挑战32另需Host选定标记 |
 | 水流向量 | 直接写 Room+7460／7464 | C++复用SDK GetWaterCurrent指针做有限Vector赋值，等价官方SetWaterCurrent | 官方Room/LuaRoom.cpp setter即直接赋值；不额外运行Lua／Update |
 | 进度（成就、计数） | 同步 642 字节成就和 523 个计数 | 只取显示需要的部分，经 `client_hud_achievement_query` 等查询 hook 注入；不写 PGD，不改本机存档 | 按需求清单裁剪 |
 
@@ -615,7 +628,7 @@ isaac-lan 排除不了的点：
 | 10 | 第五项“Run 与显示／音频生产缓存”（版本71）暂停，Run 只保留需要的窄投影，含 Q8 的 Game 显示标量（4.6）、HUD 可见性 `Game+0x22E90`、raw 诅咒 `Game+0x25AC8`、Q11 的 RoomTransition 显示字段（现 `run.json` 的 `room_transition_owner`／`hud_owner` 只是 UNKNOWN 整段占位，改为具名窄字段）和 Q12 的 paused 位／终结分支枚举（Host 在 Update 后计算）；采集窗口和执行器保留，复制计划随布局源收缩；收缩后重新评估 tx-04-21 的瓶颈 |
 | 11 | 机制保留；去掉显示结果批次；增加事件队列的序号与确认 |
 | 12 | 机制保留；影子状态随域收缩；增加事件队列的接收 |
-| 13 | 13.4 的前提改为第 4 节的边界；13.6 由第 3 节取代；新增注入（2.3）；13.5 补入第 9 节的退役项；显示推进根挂在 Manager 边界，按 6.2 的阶段调度（4.1）；Q8 标量的安装与阈值补做（4.6）；Render 前置确认 SpawnSeed 已安装（4.2）；关闭插值时的相机节奏（4.1）；Q8 换算值的重写开销计入 13.3（第 3 节）；Q11 转场安装与 surface 捕获（4.5）；Q12 按终结分支枚举选序列、paused 位接入相机与 `client_entity_draw_paused`、本地菜单阻断的合并；Pα 规则（6.2）；RE-10 的音频 tick（6.2 阶段 6a）；SFX 回放 FrameDelay=0（6.4） |
+| 13 | 13.4 的前提改为第 4 节的边界；13.6 由第 3 节取代；新增注入（2.3）；13.5 补入第 9 节的退役项；显示推进根挂在 Manager 边界，按 6.2 的阶段调度（4.1）；Q8 标量的安装与阈值补做（4.6）；Render 前置确认 SpawnSeed 已安装（4.2）；关闭插值时的相机节奏（4.1）；Q8 换算值的重写开销计入 13.3（第 3 节）；Q11 转场安装与 surface 捕获（4.5）；Q12 按终结分支枚举选序列、paused 位接入相机与 `client_entity_draw_paused`、本地菜单阻断的合并；Pα 规则（6.2）；RE-10 的音频 tick（6.2 阶段 6a）；SFX 回放 FrameDelay=0（6.4）；Q13 地图缓存构建 `0x9635B0` 的作用域临时镜像（第 5 节表后） |
 | 14 | 退役清单补入第 9 节；`client_entity_draw_projectile` 保留作恢复作用域（Q10）；`client_entity_draw_paused` 保留读同步 paused 位（Q12） |
 | 15 | 见第 10 节 |
 
@@ -845,7 +858,7 @@ E36 中“默认拒绝入口的计数”不含 Q6 放行的回调分派；回调
 53. Manager 尾部音乐更新不运行或误随 paused 跳过，淡入淡出、Crossfade、Queue 卡住；SFX 当前乘数未安装／变脏不刷新，声音残留静音；或把 Clear 当成无条件 tick、把 Host 恢复生产搬入 Client，以及整体放行混合尾部。
 54. 回放 SFX 没把 FrameDelay 置 0，本机节流吞掉 Host 已接受的事件，或为随后的本地显示音效设下错误的间隔。
 55. raw 诅咒只装了 `Level+0xC` 与 `Game+0x25AC8` 中的一个，或者与 Seeds／stage／挑战／难度不在同一事务安装，有效诅咒短暂不一致；或者把 Host 的有效值写进 raw，种子效果被二次合成。
-56. 地图拾取图标的 adapter 与原生构建的时序不对：修补被下一次 Refresh 覆盖，或原生构建读到不完整的 SavedEntities 镜像。
+56. 地图拾取图标的 adapter 与原生构建的时序不对：修补被下一次 Refresh 覆盖，或原生构建读到不完整的 SavedEntities 镜像。**Q13 后**：改为 `0x9635B0` 作用域内临时镜像，前一种不再适用；仍需防范镜像未覆盖全部入口、指针未恢复（异常路径）、代表条目反推错误（类别／帧与 Host 不同）、descriptor `+0x3C` 门控未满足而整段跳过，以及摘要变化后未请求 Refresh。
 
 **并入的 RE 成果失败清单**（2026-11-12 审阅；原文保留在各成果中）：
 
@@ -883,11 +896,12 @@ E36 中“默认拒绝入口的计数”不含 Q6 放行的回调分派；回调
 | Q10（2026-11-12 已定） | Projectile PositionOffset 的恢复方式 | 保留 `client_entity_draw_projectile` 作为保存／恢复作用域，不新增 hook（9.1） |
 | Q11（2026-11-12 已定） | 转场显示的驱动方式 | 按 Q8 方式同步 RoomTransition 显示字段的 Host 当前值，Client 不运行 Start／Update，也不写自有 FSM 驱动；本地只做旧／新 surface 捕获、滚动补偿、versus 动画与原生 Render。取代 RE-9 的自有显示驱动建议（4.5） |
 | Q12（2026-11-12 已定） | 暂停与提前返回分支 | 保留 `client_entity_draw_paused`；Host 每个 world 帧发送 paused 位和按原生优先级算出的终结分支枚举；Pα 由已安装 primary alpha 判定；与本地菜单的合并由第 13 步决定（6.2、9.1） |
+| Q13（2026-11-12 已定） | 地图拾取图标的 Client 接法 | 包装地图缓存构建 `0x9635B0`，作用域内临时镜像按 Host 摘要合成的最小 SavedEntities／保存 Grid 条目，调用后恢复；不常驻镜像，不在构建后修补纹理（第 5 节表后、6.3） |
 
 **审阅后的待办（2026-11-12）**：
 
 - **RE-10 静态已完成，接线待实施**：按已核调用表落实音乐更新、SFX 当前乘数／dirty 刷新、输入复用和本地 cursor；补齐音乐种子显示需求、回放旧节流窄处理及本机 A／B 保持（第 6 节表、6.2 阶段 6a／6b）。
-- **地图拾取图标的接法**（待定）：镜像最小 SavedEntities 条目，或构建后修补缓存（第 5 节表后、6.3），在第 8／13 步实施前选定。
+- ~~**地图拾取图标的接法**（待定）~~：2026-11-12 按 Q13 定为 `0x9635B0` 作用域内临时镜像；代表条目反推表与 `+0x3C` 门控在第 13 步实施时核定。
 
 另一个可选项：是否为“Client 边界改造”单设一次验收点。现行规范只允许第 15 步统一验收，按推荐不单设。如果以后希望提前确认原生 Render 能在 Client 上安全运行，需要用户明确调整规范。
 

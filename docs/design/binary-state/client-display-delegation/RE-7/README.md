@@ -19,3 +19,5 @@
 >
 > - **结论 3 改为同步 raw 诅咒**：有效 getter `0x742450` 计算 `((Game+0x25AC8 | Level+0xC) | F) & ~P`，其中 F=`0x6F55C0`（种子效果 56—62 及 stage／挑战／难度条件）、P=`0x6F5750`（种子效果 63—70、79），二者只读 Seeds 对象 `Game+0x1BBD8` 与 stage／挑战／难度，这些已在 Run 同步清单中。因此 `Level+0xC` 与 `Game+0x25AC8` 按普通字段随 world 安装即可：原生 getter 在 Client 上算出与 Host 相同的有效值，直接读 raw `Level+0xC` 的消费者也一致，不需要注入或 getter hook。把有效值写进 raw 仍然拒绝；不调用 `AddCurse／RemoveCurses` 的结论不变。
 > - **结论 6 的接法待定**：“Host 图标摘要”在 Client 上如何喂给原生构建尚未决定，候选为镜像最小 SavedEntities 条目（让 `0x9635B0` 照常读取），或原生构建完缓存后按摘要修补，在第 8／13 步实施前选定（方案第 5 节表后、第 13 节）。
+
+> **2026-11-12 Q13 标注**（IDA J273 复核，原文保留）：`0x9635B0` 不是 `MinimapConfig::Render`（SDK 特征码对应 `0x4ECA30`），而是 `Minimap::Refresh 0x965D60` 对小／大 config 各调一次的 FBO 地图缓存构建（`sub_739AA0`／`sub_7415E0` 也直接调用）；图标聚合结果只是栈局部并立即绘制，没有可修补的数据缓存。它还扫描保存 Grid `+0x68/+0x6C`（步长 0x20，type 0x12 → bit14）。接法按 Q13 定为包装 `0x9635B0`、作用域内临时镜像 Host 摘要合成的最小条目，见[修改方案第 5 节表后](../../client-display-delegation.md#5-仍需同步的显示相关状态候选)。

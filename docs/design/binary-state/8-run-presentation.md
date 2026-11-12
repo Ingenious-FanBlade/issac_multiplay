@@ -18,7 +18,7 @@
   - Q12：每个 world 帧的 Host paused 位与终结分支枚举（Host 在 Update 后按原生优先级计算），取代旧 D0.paused；分支表中 hold、GameOver、Leaderboard、StageTransition、Prompt、未命名 UI 等不再逐项设窄谓词。
   - raw 诅咒 `Game+0x25AC8`（与第 7 步的 `Level+0xC` 同一事务），取代有效诅咒注入。
   - 音效事件：Q11 后转场内三个声音点全部作为 Host 事件；回放时 FrameDelay 传 0。
-  - 地图拾取图标的 Client 接法（镜像最小 SavedEntities 或构建后修补缓存）待定。
+  - 地图拾取图标（Q13 已定）：沿用 Host 摘要 `FinalSavedMapIcons`／`SavedMapIconPayload`，Client 在地图缓存构建 `0x9635B0` 的作用域内临时镜像最小条目；本步只保留摘要，不同步原始 SavedEntities。
   - 上述字段在第 10 步的 `run.json` 中替换 `room_transition_owner`／`hud_owner` 等 UNKNOWN 整段占位，见修改方案第 5 节与第 7 节第 10 行。
 
 原第8步的布局与证据保留，作为参照。见[修改方案](client-display-delegation.md)第 5、8 节。
