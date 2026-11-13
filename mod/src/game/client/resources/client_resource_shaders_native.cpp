@@ -50,21 +50,7 @@ void Capture(lua_State *L,int object){
     }lua_pop(L,1);if(!found)luaL_error(L,"resource_shader_path_unobserved");
   }
 }
-struct ShaderFrame final {ANM2 *sprite;const ClientResourcePose *pose;bool check;bool ok=false;};
 void PushLayer(lua_State *L,LayerState *layer){*static_cast<LayerState **>(lua_newuserdata(L,sizeof(LayerState *)))=layer;luaL_setmetatable(L,lua::metatables::LayerStateMT);}
-int Apply(lua_State *L){auto &f=*static_cast<ShaderFrame *>(lua_touserdata(L,1));
-  const auto one=[&](int object,const std::array<std::string,2> &paths){object=lua_absindex(L,object);
-    for(unsigned k=0;k<2;++k){const auto &path=paths[k];const char *has=k?"HasCustomChampionShader":"HasCustomShader";
-      if(!f.check){lua_getfield(L,object,path.empty()?(k?"ClearCustomChampionShader":"ClearCustomShader"):(k?"SetCustomChampionShader":"SetCustomShader"));lua_pushvalue(L,object);
-        if(!path.empty())lua_pushlstring(L,path.data(),path.size());lua_call(L,path.empty()?1:2,path.empty()?0:1);
-        if(!path.empty()){const bool ok=lua_isboolean(L,-1)&&lua_toboolean(L,-1);lua_pop(L,1);if(!ok)return false;}}
-      if(Query(L,object,has,path.c_str())!=!path.empty())return false;
-    }return true;};
-  lua::luabridge::UserdataPtr::push(L,f.sprite,lua::GetMetatableKey(lua::Metatables::SPRITE));if(!one(-1,f.pose->shaders))return 0;lua_pop(L,1);
-  if(f.pose->layer_shaders.size()!=f.sprite->_layerCount)return 0;
-  for(unsigned i=0;i<f.sprite->_layerCount;++i){PushLayer(L,&f.sprite->_layerState[i]);if(!one(-1,f.pose->layer_shaders[i]))return 0;lua_pop(L,1);}
-  f.ok=true;return 0;
-}
 }
 bool ClientResourceInstallShaderBindings(void *state) noexcept {
   auto *L=static_cast<lua_State *>(state);if(!L)return false;const int top=lua_gettop(L);try{lua_pushcfunction(L,Install);
@@ -76,13 +62,6 @@ bool ClientResourceCaptureShaderPaths(void *state,void *pointer) noexcept {
   lua_newtable(L);const int shaders=lua_absindex(L,-1);
   lua::luabridge::UserdataPtr::push(L,sprite,lua::GetMetatableKey(lua::Metatables::SPRITE));Capture(L,-1);lua_setfield(L,shaders,"sprite");lua_pop(L,1);
   lua_newtable(L);for(unsigned i=0;i<sprite->_layerCount;++i){PushLayer(L,&sprite->_layerState[i]);Capture(L,-1);lua_rawseti(L,-3,i+1);lua_pop(L,1);}lua_setfield(L,shaders,"layers");return true;
-  }catch(...){lua_settop(L,top);return false;}
-}
-bool ClientResourceApplyShaders(void *pointer,const ClientResourcePose &pose,bool check) noexcept {
-  if(!pose.shaders_present)return true;auto *L=static_cast<lua_State *>(ClientLuaStateIdentity());if(!L)return false;const int top=lua_gettop(L);
-  try{
-  ShaderFrame frame{static_cast<ANM2 *>(pointer),&pose,check};lua_pushcfunction(L,Apply);lua_pushlightuserdata(L,&frame);
-  const bool called=lua_pcall(L,1,0,0)==LUA_OK;lua_settop(L,top);return called&&frame.ok;
   }catch(...){lua_settop(L,top);return false;}
 }
 } // namespace cs::game

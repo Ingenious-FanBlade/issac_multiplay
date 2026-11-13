@@ -12790,6 +12790,57 @@
       ],
       "record_limit": 46,
       "notes": "设计编号及预算，不推导为原生读取／运行adapter已实现。"
+    },
+    {
+      "type": "SFXVolumeState",
+      "layout": 437,
+      "native_size": 4,
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（Manager+2A170窄值视图）",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "volume_modifier",
+          "type": "f32",
+          "category": "换算",
+          "semantics": "RE-10当前SFX全局乘数；允许负的有限值，包括-10；只拒NaN／无穷",
+          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-10/audio-and-schedule.md；908340；Manager+2A170",
+          "status": "已核",
+          "wire": {
+            "kind": "convert",
+            "type": "f32",
+            "host": "sfx_volume_modifier_read",
+            "client": "sfx_volume_modifier_install"
+          }
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "D8当前SFX乘数",
+          "sequence": "world",
+          "fields": [
+            "volume_modifier"
+          ]
+        }
+      ],
+      "members": [],
+      "public_owners": [],
+      "validators": {
+        "volume_modifier": {
+          "kind": "finite",
+          "scalar": "f32"
+        }
+      },
+      "conversions": {
+        "sfx_volume_modifier_read": "正常主线程同world音频采集点解析Manager+2A170（SoundEffects+10）的当前有限f32；允许负数，不读恢复步长／设备／sample",
+        "sfx_volume_modifier_install": "在回放事件及本地声音之前安装当前乘数；max(m,0)变化时置混音dirty，由显示根按资格调用ClearVolumeModifier；不运行Host恢复生产段"
+      },
+      "notes": "D8窄值视图，非Manager完整对象。根定位由具名音频owner负责，offset0对应Manager+2A170。处理器只登记合同，实际采集与安装待第8/10/13步接线。"
     }
   ]
 }

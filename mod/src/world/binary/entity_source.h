@@ -1,7 +1,8 @@
 #pragma once
 #include "state/capture_executor.h"
 #include "world/collector.h"
-#include "state/hud_local.h"
+#include "state/display_contract.h"
+#include "world/binary/display_values.h"
 #include <memory>
 
 namespace cs::world::binary {
@@ -25,11 +26,7 @@ struct NativeAudioValue {
   std::uint8_t volume_class=0,segment=0,kind=0,mix_rule=0;
   bool loop=false,paused=false;
 };
-struct NativeScreenValue {float amount=0;bool present=false,enabled=false;};
-struct NativeDrawClock {std::uint32_t manager_frame=0;bool paused=false;};
 // Host自有显示owner的十行缓存；previous/threshold只参与显示相位生产，不发送玩法属性。
-struct NativeStatRow {float value=0,delta=0,previous=0,threshold=0;std::int32_t countdown=0;};
-static_assert(sizeof(NativeStatRow)==20);
 // 每个身体的结构事实来自同窗成员集合和真实C/S拓扑，不由raw valid／类型值猜测。
 struct EntityFacts {
   state::CaptureSubject subject;
@@ -41,15 +38,12 @@ struct EntityFacts {
   const NativeScene *scene=nullptr;
   std::uint16_t layout=0,source_slot=state::kNullIndex;
   std::uint32_t grid_index=UINT32_MAX;
-  bool score_ready=false,progress_ready=false,progress_blocked=false;
-  std::uint32_t manager=0,hud=0,hud_resources=0;
-  const state::HudLocalClock *hud_clock=nullptr;
-  bool planetarium_known=false,planetarium_qualified=false;
-  const NativeAudioValue *audio=nullptr;
-  const NativeScreenValue *screen=nullptr;
-  const NativeDrawClock *draw_clock=nullptr;
-  const std::array<NativeStatRow,10> *stat_rows=nullptr;
-  bool history_from_player=false;
+  bool score_ready=false;
+  std::uint32_t manager=0;
+  // Q12由同一ordinary后态读取，未准备时拒绝合成字段，不回落normal。
+  bool display_ready=false,host_paused=false;
+  state::DisplayBranch display_branch=state::DisplayBranch::Normal;
+  std::span<const DisplayValueNode> display_values;
 };
 // 主线程owner重新核Collector窗口及subject/use/shape；原生引用先预约自有身份句柄。
 struct EntityServices {
@@ -118,16 +112,13 @@ public:
   bool UsesSprite(std::uint32_t address) const noexcept;
   // 纯值种子／有效curse投影和结构读取在同一ordinary窗口完成，供Room／Level复用。
   bool ReadSceneContext(const state::CaptureWitness &,EntityFacts,NativeScene &,state::CaptureDiagnostic &) noexcept;
-  bool AudioResource(const state::CaptureWitness &,EntityFacts,std::uint32_t sample,state::CaptureLink &,state::CaptureDiagnostic &) noexcept;
   // Wiki总出现率之外的楼层资格；概率本身由已授权C++查询接口提供。
   bool HudDealEligibility(const state::CaptureWitness &,EntityFacts,bool &,state::CaptureDiagnostic &) noexcept;
-  // 只观察原本发生的Backdrop生产栈；禁用时原调用仍恰好一次，不额外绘制或读取纹理。
-  void SceneBuild(std::uint32_t backdrop,bool entering,bool normal,bool replace) noexcept;
-  void SceneGraphicsBoundary() noexcept;
-  void SceneClear() noexcept;
-  void SceneImageBefore(std::uint32_t image,std::uint32_t source,std::uint32_t destination,
-                        const std::array<std::uint32_t,4> &colors) noexcept;
-  void SceneImageAfter(std::uint32_t vertices) noexcept;
+  bool ReadDisplayContext(const state::CaptureWitness &,EntityFacts &,state::CaptureDiagnostic &) noexcept;
+  bool AudioResource(const state::CaptureWitness &,EntityFacts,std::uint32_t sample,state::CaptureLink &,state::CaptureDiagnostic &) noexcept;
+  bool DisplayItemResource(const state::CaptureWitness &,EntityFacts,std::uint32_t config,state::CaptureLink &,state::CaptureDiagnostic &) noexcept;
+  bool DisplayProceduralAtlas(const state::CaptureWitness &,EntityFacts,std::uint32_t,state::CaptureLink &,state::CaptureDiagnostic &) noexcept;
+  bool DisplayAudioPathResource(const state::CaptureWitness &,EntityFacts,std::span<const std::byte>,state::CaptureLink &,state::CaptureDiagnostic &) noexcept;
   std::uint64_t RetainedBytes() const noexcept;
 private:
   std::unique_ptr<Impl> impl_;

@@ -73,13 +73,32 @@ bool StreamResourceHooksInstalled() noexcept {
     if(!found)return false;
   }return true;
 }
+// 正式采集不能在某个观察入口缺少trampoline时把漏掉的请求当成“没有事件”。
+bool BinaryDisplayCaptureHooksInstalled() noexcept {
+  if(!IsMain())return false;
+  const char *required[]={"binary_music_tick","binary_music_play","binary_music_crossfade","binary_music_queue",
+    "binary_music_fadein","binary_music_fadeout","binary_music_pause","binary_music_resume","binary_music_jingle",
+    "binary_music_layer_on","binary_music_layer_off","binary_audio_play","binary_audio_pan","binary_audio_volume",
+    "binary_audio_pitch","binary_audio_loops","binary_audio_ambient","client_entity_retire_sound",
+    "binary_display_banner","binary_display_custom_banner","binary_display_banner_text","binary_display_fortune",
+    "binary_display_fortune_source","binary_display_overlay","binary_display_boss","binary_display_transition_start",
+    "client_transition_change","client_map_cache","client_boss_ambient","client_overlay_render","client_display_devil_chance","client_display_deal_qualified",
+    "native_rng_int","game_render","room_prerender","room_render",
+    "binary_display_hud_update","binary_display_hud_post","binary_display_minimap_update","binary_display_minimap_refresh",
+    "binary_display_camera_drag","binary_display_camera_smooth","binary_display_fx","binary_display_overlay_update"};
+  size_t count=0;auto hooks=Hooks(count);
+  for(const auto *id:required){bool installed=false;for(size_t i=0;i<count;++i){const auto &hook=*hooks[i];
+      if(!std::strcmp(hook.id,id)){installed=hook.registered&&hook.super&&*hook.super;break;}}
+    if(!installed)return false;}
+  return true;
+}
 // 构造前核对真实trampoline；持久保护从连接准备之前生效并延续到最后退出writer。
 bool ClientPlayerIsolationInstalled() noexcept {
   if(!IsMain())return false;
   const char *required[]={"native_rng_ctor","native_rng_seed","native_rng_next","native_rng_int","native_rng_float",
     "native_mt_seed","native_mt_next","native_global_random","native_global_seed",
     "client_entity_local_sound","client_entity_retire_sound","client_player_update","client_game_start",
-    "client_entity_draw_player","client_entity_shadow_player","pgd_unlock","pgd_counter","pgd_local","pgd_cloud",
+    "pgd_unlock","pgd_counter","pgd_local","pgd_cloud",
     "load_game_state","gamestate_write","gamestate_read","gamestate_delete","gamestate_delete_rerun",
     "manager_set_save_slot","manager_save_game_state","manager_record_completion","game_save_state",
     "pgd_add_challenge","pgd_add_collection","pgd_add_boss","pgd_add_bestiary_kill","pgd_encounter","pgd_unlock_steam",
@@ -91,28 +110,11 @@ bool ClientPlayerIsolationInstalled() noexcept {
   for(unsigned i=0;i<5;++i)if(!RuntimeRandomHookInstalled(i))return false;
   return ClientLuaGuardReady()&&ClientCallbackGuardReady();
 }
-bool ClientObjectPreStatsIsolationInstalled() noexcept {
-  if(!Capabilities[size_t(Group::Client)])return false;
-  size_t count=0;auto hooks=Hooks(count);
-  for(size_t i=0;i<count;++i){const auto &h=*hooks[i];
-    if(std::strcmp(h.id,"client_player_pre_stats")==0)return h.registered&&h.super&&*h.super;
-  }
-  return false;
-}
 bool ClientEntityInitIsolationInstalled() noexcept {
   bool random=false,sound=false,play=false;size_t count=0;auto hooks=Hooks(count);for(size_t i=0;i<count;++i){const auto &h=*hooks[i];
     if(std::strcmp(h.id,"native_global_random")==0)random=h.registered&&h.super&&*h.super;
     if(std::strcmp(h.id,"client_entity_retire_sound")==0)sound=h.registered&&h.super&&*h.super;
     if(std::strcmp(h.id,"client_entity_local_sound")==0)play=h.registered&&h.super&&*h.super;
   }return random&&sound&&play;
-}
-bool ClientEntityDrawIsolationInstalled() noexcept {
-  const char *required[]={"client_entity_draw_player","client_entity_shadow_player","client_player_palette","client_entity_draw_npc","client_entity_draw_tear","client_entity_draw_projectile","client_entity_draw_bomb",
-    "client_entity_draw_familiar","client_entity_draw_knife","client_entity_draw_pickup","client_entity_draw_laser","client_entity_draw_slot",
-    "client_entity_draw_effect","client_entity_draw_dummy","client_entity_shadow_base","client_entity_shadow_npc","client_entity_shadow_familiar",
-    "client_entity_shadow_laser","client_entity_post_base","client_entity_post_laser","client_entity_draw_paused","client_entity_owned_final","native_text_render"};
-  size_t count=0;auto hooks=Hooks(count);
-  for(const auto *id:required){bool found=false;for(size_t i=0;i<count;++i){const auto &h=*hooks[i];if(!std::strcmp(h.id,id)){found=h.registered&&h.super&&*h.super;break;}}if(!found)return false;}
-  return true;
 }
 }

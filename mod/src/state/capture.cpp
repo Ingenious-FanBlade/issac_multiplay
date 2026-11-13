@@ -7,7 +7,7 @@ namespace cs::state {
 bool ValidCaptureWitness(const CaptureWitness &witness) noexcept {
   return witness.generation && witness.revision && witness.batch && witness.outer && witness.owner &&
     witness.scope.session && witness.scope.run && witness.scope.scene &&
-    unsigned(witness.phase)<=unsigned(CapturePhase::Production) &&
+    unsigned(witness.phase)<=unsigned(CapturePhase::IntentionBinding) &&
     (witness.phase==CapturePhase::Production || witness.tick);
 }
 bool FailCapture(CaptureDiagnostic &out,CaptureFailure reason,const CaptureRoot &root,std::uint16_t field,

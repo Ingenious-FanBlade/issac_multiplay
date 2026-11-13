@@ -37,8 +37,8 @@ add_library(isaac_cs_world STATIC src/world/model.cpp src/world/identity.cpp
   src/world/common/contracts.cpp src/world/common/service.cpp src/world/common/publication.cpp src/world/common/live_consumer.cpp
   src/world/common/native_source.cpp src/world/common/membership.cpp src/world/compatibility/min_read_v1.cpp src/world/compatibility/encode.cpp
   src/world/domains/entity/collect.cpp src/world/domains/grid/collect.cpp
-  src/world/binary/entity_source.cpp src/world/binary/entity_containers.cpp src/world/binary/entity_resources.cpp
-  src/world/binary/entity_player.cpp src/world/binary/grid_source.cpp src/world/binary/scene_source.cpp src/world/binary/scene_map.cpp src/world/binary/scene_lighting.cpp src/world/binary/scene_production.cpp src/world/binary/run_source.cpp src/world/binary/presentation_source.cpp src/world/binary/hud_production.cpp src/world/binary/hud_probability.cpp)
+  src/world/binary/entity_source.cpp src/world/binary/entity_containers.cpp src/world/binary/entity_resources.cpp src/world/binary/resource_export.cpp
+  src/world/binary/entity_player.cpp src/world/binary/grid_source.cpp src/world/binary/scene_source.cpp src/world/binary/scene_map.cpp src/world/binary/run_source.cpp src/world/binary/display_source.cpp src/world/binary/presentation_source.cpp src/world/binary/hud_probability.cpp)
 target_include_directories(isaac_cs_world PUBLIC src)
 target_compile_features(isaac_cs_world PUBLIC cxx_std_20)
 target_compile_definitions(isaac_cs_world PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
@@ -50,7 +50,8 @@ set(GENERATED "${CMAKE_CURRENT_BINARY_DIR}/generated")
 file(GLOB STATE_LAYOUT_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/binding/state/*.json")
 add_custom_command(OUTPUT "${GENERATED}/state_capture.inc" "${GENERATED}/state_wire.inc"
   "${GENERATED}/state_client.inc" "${GENERATED}/state_members.inc" "${GENERATED}/state_grid_view.inc"
-  "${GENERATED}/state_room_view.inc" "${GENERATED}/state_body_codec.inc" "${GENERATED}/state_presentation_envelope.inc" "${GENERATED}/state_resource_protocol.inc" "${GENERATED}/state_protocol.inc" "${GENERATED}/state_budget.inc" "${GENERATED}/state_hud_local.inc"
+  "${GENERATED}/state_room_view.inc" "${GENERATED}/state_body_codec.inc" "${GENERATED}/state_resource_protocol.inc" "${GENERATED}/state_protocol.inc" "${GENERATED}/state_budget.inc"
+    "${GENERATED}/state_display_install.inc" "${GENERATED}/state_host_fields.inc" "${GENERATED}/state_grid_factory.inc"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_state_layout.py"
     --out "${GENERATED}" --docs "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/binary-state/layouts"
   DEPENDS tools/gen_state_layout.py ${STATE_LAYOUT_SOURCES} binding/world_layout.json
@@ -59,12 +60,13 @@ add_custom_command(OUTPUT "${GENERATED}/state_capture.inc" "${GENERATED}/state_w
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/observation-expansion/grid-catalog.json"
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/observation-expansion/run-catalog.json"
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-21/stream-catalog.json" VERBATIM)
-add_library(isaac_cs_state STATIC src/state/layout.cpp src/state/nested.cpp src/state/owned_payload.cpp src/state/entity_extension.cpp src/state/entity_counters.cpp src/state/npc_presentation.cpp src/state/body_codec.cpp src/state/presentation_envelope.cpp src/state/resource_protocol.cpp src/state/wire_protocol.cpp src/state/acceptance.cpp src/state/budget.cpp
-  src/state/capture.cpp src/state/capture_values.cpp src/state/capture_exchange.cpp src/state/capture_executor.cpp src/state/production_cache.cpp
-  src/state/client_memory.cpp src/state/client_tables.cpp src/state/client_shadow.cpp src/state/hud_local.cpp
+add_library(isaac_cs_state STATIC src/state/layout.cpp src/state/nested.cpp src/state/owned_payload.cpp src/state/entity_extension.cpp src/state/entity_counters.cpp src/state/npc_presentation.cpp src/state/body_codec.cpp src/state/resource_protocol.cpp src/state/wire_protocol.cpp src/state/acceptance.cpp src/state/budget.cpp
+  src/state/capture.cpp src/state/capture_values.cpp src/state/capture_exchange.cpp src/state/capture_executor.cpp src/state/production_cache.cpp src/state/events.cpp src/state/host_publish.cpp
+  src/state/client_memory.cpp src/state/client_tables.cpp src/state/client_shadow.cpp src/state/client_events.cpp src/state/client_receive.cpp src/state/client_validation.cpp src/state/client_plan.cpp src/state/client_apply.cpp
   "${GENERATED}/state_capture.inc" "${GENERATED}/state_wire.inc"
-  "${GENERATED}/state_client.inc" "${GENERATED}/state_members.inc" "${GENERATED}/state_body_codec.inc" "${GENERATED}/state_presentation_envelope.inc" "${GENERATED}/state_resource_protocol.inc" "${GENERATED}/state_protocol.inc" "${GENERATED}/state_budget.inc" "${GENERATED}/state_hud_local.inc")
+  "${GENERATED}/state_client.inc" "${GENERATED}/state_members.inc" "${GENERATED}/state_body_codec.inc" "${GENERATED}/state_resource_protocol.inc" "${GENERATED}/state_protocol.inc" "${GENERATED}/state_budget.inc")
 target_include_directories(isaac_cs_state PUBLIC src PRIVATE "${GENERATED}")
+target_include_directories(isaac_cs_world PRIVATE "${GENERATED}")
 target_compile_features(isaac_cs_state PUBLIC cxx_std_20)
 target_compile_options(isaac_cs_state PRIVATE /W4 /Zi /utf-8 /EHsc)
 target_link_libraries(isaac_cs_world PUBLIC isaac_cs_state)
@@ -77,11 +79,12 @@ target_compile_options(isaac_cs_grid_description PRIVATE /W4 /Zi /utf-8 /EHsc)
 target_link_libraries(isaac_cs_grid_description PUBLIC isaac_cs_state)
 # 第7步Room／Level描述只消费完整影子值；实际解码调度和原生安装仍由第12/13步接线。
 add_library(isaac_cs_room_description STATIC src/game/client/room/client_room_description.cpp
+  src/game/client/display/client_display.cpp src/game/client/scene/client_install_plan.cpp "${GENERATED}/state_display_install.inc"
   "${GENERATED}/state_room_view.inc")
 target_include_directories(isaac_cs_room_description PUBLIC src PRIVATE "${GENERATED}")
 target_compile_features(isaac_cs_room_description PUBLIC cxx_std_20)
 target_compile_options(isaac_cs_room_description PRIVATE /W4 /Zi /utf-8 /EHsc)
-target_link_libraries(isaac_cs_room_description PUBLIC isaac_cs_state)
+target_link_libraries(isaac_cs_room_description PUBLIC isaac_cs_state isaac_cs_grid_description)
 # 发布元数据只读取同一源码版本表，不探测游戏，也不运行校验程序。
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/src/replica/stream_version.h" STREAM_VERSION_SOURCE)
 string(REGEX MATCH "kFraming=([0-9]+),kSchema=([0-9]+),kCompactSchema=([0-9]+)" _ "${STREAM_VERSION_SOURCE}")
@@ -90,7 +93,7 @@ set(STREAM_SCHEMA "${CMAKE_MATCH_2}")
 set(STREAM_COMPACT "${CMAKE_MATCH_3}")
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/../VERSION" ISAACCS_VERSION)
 string(STRIP "${ISAACCS_VERSION}" ISAACCS_VERSION)
-# 复制层只依赖纯值观测合同与JSON库；生成目录属于产品协议，不包含游戏地址。
+# 旧观测目录仅由离线对照目标生成，不参与正式协议。
 file(GLOB REPLICA_CATALOGS CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/observation/isaac-cs-observation/*catalog.json")
 add_custom_command(OUTPUT "${GENERATED}/replication_catalog.inc" "${GENERATED}/replication-catalog.json"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_replica_catalog.py" --out "${GENERATED}"
@@ -102,26 +105,22 @@ add_custom_command(OUTPUT "${GENERATED}/entity_application.inc" "${GENERATED}/en
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_entity_application_catalog.py" --out "${GENERATED}"
   # 静态合同随功能目录生成；修改研究索引也必须更新嵌入目录，避免残留旧采用约束。
   DEPENDS tools/gen_entity_application_catalog.py tools/gen_replica_catalog.py tools/cpp_catalog.py tools/replica_projection_policy.py
-    src/game/client/entity/client_entity_fields.inc src/game/client/entity/client_entity_class_fields.inc src/game/client/entity/client_entity_links.inc
+   src/game/client/entity/client_entity_fields.inc src/game/client/entity/client_entity_class_fields.inc src/game/client/entity/client_entity_links.inc
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-19/entity-native-contracts.json" ${REPLICA_CATALOGS} VERBATIM)
 add_custom_command(OUTPUT "${GENERATED}/player_application.inc" "${GENERATED}/player-application.json"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_player_application_catalog.py" --out "${GENERATED}"
   DEPENDS tools/gen_player_application_catalog.py tools/gen_entity_application_catalog.py tools/gen_replica_catalog.py tools/cpp_catalog.py tools/replica_projection_policy.py
-    src/game/client/player/client_player_fields.inc src/game/client/player/client_player_roles.inc
+   src/game/client/player/client_player_fields.inc src/game/client/player/client_player_roles.inc
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-20/player-native-contracts.json" ${REPLICA_CATALOGS} VERBATIM)
-add_custom_command(OUTPUT "${GENERATED}/stream_catalog.inc" "${GENERATED}/stream-catalog.json" "${GENERATED}/stream_policy.lua" "${GENERATED}/stream_names_by_text.inc" "${GENERATED}/stream_names_by_code.inc" "${GENERATED}/stream_field_layers.inc"
-  COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_stream_catalog.py" --out "${GENERATED}" --lua "${GENERATED}/stream_policy.lua"
-  DEPENDS tools/gen_stream_catalog.py tools/gen_replica_catalog.py tools/cpp_catalog.py tools/replica_projection_policy.py ${REPLICA_CATALOGS}
-    src/replica/stream_version.h
-    src/replica/stream_fixed_names.json
-    "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-21/stream-catalog.json"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-18/room-grid-application.json"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-19/entity-application.json"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-20/player-application.json" VERBATIM)
-add_library(isaac_cs_replica STATIC src/replica/model.cpp src/replica/stream_source_value.cpp src/replica/projection_graph.cpp src/replica/codec.cpp src/replica/entity_target.cpp src/replica/entity_plan.cpp src/replica/player_target.cpp
-  src/replica/stream_config.cpp src/replica/stream_metrics.cpp src/replica/stream_capture_cost.cpp src/replica/stream_model.cpp src/replica/stream_codec.cpp src/replica/stream_binary.cpp src/replica/stream_transport.cpp src/replica/stream_range.cpp src/replica/stream_capture.cpp src/replica/stream_capture_worker.cpp src/replica/stream_partition.cpp src/replica/stream_materialize.cpp
-  src/replica/room_grid_target.cpp src/replica/room_grid_plan.cpp src/replica/room_grid_budget.cpp src/replica/player_plan.cpp
-  "${GENERATED}/replication_catalog.inc" "${GENERATED}/room_grid_application.inc" "${GENERATED}/entity_application.inc" "${GENERATED}/player_application.inc" "${GENERATED}/stream_catalog.inc" "${GENERATED}/stream_names_by_text.inc" "${GENERATED}/stream_names_by_code.inc" "${GENERATED}/stream_field_layers.inc")
+# 控制编码只生成固定名称，状态字段由二进制布局生成器管理。
+add_custom_command(OUTPUT "${GENERATED}/stream_names_by_text.inc" "${GENERATED}/stream_names_by_code.inc"
+  COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_control_names.py"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/replica/stream_fixed_names.json" "${GENERATED}"
+  DEPENDS tools/gen_control_names.py src/replica/stream_fixed_names.json VERBATIM)
+add_library(isaac_cs_replica STATIC src/replica/model.cpp src/replica/stream_scope.cpp
+  src/replica/stream_config.cpp src/replica/stream_metrics.cpp src/replica/stream_capture_cost.cpp
+  src/replica/stream_codec.cpp src/replica/stream_binary.cpp src/replica/stream_transport.cpp
+  "${GENERATED}/stream_names_by_text.inc" "${GENERATED}/stream_names_by_code.inc")
 target_include_directories(isaac_cs_replica PUBLIC src "${REPENTOGON_ROOT}/libs/rapidjson/include" PRIVATE "${GENERATED}")
 target_compile_options(isaac_cs_replica PRIVATE /W4 /Zi /utf-8 /EHsc)
 target_compile_definitions(isaac_cs_replica PUBLIC _SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING)
@@ -133,7 +132,13 @@ target_link_libraries(isaac_cs_net PUBLIC isaac_cs_replica)
 option(ISAACCS_BUILD_E2E_TOOLS "Build explicitly requested E2E tools outside product install tree" OFF)
 if(ISAACCS_BUILD_E2E_TOOLS)
   target_compile_definitions(isaac_cs_replica PUBLIC ISAACCS_E2E=1)
-  target_sources(isaac_cs_replica PRIVATE src/replica/stream_e2e.cpp)
+  # 旧目录只服务离线对照工具，正式网络与原生场景均不消费。
+  target_sources(isaac_cs_replica PRIVATE src/replica/stream_e2e.cpp src/replica/codec.cpp
+    src/replica/stream_source_value.cpp src/replica/projection_graph.cpp
+    src/replica/room_grid_target.cpp src/replica/room_grid_budget.cpp
+    src/replica/entity_target.cpp src/replica/player_target.cpp
+    "${GENERATED}/replication_catalog.inc" "${GENERATED}/room_grid_application.inc"
+    "${GENERATED}/entity_application.inc" "${GENERATED}/player_application.inc")
 set(ISAACCS_BUILD_OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/../out/repentogon/e2e")
 add_executable(replica-contract ../tools/replica-contract/main.cpp)
 target_link_libraries(replica-contract PRIVATE isaac_cs_replica)
@@ -147,7 +152,7 @@ else()
 set(ISAACCS_BUILD_OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/../out/repentogon")
 endif()
 add_custom_command(OUTPUT "${GENERATED}/hooks_generated.cpp" "${GENERATED}/binding_v1_9_7_12.inc" "${GENERATED}/hook-manifest.json" "${GENERATED}/permanent_patches.inc" "${GENERATED}/host_patches.inc" "${GENERATED}/hook_capacity.h" "${GENERATED}/world_layout.inc" "${GENERATED}/world-layout.json"
-  BYPRODUCTS "${GENERATED}/exit_patch.inc" "${GENERATED}/shutdown_patch.inc" "${GENERATED}/backdrop_patch.inc" "${GENERATED}/random_runtime.inc" "${GENERATED}/hook-manifest.md"
+  BYPRODUCTS "${GENERATED}/exit_patch.inc" "${GENERATED}/shutdown_patch.inc" "${GENERATED}/backdrop_patch.inc" "${GENERATED}/display_patch.inc" "${GENERATED}/random_runtime.inc" "${GENERATED}/hook-manifest.md"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_binding.py" --out "${GENERATED}"
   DEPENDS tools/gen_binding.py binding/hooks.json binding/world_layout.json binding/v1_9_7_12-static.json ../docs/hooks/repentogon-binding.json VERBATIM)
 # game 按职责分目录；保持既有源码登记顺序、目标和编译条件，只迁移路径。
@@ -155,12 +160,12 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
   src/binding/world_layout.cpp src/hooks/registry.cpp src/hooks/context.cpp
   src/hooks/pointer_patch.cpp src/hooks/odd_patch.cpp src/hooks/host_patch.cpp src/hooks/exit_patch.cpp
   src/game/common/context.cpp src/game/common/player_api.cpp
-  src/game/observation/sources/lua_entity.cpp src/game/observation/sources/loot.cpp
+  src/game/observation/sources/loot.cpp
   src/game/observation/sources/observation.cpp src/game/participants/topology.cpp
   src/game/authority/tick.cpp src/game/input/input_a.cpp
   src/game/input/query.cpp src/game/input/consumers.cpp src/game/authority/lifecycle.cpp
   src/game/participants/remote_life.cpp src/game/observation/world_bridge.cpp
-  src/game/observation/binary_entities.cpp src/game/observation/binary_production.cpp src/game/observation/binary_probability.cpp
+  src/game/observation/binary_entities.cpp src/game/observation/binary_production.cpp src/game/observation/binary_display_capture.cpp src/game/observation/binary_intentions.cpp src/game/observation/binary_probability.cpp
   src/game/observation/sources/global_random.cpp
   src/game/observation/sources/random_sources.cpp src/game/observation/sources/random_runtime_lua.cpp
   src/game/observation/sources/random_owners.cpp src/hooks/random_runtime.cpp
@@ -168,35 +173,20 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
   src/game/participants/device_k.cpp src/game/participants/join.cpp src/game/participants/peer.cpp
   src/game/input/input_lease.cpp src/game/authority/persistence.cpp
   src/game/client/session/client.cpp src/game/client/scene/client_scene.cpp
-  src/game/client/session/client_stream.cpp src/game/client/scene/client_native_bridge.cpp
-  src/game/client/scene/client_native_world.cpp src/game/client/room/client_room_native.cpp
-  src/game/client/room/client_backdrop_native.cpp src/game/client/entity/client_objects.cpp
-  src/game/client/entity/client_objects_native.cpp
-  src/game/client/entity/client_entity_model.cpp src/game/client/entity/client_entity_common_native.cpp
-  src/game/client/player/client_players.cpp src/game/client/player/client_players_native.cpp
+  src/game/client/display/client_display_native.cpp
+  src/game/client/scene/client_preparation_native.cpp
+  src/game/client/scene/client_preparation.cpp
+  src/game/client/scene/client_field_staging.cpp src/game/client/scene/client_field_staging_native.cpp
+  src/game/client/scene/client_atomic_install.cpp src/game/client/scene/client_atomic_install_native.cpp
+  src/game/client/scene/client_binary_scene.cpp
+  src/game/client/scene/client_atomic_bindings.cpp src/game/client/scene/client_atomic_bindings_native.cpp
+  src/game/client/scene/client_native_bridge.cpp
+  src/game/client/room/client_backdrop_native.cpp
   src/game/client/player/client_player_control.cpp
-  src/game/client/player/client_player_view.cpp src/game/client/player/client_player_budget.cpp
   src/game/client/isolation/client_player_isolation.cpp src/game/client/isolation/client_isolation.cpp
-  src/game/client/player/client_player_model.cpp src/game/client/player/client_player_state_native.cpp
-  src/game/client/player/client_player_roles.cpp src/game/client/player/client_player_roles_native.cpp
-  src/game/client/player/client_player_draw_native.cpp
-  src/game/client/player/client_player_hud_native.cpp
-  src/game/client/player/client_player_equipment_model.cpp
-  src/game/client/player/client_player_equipment_native.cpp src/game/client/player/client_player_weapon_native.cpp
-  src/game/client/entity/client_entity_class_model.cpp src/game/client/entity/client_entity_adapters_native.cpp
-  src/game/client/entity/client_entity_collections_native.cpp
-  src/game/client/entity/client_entity_owned_native.cpp
-  src/game/client/entity/client_entity_draw_native.cpp
-  src/game/client/entity/client_entity_events.cpp
+  src/game/client/entity/client_entity_adapters_native.cpp src/game/client/entity/client_entity_pool_native.cpp
   src/game/client/entity/client_entity_npc_native.cpp
-  src/game/client/grid/client_grids.cpp src/game/client/grid/client_grid_native.cpp
-  src/game/client/grid/client_grid_events.cpp
-  src/game/client/room/client_map_native.cpp
-  src/hooks/backdrop_patch.cpp
-  src/game/client/presentation/client_presentation.cpp
-  src/game/client/presentation/client_presentation_native.cpp
-  src/game/client/resources/client_resource_model.cpp src/game/client/resources/client_resources_native.cpp
-  src/game/client/resources/client_resource_shaders_native.cpp
+  src/hooks/backdrop_patch.cpp src/hooks/display_patch.cpp
   src/ops/config.cpp src/ops/trace.cpp src/ops/command.cpp src/ops/world_commands.cpp src/ops/control_port.cpp
   "${GENERATED}/hook_capacity.h" "${GENERATED}/world_layout.inc"
   "${GENERATED}/exit_patch.inc"
@@ -204,9 +194,17 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
   "${GENERATED}/hooks_generated.cpp")
 # 文件导入/导出、故障注入与原生测试只进入显式 E2E DLL；正式目标没有这些实现。
 if(ISAACCS_BUILD_E2E_TOOLS)
-  target_sources(zhlIsaacCS PRIVATE src/ops/client_fixture.cpp src/ops/e2e_ui.cpp
-    src/game/tests/client_e2e_native.cpp src/game/tests/client_entity_e2e.cpp
-    src/game/tests/client_player_e2e.cpp src/game/tests/random_e2e.cpp)
+  target_sources(zhlIsaacCS PRIVATE src/ops/e2e_ui.cpp
+   src/game/observation/sources/lua_entity.cpp src/game/observation/sources/display_observation.cpp
+   src/game/client/room/client_room_native.cpp src/game/client/room/client_map_native.cpp
+   src/game/client/grid/client_grid_observation.cpp src/game/client/entity/client_entity_collections_native.cpp
+   src/game/client/entity/client_entity_owned_native.cpp
+   src/game/client/player/client_player_state_native.cpp src/game/client/player/client_player_roles_native.cpp
+   src/game/client/player/client_player_draw_native.cpp src/game/client/player/client_player_hud_native.cpp src/game/client/player/client_player_equipment_native.cpp
+   src/game/client/player/client_player_weapon_native.cpp
+   src/game/client/resources/client_resource_shaders_native.cpp
+   src/game/tests/client_e2e_native.cpp src/game/tests/client_entity_e2e.cpp
+   src/game/tests/client_player_e2e.cpp src/game/tests/random_e2e.cpp)
   target_compile_definitions(zhlIsaacCS PRIVATE ISAACCS_E2E=1)
   target_compile_definitions(zhlIsaacCS PRIVATE "ISAACCS_REPOSITORY_ROOT=\"${CMAKE_CURRENT_SOURCE_DIR}/..\"")
   set(ISAACCS_DLL_OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/../out/repentogon/e2e")
@@ -216,34 +214,33 @@ else()
   set(ISAACCS_BUILD_FLAVOR "product")
 endif()
 file(GENERATE OUTPUT "${ISAACCS_DLL_OUTPUT}/build-flavor.json"
-  CONTENT "{\"format\":\"isaac.cs.build\",\"version\":2,\"product_version\":\"${ISAACCS_VERSION}\",\"flavor\":\"${ISAACCS_BUILD_FLAVOR}\",\"e2e_tools\":$<IF:$<BOOL:${ISAACCS_BUILD_E2E_TOOLS}>,true,false>,\"framing\":${STREAM_FRAMING},\"stream_schema\":${STREAM_SCHEMA},\"compact_schema\":${STREAM_COMPACT},\"target\":\"REPENTOGON-1.1.3-J273-Win32-v143-MD\",\"compression\":\"zstd-static\",\"stream_runtime_acceptance\":\"pending-I39\",\"player_contract\":\"player-target-v2\"}\n")
+  CONTENT "{\"format\":\"isaac.cs.build\",\"version\":2,\"product_version\":\"${ISAACCS_VERSION}\",\"flavor\":\"${ISAACCS_BUILD_FLAVOR}\",\"e2e_tools\":$<IF:$<BOOL:${ISAACCS_BUILD_E2E_TOOLS}>,true,false>,\"framing\":${STREAM_FRAMING},\"stream_schema\":${STREAM_SCHEMA},\"compact_schema\":${STREAM_COMPACT},\"target\":\"REPENTOGON-1.1.3-J273-Win32-v143-MD\",\"compression\":\"zstd-static\",\"state_contract\":\"binary-state-v1\"}\n")
 # SDK 1.1.3 的生成头和 ASMPatcher.hpp 的 friend-static 声明不兼容当前 C++20。
 # SDK-facing 单元只使用 C++17 值接口；Join/输入/world 核心保持 C++20。
 # 显式覆盖逐文件标准，不降低整个 DLL 标准，也不修改 SDK 头或补丁/汇编行为。
-set_source_files_properties(src/game/observation/sources/loot.cpp src/game/observation/sources/lua_entity.cpp
-  src/game/common/player_api.cpp src/game/observation/binary_probability.cpp src/game/client/scene/client_native_bridge.cpp
+set_source_files_properties(src/game/observation/sources/loot.cpp
+  src/game/client/scene/client_preparation_native.cpp
+  src/game/client/scene/client_field_staging_native.cpp
+  src/game/client/scene/client_atomic_install_native.cpp
+  src/game/client/scene/client_atomic_bindings_native.cpp
+  src/game/common/player_api.cpp src/game/observation/binary_intentions.cpp src/game/observation/binary_probability.cpp src/game/client/scene/client_native_bridge.cpp
   src/binding/definitions.cpp "${GENERATED}/hooks_generated.cpp"
-  src/game/client/player/client_players_native.cpp
-  src/game/client/player/client_player_state_native.cpp
-  src/game/client/player/client_player_roles_native.cpp
-  src/game/client/player/client_player_draw_native.cpp
-  src/game/client/player/client_player_hud_native.cpp
-  src/game/client/player/client_player_equipment_native.cpp src/game/client/player/client_player_weapon_native.cpp
-  src/game/client/scene/client_native_world.cpp src/game/client/room/client_room_native.cpp
-  src/game/client/room/client_backdrop_native.cpp src/game/client/entity/client_objects_native.cpp
-  src/game/client/presentation/client_presentation_native.cpp src/game/client/resources/client_resources_native.cpp
-  src/game/client/entity/client_entity_common_native.cpp src/game/client/resources/client_resource_shaders_native.cpp
-  src/game/client/entity/client_entity_adapters_native.cpp src/game/client/entity/client_entity_collections_native.cpp
-  src/game/client/entity/client_entity_owned_native.cpp
-  src/game/client/entity/client_entity_draw_native.cpp
+  src/game/client/room/client_backdrop_native.cpp
+  src/game/client/entity/client_entity_adapters_native.cpp src/game/client/entity/client_entity_pool_native.cpp
   src/game/client/entity/client_entity_npc_native.cpp
-  src/game/client/grid/client_grid_native.cpp
-  src/game/client/room/client_map_native.cpp
+  src/game/client/display/client_display_native.cpp
   src/game/tests/client_e2e_native.cpp
+  src/game/observation/sources/lua_entity.cpp src/game/observation/sources/display_observation.cpp
+  src/game/client/room/client_room_native.cpp src/game/client/room/client_map_native.cpp
+  src/game/client/grid/client_grid_observation.cpp src/game/client/entity/client_entity_collections_native.cpp
+  src/game/client/entity/client_entity_owned_native.cpp
+  src/game/client/player/client_player_state_native.cpp src/game/client/player/client_player_roles_native.cpp
+  src/game/client/player/client_player_draw_native.cpp src/game/client/player/client_player_hud_native.cpp src/game/client/player/client_player_equipment_native.cpp
+  src/game/client/player/client_player_weapon_native.cpp src/game/client/resources/client_resource_shaders_native.cpp
   src/game/observation/sources/random_runtime_lua.cpp src/game/tests/random_e2e.cpp
   src/game/observation/sources/random_owners.cpp
   src/hooks/host_patch.cpp src/hooks/odd_patch.cpp src/hooks/exit_patch.cpp
-  src/hooks/backdrop_patch.cpp
+  src/hooks/backdrop_patch.cpp src/hooks/display_patch.cpp
   PROPERTIES COMPILE_OPTIONS "/std:c++17")
 target_include_directories(zhlIsaacCS PRIVATE src "${GENERATED}" "${REPENTOGON_ROOT}/include" "${REPENTOGON_ROOT}/libzhl"
   "${REPENTOGON_ROOT}/repentogon/LuaInterfaces"

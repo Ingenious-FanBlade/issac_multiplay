@@ -77,9 +77,9 @@ CaptureValueWriter::CaptureValueWriter(CaptureBuffer &buffer,CaptureWitness witn
 }
 bool CaptureValueWriter::Production(const CaptureRecord &source) noexcept {
   if((!open_ && !records_) || sealed_ || !source.purpose || !source.instance || !source.generation ||
-     source.production.phase!=CapturePhase::Production || !ValidCaptureWitness(source.production))return Fail(CaptureFailure::InvalidTransaction);
+     (source.production.phase!=CapturePhase::Production&&!(source.event_sequence&&source.production.phase==CapturePhase::IntentionBinding)) || !ValidCaptureWitness(source.production))return Fail(CaptureFailure::InvalidTransaction);
   auto &out=buffer_.records_[open_?records_:records_-1];out.production=source.production;out.owner=source.owner;
-  out.instance=source.instance;out.generation=source.generation;out.event_sequence=source.event_sequence;
+  out.instance=source.instance;out.generation=source.generation;out.event_sequence=source.event_sequence;out.event_game_frame=source.event_game_frame;
   out.call=source.call;out.parent=source.parent;out.purpose=source.purpose;out.pass=source.pass;return true;
 }
 bool CaptureValueWriter::Append(const CapturePacket &packet,std::uint32_t index,CaptureAppendContext context) noexcept {
@@ -246,7 +246,14 @@ bool CaptureValueWriter::Seal(std::uint32_t expected,CapturePacket &out) noexcep
   out={};if(diagnostic_.reason!=CaptureFailure::None)return false;
   if(open_||sealed_||!expected||expected!=records_)return Fail(CaptureFailure::Incomplete);
   sealed_=true;out={witness_,std::span(buffer_.records_).first(records_),std::span(buffer_.cells_).first(cells_),
-    std::span(buffer_.paths_).first(paths_),std::span(buffer_.bytes_).first(bytes_),catalog_,std::span(buffer_.references_).first(catalog_.references)};return true;
+    std::span(buffer_.paths_).first(paths_),std::span(buffer_.bytes_).first(bytes_),catalog_,std::span(buffer_.references_).first(catalog_.references),
+    event_first_sequence_,event_watermark_};return true;
+}
+// 水位描述整份ordinary交接；逐根Append不改它，避免latest替换丢失纯外观序号空隙。
+bool CaptureValueWriter::EventRange(std::uint64_t first,std::uint64_t watermark) noexcept {
+  if(sealed_ || open_ || event_first_sequence_ || witness_.phase!=CapturePhase::Ordinary ||
+     !first || watermark==UINT64_MAX || first>watermark+1)return Fail(CaptureFailure::InvalidTransaction);
+  event_first_sequence_=first;event_watermark_=watermark;return true;
 }
 bool CaptureValueWriter::Catalog(CaptureCatalogStamp stamp,std::span<const CaptureReferenceEntry> references) noexcept {
   if(sealed_ || open_ || diagnostic_.reason!=CaptureFailure::None)return Fail(CaptureFailure::InvalidTransaction);

@@ -1,6 +1,8 @@
 # GridFireEmberAnimation
 
-由唯一布局源生成。布局编号 203；布局版本 71；原生大小 0x20；未知 3B；完整：否。
+由唯一布局源生成。布局编号 203；布局版本 75；原生大小 0x20；未知 3B；需求覆盖：完整。
+
+需求覆盖只表示清单字段已生成计划，不表示原生字节全部已知、Host/Client处理器已接通或第15步验收通过。旧成员映射与原生说明保留为参照，当前发送字段以下方状态表为准。
 
 版本51：Fire第三ANM2的主动画视图，最小/固定3B；SetFrame覆写帧与两组选择器，但不写is_playing，官方InterpolV2会读该开关，必须保留。未知3B保留；SetFrame会写事件位，Client逐粒子绘制scratch/恢复，绝不派发Host动画事件。不能推广到通用AnimationState或overlay。
 

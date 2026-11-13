@@ -3,6 +3,7 @@
 #include "state/budget.h"
 #include <new>
 #include <limits>
+#include <thread>
 
 namespace cs::state {
 // 类型化本地失败只用于后台调度；不新增线上枚举，也不通过Gap.what()猜等待原因。
@@ -32,6 +33,9 @@ public:
   static std::shared_ptr<ClientStateMemory> Create();
   void *Allocate(memory::Pool,std::size_t,std::size_t alignment);
   void Deallocate(memory::Pool,void *,std::size_t,std::size_t alignment) noexcept;
+  // 原生 CRT 分配仍计入同一 Peer；仅记账，不接管其指针或跨线程调用原生释放。
+  void ChargeNative(std::size_t bytes);
+  void UnchargeNative(std::size_t bytes) noexcept;
   std::array<std::uint64_t,3> Usage() const noexcept;
 private:
   ClientStateMemory();
@@ -46,6 +50,10 @@ public:
   ~ClientStateWorkspace();
   ClientStateWorkspace(const ClientStateWorkspace &)=delete;
   ClientStateWorkspace &operator=(const ClientStateWorkspace &)=delete;
+  // 子步骤显式借用同一租约，不重新抢占全局工作区；跨线程借用仍拒绝。
+  void RequireCurrentThread() const;
+private:
+  const std::thread::id thread_=std::this_thread::get_id();
 };
 template<class T> class ClientStateAllocator {
 public:

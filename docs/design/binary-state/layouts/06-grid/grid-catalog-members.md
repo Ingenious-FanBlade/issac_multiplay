@@ -1,6 +1,6 @@
 # grid-catalog：逐行公开成员回映射
 
-布局版本 71；来源 `docs/design/observation-expansion/grid-catalog.json`，共 119 行。由正式布局源生成；行号从1开始，重复ID不去重。
+布局版本 75；来源 `docs/design/observation-expansion/grid-catalog.json`，共 119 行。由正式布局源生成；行号从1开始，重复ID不去重。
 
 这里只声明目录处置与正式布局依赖，不代表运行reader／writer、绘制adapter或第15步验收已经完成。
 

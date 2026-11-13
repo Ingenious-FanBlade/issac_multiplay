@@ -152,19 +152,6 @@ public:
 private:
   BodyCodecScratch &scratch_;BodyCodecScratch saved_;
 };
-// 固定图像提交只允许ColorOffset及完整已登记输入，其他内置shader另按具名用途消费。
-bool Graphics(const ResourceDirectoryView &directory,std::uint8_t use,std::uint16_t shader,std::uint8_t blend,std::uint8_t sampler) {
-  if (use>=kResourceGraphicsRules.size() || blend>=kResource_blend_profiles.size() || sampler>=kResource_sampler_profiles.size() || shader==kNullIndex)
-    Fail("unregistered_graphics_profile");
-  const auto &rule=kResourceGraphicsRules[use];
-  if (!(rule.blends&(1u<<blend)) || !(rule.samplers&(1u<<sampler))) Fail("graphics_profile_use_mismatch");
-  const auto *entry=FindResource(directory,{6,shader});
-  if (!entry) return false;
-  if (entry->kind!=2) Fail("shader_resource_kind_mismatch");
-  const auto type=FixedNumber(kR_ResourceBuiltinShader,entry->payload,ResourceBuiltinShaderField::shader_type);
-  if (type>=20 || !(rule.shaders&(1u<<type))) Fail("shader_not_allowed_for_fixed_use");
-  return true;
-}
 class ResourceObserver final : public BodyNodeObserver {
 public:
   ResourceObserver(const ResourceEntryView *entry,const ResourceDirectoryView *directory=nullptr,
@@ -187,14 +174,6 @@ public:
         }
       }
     }
-    if (node.layout==kR_SurfaceRecipeQuad || node.layout==kR_PresentationImageContribution) {
-      const bool recipe=node.layout==kR_SurfaceRecipeQuad;
-      const auto shader=std::uint16_t(recipe?FixedNumber(node.layout,node.bytes,SurfaceRecipeQuadField::shader):FixedNumber(node.layout,node.bytes,PresentationImageContributionField::shader));
-      const auto blend=std::uint8_t(recipe?FixedNumber(node.layout,node.bytes,SurfaceRecipeQuadField::blend_view):FixedNumber(node.layout,node.bytes,PresentationImageContributionField::blend_view));
-      const auto sampler=std::uint8_t(recipe?FixedNumber(node.layout,node.bytes,SurfaceRecipeQuadField::sampler_view):FixedNumber(node.layout,node.bytes,PresentationImageContributionField::sampler_view));
-      if (blend>=kResource_blend_profiles.size() || sampler>=kResource_sampler_profiles.size()) Fail("unknown_graphics_profile");
-      if (directory_ && !Graphics(*directory_,recipe?kRUse_SurfaceQuad:kRUse_PresentationImage,shader,blend,sampler)) graphics_closed=false;
-    }
     if (directory_ && node.layout==kR_AudioVoiceParameters) {
       const auto asset=std::uint16_t(FixedNumber(node.layout,node.bytes,AudioVoiceParametersField::asset));
       if (const auto *audio=FindResource(*directory_,{7,asset})) {
@@ -209,7 +188,7 @@ public:
     }
   }
   void Collect() {collect_=true;}
-  std::uint32_t used=0;bool graphics_closed=true;
+  std::uint32_t used=0;
 private:
   const ResourceEntryView *entry_;const ResourceDirectoryView *directory_;
   std::span<ResourceEdge> edges_;const ResourceReadyContext *ready_;
@@ -252,28 +231,11 @@ std::uint32_t ValidateEntry(const ResourceEntryView &entry,ResourceCodecScratch 
       n(SurfaceRecipeHeaderField::origin) || n(SurfaceRecipeHeaderField::alpha_encoding) || n(SurfaceRecipeHeaderField::color_encoding)) Fail("unknown_recipe_layout_or_geometry_encoding");
   const auto width=n(SurfaceRecipeHeaderField::logical_w),height=n(SurfaceRecipeHeaderField::logical_h);
   Geometry(width,height,n(SurfaceRecipeHeaderField::stored_w),n(SurfaceRecipeHeaderField::stored_h),true);
-  const auto count=n(SurfaceRecipeHeaderField::operation_count);
-  if (!count || count>kRLimit_recipe_operations) Fail("recipe_operation_count");
-  std::uint32_t visits=0;
-  for (std::uint32_t i=0;i<count;++i) {
-    const auto op=std::to_integer<unsigned>(input.Take(1)[0]);
-    if (op>1 || (!i && op!=0)) Fail("unknown_recipe_op_or_missing_initial_clear");
-    const auto size=op?kR_SurfaceRecipeQuadBytes:kR_SurfaceRecipeClearBytes;
-    const auto offset=input.Position()-1;input.Take(size-1);const auto bytes=entry.payload.subspan(offset,size);
-    auto remaining=limits;remaining.body.field_visits-=visits;
-    visits+=Value(op?kR_SurfaceRecipeQuad:kR_SurfaceRecipeClear,bytes,scratch,remaining,observer);
-    if (op) {
-      const auto *field=FindField(kR_SurfaceRecipeQuad,std::uint16_t(SurfaceRecipeQuadField::destination_points));
-      for (std::size_t j=0;j<8;++j) {
-        const auto coordinate=std::bit_cast<float>(std::uint32_t(Bits(bytes.subspan(field->wire_offset+4*j,4))));
-        // 原生tile允许跨离屏边缘，最终由本地FBO裁剪；仍以本资源尺寸限制有限坐标域。
-        const auto extent=float(j%2?height:width);
-        if (coordinate< -2.0f*extent || coordinate>3.0f*extent) Fail("recipe_destination_outside_bounded_clip");
-      }
-    }
-  }
-  if (input.Position()!=entry.payload.size()) Fail("trailing_recipe_bytes");
-  return visits;
+  // 只接受本机形状及程序图集所需的单次 Clear，像素和房间合成由原生流程拥有。
+  if (n(SurfaceRecipeHeaderField::operation_count)!=1 ||
+      entry.payload.size()!=kR_SurfaceRecipeHeaderBytes+kR_SurfaceRecipeClearBytes ||
+      entry.payload[kR_SurfaceRecipeHeaderBytes]!=std::byte{0}) Fail("client_local_recipe_not_single_clear");
+  return Value(kR_SurfaceRecipeClear,input.Take(kR_SurfaceRecipeClearBytes),scratch,limits,observer);
 }
 void Scope(const StateScope &scope) { if (!scope.session || !scope.run || !scope.scene) Fail("missing_resource_scope"); }
 void Sorted(std::span<const ResourceEntryView> entries) {
@@ -297,6 +259,46 @@ std::span<const std::byte> PackEntry(const ResourceEntryView &entry,std::span<st
 } // namespace
 
 ResourceProtocolBounds StateResourceBounds() noexcept {return {kRLimit_entries,kRLimit_edges,kRLimit_directory_bytes,kRLimit_dependency_depth};}
+bool StateImagePathValid(std::span<const std::byte> encoded) noexcept {
+  try{Path(encoded,1);return true;}catch(...){return false;}
+}
+ResourceLocalDescription DescribeResourceLocal(const ResourceEntryView &entry,ResourceCodecScratch &scratch) {
+  ResourceLocalDescription out;out.table=entry.key.table;out.index=entry.key.index;out.kind=entry.kind;
+  ResourceObserver observer(&entry);ValidateEntry(entry,scratch,{},observer);
+  const auto &dispatch=Dispatch(entry);
+  std::array<BodyFieldView,kResourceMaxRootFields> fields{};ScratchLease lease(scratch.body,nullptr,fields);
+  if(dispatch.recipe) {
+    // 正式本地分配只接一次Clear；图集内容由当前程序定义在Client绘制。
+    const auto header=ReadFixed<SurfaceRecipeHeaderField>(kR_SurfaceRecipeHeader,entry.payload.first(kR_SurfaceRecipeHeaderBytes));
+    for(std::size_t i=0;i<header.size();++i)out.numbers[i]=header[i];
+    if(out.numbers[9]!=1||entry.payload.size()!=kR_SurfaceRecipeHeaderBytes+kR_SurfaceRecipeClearBytes||
+        entry.payload[kR_SurfaceRecipeHeaderBytes]!=std::byte{0})Fail("client_local_recipe_not_single_clear");
+    // 多标量 rgba 由可信字段位置读取，不把四个分量当成一个整数。
+    const auto *rgba=FindField(kR_SurfaceRecipeClear,std::uint16_t(SurfaceRecipeClearField::rgba));
+    const auto bytes=entry.payload.subspan(kR_SurfaceRecipeHeaderBytes);
+    for(unsigned i=0;i<4;++i)out.numbers[10+i]=Bits(bytes.subspan(rgba->wire_offset+4*i,4));
+    out.numbers[14]=FixedNumber(kR_SurfaceRecipeClear,bytes,SurfaceRecipeClearField::color_space);return out;
+  }
+  const auto value=DecodeValue(dispatch.layout,entry.payload,scratch.body,nullptr,{32u<<20,262144,32,true});
+  const auto at=[&](unsigned f){return FieldBytes(value.fields,std::uint16_t(f));};
+  if(entry.kind==0){out.text[0]=Text(entry.payload);return out;}
+  for(const auto &f:value.fields)if(f.present&&f.field<out.numbers.size()) {
+    const auto *definition=FindField(dispatch.layout,f.field);
+    if(definition&&definition->operation!=Operation::Container&&definition->operation!=Operation::Nested&&f.bytes.size()<=8)
+      out.numbers[f.field]=Bits(f.bytes);
+  }
+  if(entry.kind==1)out.text[0]=Text(at(unsigned(ResourceImageFileField::path)));
+  if(entry.kind==9){out.text[0]=Text(at(unsigned(ResourceAudioField::main)));
+    if(out.numbers[unsigned(ResourceAudioField::has_intro)])out.text[1]=Text(at(unsigned(ResourceAudioField::intro)));}
+  if(entry.kind==6){out.text[0]=Text(at(unsigned(ResourceAnimationField::name)));
+    for(unsigned group=0;group<2;++group){Cursor cursor(at(unsigned(ResourceAnimationField::layers)+group));
+      out.layer_count[group]=std::uint16_t(Bits(cursor.Take(2)));
+      for(unsigned i=0;i<out.layer_count[group];++i){const auto bytes=cursor.Take(kR_ResourceAnimationLayerBytes);
+        out.layers[group][i]={std::uint16_t(FixedNumber(kR_ResourceAnimationLayer,bytes,ResourceAnimationLayerField::layer_id)),
+          std::uint32_t(FixedNumber(kR_ResourceAnimationLayer,bytes,ResourceAnimationLayerField::frame_count))};}}
+  }
+  return out;
+}
 ResourceEntryView DecodeResourceEntryPrefix(std::span<const std::byte> encoded,ResourceCodecScratch &scratch,ResourceCodecLimits limits) {
   Limits(limits);Cursor input(encoded);
   const auto h=ReadFixed<ResourceEntryHeaderField>(kR_ResourceEntryHeader,input.Take(kR_ResourceEntryHeaderBytes));
@@ -515,7 +517,6 @@ void ValidateResourceBindings(std::uint16_t layout,std::uint32_t mask,BodyStream
   ResourceObserver observer(nullptr,&directory,{},&ready);ScratchLease lease(scratch,&observer);
   const auto body=stream==BodyStream::Value?DecodeValue(layout,bytes,scratch,context,limits):DecodeBody(layout,mask,stream,bytes,scratch,context,limits);
   // 投影／base完整性由第12步合并候选检查，不因只核资源引用而给body增加world等待。
-  if (!observer.graphics_closed) Fail("resource_binding_incomplete");
   (void)body;
 }
 std::optional<CodecItemConfig> ResourceBodyContext::Item(std::uint8_t table,std::uint16_t index) const {

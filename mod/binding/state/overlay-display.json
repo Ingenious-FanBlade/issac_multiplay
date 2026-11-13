@@ -1,0 +1,171 @@
+{
+  "types": [
+    {
+      "type": "OverlayDisplayState",
+      "layout": 442,
+      "native_size": 4704,
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（实际ItemOverlay owner）",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "state",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "Host当前显示状态",
+          "evidence": "ItemOverlay.zhl／RE-8",
+          "status": "已核",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "name": "id",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "Host当前显示状态",
+          "evidence": "ItemOverlay.zhl／RE-8",
+          "status": "已核",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": 8,
+          "size": 276,
+          "name": "sprite",
+          "type": "ANM2",
+          "category": "状态",
+          "semantics": "Host当前显示状态",
+          "evidence": "ItemOverlay.zhl／RE-8",
+          "status": "已核",
+          "wire": {
+            "kind": "nested",
+            "type": "ANM2"
+          }
+        },
+        {
+          "offset": 284,
+          "size": 4136,
+          "name": "host_284",
+          "type": "bytes[4136]",
+          "category": "权威",
+          "semantics": "不采集玩法／引用管理／未知字节",
+          "evidence": "ItemOverlay.zhl",
+          "status": "已核"
+        },
+        {
+          "offset": 4420,
+          "size": 4,
+          "name": "delay",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "Host当前显示状态",
+          "evidence": "ItemOverlay.zhl／RE-8",
+          "status": "已核",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": 4424,
+          "size": 4,
+          "name": "host_4424",
+          "type": "bytes[4]",
+          "category": "权威",
+          "semantics": "不采集玩法／引用管理／未知字节",
+          "evidence": "ItemOverlay.zhl",
+          "status": "已核"
+        },
+        {
+          "offset": 4428,
+          "size": 276,
+          "name": "mega_sprite",
+          "type": "ANM2",
+          "category": "状态",
+          "semantics": "Host当前显示状态",
+          "evidence": "ItemOverlay.zhl／RE-8",
+          "status": "已核",
+          "wire": {
+            "kind": "nested",
+            "type": "ANM2"
+          }
+        }
+      ],
+      "synthetic_fields": [
+        {
+          "name": "generation",
+          "type": "u64",
+          "semantics": "每次Show的新代次",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "controller",
+          "type": "i32",
+          "semantics": "-1全局，其余实际controller",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "player",
+          "type": "u16",
+          "semantics": "稳定Player关系",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "Entity",
+            "host": "display_value_read",
+            "client": "display_value_install"
+          }
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "当前演出状态与姿态",
+          "sequence": "world",
+          "fields": [
+            "generation",
+            "controller",
+            "player",
+            "state",
+            "id",
+            "delay",
+            "sprite",
+            "mega_sprite"
+          ]
+        }
+      ],
+      "conversions": {
+        "display_value_read": "从真实Show owner／同world后态的自有元数据读代次与Player身份，不复制地址",
+        "display_value_install": "新代次先Show再安装精确姿态；Update继续拦截；inactive仍清除"
+      },
+      "members": [],
+      "public_owners": [],
+      "validators": {
+        "state": {
+          "kind": "range",
+          "scalar": "i32",
+          "min": 0,
+          "max": 2
+        }
+      },
+      "record_limit": 131072
+    }
+  ]
+}

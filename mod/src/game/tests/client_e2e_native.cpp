@@ -5,80 +5,8 @@
 #include "game/observation/sources/global_random.h"
 #include "runtime.h"
 #include "game/tests/client_entity_e2e.h"
-#include "game/client/entity/client_entity_adapters.h"
-#include "game/client/entity/client_objects_native.h"
-#include "game/tests/client_inspect_value.h"
-#include "game/client/grid/client_grid_native.h"
-#include "game/client/entity/client_entity_adapters.h"
-#include <rapidjson/document.h>
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/writer.h>
-#include <set>
 
 namespace cs::game {
-// 读真实已提交实例；逐类字段/容器/资源使用正式只读后态函数，不运行Update。
-std::string ClientTestInspectNative(const ClientNativeObjects *objects) noexcept {
-  if(!IsMain()||!ClientBusy())return "ok=0\nerror=inspect_native_context\n";
-  try {
-    const char *relations="inspect_relations";if(!ClientNativeObjectsInspectRelations(objects,relations))return "ok=0\nerror="+std::string(relations)+"\n";
-    // SDK边界维持C++17，只构造自有JSON文本，不引入C++20的复制协议／参与者类型。
-    struct State {rapidjson::Document rows{rapidjson::kArrayType};std::set<void *> unique;std::vector<ClientEntityClassAdapter> adapters=ClientEntityBuiltinAdapters();const char *reason="inspect_native_failed";} state;
-    const auto visit=[](void *context,void *pointer,const ClientObjectKey &key,std::uint64_t instance,unsigned type) noexcept ->bool {
-      auto &s=*static_cast<State *>(context);
-      try {
-        const auto *d=ClientNativeObjectDrawDescription(pointer);
-        if(!d||!instance||!s.unique.insert(pointer).second)return false;
-        auto &e=*static_cast<Entity *>(pointer);
-        // 正式Player的dead/exists/非roster资格由其唯一owner核对；不能用旧单Isaac条件拒绝合法身体。
-        if(e._type!=int(type)||(type!=1&&!e._valid)||(!d->full_entity&&!e._exists))return false;
-        if(type!=1&&d->full_entity&&d->category){
-          const ClientEntityClassAdapter *adapter=nullptr;for(const auto &a:s.adapters)if(a.category==d->category)adapter=&a;
-          if(!adapter||!ClientEntityCommonFields(pointer,d->common_fields,true,s.reason)||
-             !adapter->fields(adapter->context,pointer,*d,true,s.reason)||!adapter->resources(adapter->context,pointer,*d,true,s.reason))return false;
-        }
-        auto &a=s.rows.GetAllocator();rapidjson::Value row(rapidjson::kObjectType);
-        const auto decimal=[&](std::uint64_t value){const auto text=std::to_string(value);return rapidjson::Value(text.c_str(),rapidjson::SizeType(text.size()),a);};
-        row.AddMember("run",decimal(key.run),a);row.AddMember("id",decimal(key.id),a);
-        row.AddMember("instance",decimal(instance),a);row.AddMember("shape",decimal(d->shape_revision),a);
-        row.AddMember("category",d->category,a);row.AddMember("type",type,a);
-        row.AddMember("variant",e._variant,a);row.AddMember("exists",e._exists,a);
-        row.AddMember("space",key.space,a);
-        rapidjson::Value fields(rapidjson::kObjectType);
-        for(const auto &f:d->common_fields){
-#define CS_ENTITY_FIELD(id,field,kind) if(f.member==id)ClientInspectField(fields,id,e.field,a);
-#define CS_ENTITY_RAW_FIELD(id,offset,type,kind) if(f.member==id)ClientInspectField(fields,id,*reinterpret_cast<const type *>(static_cast<const unsigned char *>(pointer)+offset),a);
-#define CS_ENTITY_SPECIAL_FIELD(id,kind)
-#include "game/client/entity/client_entity_fields.inc"
-#undef CS_ENTITY_FIELD
-#undef CS_ENTITY_RAW_FIELD
-#undef CS_ENTITY_SPECIAL_FIELD
-        }
-        if(d->derived)for(const auto &f:d->derived->fields){
-#define CS_CLASS_FIELD(cat,id,offset,type,kind) if(d->category==cat&&f.member==id)ClientInspectField(fields,id,*reinterpret_cast<const type *>(static_cast<const unsigned char *>(pointer)+offset),a);
-#include "game/client/entity/client_entity_class_fields.inc"
-#undef CS_CLASS_FIELD
-        }
-        row.AddMember("fields",std::move(fields),a);
-        s.rows.PushBack(std::move(row),a);return true;
-      }catch(...){return false;}
-    };
-    if(!ClientNativeObjectsVisit(objects,&state,visit))return "ok=0\nerror="+std::string(state.reason)+"\n";
-    rapidjson::StringBuffer text;rapidjson::Writer<rapidjson::StringBuffer> writer(text);state.rows.Accept(writer);
-    return "ok=1\nnative_checked=1\nobjects="+std::string(text.GetString(),text.GetSize())+"\n";
-  }catch(...){return "ok=0\nerror=inspect_allocation\n";}
-}
-// Grid存在性和描述从真实实例读取；完整专用字段/资源另经同owner只读后态核对。
-std::string ClientTestInspectGrids(const ClientNativeGrids *owner) noexcept {
- try{rapidjson::Document rows(rapidjson::kArrayType);
-  const auto visitor=[](void *context,void *pointer,const ClientObjectKey &key,std::uint64_t instance,unsigned) noexcept ->bool {
-   try{auto &rows=*static_cast<rapidjson::Document *>(context);auto &a=rows.GetAllocator();const auto &g=*static_cast<GridEntity *>(pointer);rapidjson::Value row(rapidjson::kObjectType);
-    ClientInspectField(row,"run",key.run,a);ClientInspectField(row,"id",key.id,a);ClientInspectField(row,"space",key.space,a);ClientInspectField(row,"instance",instance,a);
-    ClientInspectField(row,"index",g._gridIndex,a);ClientInspectField(row,"type",g._desc._type,a);ClientInspectField(row,"variant",g._desc._variant,a);ClientInspectField(row,"state",g._desc._state,a);ClientInspectField(row,"var_data",g._desc._varData,a);ClientInspectField(row,"spawn_seed",g._desc._spawnSeed,a);ClientInspectField(row,"collision",g._collisionClass,a);rows.PushBack(std::move(row),a);return true;
-   }catch(...){return false;}};
-  if(!ClientNativeGridsVisit(owner,&rows,visitor))return "ok=0\nerror=grid_inspect_owner\n";
-  rapidjson::StringBuffer text;rapidjson::Writer<rapidjson::StringBuffer> writer(text);rows.Accept(writer);return "ok=1\ngrid_native_checked=1\ngrids="+std::string(text.GetString(),text.GetSize())+"\n";
- }catch(...){return "ok=0\nerror=grid_inspect_allocation\n";}
-}
 namespace {void *dummy_source_factory=nullptr;bool dummy_source_used=false;}
 // 仅在一个显式Source Lua调用栈内替换通用Factory选择；保留外层官方New/Init/Publish。
 bool ClientTestDummyAcquire(void *factory,unsigned type,bool,void *&result) noexcept {

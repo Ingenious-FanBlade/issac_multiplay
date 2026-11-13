@@ -16,7 +16,7 @@ auto IdentityKey(const PresentationMember &member) {return std::tuple(member.spa
 auto MemberKey(const PresentationMember &member) {return std::pair(member.space,member.id);}
 bool BytesEqual(std::span<const std::byte> a,std::span<const std::byte> b) {return std::equal(a.begin(),a.end(),b.begin(),b.end());}
 std::uint32_t Mask(std::uint16_t id,BodyStream stream) {
-  const auto *layout=FindLayout(id);if(!layout || layout->protocol || layout->block_count>32)Fail(StateReadiness::InvalidReference,"shadow_root_layout",kNullIndex,id);
+  const auto *layout=FindLayout(id);if(!layout || !IsStateMemberLayout(id) || layout->block_count>32)Fail(StateReadiness::InvalidReference,"shadow_root_layout",kNullIndex,id);
   std::uint32_t mask=0;for(unsigned i=0;i<layout->block_count;++i){const auto &block=Blocks()[layout->first_block+i];
     if(block.max_size && block.body==(stream==BodyStream::Body))mask|=std::uint32_t{1}<<i;}return mask;
 }
@@ -110,31 +110,20 @@ const ClientResourceSnapshotRef &ClientShadowState::Resources() const noexcept {
 struct ClientShadowPacket final {
   explicit ClientShadowPacket(const std::shared_ptr<ClientStateMemory> &memory)
       :bytes(ClientStateAllocator<std::byte>(memory,memory::Pool::Wire)),records(ClientStateAllocator<StateRecordPayload>(memory)),
-       groups(ClientStateAllocator<ResultGroupView>(memory)),events(ClientStateAllocator<PresentationAudioEvent>(memory)),
-       dependencies(ClientStateAllocator<ResultDependency>(memory)),contributions(ClientStateAllocator<ResultContribution>(memory)) {}
+       events(ClientStateAllocator<PresentationAudioEvent>(memory)) {}
   ClientStateVector<std::byte> bytes;
   ClientStateVector<StateRecordPayload> records;
-  ClientStateVector<ResultGroupView> groups;
   ClientStateVector<PresentationAudioEvent> events;
-  ClientStateVector<ResultDependency> dependencies;
-  ClientStateVector<ResultContribution> contributions;
   StateFrameView frame;
   StateTarget target;
   void Freeze(const StateRoute &route,const StateFrameView &source) {
-    std::size_t nr=0,ng=0,ne=0,nd=0,nc=0;
-    for(unsigned i=0;i<source.section_count;++i){const auto &s=source.sections[i];nr+=s.records.size();ng+=s.presentation.groups.size();ne+=s.presentation.events.size();
-      for(const auto &g:s.presentation.groups){nd+=g.dependencies.size();nc+=g.contributions.size();}}
-    records.reserve(nr);groups.reserve(ng);events.reserve(ne);dependencies.reserve(nd);contributions.reserve(nc);frame=source;
-    for(unsigned i=0;i<source.section_count;++i){const auto &s=source.sections[i];const auto r=records.size(),g=groups.size(),e=events.size();
+    std::size_t nr=0,ne=0;
+    for(unsigned i=0;i<source.section_count;++i){nr+=source.sections[i].records.size();ne+=source.sections[i].presentation.events.size();}
+    records.reserve(nr);events.reserve(ne);frame=source;
+    for(unsigned i=0;i<source.section_count;++i){const auto &s=source.sections[i];const auto r=records.size(),e=events.size();
       records.insert(records.end(),s.records.begin(),s.records.end());
-      for(const auto &incoming:s.presentation.groups){auto value=incoming;const auto d=dependencies.size(),c=contributions.size();
-        dependencies.insert(dependencies.end(),incoming.dependencies.begin(),incoming.dependencies.end());
-        contributions.insert(contributions.end(),incoming.contributions.begin(),incoming.contributions.end());
-        value.dependencies=std::span<const ResultDependency>(dependencies).subspan(d,incoming.dependencies.size());
-        value.contributions=std::span<const ResultContribution>(contributions).subspan(c,incoming.contributions.size());groups.push_back(value);}
       events.insert(events.end(),s.presentation.events.begin(),s.presentation.events.end());
       frame.sections[i].records=std::span<const StateRecordPayload>(records).subspan(r,s.records.size());
-      frame.sections[i].presentation.groups=std::span<const ResultGroupView>(groups).subspan(g,s.presentation.groups.size());
       frame.sections[i].presentation.events=std::span<const PresentationAudioEvent>(events).subspan(e,s.presentation.events.size());}
     frame.encoded=bytes;target=DescribeStateTarget(route,frame);
   }
@@ -150,32 +139,24 @@ namespace {
 struct ShadowScratch final {
   template<class T> using Vector=ClientStateVector<T>;
   Vector<StateRecordPayload> records;
-  Vector<ResultGroupView> groups;
   Vector<PresentationAudioEvent> events;
-  Vector<ResultDependency> dependencies;
-  Vector<ResultContribution> contributions;
-  Vector<ContributionTarget> targets;
-  Vector<std::uint16_t> member_order,dependency_order,contribution_order;
+  Vector<std::uint16_t> member_order;
   Vector<ProjectionFact> facts,combined;
   Vector<BodyFieldView> fields;
   Vector<std::byte> merged;
   explicit ShadowScratch(const std::shared_ptr<ClientStateMemory> &memory,std::size_t size)
-      :records(ClientStateAllocator<StateRecordPayload>(memory,memory::Pool::Workspace)),groups(ClientStateAllocator<ResultGroupView>(memory,memory::Pool::Workspace)),
-       events(ClientStateAllocator<PresentationAudioEvent>(memory,memory::Pool::Workspace)),dependencies(ClientStateAllocator<ResultDependency>(memory,memory::Pool::Workspace)),
-       contributions(ClientStateAllocator<ResultContribution>(memory,memory::Pool::Workspace)),targets(ClientStateAllocator<ContributionTarget>(memory,memory::Pool::Workspace)),
-       member_order(ClientStateAllocator<std::uint16_t>(memory,memory::Pool::Workspace)),dependency_order(ClientStateAllocator<std::uint16_t>(memory,memory::Pool::Workspace)),
-       contribution_order(ClientStateAllocator<std::uint16_t>(memory,memory::Pool::Workspace)),facts(ClientStateAllocator<ProjectionFact>(memory,memory::Pool::Workspace)),
+      :records(ClientStateAllocator<StateRecordPayload>(memory,memory::Pool::Workspace)),
+       events(ClientStateAllocator<PresentationAudioEvent>(memory,memory::Pool::Workspace)),
+       member_order(ClientStateAllocator<std::uint16_t>(memory,memory::Pool::Workspace)),
+       facts(ClientStateAllocator<ProjectionFact>(memory,memory::Pool::Workspace)),
        combined(ClientStateAllocator<ProjectionFact>(memory,memory::Pool::Workspace)),fields(ClientStateAllocator<BodyFieldView>(memory,memory::Pool::Workspace)),
        merged(ClientStateAllocator<std::byte>(memory,memory::Pool::Workspace)) {
     records.resize((std::min)(std::size_t(kW_frame_records),size/kW_StateRecordHeaderBytes));member_order.resize(records.size());
-    groups.resize((std::min)(std::size_t(kW_max_result_groups),size/kW_StateResultGroupHeaderBytes));
     events.resize((std::min)(std::size_t(kW_max_audio_events),size/kW_StateAudioEventHeaderBytes));
-    dependencies.resize((std::min)(std::size_t(kW_max_result_dependencies),size/kW_StateDependencyEntryBytes));dependency_order.resize(dependencies.size());
-    contributions.resize((std::min)(std::size_t(kW_max_result_contributions),size/kW_StateContributionEntryBytes));contribution_order.resize(contributions.size());targets.resize(contributions.size());
     fields.resize(BodySourceMaximumFields());
   }
   BodyCodecScratch Body(BodyNodeObserver *observer=nullptr) {BodyCodecScratch body;body.facts=facts;body.root_fields=fields;body.observer=observer;return body;}
-  StateFrameScratch Frame() {return {records,groups,events,member_order,{dependencies,contributions,targets,dependency_order,contribution_order,Body()}};}
+  StateFrameScratch Frame() {return {records,events,member_order,Body()};}
   void Grow(const BodyScratchError &error,BodyCodecLimits limits) {
     const auto maximum=error.Region()==BodyScratchRegion::Facts?limits.field_visits:BodySourceMaximumFields();
     const auto current=error.Region()==BodyScratchRegion::Facts?facts.size():fields.size();

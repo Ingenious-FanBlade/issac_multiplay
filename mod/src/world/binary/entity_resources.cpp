@@ -2,6 +2,32 @@
 #include <cmath>
 
 namespace cs::world::binary {
+// 接受点已复制的音频路径可延后登记；只建立自有资源描述，不复读生命周期内的旧sample。
+bool EntitySource::DisplayAudioPathResource(const CaptureWitness &w,EntityFacts f,std::span<const std::byte> path,CaptureLink &out,CaptureDiagnostic &d) noexcept {
+  auto &s=*impl_;if(s.active||std::this_thread::get_id()!=s.thread||!s.services.current(s.services.owner,w,f))return FailCapture(d,CaptureFailure::InvalidWindow,{f.subject});
+  s.facts=f;s.window.witness=w;
+  std::array<std::byte,4096> bytes{};if(path.empty()||path.size()>bytes.size())return FailCapture(d,CaptureFailure::ResourcePending,{f.subject});
+  std::copy(path.begin(),path.end(),bytes.begin());for(auto &v:std::span(bytes).first(path.size()))if(v==std::byte{'\\'})v=std::byte{'/'};
+  const std::string_view text(reinterpret_cast<const char *>(bytes.data()),path.size());
+  if(!(text.starts_with("sfx/")||text.starts_with("music/"))||text.find("..")!=text.npos||text.find_first_of(":<>\"|?*")!=text.npos||
+     !(text.ends_with(".wav")||text.ends_with(".ogg")||text.ends_with(".mp3")))return FailCapture(d,CaptureFailure::ResourcePending,{f.subject});
+  NativeResource value;value.table=7;value.kind=9;return s.Intern(value,std::span(bytes).first(path.size()),{},out,d);
+}
+// 只解析正常来源已经选出的配置，不调用配置生成器或Lua，不传原生地址。
+bool EntitySource::DisplayItemResource(const CaptureWitness &w,EntityFacts f,std::uint32_t config,CaptureLink &out,CaptureDiagnostic &d) noexcept {
+  auto &s=*impl_;if(s.active || std::this_thread::get_id()!=s.thread)return FailCapture(d,CaptureFailure::InvalidWindow,{f.subject});
+  s.facts=f;s.active=true;s.scratch_used=s.witness_used=0;
+  struct End{bool &active;~End(){active=false;}}end{s.active};
+  s.window={s.thread,w,&s,[](void *p,const CaptureWitness &v,const CaptureRoot &r) noexcept {return static_cast<Impl *>(p)->Current(v,r);},nullptr};
+  return s.ItemResource(config,out,d);
+}
+bool EntitySource::DisplayProceduralAtlas(const CaptureWitness &w,EntityFacts f,std::uint32_t image,CaptureLink &out,CaptureDiagnostic &d) noexcept {
+  auto &s=*impl_;if(s.active||std::this_thread::get_id()!=s.thread)return FailCapture(d,CaptureFailure::InvalidWindow,{f.subject});
+  s.facts=f;s.active=true;s.scratch_used=s.witness_used=0;
+  struct End{bool &active;~End(){active=false;}}end{s.active};
+  s.window={s.thread,w,&s,[](void *p,const CaptureWitness &v,const CaptureRoot &r) noexcept {return static_cast<Impl *>(p)->Current(v,r);},nullptr};
+  return s.ImageResource(image,out,d);
+}
 namespace {
 // VFS相对路径只按已知分隔符规范化，不推测磁盘根、Mod覆盖或程序纹理内容。
 bool Vfs(std::span<std::byte> bytes,std::uint8_t kind) noexcept {
@@ -62,18 +88,44 @@ bool EntitySource::Impl::FileResource(std::uint32_t address,bool selected,Captur
   auto path=std::span(bytes).first(size);if(!Vfs(path,0))return FailCapture(d,CaptureFailure::ResourcePending,{facts.subject});
   NativeResource value;value.table=2;value.kind=0;return Intern(value,path,{},out,d);
 }
+// 只解释已核四种Image的尺寸getter对应成员，不执行虚函数或GPU读回。
+bool EntitySource::Impl::ImageGeometry(std::uint32_t image,std::array<std::uint32_t,4> &geometry,CaptureDiagnostic &d) noexcept {
+  std::uint32_t type=0;if(!Value(image,type,d))return false;
+  if(type==memory.image_base+0x73ba80){std::array<std::uint16_t,4> values{};if(!Value(std::uint64_t(image)+128,values,d))return false;std::copy(values.begin(),values.end(),geometry.begin());}
+  else if(type==memory.image_base+0x73b8ec){if(!Value(std::uint64_t(image)+256,geometry,d))return false;}
+  else if(type==memory.image_base+0x73bcac){if(!Value(std::uint64_t(image)+128,geometry,d))return false;}
+  else if(type==memory.image_base+0x73bc14){std::array<std::uint16_t,2> logical{};std::array<std::uint32_t,2> stored{};
+    if(!Value(std::uint64_t(image)+128,logical,d) || !Value(std::uint64_t(image)+132,stored,d))return false;geometry={logical[0],logical[1],stored[0],stored[1]};}
+  else return FailCapture(d,CaptureFailure::ResourcePending,{facts.subject});
+  if(!geometry[0] || !geometry[1] || geometry[0]>geometry[2] || geometry[1]>geometry[3] || geometry[2]>65535 || geometry[3]>65535)
+    return FailCapture(d,CaptureFailure::InvalidValue,{facts.subject});return true;
+}
 // PNG为四个u16(+80..86)，PCX为四个u32(+100..10C)；按实际vtable区分，不执行虚getter。
 bool EntitySource::Impl::ImageResource(std::uint32_t address,CaptureLink &out,CaptureDiagnostic &d) noexcept {
   out={CapturedReferenceKind::Null,0};if(!address)return true;std::uint32_t vtable=0,name=0;
   std::array<std::uint32_t,4> geometry{};
   std::uint64_t flags=0;if(!Value(std::uint64_t(address)+16,flags,d))return false;
   if(flags&2){std::uint32_t shape=0;if(!Value(std::uint64_t(memory.image_base)+0x7e743c,shape,d))return false;
+    if(facts.scene){
+      // Game+669C8／669D0 是程序道具两张原生图集。资源目录只描述本地分配，不发画面或强引用。
+      for(unsigned size:{1024u,512u}){
+        std::uint32_t atlas=0;
+        if(!Value(std::uint64_t(facts.scene->game)+(size==1024?0x669c8:0x669d0),atlas,d))return false;
+        if(address!=atlas)continue;
+        if(!ImageGeometry(address,geometry,d)||geometry!=std::array<std::uint32_t,4>{size,size,size,size})
+          return FailCapture(d,CaptureFailure::InvalidValue,{facts.subject});
+        NativeSurfaceOperation clear;
+        NativeResource value;value.table=1;value.kind=4;
+        std::copy(geometry.begin(),geometry.end(),value.values.begin());value.values[4]=1;value.values[5]=1;
+        return Intern(value,std::as_bytes(std::span(&clear,1)),{},out,d);
+      }
+    }
     if(address==shape){if(!ImageGeometry(address,geometry,d))return false;
       // 原生Shape Renderer在A2AB60以白色创建；本地固定Clear recipe，无纹理字节／下载。
       NativeSurfaceOperation clear;clear.colors[0]={0x3f800000,0x3f800000,0x3f800000,0x3f800000,0};
       NativeResource value;value.table=1;value.kind=4;std::copy(geometry.begin(),geometry.end(),value.values.begin());value.values[4]=1;value.values[5]=1;
       return Intern(value,std::as_bytes(std::span(&clear,1)),{},out,d);}
-    return ProgramImage(address,out,d);}
+    return FailCapture(d,CaptureFailure::ResourcePending,{facts.subject});}
   if(!Value(address,vtable,d) || (vtable!=memory.image_base+0x73ba80 && vtable!=memory.image_base+0x73b8ec) ||
      !Value(std::uint64_t(address)+0x3c,name,d) || !name)
     return FailCapture(d,CaptureFailure::ResourcePending,{facts.subject});
@@ -96,7 +148,7 @@ bool EntitySource::Impl::ItemResource(std::uint32_t address,CaptureLink &out,Cap
   // 配置资源的图像未必已经成为Image实例；保留真实路径和显式待准备几何，交后续资源owner。
   std::array<std::byte,4096> bytes{};std::uint32_t size=0;CaptureLink image,costume;
   if(!StringAt(address+0x38,bytes,size,d))return false;
-  if(size){auto path=std::span(bytes).first(size);if(!Vfs(path,1))return FailCapture(d,CaptureFailure::ResourcePending,{facts.subject});
+  if(size&&!(value.values[1]&0x80000000u)){auto path=std::span(bytes).first(size);if(!Vfs(path,1))return FailCapture(d,CaptureFailure::ResourcePending,{facts.subject});
     NativeResource pending;pending.table=1;pending.kind=1;pending.metadata_known=false;
     if(!Intern(pending,path,{},image,d))return false;value.links[0]=image.handle;}
   if(!FileResource(address+0x84,false,costume,d))return false;value.links[1]=costume.handle;

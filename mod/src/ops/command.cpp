@@ -13,7 +13,6 @@
 #include "ops/world_commands.h"
 #ifdef ISAACCS_E2E
 #include "net/live.h"
-#include "ops/client_fixture.h"
 #include "ops/e2e_ui.h"
 #include "replica/stream_e2e.h"
 #include "game/tests/client_entity_e2e.h"
@@ -71,7 +70,7 @@ std::string status_snapshot =
 std::string counter_snapshot;
 std::string last_error;
 replica::stream::Metrics command_metrics;
-std::string state() {
+std::string SessionStateName() {
   for (auto c : Capabilities)
     if (!c)
       return "Disabled";
@@ -121,7 +120,6 @@ std::string Execute(std::string_view text, const char *source) {
     else if(mode=="trace"&&(in>>x)&&!(in>>tail))result=replica::stream::E2ETracePage(x);
     else if(mode=="clock"&&!(in>>tail))result="ok=1\nlocal_us="+std::to_string(replica::stream::MetricMicros())+"\n"+E2eUiFields();
     else if(mode=="visual"&&(in>>role)&&(role=="on"||role=="off")&&!(in>>tail)){replica::stream::E2EVisual(role=="on");result="ok=1\nvisual_neutral_only=1\n";}
-    else if(mode=="reject"&&(in>>x>>role)&&x>=18&&x<=20&&!(in>>tail))result=game::ClientTestStreamReject(token,unsigned(x),role);
     else if(mode=="wire"&&(in>>role)&&!(in>>tail)){replica::stream::E2EWireArm(role);result="ok=1\n";}
     else if(mode=="wire-status"&&!(in>>tail))result=replica::stream::E2EWireStatus();
     else if(mode=="hello"&&(in>>x)&&!(in>>tail))result=replica::stream::E2EHelloPackets(x,net::live::E2EHandshakeCapabilities());
@@ -129,8 +127,6 @@ std::string Execute(std::string_view text, const char *source) {
       // 只损伤诊断，不撤销来源、Scene或网络；E18仍须看到后续真实提交推进。
       replica::stream::E2EObservationLoss();game::ClientIsolationObserve(game::ClientIsolationKind::ObservationLost,"e2e_observation_loss");result="ok=1\nobservation_loss_notified=1\n";
     }
-    else if(mode=="snapshot"&&(in>>x>>y)&&x<=UINT32_MAX&&y<=UINT32_MAX&&!(in>>tail))result=replica::stream::E2ESnapshotPage(unsigned(x),unsigned(y));
-    else if(mode=="arm"&&(in>>role>>x>>y)&&x<=6&&!(in>>tail)){replica::stream::E2EArm(role,unsigned(x),y);result="ok=1\n";}
     else result="ok=0\nerror=stream_test_arguments\n";
     }catch(const std::exception &e){result="ok=0\nerror="+std::string(e.what())+"\n";}catch(...){result="ok=0\nerror=stream_test_diagnostic_allocation\n";}
   }
@@ -147,69 +143,15 @@ std::string Execute(std::string_view text, const char *source) {
                  ? "ok=0\nerror=arguments\n"
                  : TestWorldCommand(source, token, generation, mode, value);
   } else if (verb == "client_test") {
-    // 测试口只接收专用目录内的正式纯值模型；没有任意原生写入或执行脚本能力。
     std::string token,mode,label,trailing;in>>token>>mode>>label>>trailing;
     if(mode=="fault"&&trailing.empty())result=game::ClientEntityTestArm(token,label);
     else if(mode=="player-fault"&&trailing.empty())result=game::ClientPlayerTestArm(token,label);
     else if(mode=="player-fault-status"&&label.empty())result=game::ClientPlayerTestStatus(token);
     else if(mode=="fault-status"&&label.empty())result=game::ClientEntityTestStatus(token);
-    else if(mode=="inspect"&&label.empty())result=game::ClientTestInspect(token);
-    else if(mode=="independent"&&trailing.empty())result=ImportClientIndependent(token,label);
-    else if(mode=="export19"&&trailing.empty())result=ExportClientFixture(token,label,true);
-    else if(mode=="sampling"&&trailing.empty())result=ClientFixtureSampling(token,label);
-    else if(mode=="export"&&trailing.empty())result=ExportClientFixture(token,label);
     else if(mode=="exercise"&&label=="native"&&trailing.empty())result=game::ClientTestExerciseNative(token);
     else if(mode=="exercise"&&label=="ownership"&&trailing.empty())result=game::ClientTestExerciseOwnership(token);
     else if(mode=="exercise"&&label=="vm"&&trailing.empty())result=game::ClientTestExerciseVm(token);
-    else if(!IsMain()||game::TopOwner()!=Owner::Manager||Settings.world_e2e_token.empty()||
-       token!=Settings.world_e2e_token||!trailing.empty()||(mode!="negotiate"&&mode!="preflight"&&mode!="begin"&&mode!="begin-cancel"&&mode!="begin-cancel-native"&&mode!="begin-cancel-grid"&&mode!="begin-cancel-display"&&mode!="target")||
-       label.empty()||label.size()>64||label.find_first_not_of("abcdefghijklmnopqrstuvwxyz0123456789-_")!=std::string::npos)
-      result="ok=0\nerror=client_fixture_arguments\n";
-    else try {
-      const auto root=std::filesystem::canonical(std::filesystem::path(Settings.world_output_dir)/"client-targets");
-      const auto path=std::filesystem::canonical(root/(label+".json"));
-      if(path.parent_path()!=root||std::filesystem::file_size(path)>(32u<<20))throw std::runtime_error("client_fixture_path_or_budget");
-      std::ifstream file(path,std::ios::binary);if(!file)throw std::runtime_error("client_fixture_read");
-      std::string text((std::istreambuf_iterator<char>(file)),{});auto model=replica::Parse(text);
-      if(mode=="negotiate"){
-        try{auto result_caps=replica::Negotiate(replica::Capabilities(),model);result="ok=1\naccepted=1\n";}
-        catch(const std::exception &e){result="ok=1\naccepted=0\nreason="+std::string(e.what())+"\n";}
-      }else {
-      // E2E投影说明是本地元数据，不扩展15的Baseline协议字段；实际目标完整走codec。
-      replica::Json profile;const bool projected=model.HasMember("client_profile");
-      if(projected){profile=replica::Copy(model["client_profile"]);model.RemoveMember("client_profile");}
-      const auto sequence=replica::Unsigned(model["revision"]);
-      {
-        // Message包含内存租约字段，显式填写消息语义，避免旧聚合位置误绑到租约。
-        game::ClientEntityTestMeasure measure("codec_baseline");
-        replica::Message message;message.kind=replica::Kind::Baseline;message.sequence=sequence;message.body=std::move(model);
-        model=replica::Decode(replica::Encode(message)).body;
-      }
-      if(projected){replica::Value v;v.CopyFrom(profile,model.GetAllocator());replica::Put(model,"client_profile",std::move(v),model.GetAllocator());}
-      replica::ValidateModel(model);const auto scope=replica::ReadScope(model["scope"]);
-      const auto revision=replica::Unsigned(model["revision"]);
-      if(mode=="preflight"){
-        // 只在E2E内完整调用正式纯值接纳；这个临时Scene不注册到runtime且永不Pump。
-        // 可一次报告全部来源的写前问题，不把接纳成功当原生安装/像素通过。
-        game::ClientScene candidate;candidate.Begin(scope);
-        const bool admitted=candidate.AdmitTarget(scope,revision,model);const auto state=candidate.Result();
-        if(state.native_written||state.executed_prefix||state.native_committed)throw std::runtime_error("fixture_preflight_wrote_native");
-        result=std::string("ok=1\naccepted=")+(admitted?"1":"0")+"\nreason="+state.reason.data()+"\n";
-      }else{
-      const auto *error=mode!="target"?game::ClientTestBegin(token,scope):"";
-      if(error&&*error)result="ok=0\nerror="+std::string(error)+"\n";
-      else {
-        const bool admitted=game::ClientAdmitTarget(scope,revision,model);
-        result=admitted?"ok=1\naccepted=1\n":"ok=1\naccepted=0\n";
-        // 同一真实Manager命令内在Admit之后取消，避免IPC耗时使准备中测试误跑成展示中。
-        if(admitted&&mode=="begin-cancel"){game::StopClient();result+="cancelled_before_pump=1\n";}
-        if(admitted&&(mode=="begin-cancel-native"||mode=="begin-cancel-grid"||mode=="begin-cancel-display")){
-          if(!game::ClientTestCancelAfter(token,mode=="begin-cancel-native"?1:mode=="begin-cancel-grid"?2:3))result="ok=0\nerror=cancel_arm_failed\n";
-        }
-      }
-      }
-      }
-    }catch(const std::exception &e){result="ok=0\nerror="+std::string(e.what())+"\n";}
+    else result="ok=0\nerror=client_test_arguments\n";
   }
 #endif
   else if (verb == "client") {
@@ -223,7 +165,7 @@ std::string Execute(std::string_view text, const char *source) {
     if(!key_text.empty()) {const auto k=std::from_chars(key_text.data(),key_text.data()+key_text.size(),key);
       valid=valid&&k.ec==std::errc{}&&k.ptr==key_text.data()+key_text.size()&&key>=0&&key<=255;}
     if(!valid)result="ok=0\nerror=arguments\n";
-    else if(state()=="Disabled")result="ok=0\nerror=capabilities_unavailable\n";
+    else if(SessionStateName()=="Disabled")result="ok=0\nerror=capabilities_unavailable\n";
     else if(game::Busy()||game::ClientBusy()||pending_host_start||pending_solo_start||pending_client_start||WorldCommandBusy()||pending_world_start)
       result="ok=0\nerror=busy\n";
     else if(game::RunActive())result="ok=0\nerror=client_requires_stable_menu\n";
@@ -362,7 +304,7 @@ std::string Execute(std::string_view text, const char *source) {
       valid = valid && arg.empty() && extra.empty();
     if (!valid)
       result = "ok=0\nerror=arguments\n";
-    else if ((verb == "host" || start_solo) && state() == "Disabled")
+    else if ((verb == "host" || start_solo) && SessionStateName() == "Disabled")
       result = "ok=0\nerror=capabilities_unavailable\n";
     else if (((verb == "host" || start_solo) &&
               (game::Busy() || game::ClientBusy() || pending_client_start || pending_host_start || pending_solo_start)) ||
@@ -505,7 +447,7 @@ void PublishStatus() noexcept {
     const bool run =
         game && *reinterpret_cast<bool *>(game + offset::RunActive);
     std::string s =
-        "ok=1\nstatus_version=1\nstate=" + state() +
+        "ok=1\nstatus_version=1\nstate=" + SessionStateName() +
         "\nframe=" + std::to_string(frame) + "\ng_game=" + (game ? "1" : "0") +
         "\nrun_active=" + (run ? "1" : "0") +
         "\ndiagnostics_enabled=" + (Settings.diagnostics ? "1" : "0") +
@@ -567,7 +509,7 @@ void FrameBegin() noexcept {
     // N 帧收到的变更在 N+1 帧入口执行，下面取出的端口请求不能抢跑。
     Mutation m{};
     for (unsigned i = 0; i < 64 && mutations.Pop(m); ++i) {
-      const std::string before = state();
+      const std::string before = SessionStateName();
       last_error.clear();
       // 关闭请求已在 main 捕获后，旧会话启动命令不能在延后的原生循环中复活。
       if (WorldProcessExitPending() && (m.kind == Mutation::Kind::Host ||
@@ -625,7 +567,7 @@ void FrameBegin() noexcept {
       }
       Trace("state",
             "id=%llu from=%s to=%s port=%u character=%d frame=%llu error=%s",
-            m.id, before.c_str(), state().c_str(), m.port, m.character, frame,
+            m.id, before.c_str(), SessionStateName().c_str(), m.port, m.character, frame,
             last_error.c_str());
     }
     PortRequest request{};

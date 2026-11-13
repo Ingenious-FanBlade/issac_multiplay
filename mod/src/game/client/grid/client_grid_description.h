@@ -1,9 +1,11 @@
 #pragma once
-#include "game/client/entity/client_objects_native.h"
+#include "game/client/common/client_object_key.h"
+#include "game/client/resources/client_resources.h"
 #include <array>
 #include <cstdint>
 #include <memory>
 #include <optional>
+namespace cs::state {class ClientStateMemory;}
 
 namespace cs::game {
 // 语义角色在生成时解析为真实布局字段索引；运行访问不比较字符串或猜原生偏移。
@@ -94,12 +96,13 @@ public:
   // 返回同一负载owner及其计费量；汇总计量用owner去重，复制描述不重复收费。
   const void *StorageOwner() const noexcept;
   std::uint64_t StorageBytes() const noexcept;
+  long StorageReferences()const noexcept;
 private:
-  friend ClientGridDescription ClientDescribeGrid(const ClientGridShadowRecordView &, std::uint32_t);
+  friend ClientGridDescription ClientDescribeGrid(const ClientGridShadowRecordView &, std::uint32_t,std::shared_ptr<state::ClientStateMemory>);
   explicit ClientGridDescription(std::shared_ptr<const ClientGridShadowStorage>) noexcept;
   std::shared_ptr<const ClientGridShadowStorage> storage_;
 };
 // 根记录结构检查与纯值描述生成；不替代第12步ANM2／资源递归校验，不写世界、不回ACK。
 // 上限只能收紧32MiB world消息预算；所有自有负载同时计入现有Values池。
-ClientGridDescription ClientDescribeGrid(const ClientGridShadowRecordView &, std::uint32_t byte_limit=32u<<20);
+ClientGridDescription ClientDescribeGrid(const ClientGridShadowRecordView &, std::uint32_t byte_limit=32u<<20,std::shared_ptr<state::ClientStateMemory> memory={});
 } // namespace cs::game

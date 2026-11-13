@@ -1,5 +1,7 @@
 # 9：线格式
 
+**2026-11-13 Host发布接线**：ICSR flags=1直接承载现行二进制公共头／正文，flags=0保留compact控制；标记来自`wire.json`，Frame／Members／Resources为21／22／23。Host精确协商binary-state=1与布局74，详情见[第11步实施](implementation-11-worker-peer-publish.md)。Client完整接收安装未完成，未运行测试。
+
 **2026-11-12 显示委托修订**：
 
 - **保留**：帧头、记录、块、zstd 与 ACK。帧头 game_frame 同时作为 Client 帧号（方案B）。

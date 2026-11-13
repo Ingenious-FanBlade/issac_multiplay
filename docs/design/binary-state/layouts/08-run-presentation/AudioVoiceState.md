@@ -1,6 +1,8 @@
 # AudioVoiceState
 
-由唯一布局源生成。布局编号 382；布局版本 71；原生大小 0x0；未知 0B；完整：是。
+由唯一布局源生成。布局编号 382；布局版本 75；原生大小 0x0；未知 0B；需求覆盖：完整。
+
+需求覆盖只表示清单字段已生成计划，不表示原生字节全部已知、Host/Client处理器已接通或第15步验收通过。旧成员映射与原生说明保留为参照，当前发送字段以下方状态表为准。
 
 具名显示结果合同（接线声明，不表示运行实现）：
 
@@ -14,20 +16,16 @@
 | 纯C/S协议记录：没有原生对象字节，不得向游戏地址加偏移 |
 |---|
 
-状态二进制布局（总计 23—23B，不含第 9 步记录头）：
+状态二进制布局（总计 0—0B，不含第 9 步记录头）：
 
-块 0：AudioVoiceState具名当前结果（world，23—23B）：
+块 0：AudioVoiceState具名当前结果（world，0—0B）：
 
-| +0x0 u32（C/S自有元数据，无原生偏移） logical_start_frame：来源已确认的逻辑段起点；不使用MusicStream+2C更新计数或硬件播放位置。 | +0x4 AudioVoiceParameters（见该类型状态表）（伴随源，无根对象偏移） parameters：当前仍有world用途的逻辑voice，包括零gain并存声部和仍需控制的one-shot。 |
-|---|---|
+| 无发送字节：显式预留块 |
+|---|
 
 证据：
 
 
-
-伴随来源（不属于上述原生对象字节）：
-
-- `parameters` → `AudioVoiceParameters`：当前仍有world用途的逻辑voice，包括零gain并存声部和仍需控制的one-shot。；docs/design/binary-state/8-run-presentation.md；presentation-result-batches.md；presentation-source-synchronization-review.md（已核）
 
 逐行公开目录回映射（来源目录＋一基行号；保留重载和原签名）：
 

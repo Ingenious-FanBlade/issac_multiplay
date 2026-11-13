@@ -1,6 +1,7 @@
 #include "replica/stream_transport.h"
 #include "replica/stream_metrics.h"
 #include "state/budget.h"
+#include "state/host_publish.h"
 #define ZSTD_STATIC_LINKING_ONLY
 #include <zstd.h>
 #include <algorithm>
@@ -117,8 +118,9 @@ SharedBlob EncodeBlob(const Message &m,bool compress,Limits limits){
   auto workspace=memory::Reserve(memory::Pool::Workspace,0);const auto started=Micros(),cpu_started=ThreadCpuMicros();auto wire=Encode(m,limits,workspace);const auto encoded=Micros(),cpu_encoded=ThreadCpuMicros();workspace->Resize(wire.capacity());
   // 路由封套不属于共享内容；接收端按已经授权的分片头恢复这16字节再做严格解码。
   Set(wire,24,0);Set(wire,32,0);
-  auto blob=std::make_shared<Blob>();blob->decoded_bytes=std::uint32_t(wire.size());blob->sequence=m.sequence;blob->kind=m.kind;blob->lane=lane;if(m.range){blob->range_id=m.range->id;blob->sample=m.range->sample;}blob->encode_us=encoded-started;if(cpu_started!=UINT64_MAX&&cpu_encoded!=UINT64_MAX&&cpu_encoded>=cpu_started)blob->encode_cpu_us=cpu_encoded-cpu_started;
-  if(WorldLane(lane)){if(m.range)blob->world=m.range->world;else {const auto &w=m.body["world"];blob->world={Unsigned(w["session"]),Unsigned(w["run"]),Unsigned(w["floor"]),Unsigned(w["dimension"]),Unsigned(w["room"]),Unsigned(w["scene"])};}}
+  auto blob=std::make_shared<Blob>();blob->decoded_bytes=std::uint32_t(wire.size());blob->sequence=m.sequence;blob->kind=m.kind;blob->lane=lane;blob->encode_us=encoded-started;if(cpu_started!=UINT64_MAX&&cpu_encoded!=UINT64_MAX&&cpu_encoded>=cpu_started)blob->encode_cpu_us=cpu_encoded-cpu_started;
+  if(WorldLane(lane)){if(m.state_body)blob->world=StateMessageScope(m);
+    else {const auto &w=m.body["world"];blob->world={Unsigned(w["session"]),Unsigned(w["run"]),Unsigned(w["floor"]),Unsigned(w["dimension"]),Unsigned(w["room"]),Unsigned(w["scene"])};}}
   if(compress){
     const auto bound=ZSTD_compressBound(wire.size());Z(bound,"zstd_compress_bound");blob->memory=memory::Reserve(memory::Pool::Wire,bound+sizeof(Blob));blob->bytes.resize(bound);
     if(WorldBodyLane(lane)){
@@ -153,7 +155,7 @@ std::vector<std::vector<std::uint8_t>> Unbundle(std::span<const std::uint8_t> b)
 std::vector<std::vector<std::uint8_t>> Bundle(const std::vector<std::vector<std::uint8_t>> &packets){
   std::vector<std::vector<std::uint8_t>> out;std::vector<std::uint8_t> current;std::uint64_t connection=0,route=0;unsigned count=0;
   const auto flush=[&]{if(!count)return;current[24]=std::uint8_t(count);out.push_back(std::move(current));current.clear();count=0;};
-  for(const auto &p:packets){const auto h=ReadHeader(p);if(h.count!=1||h.codec!=Codec::None||!h.connection||p.size()<106){flush();out.push_back(p);continue;}
+  for(const auto &p:packets){const auto h=ReadHeader(p);if(h.count!=1||h.codec!=Codec::None||!h.connection||p.size()<106||p[75]){flush();out.push_back(p);continue;}
     const auto payload=p.size()-104;
     if(count&&(h.connection!=connection||h.route!=route||current.size()+22+payload>1200||count==16))flush();
     if(!count){connection=h.connection;route=h.route;current={'I','C','R','B'};U(current,kFraming,2);U(current,28,2);U(current,connection,8);U(current,route,8);U(current,0,2);U(current,0,2);}
@@ -214,7 +216,7 @@ bool Reassembler::Receive(std::span<const std::uint8_t> b,std::uint64_t now,Mess
     }else decoded=c.bytes;
     if(decoded.size()<40)Fail("stream_decoded_header");for(unsigned j=24;j<40;++j)if(decoded[j])Fail("stream_shared_envelope");Set(decoded,24,h.connection);Set(decoded,32,h.route);
     auto message=stream::Decode(decoded,limits);if(message.kind!=h.kind||MessageLane(message)!=h.lane)Fail("stream_fragment_envelope_conflict");
-    if(world&&(!message.range||message.range->world!=route_.scope))Fail("stream_world_scope_conflict");
+    if(world&&(!message.state_body||StateMessageScope(message)!=route_.scope))Fail("stream_world_scope_conflict");
     ValidateReceive(message,routed_?route_.direction:Direction::ToClient,route_.world?State::Preparing:route_.negotiated?State::Waiting:State::Handshake);
     c.complete=true;c.ack_due=now;out=std::move(message);++statistics_.decoded;statistics_.decoded_bytes+=h.decoded_bytes;statistics_.decode_us+=Micros()-decode_started;
     if(!Reliable(h.lane)){if(world)Retire(h.transfer);pending_.erase(i);}return true;

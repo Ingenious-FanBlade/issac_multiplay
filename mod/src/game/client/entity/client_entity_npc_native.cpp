@@ -35,15 +35,8 @@ void Clear(Deque &d,bool references){if(!Valid(d,references?4:2))throw std::runt
   for(unsigned i=0;i<d.capacity;++i)Free(d.map[i]);if(d.map)Free(d.capacity*4>=4096?reinterpret_cast<void **>(d.map)[-1]:d.map);
   d.map=nullptr;d.capacity=d.offset=d.count=0;
 }
-void Resize(Deque &d,unsigned count,bool references){
-  if(count>Limit)throw std::runtime_error("entity_npc_deque_budget");Clear(d,references);if(!count)return;
-  unsigned capacity=8;while(capacity*(references?4u:2u)<count)capacity*=2;d.map=Map(capacity);d.capacity=capacity;
-  // 先安装空map的真实责任；分配异常保留可解释前缀，不丢失已分配block。
-  const unsigned blocks=(count+(references?3u:1u))/(references?4u:2u);
-  for(unsigned i=0;i<blocks;++i){d.map[i]=Allocate(16);std::memset(d.map[i],0,16);}d.count=count;
-}
-}
-// 只在同use已完成创建owner后读两份容器；Source不运行路径更新、AI或Render补算。
+} // namespace
+#ifdef ISAACCS_E2E
 static int NpcPresentation(lua_State *L){
   auto *e=lua::GetLuabridgeUserdata<Entity *>(L,1,lua::Metatables::ENTITY,"Entity");const auto subject=ObservationSubject(e,false);
   lua_newtable(L);if(!IsMain()||!e||!e->ToNPC()||subject.status!=1||subject.readiness<2){lua_pushliteral(L,"NotCaptured");lua_setfield(L,-2,"status");return 1;}
@@ -58,26 +51,7 @@ int ClientEntityNpcPresentationLua(lua_State *L){const int top=lua_gettop(L);boo
   try{result=NpcPresentation(L);}catch(...){failed=true;}
   if(failed){lua_settop(L,top);return luaL_error(L,"entity_npc_source_deque_copy_failed");}return result;
 }
-bool ClientEntityNpcCollections(void *pointer,const ClientObjectDescription &d,bool check,const char *&reason){
-  if(d.category!=1)return true;auto &refs=Refs(pointer);const auto &s=*d.derived;
-  if(!Valid(refs,4)){reason="entity_npc_local_deque_owner";return false;}
-  if(check){if(refs.count!=s.npc_composite_count){reason="entity_npc_deque_postcondition_count";return false;}}
-  else if(refs.count!=s.npc_composite_count)Resize(refs,s.npc_composite_count,true);
-  for(const auto &stream:{std::pair<Deque *,const std::vector<ClientPoseVector> *>{&Path(pointer),&s.npc_path},{&SecondaryPath(pointer),&s.npc_secondary_path}}){auto &path=*stream.first;const auto &points=*stream.second;
-    if(!Valid(path,2)){reason="entity_npc_local_path_owner";return false;}
-    if(check){if(path.count!=points.size()){reason="entity_npc_path_postcondition_count";return false;}
-      for(unsigned i=0;i<path.count;++i){const auto &p=*At<Vector>(path,i);if(p.x!=points[i].x||p.y!=points[i].y){reason="entity_npc_path_postcondition";return false;}}}
-    else {if(path.count!=points.size())Resize(path,unsigned(points.size()),false);for(unsigned i=0;i<path.count;++i)*At<Vector>(path,i)=Vector(points[i].x,points[i].y);}}
-  return true;
-}
-bool ClientEntityNpcRelation(void *pointer,const ClientEntityRelation &r,void *target,bool check,bool clear,const char *&reason){
-  constexpr const char prefix[]="NativeNPC.Composite:";if(r.member.rfind(prefix,0))return false;unsigned index=0;
-  const auto result=std::from_chars(r.member.data()+sizeof(prefix)-1,r.member.data()+r.member.size(),index);auto &refs=Refs(pointer);
-  if(result.ec!=std::errc{}||result.ptr!=r.member.data()+r.member.size()||!Valid(refs,4)||index>=refs.count){reason="entity_npc_composite_slot";return false;}
-  auto *expected=clear?nullptr:static_cast<Entity *>(target);auto &slot=*reinterpret_cast<EntityPtr *>(At<Entity *>(refs,index));
-  if(check){if(slot.GetReference()!=expected){reason="entity_npc_composite_postcondition";return false;}}
-  else slot.SetReference(expected);return true;
-}
+#endif
 bool ClientEntityNpcRetire(void *pointer,const char *&reason){
   if(!pointer){reason="entity_npc_retire_null";return false;}Clear(Refs(pointer),true);Clear(Path(pointer),false);Clear(SecondaryPath(pointer),false);return true;
 }

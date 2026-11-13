@@ -1,5 +1,5 @@
 #pragma once
-#include "game/client/scene/client_native_world.h"
+#include "game/client/scene/client_native_roots.h"
 #include "game/client/common/client_object_key.h"
 #include "game/client/resources/client_resources.h"
 #include <array>
@@ -148,6 +148,8 @@ void ClientObjectPlayerDrawDiagnostic(void *player,const void *position,bool bod
 bool ClientObjectSuppressPlayerPreStats(void *player) noexcept;
 bool ClientObjectSkipPlayerPreStats() noexcept;
 bool ClientObjectPreStatsIsolationInstalled() noexcept;
+// 二进制暂存只取得 Factory 已构造槽，不进入 Init；取消时配平官方 New／Delete 通知。
+bool ClientObjectStagedPoolNotification(void *,bool execute,bool creating,const char *&) noexcept;
 // 主动类别Init中的临时随机输入不推进本地全局RNG；Off/Host和其它调用原样透传。
 bool ClientEntityInitializationRandom(unsigned &value) noexcept;
 bool ClientEntityInitIsolationInstalled() noexcept;

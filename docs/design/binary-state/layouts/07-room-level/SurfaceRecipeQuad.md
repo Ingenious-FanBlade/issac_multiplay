@@ -1,6 +1,8 @@
 # SurfaceRecipeQuad
 
-由唯一布局源生成。布局编号 309；布局版本 71；原生大小 0x0；未知 0B；完整：是。
+由唯一布局源生成。布局编号 309；布局版本 75；原生大小 0x0；未知 0B；需求覆盖：完整。
+
+需求覆盖只表示清单字段已生成计划，不表示原生字节全部已知、Host/Client处理器已接通或第15步验收通过。旧成员映射与原生说明保留为参照，当前发送字段以下方状态表为准。
 
 196B固定Quad值。shader/blend/sampler的具体已核枚举及上传leaf ABI仍归第9/13步，不把数值布局当成已实现GPU adapter。 版本63补齐ColorOffset的pixelation_amount及clip_plane共16B；当前212B，原字节尺寸为历史。
 
@@ -9,12 +11,12 @@
 | 纯C/S协议记录：没有原生对象字节，不得向游戏地址加偏移 |
 |---|
 
-状态二进制布局（总计 212—212B，不含第 9 步记录头）：
+状态二进制布局（总计 0—0B，不含第 9 步记录头）：
 
-块 0：SurfaceRecipeQuad当前结果（world，212—212B）：
+块 0：SurfaceRecipeQuad当前结果（world，0—0B）：
 
-| +0x0 u8（C/S自有元数据，无原生偏移） op：1 Quad | +0x1 u16（C/S自有元数据，无原生偏移） image：实际image-table依赖 | +0x3 u16（C/S自有元数据，无原生偏移） shader：固定ColorOffset shader资源依赖 | +0x5 u8（C/S自有元数据，无原生偏移） blend_view：固定登记blend view，不接受任意GL值 | +0x6 u8（C/S自有元数据，无原生偏移） sampler_view：固定登记sampler view | +0x7 u8（C/S自有元数据，无原生偏移） source_space：0 pixel/1 UV | +0x8 f32[8]（C/S自有元数据，无原生偏移） source_points：SourceQuad源四点，保留坐标空间 | +0x28 f32[8]（C/S自有元数据，无原生偏移） destination_points：surface局部目标四点 | +0x48 f32[4]（C/S自有元数据，无原生偏移） vertex_color0：KColor0 RGBA | +0x58 u32（C/S自有元数据，无原生偏移） vertex_space0：KColor0标签 | +0x5C f32[4]（C/S自有元数据，无原生偏移） vertex_color1：KColor1 RGBA | +0x6C u32（C/S自有元数据，无原生偏移） vertex_space1：KColor1标签 | +0x70 f32[4]（C/S自有元数据，无原生偏移） vertex_color2：KColor2 RGBA | +0x80 u32（C/S自有元数据，无原生偏移） vertex_space2：KColor2标签 | +0x84 f32[4]（C/S自有元数据，无原生偏移） vertex_color3：KColor3 RGBA | +0x94 u32（C/S自有元数据，无原生偏移） vertex_space3：KColor3标签 | +0x98 f32[11]（C/S自有元数据，无原生偏移） color_mod：完整ColorMod | +0xC4 f32（C/S自有元数据，无原生偏移） pixelation_amount：ColorOffset实际提交上下文；不重用未来全局值 | +0xC8 f32[3]（C/S自有元数据，无原生偏移） clip_plane：ColorOffset实际clip normal.xy及threshold |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 无发送字节：显式预留块 |
+|---|
 
 证据：
 

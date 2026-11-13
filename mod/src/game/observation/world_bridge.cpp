@@ -18,48 +18,12 @@
 #include <exception>
 
 namespace cs::game {
-namespace {
-BinaryEntities *scene_producer=nullptr;unsigned scene_producer_depth=0;
-unsigned scene_clear_depth=0;
-std::shared_ptr<WorldCapture> scene_target_capture;
-std::uint32_t scene_target_owner=0;
+// 背景资源重建使旧房间候选失效。构图和装饰隔离由 Backdrop 入口负责。
+void BinaryBackdropChanged(void *backdrop,bool current) noexcept {
+  if(!current||!backdrop||!IsMain()||ClientBusy())return;
+  if(const auto capture=CurrentWorldRecording();capture&&capture->binary_entities)
+    capture->binary_entities->Invalidate();
 }
-BinarySceneBuildScope::BinarySceneBuildScope(void *backdrop,bool replace,bool enabled) noexcept:exceptions_(std::uncaught_exceptions()) {
-  if(!enabled || !IsMain() || ClientBusy())return;if(scene_target_capture)BinarySceneGraphicsFinish();capture_=CurrentWorldRecording();
-  if(!capture_ || !capture_->binary_entities || (scene_producer && scene_producer!=capture_->binary_entities.get())){capture_.reset();return;}
-  backdrop_=world::PackWord(backdrop);scene_producer=capture_->binary_entities.get();++scene_producer_depth;
-  scene_producer->SceneBuild(backdrop_,true,false,replace);
-}
-BinarySceneBuildScope::~BinarySceneBuildScope() noexcept {
-  if(!backdrop_ || !capture_)return;capture_->binary_entities->SceneBuild(backdrop_,false,exceptions_==std::uncaught_exceptions(),false);
-  if(!--scene_producer_depth)scene_producer=nullptr;
-}
-bool BinarySceneGraphicsActive() noexcept {return IsMain() && scene_producer_depth!=0;}
-void BinarySceneGraphicsBoundary() noexcept {if(BinarySceneGraphicsActive())scene_producer->SceneGraphicsBoundary();}
-// 非Init的正常辅助surface写入同样捕获；借用在下一次切target／提交批次前结束。
-void BinarySceneTargetAfter(void *backdrop,bool enabled) noexcept {
-  if(!enabled || !IsMain() || ClientBusy() || scene_producer_depth)return;auto current=CurrentWorldRecording();
-  if(!current || !current->binary_entities)return;scene_target_capture=std::move(current);scene_target_owner=world::PackWord(backdrop);
-  scene_producer=scene_target_capture->binary_entities.get();scene_producer_depth=1;scene_producer->SceneBuild(scene_target_owner,true,false,false);
-}
-void BinarySceneGraphicsFinish() noexcept {
-  BinarySceneGraphicsBoundary();if(!IsMain() || !scene_target_capture || scene_clear_depth)return;
-  scene_producer->SceneBuild(scene_target_owner,false,true,false);scene_target_owner=0;scene_producer_depth=0;scene_producer=nullptr;scene_target_capture.reset();
-}
-BinarySceneClearScope::BinarySceneClearScope() noexcept:exceptions_(std::uncaught_exceptions()),main_(IsMain()) {
-  if(main_){++scene_clear_depth;BinarySceneGraphicsBoundary();}
-}
-BinarySceneClearScope::~BinarySceneClearScope() noexcept {
-  if(!main_)return;--scene_clear_depth;
-  if(exceptions_==std::uncaught_exceptions())BinarySceneClear();
-  else if(scene_target_capture){scene_producer->SceneBuild(scene_target_owner,false,false,false);scene_target_owner=0;scene_producer_depth=0;scene_producer=nullptr;scene_target_capture.reset();}
-}
-void BinarySceneClear() noexcept {if(BinarySceneGraphicsActive())scene_producer->SceneClear();}
-void BinarySceneImageBefore(void *image,const void *source,const void *destination,const void *tl,const void *tr,const void *bl,const void *br) noexcept {
-  if(BinarySceneGraphicsActive())scene_producer->SceneImageBefore(world::PackWord(image),world::PackWord(source),world::PackWord(destination),
-    {world::PackWord(tl),world::PackWord(tr),world::PackWord(bl),world::PackWord(br)});
-}
-void BinarySceneImageAfter(const void *vertices) noexcept {if(BinarySceneGraphicsActive())scene_producer->SceneImageAfter(world::PackWord(vertices));}
 WorldJoinEffectSourceScope::WorldJoinEffectSourceScope() noexcept:exceptions_(std::uncaught_exceptions()) {
   capture::Cost cost(capture::CostPart::Control);
   if(!IsMain()){world::ReportEntityReconfigurationFault(world::ObservationFault::WrongThread);return;}
@@ -71,10 +35,13 @@ WorldJoinEffectSourceScope::~WorldJoinEffectSourceScope() noexcept {
   if(!normal)world::ReportEntityReconfigurationFault(world::ObservationFault::NativeException);
   if(token_&&capture_&&capture_->collector)capture_->collector->EndJoinEffectSource(token_,normal);
 }
-StreamResourceScope::StreamResourceScope(void *object,bool retired,bool constructing,void *copy_source,const char *operation) noexcept:exceptions_(std::uncaught_exceptions()) {
-  if(!IsMain()||!object)return;capture_=CurrentWorldRecording();
+StreamResourceScope::StreamResourceScope(void *object,bool retired,bool constructing,void *copy_source,const char *operation) noexcept {
+  if(!IsMain()||!object)return;
+  auto current=CurrentWorldRecording();
   capture::Cost cost(capture::CostPart::Control);
-  if(capture_&&capture_->binary_entities)capture_->binary_entities->ResourceChanged(world::PackWord(object));
+  if(current&&current->binary_entities)current->binary_entities->ResourceChanged(world::PackWord(object));
+#ifdef ISAACCS_E2E
+  capture_=std::move(current);exceptions_=std::uncaught_exceptions();
   if(!capture_||!capture_->live_consumer){capture_.reset();return;}
   auto &c=*capture_;retired_=retired;constructing_=constructing;address_=world::PackWord(object);
   const auto old=c.stream_resources.find(address_);
@@ -82,13 +49,8 @@ StreamResourceScope::StreamResourceScope(void *object,bool retired,bool construc
   affects_source_=old!=c.stream_resources.end()&&old->second.observed&&!old->second.temporary;
   // 未进入来源闭包的UI/新对象不能使整房样本作废；已经观测的真实owner仍进入即撤资格。
   if(affects_source_){
-#ifdef ISAACCS_E2E
     E2EResourceChangeFromNative(object,address_,old->second.generation,c.location_window,retired,constructing,copy_source!=nullptr,operation);
-#endif
     ++c.stream_resource_depth;
-    if(c.stream_resource_mutation==UINT64_MAX){if(c.collector)c.collector->Fault(world::Reason::SequenceExhausted,"stream_resource_mutation");}
-    else ++c.stream_resource_mutation;
-    c.live.Invalidate("live_native_resource_changed");c.stream.Invalidate("stream_native_resource_changed");
   }
   try {
     const auto address=address_;
@@ -123,7 +85,11 @@ StreamResourceScope::StreamResourceScope(void *object,bool retired,bool construc
         copy_generation,copy_address,constructing||prior.constructing};
     }
   }catch(...){c.observation.Invalidate("stream_resource_identity_budget");}
+#else
+  (void)retired;(void)constructing;(void)copy_source;(void)operation;
+#endif
 }
+#ifdef ISAACCS_E2E
 StreamResourceScope::~StreamResourceScope() noexcept {
   if(!capture_)return;auto &c=*capture_;if(affects_source_&&c.stream_resource_depth)--c.stream_resource_depth;
   capture::Cost cost(capture::CostPart::Control);
@@ -158,6 +124,7 @@ std::uint64_t StreamResourceGeneration(void *object,bool copied_value) noexcept 
     const auto next=++c->next_stream_resource;c->stream_resources.emplace(address,WorldCapture::StreamResourceIdentity{next,!copied_value,copied_value});return next;
   }catch(...){c->observation.Invalidate("stream_resource_identity_budget");return 0;}
 }
+#endif
 WorldEntityReconfigurationScope::WorldEntityReconfigurationScope(void *object,world::HookCounters counters) noexcept
     :counters_(counters),exceptions_(std::uncaught_exceptions()) {
   capture::Cost cost(capture::CostPart::Control);
@@ -424,29 +391,12 @@ void StopWorldRecording() noexcept {
     collector->Stop();
   }
 }
-std::shared_ptr<const world::observation::LiveBatch> CurrentLiveCapture() noexcept {
-  return IsMain()&&recording&&recording->live_consumer&&recording->observation.Active()?recording->live.Latest():nullptr;
-}
-std::shared_ptr<const replica::stream::Publication> CurrentLiveWorld() noexcept {
-  return IsMain()&&recording&&recording->live_consumer&&recording->stream_invalidation==recording->live.Status().invalidations?recording->stream.Latest():nullptr;
-}
-// 只核对真实来源寿命，不把普通dirty/后台未完成当作场景退休。
 std::array<std::uint64_t,4> CurrentLiveSource() noexcept {
   if(!IsMain()||!recording||!recording->live_consumer||!recording->observation.Active()||
      !recording->collector||!recording->collector->Participating()||!RunActive())return {};
   const auto run=recording->collector->CurrentRunToken(),room=recording->collector->CurrentRoomToken();
   if(!run||!room)return {};
   return {recording->session_key,recording->epoch,run,room};
-}
-std::shared_ptr<const replica::stream::Publication> CurrentLiveBaseline() noexcept {
-  return IsMain()&&recording&&recording->live_consumer&&recording->stream_invalidation==recording->live.Status().invalidations?recording->stream.Baseline():nullptr;
-}
-bool RequestLiveBaseline() noexcept {
-  if(!IsMain()||!recording||!recording->live_consumer)return false;
-  recording->stream.RequestBaseline();return true;
-}
-std::vector<std::shared_ptr<const replica::stream::Publication>> CurrentLiveBodies(){
-  return IsMain()&&recording&&recording->live_consumer&&recording->stream_invalidation==recording->live.Status().invalidations?recording->stream.Bodies():std::vector<std::shared_ptr<const replica::stream::Publication>>{};
 }
 bool DetachClosedWorld(const std::shared_ptr<WorldRecording> &closed) noexcept {
   if (!IsMain() || recording != closed || !closed || !closed->collector ||
@@ -459,7 +409,6 @@ bool DetachClosedWorld(const std::shared_ptr<WorldRecording> &closed) noexcept {
   return true;
 }
 void WorldFrameBegin(std::uint64_t loop) noexcept {
-  if(scene_target_capture)BinarySceneGraphicsFinish();
   capture::FrameBegin(loop,recording&&recording->live_consumer&&RunActive());
   capture::Cost cost(capture::CostPart::Native);
   auto *collector = Collector();
@@ -472,14 +421,11 @@ void WorldFrameBegin(std::uint64_t loop) noexcept {
       collector->Fault(world::Reason::PrepareFailed, "activate_prepared");
   }
   prepared_post = {};
-  recording->pending_bodies={};
-  recording->pending_body_bytes=0;
   frame_prepared = false;
   ObserveFailures(*collector);
   if (!collector->Participating()) {
     if(recording->binary_entities)recording->binary_entities->Invalidate();
     recording->live.Invalidate("live_collector_not_participating");
-    recording->stream.Invalidate("live_collector_not_participating");
     return;
   }
   collector->BeginOuter(loop, OwnerToken(Owner::Manager), RunActive());
@@ -488,8 +434,6 @@ void WorldFrameBegin(std::uint64_t loop) noexcept {
   auto &location=recording->hierarchy;
   if(location.valid&&(location.run!=collector->CurrentRunToken()||location.room!=collector->CurrentRoomToken())) {
     recording->live.Invalidate("live_run_or_room_changed");
-    recording->stream.Invalidate("live_run_or_room_changed");
-    recording->stream.RequestBaseline();
     location.Invalidate(location.run!=collector->CurrentRunToken());
     recording->latest_room={}; recording->latest_level={}; recording->latest_continuity={};
   }
@@ -614,7 +558,6 @@ void WorldRevokePlayer(unsigned ordinal) noexcept {
       const auto before=collector->CurrentAnchor(slot);
       if(recording&&recording->binary_entities)recording->binary_entities->RetireBody(before.player);
       collector->RevokePlayer(slot);
-      if(recording){const auto &source=recording->pending_bodies[slot].source;if(source)recording->pending_body_bytes-=source->Bytes();recording->pending_bodies[slot]={};recording->body_status[slot].reason="player_post_binding_revoked";}
       if(before.valid) ObservationControlChange(slot,before,{},"explicit_binding_revocation");
     }
 }
@@ -662,30 +605,6 @@ void WorldPreparePostState(bool normal) noexcept {
     prepared_post = collector->PreparePostState(normal);
     if(recording->binary_entities)recording->binary_entities->Prepare(normal);
     frame_prepared = true;
-    if(recording->live_consumer&&normal)for(unsigned slot=0;slot<world::kControlAnchorCapacity;++slot){
-      world::PlayerPostWitness before{},after{};
-      auto &state=recording->body_status[slot];
-      if(!collector->PlayerPost(slot,before)){if(collector->CurrentAnchor(slot).valid){++state.not_updated;state.reason="player_post_not_updated_or_revoked";recording->stream.BodyGap(state.reason);}continue;}
-      ++state.actual_updates;
-      state.local=before.local;state.use=before.use;state.shape=before.shape;state.binding=before.anchor.generation;state.last_native_update_tick=before.tick;
-#ifdef ISAACCS_E2E
-      replica::stream::E2EBody(before.local,before.use,before.shape,before.anchor.generation,before.tick,0);
-#endif
-      if(before.tick%(60/recording->stream_config.player_hz)){++state.throttled;continue;}
-      const auto invalidation=recording->live.Status().invalidations;
-      auto value=CaptureLuaPlayerFast(reinterpret_cast<void *>(uintptr_t(before.anchor.player)));
-      if(!value.available||!value.complete||!collector->PlayerPost(slot,after)||before.local!=after.local||before.use!=after.use||before.shape!=after.shape||
-         before.tick!=after.tick||before.outer!=after.outer||before.mutation!=after.mutation||before.anchor!=after.anchor||invalidation!=recording->live.Status().invalidations){
-        state.reason="player_post_read_failed_or_changed";recording->stream.BodyGap(state.reason);continue;
-      }
-      ++state.qualified_samples;
-#ifdef ISAACCS_E2E
-      replica::stream::E2EBody(before.local,before.use,before.shape,before.anchor.generation,before.tick,1);
-#endif
-      if(value.owned_bytes>(16ull<<20)-recording->pending_body_bytes){state.reason="player_post_candidate_budget";recording->stream.BodyGap(state.reason);continue;}
-      try{recording->pending_body_bytes+=value.owned_bytes;recording->pending_bodies[slot]={before,std::move(value.owned_source),invalidation};state.reason="player_post_await_outer_commit";}
-      catch(...){state.reason="player_post_candidate_budget";recording->stream.BodyGap(state.reason);}
-    }
     // 无 Authority 的 gap 已由采集器发布；没有 pending 世界值需要 core 提交。
   }
 }
@@ -714,42 +633,11 @@ void WorldPublishPostState(bool committed,
   if(recording&&recording->binary_entities)recording->binary_entities->Commit(committed,post);
   if (auto *collector = Collector())
     collector->PublishPostState(committed, post);
-  if(!recording||!recording->live_consumer)return;
-  if(recording->stream_invalidation!=recording->live.Status().invalidations){recording->stream.Invalidate(recording->live.Status().reason);recording->stream_invalidation=recording->live.Status().invalidations;}
-  for(unsigned slot=0;slot<recording->pending_bodies.size();++slot){
-    auto pending=std::move(recording->pending_bodies[slot]);recording->pending_bodies[slot]={};
-    if(!pending.source)continue;
-    recording->pending_body_bytes-=pending.source->Bytes();auto &state=recording->body_status[slot];
-    world::PlayerPostWitness now{};const auto &w=pending.witness;
-    if(!committed||!Collector()||!Collector()->PlayerPost(slot,now)||now.anchor!=w.anchor||now.local!=w.local||now.use!=w.use||now.shape!=w.shape||now.tick!=w.tick||now.outer!=w.outer||now.mutation!=w.mutation||pending.invalidation!=recording->live.Status().invalidations){state.reason="player_post_outer_cancelled_or_changed";recording->stream.BodyGap(state.reason);continue;}
-    replica::stream::BodySample sample{recording->epoch,w.run,w.room,w.local,w.use,w.shape,w.tick,w.outer,w.owner,w.mutation,w.anchor.generation,
-      w.kind==world::AuthorityKind::OddPlayer?replica::stream::CaptureKind::OddPlayer:replica::stream::CaptureKind::Ordinary};
-    recording->stream.PlayerPost(sample,pending.source);
-    state.last_capture_tick=w.tick;if(w.kind==world::AuthorityKind::OddPlayer)++state.odd;else ++state.ordinary;
-    state.reason=w.kind==world::AuthorityKind::OddPlayer?"player_post_odd_source_committed":"player_post_ordinary_source_committed";
-    try {
-      namespace obs=world::observation;
-      // 只有真实Clock提交才发布phase；Entity公共值和Player专用值拥有同一身体证言。
-      for(const auto domain:{obs::DomainId::Entity,obs::DomainId::Player}){
-        if(!recording->observation.ConsumerDue(obs::kLatestConsumer,domain,obs::Phase::PlayerPost,0)&&
-           !recording->observation.ConsumerDue(obs::kRecorderConsumer,domain,obs::Phase::PlayerPost,0))continue;
-        obs::ObservationEnvelope e;e.domain=domain;e.schema=domain==obs::DomainId::Entity?"isaac.cs.entity.player-post":"isaac.cs.player.player-post";
-        e.context=recording->observation.BeginScope(obs::Phase::PlayerPost,2);e.context.authority_tick={obs::Presence::Known,w.tick};
-        e.context.outer=w.outer;e.context.owner=w.owner;e.context.mutation_before=e.context.mutation_after=w.mutation;
-        e.context.run={obs::Presence::Known,{recording->session_key,recording->epoch,w.run,obs::IdentitySpace::Run}};
-        e.context.room={obs::Presence::Known,{recording->session_key,recording->epoch,w.room,obs::IdentitySpace::RoomInstance}};
-        e.result.coverage=obs::Coverage::Complete;e.result.range=w.kind==world::AuthorityKind::OddPlayer?"player-fast-source-v1;odd;actual-native-update":"player-fast-source-v1;ordinary;actual-native-update";
-        e.result.objects=1;e.payload=capture::SourceText(pending.source);e.result.bytes=e.payload.size();const auto scope=e.context.scope;
-        if(recording->observation.PrepareScope(std::move(e)).accepted)recording->observation.CommitScope(scope,obs::Outcome::IndependentPublished);
-      }
-    }catch(...){recording->stream.BodyGap("player_post_notification_budget");}
-  }
+
 }
 void WorldFrameEnd() noexcept {
   {
   capture::Cost cost(capture::CostPart::Control);
-  if(recording)for(auto &body:recording->pending_bodies)if(body.source){body={};recording->stream.BodyGap("player_post_missing_outer_commit");}
-  if(recording)recording->pending_body_bytes=0;
   if(recording&&recording->binary_entities)recording->binary_entities->FrameEnd();
   if (auto *collector = Collector())
     collector->EndOuter();

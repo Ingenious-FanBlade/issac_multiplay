@@ -69,6 +69,7 @@ MOD_EXPORT int ModInit() noexcept {
     RegisterHooks();
     InstallClientShutdownPatch();
     InstallClientBackdropPatch();
+    InstallClientDisplayPatch();
     InitializeRuntimeRandomHooks();
     PublishStatus();
     if (Settings.control && Capabilities[size_t(Group::Loop)] &&

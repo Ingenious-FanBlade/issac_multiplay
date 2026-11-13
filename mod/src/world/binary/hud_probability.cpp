@@ -8,7 +8,7 @@ bool EntitySource::HudDealEligibility(const CaptureWitness &w,EntityFacts f,bool
   if(s.active||std::this_thread::get_id()!=s.thread||!f.ready||!s.services.current(s.services.owner,w,f))return FailCapture(d,CaptureFailure::InvalidWindow,{f.subject});
   NativeScene scene;scene.game=f.address;
   if(!s.memory.copy||!s.memory.copy(scene.game+0x18300,&scene.room,4)||!scene.room)return FailCapture(d,CaptureFailure::MissingQualification,{f.subject});
-  if(!ReadSceneContext(w,f,scene,d))return false;f.scene=&scene;s.facts=f;s.active=true;s.scratch_used=s.witness_used=0;
+  if(!ReadSceneContext(w,f,scene,d))return false;s.facts=f;s.active=true;s.scratch_used=s.witness_used=0;
   struct End{bool &active;~End(){active=false;}}end{s.active};
   s.window={s.thread,w,&s,[](void *p,const CaptureWitness &v,const CaptureRoot &r) noexcept{return static_cast<Impl *>(p)->Current(v,r);},nullptr};
   const auto game=std::uint64_t(scene.game);std::int32_t stage=0,stage_type=0,difficulty=0,challenge=0,special=0,last_boss=0;

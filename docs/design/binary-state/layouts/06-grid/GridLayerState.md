@@ -1,6 +1,8 @@
 # GridLayerState
 
-由唯一布局源生成。布局编号 200；布局版本 71；原生大小 0xA0；未知 4B；完整：否。
+由唯一布局源生成。布局编号 200；布局版本 75；原生大小 0xA0；未知 4B；需求覆盖：完整。
+
+需求覆盖只表示清单字段已生成计划，不表示原生字节全部已知、Host/Client处理器已接通或第15步验收通过。旧成员映射与原生说明保留为参照，当前发送字段以下方状态表为准。
 
 版本50仅Grid主Sprite图层展示视图；原生LayerState完整0xA0与4B UNKNOWN保留，证据等级不升级。+08路径元数据归Host，实际Image/filter/wrap及完整颜色/几何/混合/可见/flags保留；不能用旧JSON资源路径回读恢复LoadGraphics。见grid-common-synchronization-review.md，正式资源owner仍待第8/10/13步。
 

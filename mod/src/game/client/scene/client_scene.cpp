@@ -1,15 +1,6 @@
 #include "game/client/scene/client_scene.h"
-#include "replica/player_plan.h"
-#include "game/client/entity/client_objects.h"
-#include "game/client/grid/client_grids.h"
-#include "game/client/presentation/client_presentation.h"
-#include "game/client/resources/client_resource_model.h"
-#include "game/client/player/client_players.h"
-#include "replica/stream_capture.h"
-#include "replica/stream_e2e.h"
-#include "game/client/entity/client_entity_draw_native.h"
-#include "game/tests/client_entity_e2e.h"
-#include "replica/room_geometry.h"
+#include "game/client/display/client_display.h"
+#include "game/client/scene/client_preparation_native.h"
 #include "game/common/context.h"
 #include "game/common/bridge.h"
 #include "runtime.h"
@@ -35,266 +26,26 @@ std::uint64_t NewSceneEpoch() noexcept {
   }
   return 0;
 }
-const replica::Value *Member(const replica::Value *v,const char *name) noexcept {
-  return v&&v->IsObject()&&v->HasMember(name)?&(*v)[name]:nullptr;
 }
-const replica::Value *Fields(const replica::Value *v) noexcept {return Member(v,"fields");}
-const replica::Value *Scalar(const replica::Value *v) noexcept {
-  if(v&&v->IsObject()&&v->HasMember("type")&&(*v)["type"].IsString()&&
-     std::strcmp((*v)["type"].GetString(),"int64")==0)return Member(v,"value");
-  return v;
-}
-bool Integer(const replica::Value *v,std::int64_t &out) noexcept {
-  v=Scalar(v);if(!v)return false;
-  if(v->IsInt64()){out=v->GetInt64();return true;}
-  if(v->IsUint64()&&v->GetUint64()<=std::uint64_t(INT64_MAX)){out=std::int64_t(v->GetUint64());return true;}
-  if(v->IsString()){
-    const auto result=std::from_chars(v->GetString(),v->GetString()+v->GetStringLength(),out);
-    return result.ec==std::errc{}&&result.ptr==v->GetString()+v->GetStringLength();
-  }
-  return false;
-}
-bool Int(const replica::Value *v,int &out) noexcept {
-  std::int64_t number=0;if(!Integer(v,number)||number<INT32_MIN||number>INT32_MAX)return false;
-  out=int(number);return true;
-}
-bool UInt(const replica::Value *v,std::uint32_t &out) noexcept {
-  std::int64_t number=0;if(!Integer(v,number)||number<0||number>UINT32_MAX)return false;
-  out=std::uint32_t(number);return true;
-}
-bool Float(const replica::Value *v,float &out) noexcept {
-  v=Scalar(v);if(!v)return false;
-  double number=0;
-  if(v->IsNumber())number=v->GetDouble();
-  else {std::int64_t integer=0;if(!Integer(v,integer))return false;number=double(integer);}
-  if(!std::isfinite(number)||number<-std::numeric_limits<float>::max()||number>std::numeric_limits<float>::max())return false;
-  out=float(number);return true;
-}
-// 正式来源的Room缓存与公开Getter交叉约束只做写前解释，不调用游戏验证或补造默认值。
-bool RoomState(const replica::Value *room,const replica::RoomGridTarget &target,ClientRoomState &out,const char *&reason){
-  reason="native_room_runtime_fields";const auto *v=Member(room,"application_runtime");int version=0;
-  if(!Int(Member(v,"version"),version)||(version!=2&&version!=3))return false;
-  const auto integer=[&](const char *name,int &value){return Int(Member(v,name),value);};
-  // 旧v2保存SDK原始word；只解释已核定的低字节。v3来源直接提供真实byte，绝不补零。
-  int render_flag=0;
-  if(!integer(version==2?"slowdown":"render_flag_7220",render_flag)||(version==3&&(render_flag<0||render_flag>255)))return false;
-  out.render_flag_7220=std::uint8_t(render_flag);
-  const auto boolean=[&](const char *name,bool &value){const auto *x=Member(v,name);if(!x||!x->IsBool())return false;value=x->GetBool();return true;};
-  if(!boolean("initialized",out.initialized)||!boolean("red_heart_damage",out.red_heart_damage)||!boolean("pacifist",out.pacifist)||
-     !boolean("ambush_active",out.ambush_active)||!integer("frame",out.frame)||!integer("game_frame",out.game_frame)||!integer("clear_delay",out.clear_delay)||
-     !integer("greed_timer",out.greed_timer)||!integer("greed_wave",out.greed_wave)||!integer("ambush_wave",out.ambush_wave)||
-     !integer("ambush_max",out.ambush_max)||!integer("ambush_bosses",out.ambush_bosses)||!integer("total_money",out.total_money)||
-     !integer("shop_item",out.shop_item)||!integer("shop_discount",out.shop_discount)||!integer("greed_subtype",out.greed_subtype)||
-     !integer("poop_count",out.poop_count)||!integer("keeper_coins",out.keeper_coins)||!integer("pits",out.pits)||!UInt(Member(v,"boss"),out.boss))return false;
-  const auto small=[](int n){return n>=INT16_MIN&&n<=INT16_MAX;};
-  if(!out.initialized||out.frame<0||out.greed_wave<0||!small(out.total_money)||!small(out.shop_item)||!small(out.shop_discount)||!small(out.poop_count)||!small(out.keeper_coins))return false;
-  const auto numbers=[&](const char *name,auto &array){const auto *a=Member(v,name);if(!a||!a->IsArray()||a->Size()!=array.size())return false;
-    for(unsigned i=0;i<array.size();++i){if constexpr(std::is_same_v<typename std::decay_t<decltype(array)>::value_type,float>){if(!Float(&(*a)[i],array[i]))return false;}
-      else if(!Int(&(*a)[i],array[i]))return false;}return true;};
-  if(!numbers("bounds",out.bounds)||!numbers("l_area",out.l_area)||!numbers("l_tiles",out.l_tiles)||!numbers("door_positions",out.door_positions))return false;
-  if(out.bounds[0]>=out.bounds[2]||out.bounds[1]>=out.bounds[3])return false;
-  if(out.l_tiles!=replica::RoomShapeTiles(target.room.layout.shape))return false;
-  const auto *paths=Member(v,"grid_paths"),*path_scope=Member(v,"path_scope");
-  if(!paths||!paths->IsArray()||paths->Size()!=unsigned(target.room.layout.capacity)||!path_scope||!path_scope->IsString()||
-     std::strcmp(path_scope->GetString(),"active_extent;outside_not_applicable")){reason="native_grid_path_source_missing";return false;}
-  out.grid_paths.resize(paths->Size());for(unsigned i=0;i<paths->Size();++i)if(!Int(&(*paths)[i],out.grid_paths[i]))return false;
-  if(!numbers("grid_light_queries",out.grid_light_queries)||out.grid_light_queries[0]<0||out.grid_light_queries[0]>1||
-     out.grid_light_queries[1]<0||out.grid_light_queries[1]>255||out.grid_light_queries[2]<0||out.grid_light_queries[2]>1||
-     out.grid_light_queries[3]<0||out.grid_light_queries[3]>1||out.grid_light_queries[4]<0||out.grid_light_queries[4]>4)return false;
-  // 原生缓存包含全部八槽位置，1x1的停用右/下半槽仍保留大房模板坐标。
-  // 仅当前房形采用的槽要求位于活动extent；其余保留Source值但不作为门/格子解引用。
-  for(unsigned i=0;i<out.door_positions.size();++i){const int position=out.door_positions[i];
-    if(position<-1||position>=448||(target.room.doors[i].shape_allowed&&position>=0&&
-       !replica::RoomShapeGridCell(target.room.layout.shape,position,true))){reason="native_room_door_position";return false;}}
-  for(const auto &pair:{std::pair{"valid",&out.valid},std::pair{"interior",&out.interior}}){const auto *a=Member(v,pair.first);
-    if(!a||!a->IsArray()||a->Size()!=448)return false;for(unsigned i=0;i<448;++i){if(!(*a)[i].IsBool())return false;(*pair.second)[i]=(*a)[i].GetBool();}}
-  const auto *rails=Member(v,"rails");if(!rails||!rails->IsArray()||rails->Size()!=448)return false;
-  const auto *rail_scope=Member(v,"rail_scope");if(!rail_scope||!rail_scope->IsString()||std::strcmp(rail_scope->GetString(),"active_extent;outside_not_applicable")!=0)return false;
-  for(unsigned i=0;i<448;++i){int rail=0;if(!Int(&(*rails)[i],rail)||!replica::RoomRailTypeValid(rail))return false;out.rails[i]=std::uint8_t(rail);out.rails_present|=rail!=255;
-    if(i>=unsigned(target.room.layout.capacity)&&(out.valid[i]||out.interior[i]||rail!=255))return false;
-    if(out.interior[i]&&!out.valid[i])return false;
-    if(out.valid[i]!=replica::RoomShapeGridCell(target.room.layout.shape,int(i),true)||out.interior[i]!=replica::RoomShapeGridCell(target.room.layout.shape,int(i),false))return false;
-  }
-  const auto *fields=Fields(Member(room,"state"));const auto *descriptor=Fields(&target.DescriptorState(target.room.descriptors.front()));
-  const auto agrees=[&](const char *name,bool value){const auto *x=Member(descriptor,name);return x&&x->IsBool()&&x->GetBool()==value;};
-  const auto flags=unsigned(target.room.descriptors.front().flags);
-  for(const auto &flag:{std::pair{"RoomDescriptor.Clear",1u},std::pair{"RoomDescriptor.PressurePlatesTriggered",2u},
-      std::pair{"RoomDescriptor.SacrificeDone",4u},std::pair{"RoomDescriptor.ChallengeDone",8u},std::pair{"RoomDescriptor.NoReward",128u}})
-    if(!agrees(flag.first,(flags&flag.second)!=0)){reason="native_room_descriptor_flag_conflict";return false;}
-  const auto *clear=Member(fields,"Room.IsClear");int frame=0;
-  if(!clear||!clear->IsBool()||clear->GetBool()!=bool(flags&1)||!Int(Member(fields,"Room.GetFrameCount"),frame)||frame!=out.frame){reason="native_room_progress_source_conflict";return false;}
-  if(out.rails_present){const auto *sprite=Member(room,"rail_sprite");std::string error;
-    if(!sprite||!ClientParseResourcePose(*sprite,out.rail_sprite,error)||(out.rail_sprite.animation!="rail"&&out.rail_sprite.animation!="pitrail")){reason="native_room_rail_resource";return false;}}
-  return true;
-}
-// 地图投影与完整探索/离房恢复分开；每项都来自正式采集，不能使用本地菜单保存记录。
-bool MapState(const replica::Value *room,const replica::RoomGridTarget &target,ClientMapTarget &out,const char *&reason){
-  reason="native_map_camera_source";const auto *state=Member(room,"map_application");int version=0;
-  if(!Int(Member(state,"version"),version)||version!=1)return false;
-  const auto vector=[](const replica::Value *v,ClientPoseVector &value){return Float(Member(v,"x"),value.x)&&Float(Member(v,"y"),value.y);};
-  const auto boolean=[](const replica::Value *v,bool &value){if(!v||!v->IsBool())return false;value=v->GetBool();return true;};
-  const auto *camera=Member(state,"camera"),*vectors=Member(camera,"vectors");auto &c=out.state.camera;
-  if(!vectors||!vectors->IsArray()||vectors->Size()!=5)return false;
-  for(unsigned i=0;i<5;++i)if(!vector(&(*vectors)[i],c.vectors[i]))return false;
-  if(!boolean(Member(camera,"overridden"),c.overridden)||!boolean(Member(camera,"focus_present"),c.focus_present)||!vector(Member(camera,"focus_tail"),c.focus_tail)||!Float(Member(camera,"smoothing"),c.smoothing))return false;
-  const auto *configs=Member(state,"configs"),*flags=Member(state,"game_flags");
-  if(!configs||!configs->IsArray()||configs->Size()!=2||!flags||!flags->IsArray()||flags->Size()!=2)return false;
-  for(unsigned i=0;i<2;++i){auto &d=out.state.configs[i];const auto *v=&(*configs)[i];
-    if(!vector(Member(v,"anchor"),d.anchor)||!vector(Member(v,"padding"),d.padding)||!vector(Member(v,"size1"),d.size1)||!vector(Member(v,"size2"),d.size2)||
-       !Float(Member(v,"offset"),d.offset)||!Float(Member(v,"border_scale"),d.border_scale)||!Float(Member(v,"alpha"),d.alpha)||
-       !Int(Member(v,"width"),d.width)||!Int(Member(v,"height"),d.height)||!Int(Member(v,"icons"),d.icons)||d.width<1||d.width>13||d.height<1||d.height>13||d.icons<0||d.icons>64||d.alpha<0||d.alpha>1||!UInt(&(*flags)[i],out.state.game_flags[i]))return false;}
-  unsigned total=0;
-  for(const auto &descriptor:target.room.descriptors){const auto *v=Member(&target.DescriptorState(descriptor),"map_icons");const auto *items=Member(v,"icons");
-    if(!Int(Member(v,"version"),version)||version!=1||!items)return false;
-    const bool empty=items->IsObject()&&!items->MemberCount();if(!empty&&!items->IsArray())return false;
-    ClientMapDescriptor d;d.storage=descriptor.location.storage_index;d.source_slot=descriptor.location.source_slot;
-    if(!empty){if(items->Size()>4096||(total+=items->Size())>65536)return false;for(const auto &item:items->GetArray()){
-      ClientMapSavedIcon icon;std::uint32_t bits=0;
-      if(!Int(Member(&item,"type"),icon.type)||icon.type<0||!Int(Member(&item,"variant"),icon.variant)||!Int(Member(&item,"subtype"),icon.subtype)||
-         !UInt(Member(&item,"storage3"),bits)||!vector(Member(&item,"position"),icon.position))return false;
-      std::memcpy(&icon.storage3,&bits,4);d.icons.push_back(icon);}}
-    out.descriptors.push_back(std::move(d));
-  }
-  return true;
-}
-// 只读取15已经表达的具名值；缺字段不以菜单、seed或本地模拟补齐。
-bool SceneDescription(const replica::Value &model,const replica::RoomGridTarget &target,LegacyClientNativeSceneDescription &out,const char *&reason) {
-  const auto *components=Member(&model,"components");
-  const auto *room=Member(Member(components,"room"),"state");
-  const auto *level=Member(Member(components,"level"),"state");
-  const auto *run=Member(Member(components,"run"),"state");
-  const auto *room_fields=Fields(Member(room,"state"));
-  const auto *level_fields=Fields(Member(level,"state"));
-  const auto *run_fields=Fields(Member(run,"state"));
-  const auto *config_fields=Fields(Member(Member(room,"config"),"state"));
-  const auto *descriptor_fields=Fields(Member(level,"current_descriptor"));
-  const auto *backdrop_runtime=Member(Member(room,"presentation_runtime"),"backdrop_runtime");
-  const auto *presentation_runtime=Member(room,"presentation_runtime");
-  out={};reason="native_scene_fields_missing";
-  if(!Int(Member(room,"room_index"),out.room_index)||!Int(Member(room,"dimension_index"),out.dimension)||
-     !Int(Member(level_fields,"Level.GetStage"),out.stage)||!Int(Member(level_fields,"Level.GetStageType"),out.stage_type)||
-     !Int(Member(level_fields,"Level.EnterDoor"),out.enter_door)||
-     !Int(Member(level_fields,"Level.GetStartingRoomIndex"),out.starting_index)||
-     !Int(Member(run_fields,"Game.Difficulty"),out.difficulty)||!Int(Member(run_fields,"Game.Challenge"),out.challenge)||
-     !Int(Member(config_fields,"RoomConfigRoom.StageID"),out.config_stage)||
-     !Int(Member(config_fields,"RoomConfigRoom.Mode"),out.config_mode)||
-     !Int(Member(config_fields,"RoomConfigRoom.Type"),out.room_type)||
-     !UInt(Member(config_fields,"RoomConfigRoom.Variant"),out.variant)||
-     !Int(Member(config_fields,"RoomConfigRoom.Subtype"),out.subtype)||
-     !Int(Member(config_fields,"RoomConfigRoom.Shape"),out.shape)||
-     !Int(Member(config_fields,"RoomConfigRoom.Width"),out.width)||
-     !Int(Member(config_fields,"RoomConfigRoom.Height"),out.height)||
-     !Int(Member(descriptor_fields,"RoomDescriptor.ListIndex"),out.list_index)||
-     !Int(Member(descriptor_fields,"RoomDescriptor.SafeGridIndex"),out.safe_grid_index)||
-     !Int(Member(descriptor_fields,"RoomDescriptor.AllowedDoors"),out.allowed_doors)||
-     !Int(Member(descriptor_fields,"RoomDescriptor.Flags"),out.descriptor_flags)||
-     !Int(Member(descriptor_fields,"RoomDescriptor.VisitedCount"),out.visited_count)||
-     !Int(Member(descriptor_fields,"RoomDescriptor.ClearCount"),out.clear_count)||
-     !UInt(Member(room_fields,"Room.GetBackdropType"),out.backdrop)||
-     !UInt(Member(backdrop_runtime,"construction_seed"),out.backdrop_seed)||
-     !UInt(Member(backdrop_runtime,"shift1"),out.backdrop_shift1)||
-     !UInt(Member(backdrop_runtime,"shift2"),out.backdrop_shift2)||
-     !UInt(Member(backdrop_runtime,"shift3"),out.backdrop_shift3)||
-     !Float(Member(presentation_runtime,"water_amount"),out.water_amount))return false;
-  const auto *center=Member(room_fields,"Room.GetCenterPos");
-  if(!Float(Member(center,"x"),out.camera_x)||!Float(Member(center,"y"),out.camera_y))return false;
-  const auto *doors=Member(descriptor_fields,"RoomDescriptor.Doors");
-  if(!doors||!doors->IsArray()||doors->Size()!=8){reason="native_descriptor_doors_missing";return false;}
-  unsigned seen=0;
-  for(const auto &door:doors->GetArray()){
-    int slot=0,door_target=0;
-    if(!Int(Member(&door,"slot"),slot)||slot<0||slot>7||(seen&(1u<<slot))||
-       !Int(Member(&door,"target_grid_index"),door_target)){reason="native_descriptor_door_invalid";return false;}
-    seen|=1u<<slot;out.door_targets[slot]=door_target;
-  }
-  out.spawn_seed=target.room.descriptors.front().spawn_seed;
-  out.decoration_seed=target.room.descriptors.front().decoration_seed;
-  out.award_seed=target.room.descriptors.front().award_seed;
-  out.grid_index=target.room.descriptors.front().location.native_grid_origin;
-  for(const auto &d:target.room.descriptors){
-    // 两份完整资源描述独立交给SDK owner；不能用查找键相同抹掉Override差异。
-    // 地图占用由Data描述；Override是替换配置，不能用它的房形推翻实际已发布占用。
-    const auto &c=d.data.is_null?d.override_data:d.data;
-    LegacyClientNativeDescriptorDescription v;const auto &p=d.location;
-    v.key_run=d.key.run;v.key_id=d.key.id;v.construction_revision=d.construction_revision;
-    v.grid=p.native_grid_origin;v.safe=p.safe_grid_index;v.list=p.list_index;v.dimension=p.dimension;v.storage=p.storage_index;v.source_slot=p.source_slot;
-    v.occupied_count=unsigned(p.occupied.size());std::copy(p.occupied.begin(),p.occupied.end(),v.occupied.begin());
-    v.config_stage=c.stage;v.config_mode=c.mode;v.type=c.type;v.variant=c.variant;v.subtype=c.subtype;v.shape=c.shape;v.width=c.width;v.height=c.height;
-    v.data_null=d.data.is_null;v.override_null=d.override_data.is_null;v.allowed=d.allowed_doors;v.flags=d.flags;v.visited=d.visited;v.clear_count=d.clear_count;
-    v.display_flags=d.display_flags;
-    v.data=d.data;v.override_data=d.override_data;
-    v.doors=d.door_targets;v.spawn=d.spawn_seed;v.decoration=d.decoration_seed;v.award=d.award_seed;
-    out.descriptors.push_back(v);
-  }
-  const auto &active=target.room.descriptors.front();const auto &effective=active.override_data.is_null?active.data:active.override_data;
-  out.config_stage=effective.stage;out.config_mode=effective.mode;out.variant=effective.variant;out.subtype=effective.subtype;
-  out.width=effective.width;out.height=effective.height;out.shape=target.room.layout.shape;
-  out.grid_width=target.room.layout.grid_width;out.grid_height=target.room.layout.grid_height;
-  if(!Int(Member(room_fields,"Room.GetType"),out.room_type))return false;
-  if(!RoomState(room,target,out.room_state,reason))return false;
-  if(!MapState(room,target,out.map,reason))return false;
-  const auto *background=Member(presentation_runtime,"backdrop_config"),*paths=Member(background,"paths"),*values=Member(background,"values");
-  if(!paths||!paths->IsArray()||paths->Size()!=12||!values||!values->IsArray()||values->Size()!=7){reason="native_backdrop_config_missing";return false;}
-  for(unsigned i=0;i<12;++i){const auto &p=(*paths)[i];if(!p.IsString()||p.GetStringLength()>1024)return false;out.backdrop_config.paths[i].assign(p.GetString(),p.GetStringLength());
-    const auto &s=out.backdrop_config.paths[i];if(s.find("..")!=s.npos||s.find(':')!=s.npos||(!s.empty()&&(s.front()=='/'||s.front()=='\\'))||s.find_first_of("\r\n\0",0,3)!=s.npos)return false;}
-  for(unsigned i=0;i<7;++i)if(!UInt(&(*values)[i],out.backdrop_config.values[i]))return false;
-  if(out.backdrop_config.values[0]!=out.backdrop){reason="native_backdrop_config_id";return false;}
-  // 语义构建轨迹必须完整；不从Client本地重抽，也不将旧来源缺失解释为空轨迹。
-  const auto *wall_trace=Member(room,"backdrop_wall_trace");unsigned trace_version=0;
-  const auto *applicable=Member(wall_trace,"applicable");
-  if(!UInt(Member(wall_trace,"version"),trace_version)||trace_version!=1||!applicable||!applicable->IsBool()){
-    reason="native_backdrop_wall_trace_required";return false;
-  }
-  auto &trace=out.backdrop_wall_trace;trace.present=true;trace.applicable=applicable->GetBool();
-  if(!UInt(Member(wall_trace,"initial"),trace.initial)||(trace.applicable&&!trace.initial)){
-    reason="native_backdrop_initial_rng_required";return false;
-  }
-  if(trace.applicable){
-    const auto *steps=Member(wall_trace,"steps");
-    if(!UInt(Member(wall_trace,"before"),trace.before)||!trace.before||!UInt(Member(wall_trace,"after"),trace.after)||!trace.after||
-       !steps||!steps->IsArray()||steps->Size()>4096){reason="native_backdrop_wall_trace_fields";return false;}
-    for(const auto &step:steps->GetArray()){
-      ClientBackdropEffectStep value;const auto *args=Member(&step,"arguments"),*quad=Member(&step,"quad"),*x=Member(&step,"flip_x"),*y=Member(&step,"flip_y");
-      if(!args||!args->IsArray()||args->Size()!=4||!quad||!quad->IsArray()||quad->Size()!=8||!x||!x->IsBool()||!y||!y->IsBool()||
-         !UInt(Member(&step,"before"),value.before)||!value.before||!UInt(Member(&step,"after"),value.after)||!value.after){reason="native_backdrop_wall_trace_step";return false;}
-      for(unsigned i=0;i<4;++i)if(!UInt(&(*args)[i],value.arguments[i]))return false;
-      for(unsigned i=0;i<8;++i)if(!Float(&(*quad)[i],value.quad[i])||std::fabs(value.quad[i])>1000000)return false;
-      value.flip_x=x->GetBool();value.flip_y=y->GetBool();trace.steps.push_back(value);
-    }
-  }
-  const auto *surface=Member(presentation_runtime,"backdrop_surface_inputs");if(!surface||!surface->IsArray()||surface->Size()!=4)return false;
-  for(unsigned i=0;i<4;++i)if(!Float(&(*surface)[i],out.backdrop_surface_inputs[i]))return false;
-  if(out.backdrop_surface_inputs[0]>=out.backdrop_surface_inputs[2]||out.backdrop_surface_inputs[1]>=out.backdrop_surface_inputs[3])return false;
-  const auto *sprites=Member(room,"backdrop_sprites");if(!sprites||!sprites->IsArray()||sprites->Size()!=4){reason="native_backdrop_sprites_missing";return false;}
-  for(unsigned i=0;i<4;++i){const auto &s=(*sprites)[i];if(s.IsObject()&&s.HasMember("status")&&s["status"].IsString()&&std::strcmp(s["status"].GetString(),"Null")==0)continue;
-    std::string error;if(!ClientParseResourcePose(s,out.backdrop_sprites[i],error)){reason="native_backdrop_sprite_resource";return false;}out.backdrop_sprite_present[i]=true;}
-  reason="native_scene_description_ready";return true;
-}
-}
-// 冷目标与分层普通范围共用同一具名纯值解释，不触碰原生对象。
-bool ClientDescribeSceneValues(const replica::Value &value,const replica::RoomGridTarget &target,LegacyClientNativeSceneDescription &out,const char *&reason){return SceneDescription(value,target,out,reason);}
 ClientScene::ClientScene() noexcept=default;
-ClientScene::~ClientScene() {ClientNativeWorldDestroy(native_world_);}
+ClientScene::~ClientScene() {ClientDisplayDestroy(display_);}
 // 新连接只建立等待身份；从不把等待 Scope 的 run/room 伪装成原生场景。
 void ClientScene::Begin(const replica::Scope &scope) noexcept {
   if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return;}
   if(!CanReturnToMenu()){FailureResult(ClientResultKind::PartialNativeFailure,"begin","old_owner_inflight");state_=ClientSceneState::Failed;return;}
-  waiting_scope_=scope;target_scope_={};applied_scope_={};target_.reset();applied_.reset();
-  stream_.reset();network_stream_started_=stream_write_failure_=false;
-  room_grid_target_.reset();room_grid_applied_.reset();room_grid_plan_={};
-  player_target_.reset();player_applied_.reset();
-  player_lifecycle_.reset();player_next_lifecycle_.reset();
-  stop_requested_=recovery_attempted_=retirement_failed_=recovery_forbidden_=false;
-  ClientNativeWorldDestroy(native_world_);native_world_=nullptr;objects_.reset();presentation_.reset();grids_.reset();
-  grid_events_.Reset(scope);entity_events_.Reset(scope);rebuild_objects_.reset();rebuild_grids_.reset();rebuild_presentation_.reset();grids_planned_=grids_complete_=grids_retired_=references_complete_=false;
-  target_memory_.reset();applied_memory_.reset();planning_memory_.reset();
-  applied_valid_=rebuild_pending_=objects_planned_=objects_retired_=pumping_=false;
-  attempt_invalidated_=false;
-  objects_complete_=presentation_retired_=false;
+  waiting_scope_=scope;
+  retirement_failed_=recovery_forbidden_=false;
+  if(!display_history_||display_history_scope_.session!=scope.session||
+     (scope.run&&display_history_scope_.run!=scope.run)){
+    if(display_history_&&!DiscardBinaryHistory()){
+      Fail("binary_history_retirement");return;
+    }
+    ClientDisplayDestroy(display_);display_=nullptr;display_history_=false;
+  }
+  binary_scene_=binary_published_=false;
   retirement_complete_=false;
-  retired_scopes_={};retired_scope_count_=0;
   native_dispatch_prefix_=false;
-  target_revision_=applied_revision_=0;
+  applied_revision_=stream_last_commit_=0;
   const auto epoch=NewSceneEpoch();
   if(!epoch){FailureResult(ClientResultKind::BudgetExhausted,"begin","scene_generation_exhausted");state_=ClientSceneState::Failed;return;}
   generations_.scene=epoch;
@@ -333,45 +84,6 @@ void ClientScene::FailureResult(ClientResultKind kind,const char *phase,const ch
   result_.player_bodies_applied=result_.player_relations_applied=result_.player_resources_applied=result_.player_domain_applied=false;
   std::snprintf(result_.recovery.data(),result_.recovery.size(),"%s",kind==ClientResultKind::NativeCommitted?"none":result_.native_written?"retire_actual_owners_then_rebuild":"preserve_applied_or_replace_unwritten_target");
 }
-ClientEntityBudget ClientScene::EntityBudget() const noexcept {return objects_?objects_->Budget():ClientEntityBudget{};}
-ClientPlayerBudget ClientScene::PlayerBudget() const noexcept {return rebuild_objects_?rebuild_objects_->PlayerBudget():objects_?objects_->PlayerBudget():ClientPlayerBudget{};}
-std::uint64_t ClientScene::PlayerRoleTypes() const noexcept {
-  std::uint64_t mask=0;if(player_target_)for(const auto &b:player_target_->bodies)if(b.player_type>=0&&b.player_type<=40)mask|=std::uint64_t(1)<<b.player_type;return mask;
-}
-unsigned ClientScene::PlayerBodyRoles() const noexcept {
-  unsigned mask=0;if(player_target_)for(const auto &b:player_target_->bodies)if(b.membership.known&&b.membership.body_role<32)mask|=1u<<b.membership.body_role;return mask;
-}
-void ClientScene::NotePlayerFailure(const ClientPlayerDiagnostics &value) noexcept {
-  if(!value.reason[0])return;
-  result_.player_step=value;result_.player_step.Normalize();if(!result_.player_failure.reason[0])result_.player_failure=result_.player_step;
-  if(!result_.failure_phase[0]){result_.failed_key={value.body.run,value.body.id,value.body.space};std::snprintf(result_.failed_domain.data(),result_.failed_domain.size(),"player");}
-}
-void ClientScene::NoteObjectStep(const ClientObjectStep &step,const char *phase) noexcept {
-  if(step.domain&&std::strcmp(step.domain,"player")==0){
-    result_.player_step.Record(step,phase);if(step.failed)NotePlayerFailure(result_.player_step);
-  }
-  if(step.failed&&!result_.failure_phase[0]){
-    result_.failed_key={step.key.run,step.key.id,step.key.space};
-    std::snprintf(result_.failed_domain.data(),result_.failed_domain.size(),"%s",step.domain?step.domain:"entity");
-  }
-}
-void ClientScene::SetCommittedRange() noexcept {
-  result_.committed_domains=(1u<<unsigned(world::observation::DomainId::Grid))|(1u<<unsigned(world::observation::DomainId::Room));
-  const auto b=EntityBudget();result_.entity_members=b.members;result_.entity_players=b.players;result_.entity_non_players=b.members-b.players;
-  // 旧17代表profile没有完整非Player字段；正常19目标才声明非Player合同完成。
-  result_.non_player_entity_applied=applied_&&(!applied_->HasMember("client_profile")||!(*applied_)["client_profile"].IsObject()||!(*applied_)["client_profile"].HasMember("id")||
-    !(*applied_)["client_profile"]["id"].IsString()||std::strcmp((*applied_)["client_profile"]["id"].GetString(),"tx-04-17-representative-v1"));
-  result_.player_support_applied=b.players!=0;
-  // 唯一Scene在所有域同attempt回读之后才设置范围；目录能力、DTO或历史代表不授予域位。
-  const bool players=player_applied_&&player_applied_->scope==applied_scope_&&player_applied_->revision==applied_revision_&&
-    player_applied_->native_source_complete&&player_applied_->public_complete&&objects_&&
-    player_applied_->bodies.size()==b.players&&objects_->PlayersCommitted(applied_scope_,applied_revision_);
-  result_.player_bodies_applied=result_.player_relations_applied=result_.player_resources_applied=players;
-  result_.player_domain_applied=players&&player_applied_->membership_complete;
-  result_.full_entity_applied=result_.non_player_entity_applied&&players;
-  if(result_.full_entity_applied)result_.committed_domains|=1u<<unsigned(world::observation::DomainId::Entity);
-  if(result_.player_domain_applied)result_.committed_domains|=1u<<unsigned(world::observation::DomainId::Player);
-}
 bool ClientScene::NoteNativeDispatchEntry() noexcept {
   if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return false;}
   if(result_.executed_prefix==UINT32_MAX){
@@ -382,398 +94,139 @@ bool ClientScene::NoteNativeDispatchEntry() noexcept {
   ++result_.executed_prefix;
   return true;
 }
-// 接纳只建立自有T和计划；较新T取消已写前缀时先退休原生世界，再从完整T重建。
-bool ClientScene::AdmitTarget(const replica::Scope &scope,std::uint64_t revision,
-                              const replica::Value &value) noexcept {
-  ClientEntityTestMeasure measure("player_scene_parse_plan");
-  if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return false;}
-  if((state_==ClientSceneState::Retiring&&!rebuild_pending_)||pumping_||
-     active_native_||active_lua_||active_graphics_||active_observation_||active_dispatch_){
-    FailureResult(ClientResultKind::Retiring,"admit","owner_unavailable");return false;
-  }
-  if(!scope.session||!scope.connection||!scope.run||!scope.scene||!revision||
-     scope.session!=waiting_scope_.session||scope.connection!=waiting_scope_.connection) {
-    FailureResult(ClientResultKind::WaitingDependency,"admit","formal_scope_required");return false;
-  }
-  try {
-    replica::CheckValue(value);
-    replica::ValidateModel(value);
-    if(value["publishable"]!=true||replica::ReadScope(value["scope"])!=scope||
-       replica::Unsigned(value["revision"])!=revision) {
-      FailureResult(ClientResultKind::UnsupportedRequirement,"admit","target_identity_or_coverage");return false;
-    }
-    for(const auto &borrow:borrows_)if(borrow.id){
-      FailureResult(ClientResultKind::Retiring,"admit","borrow_inflight");return false;
-    }
-    for(unsigned i=0;i<retired_scope_count_;++i)if(scope==retired_scopes_[i]){
-      FailureResult(ClientResultKind::WaitingDependency,"admit","retired_scope");return false;
-    }
-    if(applied_valid_&&applied_&&scope==applied_scope_&&revision==applied_revision_&&*applied_==value){
-      FailureResult(ClientResultKind::DuplicateTarget,"committed","duplicate_native_committed");
-      result_.scope=scope;result_.revision=revision;result_.native_committed=true;result_.old_display_valid=true;
-      std::snprintf(result_.recovery.data(),result_.recovery.size(),"none");
-      SetCommittedRange();return true;
-    }
-    if(target_&&scope==target_scope_&&revision==target_revision_) {
-      FailureResult(*target_==value?ClientResultKind::DuplicateTarget:ClientResultKind::UnsupportedRequirement,
-                    "admit",*target_==value?"duplicate_target":"same_version_conflict");return *target_==value;
-    }
-    if(target_&&scope==target_scope_&&revision<target_revision_) {
-      FailureResult(ClientResultKind::WaitingDependency,"admit","stale_revision");return false;
-    }
-    if(applied_&&scope==applied_scope_&&revision<=applied_revision_) {
-      FailureResult(ClientResultKind::WaitingDependency,"admit","already_applied_revision");return false;
-    }
-    // 先为冷路径目标、确认副本、Room/Grid/Entity/Player计划及资源描述申请合计上界。
-    // 小DTO热路径由stream范围自身租约持有；这里不将原生图形资源算成自有纯值。
-    const auto value_bound=replica::OwnedValueUpperBound(value);
-    std::uint64_t roots=1;for(auto i=value["components"].MemberBegin();i!=value["components"].MemberEnd();++i){const auto &c=i->value;if(c.HasMember("state")&&c["state"].IsObject()&&c["state"].HasMember("objects")&&c["state"]["objects"].IsArray())roots+=c["state"]["objects"].Size();}
-    // 失败预检可能仍留有owner中的自有计划；累计保守额度直至完整替换或退休。
-    if(!planning_memory_)planning_memory_=memory::Reserve(memory::Pool::Values,0,"client_target_plan");
-    planning_memory_->Resize(planning_memory_->Bytes()+8*value_bound+8*replica::kJsonArenaChunk*roots);
-    auto domain=replica::ParseRoomGridTarget(value);
-    auto players=replica::HasPlayerTarget(value)?replica::ParsePlayerTarget(value):nullptr;
-    if(stream_&&!stream_->baseline_committed&&stream_->manifest&&revision==stream_->manifest_revision){
-      const auto entities=players?players->entities:std::make_shared<const replica::EntityTarget>(replica::ParseEntityTarget(value));std::map<replica::SubjectKey,std::uint64_t> actual;
-      for(const auto &e:entities->objects)if(e.presence==replica::EntityMemberPresence::Current)actual.emplace(e.key,e.shape_revision);
-      for(const auto &g:domain->grids)if(!actual.emplace(g.key,g.instance_revision).second)throw replica::ContractError("client_stream_cold_member_alias");actual.emplace(domain->room.key,0);
-      if(actual.size()!=stream_->manifest->members.size())throw replica::ContractError("client_stream_cold_member_count");for(const auto &m:stream_->manifest->members){auto it=actual.find(m.key);if(it==actual.end()||it->second!=m.shape)throw replica::ContractError("client_stream_cold_member_shape");}
-    }
-    auto player_lifecycle=players?replica::PlanPlayerLifecycle(*players,player_lifecycle_.get()):nullptr;
-    // 身体移除/换实例采用显式安全重建；在退休A前完成T的全部纯值分析。
-    const bool player_rebuild=players&&applied_valid_&&player_applied_&&
-        (players->scope!=player_applied_->scope||replica::PlanPlayerTarget(players,player_applied_).rebuild_scene);
-    auto domain_plan=replica::PlanRoomGridTarget(domain,applied_valid_?room_grid_applied_:nullptr);
-    LegacyClientNativeSceneDescription description{};const char *reason=nullptr;
-    if(!SceneDescription(value,*domain,description,reason)){
-      FailureResult(ClientResultKind::UnsupportedRequirement,"admit",reason);return false;
-    }
-    if(next_attempt_==UINT64_MAX){FailureResult(ClientResultKind::BudgetExhausted,"admit","attempt_exhausted");return false;}
-    auto copy=std::make_unique<replica::Json>(replica::Copy(value));
-    if(!objects_)objects_=std::make_unique<ClientObjects>();
-    if(!presentation_)presentation_=std::make_unique<ClientPresentation>();
-    if(!grids_)grids_=std::make_unique<ClientGrids>();
-    const bool reset_events=!target_||scope!=target_scope_;
-    const bool changing_scope=target_&&scope!=target_scope_;
-    if(changing_scope&&retired_scope_count_==retired_scopes_.size()){
-      FailureResult(ClientResultKind::BudgetExhausted,"admit","retired_scope_budget");return false;
-    }
-    const bool need_rebuild=(stream_&&stream_->structure_rebuild)||state_==ClientSceneState::Failed||rebuild_pending_||player_rebuild||
-        (ClientNativeWorldHasPrefix(native_world_)&&
-         (domain_plan.room==replica::RoomPlanKind::Rebuild||(state_!=ClientSceneState::Displaying&&
-           !(state_==ClientSceneState::Preparing&&replica::CancelRoomGridPlan(result_.native_written,result_.executed_prefix)==replica::PlanCancellation::PreserveApplied))||
-          changing_scope||!ClientNativeWorldCanReuse(native_world_,description)));
-    // 重建也先完成全部纯值预检；不能先退休 A，才发现 T 依赖尚未支持的 Entity19。
-    std::unique_ptr<ClientObjects> rebuild_objects;std::unique_ptr<ClientGrids> rebuild_grids;std::unique_ptr<ClientPresentation> rebuild_presentation;
-    if(need_rebuild){rebuild_objects=std::make_unique<ClientObjects>();rebuild_grids=std::make_unique<ClientGrids>();rebuild_presentation=std::make_unique<ClientPresentation>();
-      if(!rebuild_objects->PrepareTarget(value,nullptr,reason,domain.get(),players)||!rebuild_grids->PrepareTarget(replica::PlanRoomGridTarget(domain),reason)||
-         !rebuild_presentation->PrepareTarget(value,reason,description.room_state,description.map)){
-        NotePlayerFailure(rebuild_objects->PlayerDiagnostics());FailureResult(ClientResultKind::UnsupportedRequirement,"preflight",reason);return false;}}
-    // 写世界前先完成所有纯值计划；失败保留上一已提交展示资格。
-    if(!need_rebuild&&!objects_->PrepareTarget(value,applied_valid_?applied_.get():nullptr,reason,domain.get(),players)){
-      NotePlayerFailure(objects_->PlayerDiagnostics());FailureResult(ClientResultKind::UnsupportedRequirement,"plan",reason);return false;
-    }
-    if(!need_rebuild&&!grids_->PrepareTarget(domain_plan,reason)){
-      objects_->CancelPlanned();objects_planned_=false;
-      grids_planned_=false;
-      FailureResult(ClientResultKind::UnsupportedRequirement,"grid_plan",reason);return false;
-    }
-    if(!need_rebuild&&!presentation_->PrepareTarget(value,reason,description.room_state,description.map)){
-      // 纯值展示预检失败时撤销尚未执行的对象计划，保留当前原生A及其身份表。
-      if(!objects_->CancelPlanned())Fail("unexecuted_plan_cancel_failed");
-      if(!grids_->CancelPlanned())Fail("unexecuted_grid_plan_cancel_failed");
-      grids_planned_=false;
-      // 新T预检失败，下一轮重新规划仍保留的旧T；不留下target_与已撤计划不一致的状态。
-      objects_planned_=false;
-      FailureResult(ClientResultKind::UnsupportedRequirement,"presentation_plan",reason);return false;
-    }
-    if(changing_scope)retired_scopes_[retired_scope_count_++]=target_scope_;
-    // 空菜单快照虽无原生写入，也绑定了旧T的descriptor地址；替换时撤掉该未执行owner。
-    if(!need_rebuild&&native_world_&&!ClientNativeWorldHasPrefix(native_world_)){
-      ClientNativeWorldDestroy(native_world_);native_world_=nullptr;
-    }
-    const auto previous_target_memory=target_memory_;
-    target_=std::move(copy);target_scope_=scope;target_revision_=revision;target_memory_=std::move(planning_memory_);
-    stop_requested_=recovery_attempted_=retirement_failed_=recovery_forbidden_=false;
-    room_grid_target_=std::move(domain);room_grid_plan_=std::move(domain_plan);
-    player_target_=std::move(players);
-    player_next_lifecycle_=std::move(player_lifecycle);
-    native_description_=std::move(description);objects_planned_=!need_rebuild;objects_retired_=false;attempt_invalidated_=false;
-    objects_complete_=presentation_retired_=false;
-    grids_planned_=!need_rebuild;grids_complete_=grids_retired_=references_complete_=false;
-    if(reset_events){grid_events_.Reset(scope);entity_events_.Reset(scope);}
-    retirement_complete_=false;
-    const auto pending=result_.pending_owners;
-    result_={};result_.scope=scope;result_.revision=revision;result_.attempt=++next_attempt_;
-    if(need_rebuild){rebuild_objects_=std::move(rebuild_objects);rebuild_grids_=std::move(rebuild_grids);rebuild_presentation_=std::move(rebuild_presentation);}
-    else if(!objects_->BeginAttempt(result_.attempt)){Fail("objects_attempt_admission");return false;}
-    result_.pending_owners=pending;result_.old_display_valid=applied_valid_;
-    if(need_rebuild){
-      rebuild_pending_=true;applied_valid_=false;state_=ClientSceneState::Retiring;
-      for(auto &owner:retained_)if(owner.ticket.id)owner.retiring=true;
-      FailureResult(ClientResultKind::Retiring,"rebuild","target_requires_native_rebuild");
-    }else{
-      state_=ClientSceneState::Preparing;
-      FailureResult(ClientResultKind::WaitingDependency,"prepare","target_planned");
-    }
-    return true;
-  } catch(const replica::PlayerContractError &e) {
-      ClientObjectStep step;step.key={e.subject.run,e.subject.id,e.subject.space};step.dependency={e.dependency.run,e.dependency.id,e.dependency.space};step.reason=e.what();
-      std::snprintf(step.field.data(),step.field.size(),"%s",e.field.c_str());ClientPlayerDiagnostics d;d.Record(step,"admit");NotePlayerFailure(d);
-      FailureResult(ClientResultKind::UnsupportedRequirement,"admit",e.what());return false;
-    } catch(const replica::ContractError &e) {FailureResult(ClientResultKind::UnsupportedRequirement,"admit",e.what());return false;}
-    catch(const std::runtime_error &e) {FailureResult(ClientResultKind::BudgetExhausted,"admit",e.what());return false;}
-    catch(...) {FailureResult(ClientResultKind::UnsupportedRequirement,"admit","invalid_or_unavailable_target");return false;}
-}
-void ClientScene::NoteNativeStep(const ClientNativeStep &step,const char *phase) noexcept {
-  result_.executed_prefix=(std::max)(result_.executed_prefix,step.prefix);
-  if(step.written&&!step.safe_menu){result_.native_written=true;result_.old_display_valid=false;applied_valid_=false;}
-  if(step.state==ClientNativeStepState::Failed){
-    FailureResult(ClientResultKind::PartialNativeFailure,phase,step.reason);
-    state_=ClientSceneState::Failed;rebuild_pending_=false;
-  }else if(step.state==ClientNativeStepState::Waiting)
-    FailureResult(ClientResultKind::WaitingDependency,phase,step.reason);
-  else FailureResult(ClientResultKind::WaitingDependency,phase,step.reason);
-}
-// 同一主线程泵只做一个完整子步骤；借用/原生队列未退尽时返回下一轮，不等待网络或磁盘。
+// 原生批次由 ClientBinaryScene 推进，这里只维护共享上下文和借用退休。
 void ClientScene::Pump() noexcept {
-  if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return;}
-  if(pumping_||TopOwner()!=Owner::Manager||!ContextHealthy()||InBlockedContext())return;
-  pumping_=true;
-  ContextWindow();DrainRetained();
-  const bool retiring=state_==ClientSceneState::Retiring||state_==ClientSceneState::Failed;
-  if(retiring&&retirement_failed_){pumping_=false;return;} // 不确定前缀禁止重试析构。
-  if(!DestructiveReady()){pumping_=false;return;}
-  if(retiring){
-    replica::stream::Measure retirement_measure(stream_metrics_,replica::stream::CpuStage::NativeRetire);
-    // 已停止展示与新借用后先撤本方映射，再让原生Room/Player/HUD单一owner真实退休。
-    ClientBorrowToken borrow{};
-    if(!Borrow(ClientPurpose::NativeRetire,borrow)){pumping_=false;return;}
-    if(presentation_&&!presentation_retired_){
-      const auto step=presentation_->Retire(ClientNativeWorldRoots(native_world_));
-      if(step.failed){retirement_failed_=true;FailureResult(ClientResultKind::PartialNativeFailure,"presentation_retire",step.reason);state_=ClientSceneState::Failed;}
-      else presentation_retired_=step.done;
-      Release(borrow);pumping_=false;return;
-    }
-    if(objects_&&!objects_retired_){
-      const auto step=objects_->Retire(ClientNativeWorldRoots(native_world_));
-      NoteObjectStep(step,"retire");
-      result_.native_owners=step.pending_owners;
-      result_.executed_prefix=(std::max)(result_.executed_prefix,step.executed_prefix);
-      if(step.failed){retirement_failed_=true;FailureResult(ClientResultKind::PartialNativeFailure,"objects_retire",step.reason);state_=ClientSceneState::Failed;}
-      else objects_retired_=step.done;
-      Release(borrow);pumping_=false;return;
-    }
-    // 所有新draw已关闭、CPU队列退尽；先由Grid owner撤别名/副缓冲并Free，再让Room析构。
-    if(grids_&&!grids_retired_){
-      const auto step=grids_->Retire(ClientNativeWorldRoots(native_world_));
-      result_.grid_prefix=step.prefix;result_.grid_owners=step.owners;
-      if(step.failed){retirement_failed_=true;FailureResult(ClientResultKind::PartialNativeFailure,"grid_retire",step.reason);state_=ClientSceneState::Failed;}
-      else grids_retired_=step.done;
-      Release(borrow);pumping_=false;return;
-    }
-    if(native_world_){
-      const auto step=ClientNativeWorldRetire(native_world_);NoteNativeStep(step,"native_retire");
-      if(step.state==ClientNativeStepState::Failed)retirement_failed_=true;
-      if(step.safe_menu){result_.native_written=false;result_.native_owners=0;}
-    }
-    Release(borrow);FinishRetirementIfDrained();pumping_=false;return;
-  }
-  if((state_!=ClientSceneState::Preparing&&state_!=ClientSceneState::Applying)||!target_){pumping_=false;return;}
-  replica::stream::Measure native_measure(stream_metrics_,replica::stream::CpuStage::NativeApply);
-  if(!objects_planned_){
-    const char *reason=nullptr;
-    if(!objects_){try{objects_=std::make_unique<ClientObjects>();}catch(...){Fail("objects_allocation");pumping_=false;return;}}
-    if(!objects_->PrepareTarget(*target_,applied_valid_?applied_.get():nullptr,reason,room_grid_target_.get(),player_target_)){
-      FailureResult(ClientResultKind::UnsupportedRequirement,"plan",reason);Fail(reason);pumping_=false;return;
-    }
-    if(!objects_->BeginAttempt(result_.attempt)){Fail("objects_attempt_rebuild");pumping_=false;return;}
-    if(!presentation_){try{presentation_=std::make_unique<ClientPresentation>();}catch(...){Fail("presentation_allocation");pumping_=false;return;}}
-    if(!presentation_->PrepareTarget(*target_,reason,native_description_.room_state,native_description_.map)){Fail(reason);pumping_=false;return;}
-    objects_planned_=true;
-  }
-  if(!grids_planned_){const char *reason=nullptr;
-    if(!grids_){try{grids_=std::make_unique<ClientGrids>();}catch(...){Fail("grid_owner_allocation");pumping_=false;return;}}
-    if(!grids_->PrepareTarget(room_grid_plan_,reason)){Fail(reason);pumping_=false;return;}grids_planned_=true;
-  }
-  if(!GraphicsWindowValid()){
-    FailureResult(ClientResultKind::WaitingDependency,"prepare","native_graphics_context");pumping_=false;return;
-  }
-  if(!native_world_){
-    native_world_=ClientNativeWorldCreate();
-    if(!native_world_){Fail("native_world_allocation");pumping_=false;return;}
-  }
-  if(!attempt_invalidated_){InvalidateInstance();attempt_invalidated_=true;}
-  if(state_==ClientSceneState::Failed){pumping_=false;return;}
-  ClientBorrowToken native{},graphics{};
-  if(!Borrow(ClientPurpose::NativeApply,native)){pumping_=false;return;}
-  if(!Borrow(ClientPurpose::Graphics,graphics)){Release(native);pumping_=false;return;}
-  if(state_==ClientSceneState::Preparing){
-    const auto step=ClientNativeWorldPrepare(native_world_,native_description_);
-    NoteNativeStep(step,"native_prepare");
-    if(step.state==ClientNativeStepState::Ready)state_=ClientSceneState::Applying;
-  }else{
-    const auto roots=ClientNativeWorldRoots(native_world_);
-    // 每轮最多一个对象命令；候选资源在释放用途借用后由下一轮DrainRetained收口。
-    // 实例/最终量先就绪，Grid独立取得；随后才安装后置关系与最终检查。
-    const auto step=objects_complete_?ClientObjectStep{true,false,false,0,result_.native_owners,"objects_complete"}:objects_->Step(roots,1,grids_complete_);
-    NoteObjectStep(step,"apply");
-    result_.executed_prefix=(std::max)(result_.executed_prefix,step.executed_prefix);
-    result_.native_owners=step.pending_owners;
-    if(Settings.diagnostics&&step.key.id)Trace("client_object_step","key=%llu:%u:%llu instance=%llu prefix=%u done=%u failed=%u reason=%s",
-      step.key.run,step.key.space,step.key.id,step.instance,step.object_prefix,unsigned(step.done),unsigned(step.failed),step.reason);
-    if(step.written){result_.native_written=true;result_.old_display_valid=false;applied_valid_=false;}
-    if(step.failed){
-      FailureResult(ClientResultKind::PartialNativeFailure,"objects_apply",step.reason);state_=ClientSceneState::Failed;
-    }else if(step.done||objects_->InstancesReady()){
-      objects_complete_=step.done;
-      // 几何/真实Entity先就绪，再分步安装Grid；所有依赖/资源/缓存均在唯一Scene提交前闭合。
-      if(!grids_complete_){const auto grid=grids_->Step(roots,1);
-        result_.grid_prefix=grid.prefix;result_.grid_owners=grid.owners;
-        if(grid.written){result_.native_written=true;result_.old_display_valid=false;applied_valid_=false;}
-        if(grid.failed){if(!result_.failure_phase[0]){std::snprintf(result_.failed_domain.data(),result_.failed_domain.size(),"grid");
-          result_.failed_key={grid.key.run,grid.key.id,grid.key.space};}
-          FailureResult(ClientResultKind::PartialNativeFailure,"grid_apply",grid.reason);state_=ClientSceneState::Failed;}
-        else grids_complete_=grid.done;
-        Release(graphics);Release(native);pumping_=false;return;
-      }
-      if(!objects_complete_){FailureResult(ClientResultKind::WaitingDependency,"objects_references",step.reason);Release(graphics);Release(native);pumping_=false;return;}
-      if(!references_complete_){const auto linked=grids_->ResolveReferences(*objects_,result_.attempt);
-        if(linked.failed){FailureResult(ClientResultKind::PartialNativeFailure,"grid_references",linked.reason);state_=ClientSceneState::Failed;}
-        else references_complete_=linked.done;
-        Release(graphics);Release(native);pumping_=false;return;
-      }
-      // Backdrop.Init的教程surface读取首Player，必须等正式对象计划已完成roster/EL，
-      // 并在I4缓存准备/绘制前具名收尾；空PM不得靠旧vector存储继续解引用。
-      const auto finalized=ClientNativeWorldFinalize(native_world_);
-      NoteNativeStep(finalized,"native_finalize");
-      if(finalized.state==ClientNativeStepState::Ready){
-        const auto present=presentation_->Step(roots);
-        if(present.written){result_.native_written=true;result_.old_display_valid=false;applied_valid_=false;}
-        if(present.failed){
-          FailureResult(ClientResultKind::PartialNativeFailure,"presentation_prepare",present.reason);state_=ClientSceneState::Failed;
-        }else if(!present.done)FailureResult(ClientResultKind::WaitingDependency,"presentation_prepare",present.reason);
-        else {
-          const auto grid_check=grids_->Check(roots);
-          if(grid_check.failed){if(!result_.failure_phase[0])result_.failed_key={grid_check.key.run,grid_check.key.id,grid_check.key.space};
-            FailureResult(ClientResultKind::PartialNativeFailure,"grid_commit",grid_check.reason);state_=ClientSceneState::Failed;
-            Release(graphics);Release(native);pumping_=false;return;}
-          if(!grid_check.done){FailureResult(ClientResultKind::WaitingDependency,"grid_commit",grid_check.reason);
-            Release(graphics);Release(native);pumping_=false;return;}
-          const auto check=ClientNativeWorldCheckCommit(native_world_);NoteNativeStep(check,"native_commit");
-          if(check.state==ClientNativeStepState::Ready){
-            try{
-              const auto previous_applied_memory=applied_memory_;
-              auto committed=std::make_unique<replica::Json>(replica::Copy(*target_));
-              if(!objects_->Commit(result_.attempt)){Fail("objects_scene_commit_attempt");Release(graphics);Release(native);pumping_=false;return;}
-              player_applied_=player_target_;
-              player_lifecycle_=player_next_lifecycle_;
-              applied_=std::move(committed);applied_scope_=target_scope_;applied_revision_=target_revision_;applied_memory_=target_memory_;
-              room_grid_applied_=room_grid_target_;
-              room_grid_plan_.applied.reset();
-              applied_valid_=true;state_=ClientSceneState::Displaying;
-              FailureResult(ClientResultKind::NativeCommitted,"committed","native_target_committed");
-              result_.native_committed=true;result_.old_display_valid=true;
-              SetCommittedRange();
-            }catch(...){Fail("native_commit_model_allocation");}
-          }
-        }
-      }
-    }else FailureResult(ClientResultKind::WaitingDependency,"objects_apply",step.reason);
-  }
-  Release(graphics);Release(native);pumping_=false;
+  if(IsMain()&&TopOwner()==Owner::Manager&&ContextHealthy()&&!InBlockedContext())ContextWindow();
 }
 bool ClientScene::DisplayReady() const noexcept {
-  return IsMain()&&state_==ClientSceneState::Displaying&&applied_valid_&&applied_&&
-         !foreign_fault_.load(std::memory_order_acquire)&&!ClientNativeWorldSafeMenu(native_world_);
+  return IsMain()&&binary_published_&&state_==ClientSceneState::Displaying&&
+         !foreign_fault_.load(std::memory_order_acquire);
 }
-ClientPlayerControlView ClientScene::PlayerControl(unsigned ordinal) const noexcept {
-  if(!IsMain()||!DisplayReady()||!player_applied_)return {};
-  return ClientPlayerControl(*player_applied_,ordinal);
+void ClientScene::PublishBinary(std::uint64_t revision) noexcept {
+  if(!binary_published_||applied_revision_!=revision)stream_last_commit_=GetTickCount64();
+  binary_published_=true;applied_revision_=revision;
+  state_=ClientSceneState::Displaying;
+  FailureResult(ClientResultKind::NativeCommitted,"binary_apply","binary_native_committed");
+  result_.native_committed=true;result_.old_display_valid=true;result_.revision=revision;
 }
-std::shared_ptr<const ClientPlayerDisplayView> ClientScene::PlayerDisplay() const noexcept {
-  if(!DisplayReady()||!objects_||!player_applied_||!objects_->PlayersCommitted(applied_scope_,applied_revision_))return {};
-  return objects_->PlayerDisplay();
+void ClientScene::FinishBinary() noexcept {
+  binary_scene_=binary_published_=false;native_dispatch_prefix_=false;applied_revision_=0;
+  result_.native_written=result_.native_committed=result_.old_display_valid=false;result_.executed_prefix=0;
 }
-bool ClientScene::PlayerDisplayCurrent(const std::shared_ptr<const ClientPlayerDisplayView> &view) const noexcept {
-  return view&&view==PlayerDisplay();
+ClientDisplayStep ClientScene::PrepareBinaryDisplay(const ClientDisplayWorldRef &target) noexcept {
+  if(!DestructiveReady())return {false,false,"binary_display_waiting_for_borrows"};
+  if(!display_)display_=ClientDisplayCreate();
+  if(!display_)return {false,false,"binary_display_allocation"};
+  const auto old=state_;state_=ClientSceneState::Applying;ClientDisplayStep step;
+  {ClientDispatchScope dispatch(ClientOperation::Apply,ClientEntry::NativeApply);
+    if(dispatch.Ready()&&ClientDispatchBefore(ClientEntry::NativeApply)==ClientEntryDecision::CallOriginal){
+      step=ClientDisplayBeforeInstall(display_,target,ClientPreparationRoots());
+      ClientDispatchReturned(ClientEntry::NativeApply);
+      if(!dispatch.Succeeded())step={false,true,"binary_display_before_dispatch"};
+    }}
+  if(state_==ClientSceneState::Applying)state_=old;
+  return step;
 }
-// 仅在实际安全退休之后重建一次完整T；未知释放前缀会留住owner并关闭自动恢复。
+ClientDisplayStep ClientScene::InstallBinaryDisplay(const ClientDisplayWorldRef &target) noexcept {
+  if(!display_||!DestructiveReady())return {false,false,"binary_display_install_window"};
+  const auto old=state_;state_=ClientSceneState::Applying;ClientDisplayStep step;
+  {ClientDispatchScope dispatch(ClientOperation::Apply,ClientEntry::NativeApply);
+    if(dispatch.Ready()&&ClientDispatchBefore(ClientEntry::NativeApply)==ClientEntryDecision::CallOriginal){
+      step=ClientDisplayBuildRoots(display_,ClientPreparationRoots());
+      const bool built=step.written;
+      if(step.done){step=ClientDisplayInstall(display_,target,ClientPreparationRoots());step.written|=built;}
+      ClientDispatchReturned(ClientEntry::NativeApply);
+      if(!dispatch.Succeeded())step={false,true,"binary_display_install_dispatch"};
+    }}
+  if(state_==ClientSceneState::Applying)state_=old;
+  return step;
+}
+ClientDisplayStep ClientScene::InstallBinaryAudio(const ClientDisplayMusicRequest &music,ClientDisplayArray<ClientDisplaySound> loops) noexcept {
+  const auto old=state_;state_=ClientSceneState::Applying;
+  const auto step=ClientDisplayAudio(display_,music,loops);
+  if(state_==ClientSceneState::Applying)state_=old;
+  return step;
+}
+ClientDisplayStep ClientScene::RestoreBinaryBoss(const ClientDisplayBoss &boss) noexcept {
+  const auto old=state_;state_=ClientSceneState::Applying;
+  const auto step=ClientDisplayRestoreBoss(display_,boss);
+  if(state_==ClientSceneState::Applying)state_=old;
+  return step;
+}
+ClientDisplayStep ClientScene::ReplayBinaryEvent(const ClientDisplayEvent &event) noexcept {
+  const auto old=state_;state_=ClientSceneState::Applying;
+  const auto step=ClientDisplayEventReplay(display_,event);
+  if(state_==ClientSceneState::Applying)state_=old;
+  return step;
+}
+bool ClientScene::RetireBinaryDisplay(bool preserve_audio) noexcept {
+  if(!display_)return true;
+  if(!DestructiveReady())return false;
+  const auto old=state_;state_=ClientSceneState::Retiring;bool done=false;
+  {ClientDispatchScope dispatch(ClientOperation::Retire,ClientEntry::NativeTeardown);
+    if(dispatch.Ready()&&ClientDispatchBefore(ClientEntry::NativeTeardown)==ClientEntryDecision::CallOriginal){
+      done=ClientDisplayRetire(display_,false,preserve_audio);
+      ClientDispatchReturned(ClientEntry::NativeTeardown);done=done&&dispatch.Succeeded();
+    }}
+  if(state_==ClientSceneState::Retiring)state_=old;
+  return done;
+}
+bool ClientScene::PreserveBinaryRoom() noexcept {
+  if(!display_||!DestructiveReady())return false;
+  const auto old=state_;state_=ClientSceneState::Applying;bool done=false;
+  {ClientDispatchScope dispatch(ClientOperation::Apply,ClientEntry::NativeApply);
+    if(dispatch.Ready()&&ClientDispatchBefore(ClientEntry::NativeApply)==ClientEntryDecision::CallOriginal){
+      done=ClientDisplayPreserveRoom(display_,ClientPreparationRoots());
+      ClientDispatchReturned(ClientEntry::NativeApply);done=done&&dispatch.Succeeded();
+    }}
+  if(state_==ClientSceneState::Applying)state_=old;
+  if(done){display_history_=true;display_history_scope_=waiting_scope_;}
+  return done;
+}
+bool ClientScene::ReleaseBinaryDisplayRoots(bool keep_history) noexcept {
+  if(!display_)return true;
+  if(!DestructiveReady())return false;
+  const auto old=state_;state_=ClientSceneState::Retiring;bool done=false;
+  {ClientDispatchScope dispatch(ClientOperation::Retire,ClientEntry::NativeTeardown);
+    if(dispatch.Ready()&&ClientDispatchBefore(ClientEntry::NativeTeardown)==ClientEntryDecision::CallOriginal){
+      done=ClientDisplayReleaseRoots(display_);
+      ClientDispatchReturned(ClientEntry::NativeTeardown);done=done&&dispatch.Succeeded();
+    }}
+  if(state_==ClientSceneState::Retiring)state_=old;
+  if(done&&!keep_history){ClientDisplayDestroy(display_);display_=nullptr;display_history_=false;}
+  return done;
+}
+bool ClientScene::DiscardBinaryHistory() noexcept {
+  if(!display_history_)return true;
+  if(!RetireBinaryDisplay()||!ReleaseBinaryDisplayRoots())return false;
+  display_history_=false;return true;
+}
+bool ClientScene::NativeDisplay() const noexcept {return DisplayReady()&&ClientDisplayCurrent(display_,NativeRoots());}
+bool ClientScene::AdvanceDisplay(bool local_blocked) noexcept {
+  if(!DisplayReady()||!ClientDisplayHasWorld(display_))return true;
+  // 发布后的帧号或根绑定变化须撤销当前显示资格。
+  if(!NativeDisplay()){Fail("display_world_not_current");return false;}
+  ClientBorrowToken graphics{};if(!Borrow(ClientPurpose::Graphics,graphics))return false;
+  bool ok=false;
+  {ClientDispatchScope dispatch(ClientOperation::PresentMaintenance,ClientEntry::PresentationMaintenance);
+    if(dispatch.Ready()&&ClientDispatchBefore(ClientEntry::PresentationMaintenance)==ClientEntryDecision::CallOriginal){
+      ok=ClientDisplayAdvance(display_,NativeRoots(),local_blocked);
+      ClientDispatchReturned(ClientEntry::PresentationMaintenance);ok=ok&&dispatch.Succeeded();}}
+  Release(graphics);if(!ok)Fail("display_advance_failed");return ok;
+}
+bool ClientScene::BeginNativeRender() noexcept{return NativeDisplay()&&ClientDisplayRenderBegin(display_,NativeRoots());}
+bool ClientScene::RouteNativeRender(bool begin) noexcept{return ClientDisplayRouteRender(display_,begin);}
+void ClientScene::EndNativeRender() noexcept {
+  ClientDisplayRenderEnd(display_,NativeRoots());if(!NativeDisplay())Fail("display_render_failed");
+}
 std::vector<ClientOwnerFact> ClientScene::RetainedFacts() const {
   std::vector<ClientOwnerFact> out;if(!IsMain())return out;
   for(const auto &r:retained_)if(r.ticket.id)out.push_back({r.ticket.id,r.generations.resource,r.generations.lua,r.generations.context,unsigned(r.kind),unsigned(r.phase),r.cpu_queued,r.gpu_queued,r.failed});
   return out;
 }
-bool ClientScene::RecoveryPending() const noexcept {
-  return !stream_&&!stop_requested_&&!recovery_attempted_&&!retirement_failed_&&!recovery_forbidden_&&target_&&
-    state_==ClientSceneState::Failed&&result_.kind!=ClientResultKind::ContextOrThreadFault;
-}
-const char *ClientScene::RecoveryState() const noexcept {
-  if(stop_requested_)return "stopped";
-  if(retirement_failed_)return "retirement_failed";
-  if(recovery_forbidden_)return "forbidden";
-  if(RecoveryPending())return "waiting_safe_retirement";
-  if(recovery_attempted_)return DisplayReady()?"recovered":state_==ClientSceneState::Failed?"retry_failed":"rebuilding";
-  return "none";
-}
 ClientNativeRoots ClientScene::NativeRoots() const noexcept {
-  return DisplayReady()?ClientNativeWorldRoots(native_world_):ClientNativeRoots{};
+  return DisplayReady()?ClientDisplayRoots(display_):ClientNativeRoots{};
 }
-#ifdef ISAACCS_E2E
-std::string ClientScene::TestInspect() const noexcept {
-  if(!DisplayReady()||!objects_||!grids_)return "ok=0\nerror=inspect_not_committed\n";
-  try{const auto roots=ClientNativeWorldCheckCommit(native_world_);if(roots.state!=ClientNativeStepState::Ready)return "ok=0\nerror="+std::string(roots.reason)+"\n";
-    auto out=objects_->TestInspect();if(out.rfind("ok=1\n",0)!=0)return out;
-    const auto grid=grids_->TestInspect(ClientNativeWorldRoots(native_world_));if(grid.rfind("ok=1\n",0)!=0)return grid;
-    return out+grid.substr(5)+"native_domains="+std::to_string(result_.committed_domains>>1)+"\nattempt="+std::to_string(result_.attempt)+"\ninstance_generation="+std::to_string(generations_.instance)+"\nresource_generation="+std::to_string(generations_.resource)+"\nretained_domains_are_not_applied=1\n";
-  }catch(...){return "ok=0\nerror=inspect_allocation\n";}
-}
-#endif
-const replica::Value *ClientScene::Published() const noexcept {return DisplayReady()?applied_.get():nullptr;}
-// 独立记录与普通目标走不同入口；没有已知主线程/场景时不接纳，也不写原生世界。
-bool ClientScene::AdmitGridIndependent(const replica::Message &message,const char *&reason) noexcept {
-  if(!IsMain()||TopOwner()!=Owner::Manager||!target_||state_==ClientSceneState::Failed||state_==ClientSceneState::Retiring){reason="grid_independent_scene_unavailable";return false;}
-  return grid_events_.Admit(message,reason);
-}
-bool ClientScene::VisitGridIndependent(void *context,ClientGridEvents::Visitor visitor) noexcept {
-  if(!DisplayReady()||TopOwner()!=Owner::Render)return false;
-  ClientBorrowToken borrow{};if(!Borrow(ClientPurpose::RenderObservation,borrow))return false;
-  const bool result=grid_events_.Visit(applied_revision_,context,visitor);Release(borrow);return result;
-}
-bool ClientScene::CompleteGridIndependent(std::uint64_t sequence,std::uint64_t scope,const char *phase) noexcept {
-  return IsMain()&&TopOwner()==Owner::Render&&DisplayReady()&&grid_events_.Complete(sequence,scope,phase);
-}
-bool ClientScene::AdmitEntityIndependent(const replica::Message &message,const char *&reason) noexcept {
-  if(!IsMain()||TopOwner()!=Owner::Manager||!target_||state_==ClientSceneState::Failed||state_==ClientSceneState::Retiring){reason="entity_independent_scene_unavailable";return false;}
-  return entity_events_.Admit(message,reason);
-}
-bool ClientScene::VisitEntityIndependent(void *context,ClientEntityEvents::Visitor visitor) noexcept {
-  if(!DisplayReady()||TopOwner()!=Owner::Render||!objects_||!room_grid_applied_)return false;
-  ClientBorrowToken borrow{};if(!Borrow(ClientPurpose::RenderObservation,borrow))return false;
-  const auto resolve=[](void *owner,const ClientObjectKey &key,std::uint64_t shape) noexcept {return static_cast<ClientObjects *>(owner)->MatchIndependent(key,shape,0);};
-  const bool ok=entity_events_.Visit(applied_revision_,room_grid_applied_->grid_capture.tick,objects_.get(),resolve,context,visitor);Release(borrow);return ok;
-}
-bool ClientScene::CompleteEntityIndependent(replica::Kind kind,std::uint64_t sequence,std::uint64_t source,const char *phase) noexcept {
-  return IsMain()&&TopOwner()==Owner::Render&&DisplayReady()&&entity_events_.Complete(kind,sequence,source,phase,applied_revision_);
-}
-// 展示只读取真实提交后的同一原生世界；Render失败立即撤资格，并把退休留给Manager有效owner。
-void ClientScene::RenderPublished() noexcept {
-  ClientEntityTestMeasure measure("player_scene_draw");
-  if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return;}
-  if(!DisplayReady()||!presentation_||TopOwner()!=Owner::Render)return;
-  ClientBorrowToken graphics{};
-  if(!Borrow(ClientPurpose::Graphics,graphics))return;
-  replica::stream::Measure draw_measure(stream_metrics_,replica::stream::CpuStage::Draw);
-  const auto step=presentation_->Render(ClientNativeWorldRoots(native_world_));
-  if(step.failed){stream_write_failure_=network_stream_started_;Fail(step.reason);}
-  else if(step.done){stream_metrics_.rendered_local_ms=GetTickCount64();stream_metrics_.rendered_revision=result_.revision;
-#ifdef ISAACCS_E2E
-    if(stream_){std::vector<replica::stream::Version> versions;for(const auto &[id,c]:stream_->committed)versions.push_back(c.version);replica::stream::E2ERender(stream_->scope.connection,stream_->route,versions,result_.revision);}
-#endif
-  }
-  Release(graphics);
-}
-// 每个原生、Lua、图形用途都要求已知主线程和 owner；图形另要求当前 OS context。
 bool ClientScene::Enter(ClientPurpose purpose) noexcept {
   if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return false;}
   if(draining_)return false;
@@ -801,14 +254,6 @@ bool ClientScene::Enter(ClientPurpose purpose) noexcept {
     ++active_native_;return true;
   }
   if(state_==ClientSceneState::Retiring||state_==ClientSceneState::Failed)return false;
-  if(purpose==ClientPurpose::NativeApply){
-    if(state_==ClientSceneState::Waiting||!target_){FailureResult(ClientResultKind::UnsupportedRequirement,"apply","target_unavailable");return false;}
-    if(TopOwner()!=Owner::Manager||active_native_||
-       (state_!=ClientSceneState::Preparing&&state_!=ClientSceneState::Applying)){
-      FailureResult(ClientResultKind::ContextOrThreadFault,"apply","native_phase");return false;
-    }
-    ++active_native_;return true;
-  }
   if(purpose==ClientPurpose::Lua) {
     if(lua_closing_||!lua_state_||(TopOwner()!=Owner::Manager&&TopOwner()!=Owner::Render)||
        active_lua_==kMaximumInFlight){FailureResult(ClientResultKind::ContextOrThreadFault,"lua","state_phase_or_budget");return false;}
@@ -870,7 +315,7 @@ bool ClientScene::DestructiveReady() const noexcept {
   for(const auto &owner:retained_)if(owner.ticket.id&&
       (owner.cpu_queued||owner.gpu_queued||owner.releasing||owner.failed))return false;
   // 未登记于本方表的原生 raw 图像队列仍必须为空；这不是 Render 返回或 GPU idle 推断。
-  return ClientNativeCpuQueuesEmpty()&&ClientEntityDrawDrained();
+  return ClientNativeCpuQueuesEmpty();
 }
 // 调用方在已核主线程阶段登记其合法持有的资源；同一指针只接受一个释放 owner。
 bool ClientScene::Retain(ClientRetainedKind kind,ClientReleasePhase phase,void *owned,ClientRetainedRelease release,
@@ -1023,54 +468,11 @@ void ClientScene::FinishRetirementIfDrained() noexcept {
   if(active_native_||active_lua_||active_graphics_||active_observation_||active_dispatch_)return;
   for(const auto &entry:borrows_)if(entry.id)return;
   for(const auto &owner:retained_)if(owner.ticket.id)return;
-  if((presentation_&&!presentation_retired_)||(objects_&&!objects_retired_)||(grids_&&!grids_retired_)||
-     !ClientNativeWorldSafeMenu(native_world_))return;
-  // 此处只有实际原生退休已经完成；清本方记录不能替代Room/Player/HUD析构。
-  ClientNativeWorldDestroy(native_world_);native_world_=nullptr;
-  native_dispatch_prefix_=false;result_.native_written=false;result_.native_owners=0;
-  result_.executed_prefix=0;result_.native_committed=false;result_.old_display_valid=false;
-  applied_valid_=false;applied_.reset();applied_revision_=0;applied_scope_={};
-  room_grid_applied_.reset();room_grid_plan_.applied.reset();
-  player_applied_.reset();
-  result_.grid_owners=result_.grid_prefix=result_.committed_domains=0;
-  result_.non_player_entity_applied=result_.player_support_applied=result_.full_entity_applied=false;
-  result_.player_bodies_applied=result_.player_relations_applied=result_.player_resources_applied=result_.player_domain_applied=false;
-  InvalidateInstance();result_.generations=generations_;
-  if(RecoveryPending()){
-    // 此时原生owner/CPU/GPU/VM借用均已真正退尽，才允许重新建立已预检的T。
-    // 新的attempt不冒用失败attempt；首因字段保留供最终验收和诊断。
-    recovery_attempted_=true;
-    if(next_attempt_==UINT64_MAX){Fail("recovery_attempt_budget");return;}
-    result_.attempt=++next_attempt_;rebuild_pending_=true;
-    objects_.reset();grids_.reset();presentation_.reset();
-  }
-  if(rebuild_pending_&&target_){
-    rebuild_pending_=false;objects_planned_=false;objects_retired_=false;
-    objects_complete_=presentation_retired_=attempt_invalidated_=false;
-    grids_planned_=grids_complete_=grids_retired_=references_complete_=false;
-    state_=ClientSceneState::Preparing;
-    try{room_grid_plan_=replica::PlanRoomGridTarget(room_grid_target_);}
-    catch(...){Fail("room_grid_rebuild_plan_unavailable");return;}
-    if(rebuild_objects_&&rebuild_grids_&&rebuild_presentation_){
-      objects_=std::move(rebuild_objects_);grids_=std::move(rebuild_grids_);presentation_=std::move(rebuild_presentation_);
-      // A的DOM/域计划已清空，旧原生及纯值owner也已实际析构；剩余T由target_memory_计费。
-      // 不能在原生退休前释放，也不能拖到T提交而让已消失的A继续占用整份保守预算。
-      applied_memory_.reset();
-      if(stream_)stream_->installed_memory.reset();
-      if(!objects_->BeginAttempt(result_.attempt)){Fail("objects_prepared_rebuild_attempt");return;}
-      objects_planned_=grids_planned_=true;
-    }
-    FailureResult(ClientResultKind::WaitingDependency,"rebuild","native_retired_rebuild_target");
-  }else{
-    rebuild_objects_.reset();rebuild_grids_.reset();rebuild_presentation_.reset();entity_events_.Reset(waiting_scope_);
-    target_.reset();target_revision_=0;target_scope_={};
-    room_grid_target_.reset();room_grid_plan_={};
-    player_target_.reset();player_applied_.reset();player_lifecycle_.reset();player_next_lifecycle_.reset();
-    target_memory_.reset();applied_memory_.reset();planning_memory_.reset();
-    retirement_complete_=true;
-    stream_.reset();
-    FailureResult(ClientResultKind::Retiring,"retired","native_safe_menu");
-  }
+  if(binary_scene_||HasNativePrefix())return;
+  // 二进制协调器已退休原生成员，且本场景的 CPU、GPU 和 Lua 借用均已退尽。
+  InvalidateInstance();
+  retirement_complete_=true;
+  FailureResult(ClientResultKind::Retiring,"retired","native_safe_menu");
 }
 // 借用只能在同一主线程 owner 栈内使用；不同代次即使地址相同也失效。
 bool ClientScene::Borrow(ClientPurpose purpose,ClientBorrowToken &out) noexcept {
@@ -1215,29 +617,26 @@ void ClientScene::InvalidateResource() noexcept {
 }
 void ClientScene::Retire(const char *reason) noexcept {
   if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return;}
-  rebuild_pending_=false;applied_valid_=false;result_.old_display_valid=false;
-  stop_requested_=true;
+  binary_published_=false;result_.old_display_valid=false;
   if(!result_.retirement_cause[0])std::snprintf(result_.retirement_cause.data(),result_.retirement_cause.size(),"%s",reason?reason:"stop");
-  stream_.reset(); // 只撤未执行纯值与确认，真实owner仍由下方退休链收口。
   state_=ClientSceneState::Retiring;FailureResult(ClientResultKind::Retiring,"retire",reason);
   for(auto &owner:retained_)if(owner.ticket.id)owner.retiring=true;
   DrainRetained();
 }
 void ClientScene::Fail(const char *reason) noexcept {
   if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return;}
-  rebuild_pending_=false;applied_valid_=false;result_.old_display_valid=false;
+  binary_published_=false;result_.old_display_valid=false;
   state_=ClientSceneState::Failed;FailureResult(ClientResultKind::PartialNativeFailure,"failed",reason);
   for(auto &owner:retained_)if(owner.ticket.id)owner.retiring=true;
   DrainRetained();
 }
 bool ClientScene::CanReturnToMenu() const noexcept {
+  if(binary_scene_)return false;
   if(!IsMain()||foreign_fault_.load(std::memory_order_acquire))return false;
   for(const auto &entry:borrows_)if(entry.id)return false;
   for(const auto &owner:retained_)if(owner.ticket.id)return false;
-  return ClientEntityDrawDrained()&&!HasNativePrefix()&&
-         ClientNativeWorldSafeMenu(native_world_)&&(!objects_||objects_retired_)&&
-         (!presentation_||presentation_retired_)&&(!grids_||grids_retired_)&&!target_&&
-         !active_native_&&!active_lua_&&!active_graphics_&&!active_observation_&&!active_dispatch_&&!applied_;
+  return !HasNativePrefix()&&!active_native_&&!active_lua_&&!active_graphics_&&
+         !active_observation_&&!active_dispatch_;
 }
 } // namespace cs::game
 

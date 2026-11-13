@@ -1,6 +1,8 @@
 # GenericPromptResult
 
-由唯一布局源生成。布局编号 380；布局版本 71；原生大小 0x0；未知 0B；完整：否。
+由唯一布局源生成。布局编号 380；布局版本 75；原生大小 0x0；未知 0B；需求覆盖：完整。
+
+需求覆盖只表示清单字段已生成计划，不表示原生字节全部已知、Host/Client处理器已接通或第15步验收通过。旧成员映射与原生说明保留为参照，当前发送字段以下方状态表为准。
 
 具名显示结果合同（接线声明，不表示运行实现）：
 
@@ -14,25 +16,16 @@
 | 纯C/S协议记录：没有原生对象字节，不得向游戏地址加偏移 |
 |---|
 
-状态二进制布局（总计 1—1048576B，不含第 9 步记录头）：
+状态二进制布局（总计 0—0B，不含第 9 步记录头）：
 
-块 0：GenericPromptResult具名当前结果（world，1—8923277B）：
+块 0：GenericPromptResult具名当前结果（world，0—0B）：
 
-| +0x0 u8（C/S自有元数据，无原生偏移） present：只包括共享world Prompt；个人菜单Prompt不发送。 | +0x1 DisplayTextRun（见该类型状态表）（伴随源，无根对象偏移）（仅genericpromptresult_present_is_one(present)成立时存在） text_0：固定文字槽0，前二标题／后三说明；保留缺席与实际空串；字体／颜色由合法来源封存。 | 顺序变长偏移 DisplayTextRun（见该类型状态表）（伴随源，无根对象偏移）（仅genericpromptresult_present_is_one(present)成立时存在） text_1：固定文字槽1，前二标题／后三说明；保留缺席与实际空串；字体／颜色由合法来源封存。 | 顺序变长偏移 DisplayTextRun（见该类型状态表）（伴随源，无根对象偏移）（仅genericpromptresult_present_is_one(present)成立时存在） text_2：固定文字槽2，前二标题／后三说明；保留缺席与实际空串；字体／颜色由合法来源封存。 | 顺序变长偏移 DisplayTextRun（见该类型状态表）（伴随源，无根对象偏移）（仅genericpromptresult_present_is_one(present)成立时存在） text_3：固定文字槽3，前二标题／后三说明；保留缺席与实际空串；字体／颜色由合法来源封存。 | 顺序变长偏移 DisplayTextRun（见该类型状态表）（伴随源，无根对象偏移）（仅genericpromptresult_present_is_one(present)成立时存在） text_4：固定文字槽4，前二标题／后三说明；保留缺席与实际空串；字体／颜色由合法来源封存。 | 顺序变长偏移 i32（C/S自有元数据，无原生偏移）（仅generic_prompt_result_present_present__1(present)成立时存在） selection：当前共享显示选择，不执行提交。 | 顺序变长偏移 ANM2（见该类型状态表）（伴随源，无根对象偏移）（仅generic_prompt_result_present_present__1(present)成立时存在） paper：共享Prompt当前纸张资源／姿态。 |
-|---|---|---|---|---|---|---|---|
+| 无发送字节：显式预留块 |
+|---|
 
 证据：
 
 
-
-伴随来源（不属于上述原生对象字节）：
-
-- `paper` → `ANM2`：共享Prompt当前纸张资源／姿态。；docs/design/binary-state/8-run-presentation.md；presentation-result-batches.md；presentation-source-synchronization-review.md（已核）
-- `text_0` → `DisplayTextRun`：固定文字槽0，前二标题／后三说明；保留缺席与实际空串；字体／颜色由合法来源封存。；docs/design/binary-state/local-media-presentation.md；第9步版本61文字／本地历史合同（已核）
-- `text_1` → `DisplayTextRun`：固定文字槽1，前二标题／后三说明；保留缺席与实际空串；字体／颜色由合法来源封存。；docs/design/binary-state/local-media-presentation.md；第9步版本61文字／本地历史合同（已核）
-- `text_2` → `DisplayTextRun`：固定文字槽2，前二标题／后三说明；保留缺席与实际空串；字体／颜色由合法来源封存。；docs/design/binary-state/local-media-presentation.md；第9步版本61文字／本地历史合同（已核）
-- `text_3` → `DisplayTextRun`：固定文字槽3，前二标题／后三说明；保留缺席与实际空串；字体／颜色由合法来源封存。；docs/design/binary-state/local-media-presentation.md；第9步版本61文字／本地历史合同（已核）
-- `text_4` → `DisplayTextRun`：固定文字槽4，前二标题／后三说明；保留缺席与实际空串；字体／颜色由合法来源封存。；docs/design/binary-state/local-media-presentation.md；第9步版本61文字／本地历史合同（已核）
 
 逐行公开目录回映射（来源目录＋一基行号；保留重载和原签名）：
 

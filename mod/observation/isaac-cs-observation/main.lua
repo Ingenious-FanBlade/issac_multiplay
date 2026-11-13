@@ -1,4 +1,4 @@
--- 正式只读来源独立于 UI 和 E2E 夹具。停用时只检查原生需求，不枚举世界。
+-- E2E 原版内容的只读对照独立于 UI。无对照请求时不枚举世界。
 local mod = RegisterMod("Isaac CS Observation", 1)
 local calls=include("domains/common/calls")
 local entity = include("domains/entity/collect")
@@ -74,12 +74,9 @@ end) end
 IsaacCSRunObservation=include("domains/run/collect")
 IsaacCSRandomObservation=include("domains/random/collect")
 IsaacCSPresentationObservation=include("domains/presentation/collect")
-IsaacCSModObservation=include("domains/mod/collect")
 IsaacCSRandomObservation.Install()
 IsaacCSPresentationObservation.Install()
-local stageapi=include("domains/mod/stageapi")
-mod:AddCallback(ModCallbacks.MC_POST_UPDATE,function() stageapi.Install() end)
-for _,module in ipairs({IsaacCSRunObservation,IsaacCSRandomObservation,IsaacCSModObservation}) do
+for _,module in ipairs({IsaacCSRunObservation,IsaacCSRandomObservation}) do
   local capture=module.Capture
   module.Capture=function(...) return calls.Silent(capture,...) end
 end
@@ -88,7 +85,7 @@ for _,name in ipairs({"MC_POST_GAME_STARTED","MC_PRE_GAME_EXIT","MC_POST_GAME_EN
     local n=IsaacCSObservationNative
     if n and n.LocationNeeded() then
       IsaacCSRunObservation.Event(name,...)
-      IsaacCSRunObservation.Boundary(name);IsaacCSModObservation.Boundary(name)
+      IsaacCSRunObservation.Boundary(name)
     end
   end) end
 end

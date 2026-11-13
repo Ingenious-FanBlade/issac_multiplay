@@ -1,9 +1,10 @@
 #pragma once
 #include "replica/codec.h"
 #include "replica/stream_model.h"
+namespace cs::state {struct HostStateBytes;}
 
 namespace cs::replica::stream {
-enum class Kind : unsigned { Hello=1, Welcome, Ready, ScenePrepare, ScenePrepared, Range, ReceiveAck, ContextReady, AppliedAck, Resync, Cancel, Stop, Error, Roster, TickProgress, InputAck, Input, Disconnect, OperationAck, Retire };
+enum class Kind : unsigned { Hello=1, Welcome, Ready, ScenePrepare, ScenePrepared, ReceiveAck=7, ContextReady, AppliedAck, Resync, Cancel, Stop, Error, Roster, TickProgress, InputAck, Input, Disconnect, OperationAck, Retire, StateFrame, StateMembers, StateResources };
 enum class Lane : unsigned { Control=1, Baseline, Context, WorldDynamic, PlayerFast, Input };
 enum class Direction { ToAuthority, ToClient };
 enum class State { Handshake, Waiting, Preparing, Active, Retiring, Stopped };
@@ -16,8 +17,9 @@ struct Message final {
   Kind kind=Kind::Error;
   std::uint64_t sequence=0,connection=0,route=0;
   Json body;
-  // 热范围直接持有完整DTO；只有冷适配器使用body的旧JSON视图。
-  Range range;
+  // ICSR flags=1专用于现行二进制状态正文；控制信封仍用现有固定槽编码。
+  std::shared_ptr<const state::HostStateBytes> state_body;
+  Lane state_lane=Lane::Control;
 };
 struct Header final {
   std::uint64_t connection=0,route=0,transfer=0;
@@ -28,6 +30,8 @@ struct Header final {
   std::uint16_t payload=0;
 };
 Lane MessageLane(const Message &);
+// 已有自有二进制公共头的scope；不解析typed状态或授予应用资格。
+WorldScope StateMessageScope(const Message &);
 void ValidateMessage(const Message &);
 void ValidateReceive(const Message &,Direction,State);
 Json Capabilities();
@@ -35,18 +39,13 @@ Json Negotiate(const Value &,const Value &);
 // 可传入调用者工作区租约，返回后继续覆盖wire至压缩/所有权交接完成。
 std::vector<std::uint8_t> Encode(const Message &,Limits={},memory::Lease workspace={});
 Message Decode(std::span<const std::uint8_t>,Limits={});
-Message RangeMessage(const RangeData &,std::uint64_t connection,std::uint64_t route);
-Range ReadRange(const Message &,const Layouts &,std::uint64_t value_budget=memory::kReplicationPoolCeilings[0]);
-RangeData RangeDataFromMessage(const Message &);
 // 固定payload schema=2；具名结构/字段编号与最短整数保持原值，未知形状仍保留完整树。
 std::vector<std::uint8_t> EncodePayload(const Message &,Limits,std::uint64_t expected_bytes=0);
 // 调用者先完成消息形状校验；计量与正式编码采用同一节点/深度/字符串约束。
 std::uint64_t MeasurePayload(const Message &,Limits);
 // 对已持有的纯值计量同一编码器的真实长度；不创建网络消息、不提升发送上限。
-std::uint64_t MeasureRangePayload(const RangeData &);
 void DecodePayload(std::span<const std::uint8_t>,Message &,Limits);
 // 先做完整嵌套形状检查；本地必需字段布局仍由ReadRange的可信Layouts约束。
-void ValidateRangePayload(const Message &);
 // 固定64字节路由格式；授权预算/补片共用stream_transport的同一描述。
 Header ReadHeader(std::span<const std::uint8_t>,Limits={});
 std::vector<std::vector<std::uint8_t>> Fragment(const Message &,std::uint64_t transfer,Limits={});

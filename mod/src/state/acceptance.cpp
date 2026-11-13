@@ -1,4 +1,5 @@
 #include "state/acceptance.h"
+#include "state/events.h"
 #include "state/budget.h"
 #include <algorithm>
 
@@ -156,7 +157,7 @@ std::array<std::optional<StateAppliedAck>,2> ClientStateAcceptance::Reacknowledg
   return out;
 }
 
-HostStateAcknowledgements::HostStateAcknowledgements(const StateRoute &route,std::span<StateTarget> ledger):route_(route),ledger_(ledger) {
+HostStateAcknowledgements::HostStateAcknowledgements(const StateRoute &route,std::span<StateTarget> ledger,StateEventQueue *events):route_(route),events_(events),ledger_(ledger) {
   Route(route);if (ledger.empty() || ledger.size()>StateBudgets().sent_targets) Fail("sent_ledger_capacity");
   for (auto &entry:ledger_) entry={};confirmed_[1].stream=BodyStream::Body;
 }
@@ -177,6 +178,7 @@ bool HostStateAcknowledgements::RegisterSent(const StateTarget &target) {
   }
   for (unsigned i=0;i<target.count;++i) if (target.sections[i].target_version<=issued_[unsigned(target.sections[i].stream)]) Fail("sent_target_reused");
   const auto slot=std::find_if(ledger_.begin(),ledger_.end(),[](const auto &e){return !e.count;});if (slot==ledger_.end()) return false;
+  for(unsigned i=0;i<target.count;++i)if(events_&&target.sections[i].stream==BodyStream::World&&!events_->Sent(target.sections[i].event_watermark))return false;
   *slot=target;for (unsigned i=0;i<target.count;++i) issued_[unsigned(target.sections[i].stream)]=target.sections[i].target_version;return true;
 }
 StateAckResult HostStateAcknowledgements::Accept(const StateRoute &route,const StateAppliedAck &ack) {
@@ -200,6 +202,7 @@ StateAckResult HostStateAcknowledgements::Accept(const StateRoute &route,const S
     }
   }
   // 整个joint已与原发送记录相等之后才一次更新；乱序ACK不倒退另一序列。
+  if(events_&&next[0].event_watermark>confirmed_[0].event_watermark&&!events_->Ack(next[0].event_watermark))return StateAckResult::UnknownOrConflict;
   confirmed_=next;for (unsigned i=0;i<ack.count;++i) receipts_[unsigned(ack.entries[i].stream)]=ack;
   for (unsigned i=0;i<found->count;++i) recovering_&=std::uint8_t(~(1u<<unsigned(found->sections[i].stream)));
   if (!recovering_) recovery_joint_=false;

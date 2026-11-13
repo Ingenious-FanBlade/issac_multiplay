@@ -1,6 +1,8 @@
 # VisiblePlayerHUDHeart
 
-由唯一布局源生成。布局编号 353；布局版本 71；原生大小 0x0；未知 0B；完整：是。
+由唯一布局源生成。布局编号 353；布局版本 75；原生大小 0x0；未知 0B；需求覆盖：完整。
+
+需求覆盖只表示清单字段已生成计划，不表示原生字节全部已知、Host/Client处理器已接通或第15步验收通过。旧成员映射与原生说明保留为参照，当前发送字段以下方状态表为准。
 
 记录编码预算≤8B；body组≤0B，超出body预算改ordinary body-joint，超记录或帧总预算报缺口，不截断。各块上限不能同时取满。
 
@@ -9,12 +11,12 @@
 | 纯C/S协议记录：没有原生对象字节，不得向游戏地址加偏移 |
 |---|
 
-状态二进制布局（总计 6—8B，不含第 9 步记录头）：
+状态二进制布局（总计 0—0B，不含第 9 步记录头）：
 
-块 0：VisiblePlayerHUDHeart具名当前结果（world，6—8B）：
+块 0：VisiblePlayerHUDHeart具名当前结果（world，0—0B）：
 
-| +0x0 u8（C/S自有元数据，无原生偏移） eternal：可见心格当前最终eternal，从正常PlayerHUDHeart对应字段读取。 | +0x1 u8（C/S自有元数据，无原生偏移） golden：可见心格当前最终golden，从正常PlayerHUDHeart对应字段读取。 | +0x2 u8（C/S自有元数据，无原生偏移） fading：可见心格当前最终fading，从正常PlayerHUDHeart对应字段读取。 | +0x3 i8（C/S自有元数据，无原生偏移） flash_type：可见心格有符号flash原值。 | +0x4 u16（C/S自有元数据，无原生偏移） animation：可见心格实际动画名在所属hearts文件中解析。 | +0x6 u16（C/S自有元数据，无原生偏移）（仅visible_player_h_u_d_heart_eternal_eternal__1(eternal)成立时存在） overlay_animation：仅eternal分支读取实际overlay名称。 |
-|---|---|---|---|---|---|
+| 无发送字节：显式预留块 |
+|---|
 
 证据：
 

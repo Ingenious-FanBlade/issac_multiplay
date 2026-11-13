@@ -2220,6 +2220,167 @@
         }
       ],
       "notes": "版本63资源描述；无文件内容／纹理像素／PCM／指针，表到达不等于本地物化ready。"
+    },
+    {
+      "type": "StateEventQueueHeader",
+      "layout": 446,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "C/S主线程纯值，无原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "synthetic_fields": [
+        {
+          "name": "first_sequence",
+          "type": "u64",
+          "semantics": "本段可读起始序号，覆盖已明确丢弃的纯外观前缀",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "watermark",
+          "type": "u64",
+          "semantics": "本段串行处理上界",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "count",
+          "type": "u16",
+          "semantics": "紧随的事件数",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "bytes",
+          "type": "u32",
+          "semantics": "精确事件字节数",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "Host显示需求纯值",
+          "sequence": "world",
+          "fields": [
+            "first_sequence",
+            "watermark",
+            "count",
+            "bytes"
+          ]
+        }
+      ],
+      "conversions": {
+        "display_value_read": "只从同窗已封存的主线程自有值读取；不在worker持有原生对象，不调用Lua／生产器补值；来源失败不发布",
+        "display_value_install": "完整world／事件资源与身份就绪后交具名Client适配器；不执行玩法Update，不写进度；缺来源不得补零"
+      },
+      "members": [],
+      "public_owners": [],
+      "validators": {},
+      "record_limit": 22
+    },
+    {
+      "type": "StateEventHeader",
+      "layout": 447,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "C/S主线程纯值，无原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "synthetic_fields": [
+        {
+          "name": "sequence",
+          "type": "u64",
+          "semantics": "单调队列序号",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "game_frame",
+          "type": "u32",
+          "semantics": "Host原生帧",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "kind",
+          "type": "u8",
+          "semantics": "SFX／横幅／fortune／Boss／转场",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "flags",
+          "type": "u8",
+          "semantics": "bit0纯外观，可过期丢弃",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "owner",
+          "type": "u16",
+          "semantics": "稳定成员序号或FFFF",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "layout",
+          "type": "u16",
+          "semantics": "固定种类对应typed载荷",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "bytes",
+          "type": "u32",
+          "semantics": "typed载荷长度",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "Host显示需求纯值",
+          "sequence": "world",
+          "fields": [
+            "sequence",
+            "game_frame",
+            "kind",
+            "flags",
+            "owner",
+            "layout",
+            "bytes"
+          ]
+        }
+      ],
+      "conversions": {
+        "display_value_read": "只从同窗已封存的主线程自有值读取；不在worker持有原生对象，不调用Lua／生产器补值；来源失败不发布",
+        "display_value_install": "完整world／事件资源与身份就绪后交具名Client适配器；不执行玩法Update，不写进度；缺来源不得补零"
+      },
+      "members": [],
+      "public_owners": [],
+      "validators": {},
+      "record_limit": 22
     }
   ],
   "protocol_constants": [
@@ -2978,6 +3139,12 @@
       "name": "binary_state_capability",
       "value": 1,
       "semantics": "独立二进制状态能力；同时协商精确整数布局版本，不回退旧Range"
+    },
+    {
+      "domain": "acceptance_policy",
+      "name": "binary_payload_flag",
+      "value": 1,
+      "semantics": "ICSR封套flags=1表示正文直接从50B二进制公共头开始；flags=0仍为旧compact控制，二者不混读；不增加或改变布局字段"
     },
     {
       "domain": "acceptance_policy",

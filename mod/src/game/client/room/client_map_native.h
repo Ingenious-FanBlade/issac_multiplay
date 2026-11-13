@@ -28,7 +28,5 @@ struct ClientMapState final {
 struct ClientMapTarget final {ClientMapState state;std::vector<ClientMapDescriptor> descriptors;};
 int ClientMapDescriptorCaptureLua(void *);
 int ClientMapStateCaptureLua(void *);
-bool ClientCameraApply(void *,const ClientCameraState &) noexcept;
 // 仅当前原生楼层/维度的来源投影，调用期间暂借保存数组，离栈恢复原 owner。
-bool ClientMinimapBuild(void *,const std::vector<ClientMapDescriptor> &,const ClientMapState &,unsigned effective_curses) noexcept;
 } // namespace cs::game

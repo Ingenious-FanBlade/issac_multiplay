@@ -79,7 +79,7 @@ struct StateRecoveryPlan {
 // 未发出的队列不能登记。满时停止新发布并按预算恢复，不能静默遗忘未确认目标。
 class HostStateAcknowledgements {
 public:
-  HostStateAcknowledgements(const StateRoute &,std::span<StateTarget> ledger);
+  HostStateAcknowledgements(const StateRoute &,std::span<StateTarget> ledger,class StateEventQueue *events=nullptr);
   bool RegisterSent(const StateTarget &);
   StateAckResult Accept(const StateRoute &,const StateAppliedAck &);
   // 同一请求重传不抬高恢复起点；恢复期间迟到的旧增量／旧baseline ACK不能解除恢复。
@@ -92,6 +92,7 @@ public:
   std::uint64_t PinnedBodyBytes() const noexcept;
 private:
   StateRoute route_;
+  StateEventQueue *events_=nullptr;
   std::span<StateTarget> ledger_;
   std::array<std::uint32_t,2> issued_{};
   std::array<StateAckEntry,2> confirmed_{};

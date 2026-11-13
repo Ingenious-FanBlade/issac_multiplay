@@ -64,7 +64,8 @@ bool EntitySource::Impl::Aggregate(std::uint32_t address,std::span<std::byte> ou
 
 // open先读取数量／头和来源证言；执行器确认同组上限后才进入Element。
 bool EntitySource::Impl::Open(const CaptureFieldAccess &a,CaptureTraversalSource &out,CaptureDiagnostic &d) noexcept {
-  if(Recipe(a.field)==EntityRead::Presentation)return PresentationOpen(a,out,d);
+  if(Recipe(a.field)==EntityRead::Display)return DisplayOpen(a,out,d);
+  if(Recipe(a.field)==EntityRead::Run)return RunOpen(a,out,d);
   if(Recipe(a.field)==EntityRead::RockRubble || Recipe(a.field)==EntityRead::FireEmbers)return GridOpen(a,out,d);
   if(Recipe(a.field)==EntityRead::Scene || Recipe(a.field)==EntityRead::RoomConfig || Recipe(a.field)==EntityRead::Inline)return SceneOpen(a,out,d);
   const auto start=witness_used;out={};out.identity=a.root.address;
@@ -158,6 +159,7 @@ bool EntitySource::Impl::Open(const CaptureFieldAccess &a,CaptureTraversalSource
 // 逻辑顺序在open期间已封闭，Element不重新读取count或猜测动态类。
 bool EntitySource::Impl::Element(const CaptureFieldAccess &a,const CaptureTraversalSource &source,std::uint16_t index,
     CaptureRoot &out,CaptureDiagnostic &d) noexcept {
+  if(Recipe(a.field)==EntityRead::Display)return DisplayElement(a,source,index,out,d);
   const auto kind=NativeSequence(source.opaque[1]>>32);const auto stride=std::uint32_t(source.opaque[1]);
   const auto element=index==kNullIndex?0u:unsigned(index);
   if(kind==NativeSequence::Weapon){if(element>=5 || !(source.slot_mask&(1u<<element)))return Reject(a,d,CaptureFailure::InvalidValue);
@@ -171,6 +173,7 @@ bool EntitySource::Impl::Element(const CaptureFieldAccess &a,const CaptureTraver
   out={a.root.subject,std::uint32_t(address),layout->native_size,layout->id};return true;
 }
 bool EntitySource::Impl::Close(const CaptureFieldAccess &a,const CaptureTraversalSource &source,CaptureDiagnostic &d) noexcept {
+  if(Recipe(a.field)==EntityRead::Display)return a.window.Check(a.root,d);
   if(source.opaque[2]>witness_used || source.opaque[3]>witness_used-source.opaque[2])return Reject(a,d,CaptureFailure::InvalidTransaction);
   std::array<std::byte,32> bytes{};
   for(std::uint64_t i=source.opaque[2];i<source.opaque[2]+source.opaque[3];++i){const auto &mark=witnesses[std::size_t(i)];

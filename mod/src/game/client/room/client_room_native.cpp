@@ -130,43 +130,4 @@ int ClientRoomMapSpritesLua(void *state){
     lua::luabridge::UserdataPtr::push(L,sprite,lua::Metatables::SPRITE);lua_rawseti(L,-2,i+1);}return 1;
 }
 // GetFrameCount=Game._frameCount-Room[11f0]；每次展示前重新锚定，服务器帧数可合法回到旧值。
-void ClientRoomFrameMaintain(void *game,void *room,int frame,bool initialized) noexcept {
-  if(!IsMain()||!game||!room)return;auto &g=*static_cast<Game *>(game);
-  const auto baseline=std::uint32_t(g._frameCount)-std::uint32_t(frame);Write(room,0x11f0,baseline);Write(room,0,initialized);
 }
-bool ClientRoomStateApply(void *game,void *room,const ClientRoomState &s) noexcept {
-  if(!IsMain()||!game||!room)return false;auto &g=*static_cast<Game *>(game);auto &r=*static_cast<Room *>(room);if(!r._descriptor)return false;
-  auto &d=*r._descriptor;ClientRoomFrameMaintain(game,room,s.frame,s.initialized);
-  r._roomClearDelay=s.clear_delay;
-  // SDK将7220标成int slowdown，但J273 807146仅读取低字节谓词；高三字节没有采用合同。
-  // 兼容旧来源的原始word时只供应已核定的byte条件，不把冷堆高位覆盖进Client。
-  Write<std::uint8_t>(&r,0x7220,s.render_flag_7220);
-  r._greedWaveTimer=s.greed_timer;r._redHeartDamage=s.red_heart_damage;r._pacifist=s.pacifist;r._bossId=s.boss;
-  g._greedModeWave=unsigned(s.greed_wave);g._ambush.active=s.ambush_active;g._ambush.currentWave=s.ambush_wave;g._ambush.maxBossWaves=s.ambush_max;g._ambush.bossesPerWave=s.ambush_bosses;
-  d.TotalMoneySpent=std::int16_t(s.total_money);d.ShopItemIdx=std::int16_t(s.shop_item);d.ShopItemDiscountIdx=std::int16_t(s.shop_discount);d.GreedSubType=s.greed_subtype;
-  d.PoopCount=std::int16_t(s.poop_count);d.TKeeperCoinSpawns=std::int16_t(s.keeper_coins);d.PitsCount=s.pits;
-  std::memcpy(reinterpret_cast<unsigned char *>(&r)+0x14,s.bounds.data(),sizeof(float)*4);
-  std::copy(s.door_positions.begin(),s.door_positions.end(),r._doorGridPositions);
-  std::memcpy(reinterpret_cast<unsigned char *>(&r)+0x746c,s.rails.data(),448);
-  if(s.grid_paths.size()!=r._gridWidth*r._gridHeight||s.grid_paths.size()>448)return false;
-  std::copy(s.grid_paths.begin(),s.grid_paths.end(),r._gridPaths);
-  r._railManager._room=&r;
-  if(s.rails_present&&!ClientApplyResourcePose(&r._railManager._sprite,s.rail_sprite).complete)return false;
-  return true;
-}
-// 9B7C70只选择每格rail帧并绘制，不生成Minecart；坑上的轨道由后续GridPit pass接替。
-// SetAnimation会重建内嵌ANM索引，暂摘原数组后离栈归还；重复draw不推进服务器姿态。
-void ClientRoomRailsDraw(void *room,const ClientRoomState &s,const ClientPoseVector &offset){
-  if(!s.rails_present)return;auto &r=*static_cast<Room *>(room);RailDrawBorrow borrow(r._railManager._sprite,false);Vector value(offset.x,offset.y);
-  reinterpret_cast<void (__thiscall *)(RailManager *,const Vector *)>(Base+0x5b7c70)(&r._railManager,&value);
-}
-void ClientRoomWaterPreDraw(void *room){
-  auto &r=*static_cast<Room *>(room);RailDrawBorrow borrow(r._railManager._sprite,true);
-  reinterpret_cast<void (__thiscall *)(Room *)>(Base+0x416250)(&r);
-}
-// 普通轨道与坑轨道位于不同pass；已核9B7F00同样只选帧/绘制，不创建矿车。
-void ClientRoomPitRailsDraw(void *room,const ClientRoomState &s,const ClientPoseVector &offset){
-  if(!s.rails_present)return;auto &r=*static_cast<Room *>(room);RailDrawBorrow borrow(r._railManager._sprite,true);Vector value(offset.x,offset.y);
-  reinterpret_cast<void (__thiscall *)(RailManager *,const Vector *)>(Base+0x5b7f00)(&r._railManager,&value);
-}
-} // namespace cs::game

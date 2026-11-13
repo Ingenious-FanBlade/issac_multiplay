@@ -1,6 +1,7 @@
 #include "game/client/room/client_room_description.h"
 #include "core/replication_memory.h"
 #include "state/nested.h"
+#include "state/client_description_memory.h"
 #include "world/common/contracts.h"
 #include <algorithm>
 #include <cmath>
@@ -48,14 +49,16 @@ struct OwnedDescriptor final {
 struct ClientRoomLevelStorage final {
   ClientRoomLevelContext context;
   OwnedRecord room,level;
-  std::vector<OwnedDescriptor> descriptors;
-  std::vector<ClientRoomConfiguration> configurations;
-  std::vector<std::uint8_t> bytes;
+  std::vector<OwnedDescriptor,state::ClientDescriptionAllocator<OwnedDescriptor>> descriptors;
+  std::vector<ClientRoomConfiguration,state::ClientDescriptionAllocator<ClientRoomConfiguration>> configurations;
+  std::vector<std::uint8_t,state::ClientDescriptionAllocator<std::uint8_t>> bytes;
   std::array<std::uint16_t,kDescriptorSlots> by_slot{},ordinary{};
   std::array<std::uint16_t,507> occupancy{};
   std::array<std::optional<ClientRoomGridMember>,8> doors{};
   std::uint16_t current_descriptor=UINT16_MAX,ordinary_count=0;
   memory::Lease charge;
+  explicit ClientRoomLevelStorage(const std::shared_ptr<state::ClientStateMemory> &m)
+    :descriptors(state::ClientDescriptionAllocator<OwnedDescriptor>(m)),configurations(state::ClientDescriptionAllocator<ClientRoomConfiguration>(m)),bytes(state::ClientDescriptionAllocator<std::uint8_t>(m)) {}
 };
 namespace {
 const OwnedRecord &Record(const ClientRoomLevelStorage &s,ClientWorldDescriptionKind kind,std::uint16_t index=0) noexcept {
@@ -104,9 +107,9 @@ ClientRoomValues RoomValues(const ClientRoomLevelStorage &s) {
 ClientLevelValues LevelValues(const ClientRoomLevelStorage &s) {
   const auto &r=s.level;using R=ClientRoomFieldRole;ClientLevelValues v;
   v.stage=Value<std::uint32_t>(s,r,R::Stage);v.stage_type=Value<std::uint32_t>(s,r,R::StageType);
-  v.effective_curses=Value<std::uint32_t>(s,r,R::EffectiveCurses);v.current_entry=Value<std::int32_t>(s,r,R::CurrentEntry);
+  v.raw_curses=Value<std::uint32_t>(s,r,R::RawCurses);v.current_entry=Value<std::int32_t>(s,r,R::CurrentEntry);
   v.dimension=Value<std::uint8_t>(s,r,R::CurrentDimension);v.greed_wave=Value<std::int32_t>(s,r,R::GreedWave);
-  v.current_is_last_boss=Boolean(s,r,R::CurrentIsLastBoss);v.error_is_modeling_clay=Boolean(s,r,R::CurrentVisual);return v;
+  v.current_is_last_boss=Boolean(s,r,R::CurrentIsLastBoss);return v;
 }
 ClientRoomDescriptorValues DescriptorValues(const ClientRoomLevelStorage &s,std::uint16_t index) {
   const auto &r=s.descriptors[index].record;using R=ClientRoomFieldRole;ClientRoomDescriptorValues v;
@@ -114,7 +117,8 @@ ClientRoomDescriptorValues DescriptorValues(const ClientRoomLevelStorage &s,std:
   v.dimension=Value<std::uint8_t>(s,r,R::DescriptorDimension);v.allowed_doors=Value<std::uint8_t>(s,r,R::AllowedDoors);
   v.doors=Value<std::array<std::int32_t,8>>(s,r,R::DoorTargets);v.display_flags=Value<std::uint32_t>(s,r,R::DisplayFlags);
   v.visited=Boolean(s,r,R::Visited);v.display_bits=Value<std::uint8_t>(s,r,R::DisplayBits);
-  v.greed_treasure_icon=Boolean(s,r,R::GreedTreasureIcon);return v;
+  v.greed_treasure_icon=Boolean(s,r,R::GreedTreasureIcon);const auto *seed=FindSlice(r,R::SpawnSeed);
+  v.spawn_seed_present=seed&&seed->field&&seed->size==4;if(v.spawn_seed_present)v.spawn_seed=Exact<std::uint32_t>(Bytes(s,*seed));return v;
 }
 // 这里只解析已登记L2值；动态帧次序／上限来自同源表，不恢复原ID、数量或保存vector。
 ClientSavedMapIcons SavedIcons(const ClientRoomLevelStorage &s,std::uint16_t index) {
@@ -312,9 +316,10 @@ ClientRoomDescriptorDescription ClientRoomLevelDescription::DescriptorAt(std::ui
   if(index>=storage_->descriptors.size())Fail("descriptor_index");return ClientRoomDescriptorDescription(storage_,index);
 }
 const void *ClientRoomLevelDescription::StorageOwner() const noexcept {return storage_.get();}
-std::uint64_t ClientRoomLevelDescription::StorageBytes() const noexcept {return storage_->charge->Bytes();}
+std::uint64_t ClientRoomLevelDescription::StorageBytes() const noexcept {return StorageSize(*storage_);}
+long ClientRoomLevelDescription::StorageReferences()const noexcept{return storage_.use_count();}
 
-ClientRoomLevelDescription ClientDescribeRoomLevel(const ClientRoomLevelShadowView &source,std::uint32_t byte_limit) {
+ClientRoomLevelDescription ClientDescribeRoomLevel(const ClientRoomLevelShadowView &source,std::uint32_t byte_limit,std::shared_ptr<state::ClientStateMemory> peer) {
   const auto &context=source.room.identity.context;
   if(context.layout_version!=state::LayoutVersion()||!context.target_version||!context.member_epoch||
      !context.world_revision||!context.presentation_revision||!Key(context.floor,Space::Floor,context.floor.run)||
@@ -331,11 +336,12 @@ ClientRoomLevelDescription ClientDescribeRoomLevel(const ClientRoomLevelShadowVi
   for(const auto &g:source.grids)members[member_count++]=g.member;
   std::sort(members.begin(),members.begin()+member_count);
   if(std::adjacent_find(members.begin(),members.begin()+member_count)!=members.begin()+member_count)Fail("duplicate_member_number");
-  auto charge=memory::Reserve(memory::Pool::Values,sizeof(ClientRoomLevelStorage)+64ull+payload_bytes+
+  auto charge=peer?memory::Lease{}:memory::Reserve(memory::Pool::Values,sizeof(ClientRoomLevelStorage)+64ull+payload_bytes+
     source.descriptors.size()*sizeof(OwnedDescriptor)+source.configurations.size()*sizeof(ClientRoomConfiguration),"room_level_shadow_description");
-  auto storage=std::make_shared<ClientRoomLevelStorage>();storage->charge=std::move(charge);storage->context=context;
+  auto storage=peer?std::allocate_shared<ClientRoomLevelStorage>(state::ClientStateAllocator<ClientRoomLevelStorage>(peer),peer):std::make_shared<ClientRoomLevelStorage>(peer);
+  storage->charge=std::move(charge);storage->context=context;
   storage->bytes.resize(payload_bytes);storage->descriptors.resize(source.descriptors.size());storage->configurations.resize(source.configurations.size());
-  storage->charge->Resize(StorageSize(*storage));std::uint32_t at=0;
+  if(storage->charge)storage->charge->Resize(StorageSize(*storage));std::uint32_t at=0;
   storage->room=CopyRecord(*storage,source.room,ClientWorldDescriptionKind::Room,at);
   storage->level=CopyRecord(*storage,source.level,ClientWorldDescriptionKind::Level,at);
   for(std::size_t i=0;i<source.descriptors.size();++i){const auto &d=source.descriptors[i];
@@ -346,6 +352,6 @@ ClientRoomLevelDescription ClientDescribeRoomLevel(const ClientRoomLevelShadowVi
   std::sort(storage->configurations.begin(),storage->configurations.end(),[](const auto &a,const auto &b){return a.resource<b.resource;});
   for(std::size_t i=1;i<storage->configurations.size();++i)
     if(storage->configurations[i-1].resource==storage->configurations[i].resource)Fail("duplicate_configuration_resource");
-  BindWorld(*storage,source.grids);storage->charge->Resize(StorageSize(*storage));return ClientRoomLevelDescription(std::move(storage));
+  BindWorld(*storage,source.grids);if(storage->charge)storage->charge->Resize(StorageSize(*storage));return ClientRoomLevelDescription(std::move(storage));
 }
 } // namespace cs::game

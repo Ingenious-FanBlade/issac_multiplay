@@ -1,6 +1,8 @@
 # ANM2
 
-由唯一布局源生成。布局编号 7；布局版本 71；原生大小 0x114；未知 14B；完整：否。
+由唯一布局源生成。布局编号 7；布局版本 75；原生大小 0x114；未知 14B；需求覆盖：完整。
+
+需求覆盖只表示清单字段已生成计划，不表示原生字节全部已知、Host/Client处理器已接通或第15步验收通过。旧成员映射与原生说明保留为参照，当前发送字段以下方状态表为准。
 
 版本32：loaded原始字节归本地，资源有无并入file_name的可空资源号；Host的未选择、Client的等待／失败与成功准备分开。is_playing／anim_frame／playback_speed因官方InterpolV2绘制消费者保留。Sprite.HasCustomShader 与 HasCustomChampionShader 来自 REPENTOGON Anm2Extras.cpp 外部旁表，不是 ANM2 +0x108/+0x10C；未声明 Sprite public_owner，待第8步接入 shader 旁表和实际 Image 资源路径。_animDefaultName 是可写 std::string：J273 Load 拷贝缓存串到 +0x18，SetAnimation 只改当前 AnimationData，不构成不可变证明。 资源路径／实际Image／shader选择仍同步，本地指针、refcount及加载结果不上线。默认动画名此轮未裁剪，仍保留已有有界串与证据边界；不声称它是不可变文件派生。
 

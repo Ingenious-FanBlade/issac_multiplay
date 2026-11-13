@@ -9,10 +9,13 @@ public:
   ProductionCache(std::thread::id,std::uint32_t bytes=4u<<20,std::uint32_t groups=1024);
   bool Store(const CapturePacket &,CaptureDiagnostic &) noexcept;
   bool Append(const StateScope &,CaptureValueWriter &,std::uint32_t &roots,CaptureDiagnostic &,CaptureAppendContext) const noexcept;
+  // 可靠事件可跨同一run的room／floor；保留原生产scope，不将旧对象状态冒充新房后态。
+  bool AppendEvents(const StateScope &,CaptureValueWriter &,std::uint32_t &roots,CaptureDiagnostic &,CaptureAppendContext) const noexcept;
   bool Contains(const StateScope &,std::uint16_t purpose) const noexcept;
   std::uint64_t Revision(CaptureSubject,std::uint16_t purpose,std::uint64_t instance) const noexcept;
   void Retire(CaptureSubject) noexcept;
   void RetirePurpose(CaptureSubject,std::uint16_t) noexcept;
+  void RetireInstance(CaptureSubject,std::uint16_t,std::uint64_t) noexcept;
   void Clear() noexcept;
   std::uint64_t RetainedBytes() const noexcept {return memory_->Bytes();}
 private:

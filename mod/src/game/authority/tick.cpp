@@ -1,3 +1,4 @@
+#include "game/observation/binary_entities.h"
 #include "game/authority/tick.h"
 #include "core/capture_cost.h"
 #include "game/common/context.h"
@@ -538,24 +539,15 @@ std::string HostStreamFields(unsigned ordinal,unsigned page){
 std::string SourceStreamFields(unsigned page){
   if(!IsMain()||page>=32)return "ok=0\nerror=stream_source_arguments\n";
   const auto c=CurrentWorldRecording();if(!c)return "ok=0\nerror=stream_source_off\n";
-  auto out="ok=1\n"+c->stream.Statistics().Fields("stream.source.",page);
-  out+=capture::CostFields(page);
-  if(!page){const auto pools=memory::ReplicationBudget()->Snapshot();for(unsigned i=0;i<3;++i)out+="stream.pool."+std::to_string(i)+"="+std::to_string(pools[i].current)+"/"+std::to_string(pools[i].high_water)+"/"+std::to_string(pools[i].limit)+"\n";out+=memory::ReplicationBudget()->FailureFields();}
-  const auto &stream=c->stream.Status();const auto live=c->live.Status();
-  // 发布前失败也输出实际owner原因；零样本计数不能说明在等待哪个域或哪个提交边界。
-  out+="stream.source.ready="+std::to_string(stream.ready)+"\nstream.source.reason="+stream.reason+
-    "\nstream.source.live_reason="+live.reason+"\nstream.source.live_delivered="+std::to_string(live.delivered)+
-    "\nstream.source.live_gaps="+std::to_string(live.gaps)+"\nstream.source.live_invalidations="+std::to_string(live.invalidations)+
-    "\nstream.source.lua_attempts="+std::to_string(c->lua_attempts)+"\nstream.source.lua_partial="+std::to_string(c->lua_partial)+
-    "\nstream.source.baseline_request_local_ms="+std::to_string(stream.baseline_request_local_ms)+
-    "\nstream.source.baseline_published_local_ms="+std::to_string(stream.baseline_published_local_ms)+"\n";
-  for(unsigned i=page*2;i<(std::min)(unsigned(c->body_status.size()),page*2+2);++i){
-    const auto &b=c->body_status[i];const auto prefix="stream.source.body."+std::to_string(i)+".";
-    out+=prefix+"local="+std::to_string(b.local)+"\n"+prefix+"use="+std::to_string(b.use)+"\n"+prefix+"shape="+std::to_string(b.shape)+"\n"+prefix+"binding="+std::to_string(b.binding)+"\n"+prefix+"actual_updates="+std::to_string(b.actual_updates)+"\n"+prefix+"qualified_samples="+std::to_string(b.qualified_samples)+"\n"+prefix+"last_native_update_tick="+std::to_string(b.last_native_update_tick)+"\n"+prefix+"last_capture_tick="+std::to_string(b.last_capture_tick)+"\n"+prefix+"throttled="+std::to_string(b.throttled)+"\n";
-  }
-  for(unsigned i=page? page*2:0;i<(std::min)(unsigned(c->lua_partial_reasons.size()),page? page*2+2:unsigned(c->lua_partial_reasons.size()));++i)
-    out+="stream.source.domain."+std::to_string(i)+".reason="+c->lua_partial_reasons[i]+"\n";
-  return out;
+  const auto *source=c->binary_entities.get();
+  if(!source)return "ok=0\nerror=binary_source_off\n";
+  const auto stats=source->Statistics();
+  return "ok=1\nstream.source.ready="+std::to_string(stats.active)+
+      "\nstream.source.ordinary="+std::to_string(stats.ordinary)+
+      "\nstream.source.bodies="+std::to_string(stats.bodies)+
+      "\nstream.source.gaps="+std::to_string(stats.gaps)+
+      "\nstream.source.revision="+std::to_string(stats.publication_revision)+
+      "\nstream.source.reason="+stats.publication_failure.data()+"\n";
 }
 std::string StatusFields() {
   auto *r = Runtime();
@@ -728,6 +720,8 @@ std::string StatusFields() {
     n((prefix+"wire_bytes").c_str(),status.uplink_wire_bytes);n((prefix+"budget_blocks").c_str(),status.uplink_budget_blocks);
     for(unsigned lane=0;lane<4;++lane)n((prefix+"lane."+std::to_string(lane)).c_str(),status.uplink_lane_bytes[lane]);
     n((prefix+"phase").c_str(),status.publication_phase);n((prefix+"retransmissions").c_str(),status.operation_retransmissions);n((prefix+"cancellations").c_str(),status.operation_cancellations);n((prefix+"completed").c_str(),status.operation_completed);n((prefix+"failed").c_str(),status.operation_failed);
+    n((prefix+"binary_world_ack").c_str(),status.binary_world_ack);n((prefix+"binary_body_ack").c_str(),status.binary_body_ack);n((prefix+"binary_event_ack").c_str(),status.binary_event_ack);
+    n((prefix+"binary_event_dropped_capacity").c_str(),status.binary_event_dropped_capacity);n((prefix+"binary_event_dropped_expired").c_str(),status.binary_event_dropped_expired);n((prefix+"binary_unmatched_acks").c_str(),status.binary_unmatched_acks);
     out+=prefix+"first_failure="+status.replication_first_failure.data()+"\n";
   }
 

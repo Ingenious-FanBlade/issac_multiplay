@@ -80,10 +80,21 @@
           "size": "0x4",
           "name": "effect_tree_head",
           "type": "RunSeedEffectNode*",
-          "category": "权威",
-          "semantics": "现有种子效果红黑树头；只读生成display_flags，树地址与节点不发送，不调用增删／构造",
-          "evidence": "9BE290／9BE320分配14h节点；452580／662BC0→4240B0读取+54",
-          "status": "已核"
+          "category": "容器",
+          "semantics": "D5 Seeds+54现有红黑树；物化至多80个按id升序且唯一的节点key，不复制地址或执行种子增删生产",
+          "evidence": "9BE290／9BE320分配14h节点；452580／662BC0→4240B0读取+54；docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "status": "已核",
+          "wire": {
+            "kind": "container",
+            "element": "RunSeedEffectNode",
+            "storage": "aggregate",
+            "stride": 0,
+            "limit": 80,
+            "count_field": "effect_tree_count",
+            "max_bytes": 322,
+            "host": "run_seed_effect_ids_read",
+            "client": "run_seed_effect_ids_install"
+          }
         },
         {
           "offset": "0x58",
@@ -105,6 +116,14 @@
             "start_seed",
             "display_flags"
           ]
+        },
+        {
+          "id": 1,
+          "name": "D5当前种子效果集合",
+          "sequence": "world",
+          "fields": [
+            "effect_tree_head"
+          ]
         }
       ],
       "members": [],
@@ -125,7 +144,9 @@
       },
       "conversions": {
         "run_seed_display_flags_read": "在有效主线程窗口有界只读已有树，按固定8/9/10/29/30/78/79顺序生成7位；原生节点key范围0..79、最多80节点，根和count前后稳定；坏树/未知key报Gap，不执行getter/随机/增删。",
-        "run_seed_display_flags_draw_borrow": "仅在指定Host世界版本的原生Render/只读显示查询中提供这7个结果并恢复；不替换树、不开放其他效果查询或玩法Update。"
+        "run_seed_display_flags_draw_borrow": "仅在指定Host世界版本的原生Render/只读显示查询中提供这7个结果并恢复；不替换树、不开放其他效果查询或玩法Update。",
+        "run_seed_effect_ids_read": "在同一正常主线程world后态只读Seeds+54树；核对+58计数、nil／遍历上限80／重复及id0..79；排序成唯一id列表，不调用Lua getter或推进RNG；错误报Gap，不能截断",
+        "run_seed_effect_ids_install": "在同一world事务把有序唯一id列表装入Client自有的原生Seeds树owner；音乐41..44内联读与诅咒F/P共享此树；保留本地节点寿命，不复制Host链接，不调用带生成／进度副作用的种子生产入口"
       },
       "synthetic_fields": [
         {
@@ -137,7 +158,7 @@
           "client": "run_seed_display_flags_draw_borrow"
         }
       ],
-      "notes": "Game+1BB84内嵌；只发送4B start_seed和1B投影。现有树最多80节点且key在0..79，有界只读遍历、根/count前后稳定；未知key／坏树报Gap。不创建、替换或释放原生树。处理器尚待第10/13步接线。"
+      "notes": "版本72 D5：Game+1BB84内嵌，保留start_seed与旧显示位，新增Seeds+54树的有界id列表。Host只读原树，最多80节点且key在0..79；根/count前后稳定，未知key／坏树报Gap，不截断。Client由具名owner安装本地Seeds树供诅咒与音乐内联读取，不复制Host链接或调用玩法种子生产入口。采集与安装处理器尚待第10/13步接线。此前仅4B start_seed和1B显示位、不重建树的版本56合同由D5取代。"
     },
     {
       "type": "RunAmbush",
@@ -1343,14 +1364,140 @@
           "status": "SDK声明"
         },
         {
-          "offset": "0x1b83c",
-          "size": "0x23c",
-          "name": "room_transition_owner",
-          "type": "bytes[572]",
+          "offset": 112700,
+          "size": 4,
+          "name": "transition_mode",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "Q11转场mode的Host当前值；随world原子安装，Client不运行Start／Update",
+          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-9/native-transition.md；RoomTransition+0x0",
+          "status": "已核",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": 112704,
+          "size": 4,
+          "name": "transition_counter",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "Q11转场counter的Host当前值；随world原子安装，Client不运行Start／Update",
+          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-9/native-transition.md；RoomTransition+0x4",
+          "status": "已核",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": 112708,
+          "size": 4,
+          "name": "transition_duration",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "Q11转场duration的Host当前值；随world原子安装，Client不运行Start／Update",
+          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-9/native-transition.md；RoomTransition+0x8",
+          "status": "已核",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": 112712,
+          "size": 4,
+          "name": "transition_progress",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "Q11转场progress的Host当前值；随world原子安装，Client不运行Start／Update",
+          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-9/native-transition.md；RoomTransition+0xc",
+          "status": "已核",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": 112716,
+          "size": 4,
+          "name": "transition_direction",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "Q11转场direction的Host当前值；随world原子安装，Client不运行Start／Update",
+          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-9/native-transition.md；RoomTransition+0x10",
+          "status": "已核",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": 112720,
+          "size": 4,
+          "name": "transition_room_index",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "Q11转场room_index的Host当前值；随world原子安装，Client不运行Start／Update",
+          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-9/native-transition.md；RoomTransition+0x14",
+          "status": "已核",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": 112724,
+          "size": 4,
+          "name": "transition_dimension",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "Q11转场dimension的Host当前值；随world原子安装，Client不运行Start／Update",
+          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-9/native-transition.md；RoomTransition+0x18",
+          "status": "已核",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": 112728,
+          "size": 4,
+          "name": "transition_animation",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "Q11转场animation的Host当前值；随world原子安装，Client不运行Start／Update",
+          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-9/native-transition.md；RoomTransition+0x1c",
+          "status": "已核",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": 112732,
+          "size": 536,
+          "name": "transition_local_and_unknown",
+          "type": "bytes[536]",
           "category": "未知",
-          "semantics": "RoomTransition最终Sprite／进度／肖像map交第7/8步；FSM归Host；这是跨域委派范围，不能据此删除同步或宣称该对象完整",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
+          "semantics": "转场辅助值、surface、versus、肖像map、滚动补偿等余段保持本地或未核；不整体复制",
+          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
           "status": "未知"
+        },
+        {
+          "offset": 113268,
+          "size": 4,
+          "name": "transition_boss_marker",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "Q11原生Boss标记+238；Client只据它推进本地versus／肖像动画",
+          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-9/native-transition.md；RoomTransition.zhl",
+          "status": "已核",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
         },
         {
           "offset": "0x1ba78",
@@ -1398,7 +1545,7 @@
           "name": "seeds",
           "type": "RunSeeds",
           "category": "状态",
-          "semantics": "当前run种子子对象，只投影开局元数据和七个明确显示选择",
+          "semantics": "当前run种子子对象；版本72 D5在开局元数据和七个显示位之外增加有界种子效果id列表，供原生诅咒与音乐读取",
           "evidence": "Game.zhl；6ED4B0；RunSeeds230",
           "status": "已核",
           "wire": {
@@ -1457,13 +1604,37 @@
           "status": "未知"
         },
         {
-          "offset": "0x1d9ac",
-          "size": "0x5c90",
-          "name": "hud_owner",
-          "type": "bytes[23696]",
+          "offset": 121260,
+          "size": 21732,
+          "name": "hud_prefix_unknown",
+          "type": "bytes[21732]",
           "category": "未知",
-          "semantics": "HUD／PlayerHUD／StatHUD真实缓存与实际Image／文本归Presentation；这是跨域委派范围，不能据此删除同步或宣称该对象完整",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
+          "semantics": "原HUD跨域占位余段；不因新增可见性而宣称缓存已核",
+          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "status": "未知"
+        },
+        {
+          "offset": 142992,
+          "size": 1,
+          "name": "hud_visible",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "HUD._isVisible；Host当前值覆盖BossReplay本地写入",
+          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；HUD.zhl +54E4；823DA9",
+          "status": "已核",
+          "wire": {
+            "kind": "copy",
+            "type": "bool"
+          }
+        },
+        {
+          "offset": 142993,
+          "size": 1963,
+          "name": "hud_suffix_unknown",
+          "type": "bytes[1963]",
+          "category": "未知",
+          "semantics": "HUD可见性之后的缓存仍保留原UNKNOWN事实",
+          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
           "status": "未知"
         },
         {
@@ -1557,10 +1728,14 @@
           "size": "0x4",
           "name": "shake_countdown",
           "type": "i32",
-          "category": "权威",
-          "semantics": "Host震动生产倒计时；只发送已生产screen_shake，不随机重建",
-          "evidence": "6FF360；6F6D30",
-          "status": "已核"
+          "category": "状态",
+          "semantics": "Q8震屏剩余计数；安装由正到零时清本地相机偏移，Client不递减或生成随机偏移",
+          "evidence": "6FF360；6F6D30；docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "status": "已核",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
         },
         {
           "offset": "0x25a84",
@@ -1625,14 +1800,46 @@
           "status": "已核"
         },
         {
-          "offset": "0x25aa0",
-          "size": "0xc",
-          "name": "bloom_display_owner",
-          "type": "bytes[12]",
-          "category": "未知",
-          "semantics": "bloom计时／强度由6FF500写、6F7A80直接消费；Presentation须核最终shader值，不能归填充；这是跨域委派范围，不能据此删除同步或宣称该对象完整",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
-          "status": "未知"
+          "offset": 154272,
+          "size": 4,
+          "name": "bloom_countdown",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "Bloom当前剩余计时；6F6D91递减，Client只安装当前值",
+          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；J273 6FF500/6F6D91",
+          "status": "已核",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": 154276,
+          "size": 4,
+          "name": "bloom_duration",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "Bloom总时间；6FF506与剩余计时同写原生int Time",
+          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；J273 6FF506",
+          "status": "已核",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": 154280,
+          "size": 4,
+          "name": "bloom_strength",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "Bloom强度；官方SetBloom的xmm2浮点参数，原生Render消费",
+          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；J273 6FF512；Game.zhl SetBloom",
+          "status": "已核",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
         },
         {
           "offset": "0x25aac",
@@ -1655,14 +1862,42 @@
           "status": "未知"
         },
         {
-          "offset": "0x25ab0",
-          "size": "0x9",
-          "name": "hallucination_display_owner",
-          "type": "bytes[9]",
-          "category": "未知",
-          "semantics": "hallucination计时、总长和Render反馈；最终shader／Image与Backdrop归Presentation；不得调用701450重放随机／实体变更；这是跨域委派范围，不能据此删除同步或宣称该对象完整",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
-          "status": "未知"
+          "offset": 154288,
+          "size": 4,
+          "name": "hallucination_countdown",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "Hallucination当前剩余时间，Client不调用ShowHallucination",
+          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "status": "已核",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": 154292,
+          "size": 4,
+          "name": "hallucination_duration",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "Hallucination总时间；反馈画面属本地历史资源",
+          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "status": "已核",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": 154296,
+          "size": 1,
+          "name": "hallucination_render_feedback",
+          "type": "u8",
+          "category": "本地",
+          "semantics": "Render写入的本地历史画面反馈标记，不作为权威同步值",
+          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "status": "已核"
         },
         {
           "offset": "0x25ab9",
@@ -1703,10 +1938,14 @@
           "size": "0x4",
           "name": "temporary_curses",
           "type": "u32",
-          "category": "权威",
-          "semantics": "Host额外curse生产输入；第7/Presentation只用最终effective_curses，不重复叠加Client种子／本地值",
-          "evidence": "803E20／804500／966680；6F55C0／6F5750；EVIDENCE §4",
-          "status": "已核"
+          "category": "状态",
+          "semantics": "D3 Game级raw诅咒；与Level raw、Seeds、stage／挑战／难度同world安装，不预先合并有效值",
+          "evidence": "803E20／804500／966680；6F55C0／6F5750；EVIDENCE §4；docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "status": "已核",
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          }
         },
         {
           "offset": "0x25acc",
@@ -1873,13 +2112,61 @@
           "status": "未知"
         },
         {
-          "offset": "0x25b04",
-          "size": "0x34",
-          "name": "fade_display_owner",
-          "type": "bytes[52]",
+          "offset": 154372,
+          "size": 12,
+          "name": "fade_prefix_unknown",
+          "type": "bytes[12]",
           "category": "未知",
-          "semantics": "fade-in/out颜色／alpha／最终pass交Presentation；speed／退出target归Host，不放行6F6D30状态切换；这是跨域委派范围，不能据此删除同步或宣称该对象完整",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
+          "semantics": "保留原fade范围尚未逐项核定的字节，不读取、不发送",
+          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "status": "未知"
+        },
+        {
+          "offset": 154384,
+          "size": 4,
+          "name": "secondary_fade_alpha",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "当前secondary alpha；终结分支由Host决定，不按本机墙钟递减",
+          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "status": "已核",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": 154388,
+          "size": 20,
+          "name": "fade_middle_unknown",
+          "type": "bytes[20]",
+          "category": "未知",
+          "semantics": "原fade范围未核定字节，保留原始未知事实",
+          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "status": "未知"
+        },
+        {
+          "offset": 154408,
+          "size": 4,
+          "name": "primary_fade_alpha",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "当前primary alpha；Client的Pα资格只检查已安装值>0",
+          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "status": "已核",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": 154412,
+          "size": 12,
+          "name": "fade_tail_unknown",
+          "type": "bytes[12]",
+          "category": "未知",
+          "semantics": "fade生产颜色／速度／生命周期控制未逐项核定；不作Client动作命令",
+          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
           "status": "未知"
         },
         {
@@ -2086,14 +2373,32 @@
           "status": "已核"
         },
         {
-          "offset": "0x25f58",
-          "size": "0x8",
-          "name": "retrovision_display_owner",
-          "type": "bytes[8]",
-          "category": "未知",
-          "semantics": "剩余／总计时控制15帧retrovision淡入淡出，804500写BE7704；需Presentation承接最终强度，不能只发送seed78；这是跨域委派范围，不能据此删除同步或宣称该对象完整",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
-          "status": "未知"
+          "offset": 155480,
+          "size": 4,
+          "name": "retrovision_countdown",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "Retrovision当前倒计时；Room Render用它求淡入淡出",
+          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "status": "已核",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": 155484,
+          "size": 4,
+          "name": "retrovision_duration",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "Retrovision总时间；Client不本地递减",
+          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "status": "已核",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
         },
         {
           "offset": "0x25f60",
@@ -2170,10 +2475,14 @@
           "size": "0x1",
           "name": "color_lerp_enabled",
           "type": "bool",
-          "category": "权威",
-          "semantics": "Host当前颜色渐变生产开关；Client只安装current六值",
-          "evidence": "6F6D30／7021A0",
-          "status": "已核"
+          "category": "状态",
+          "semantics": "Q8颜色显示开关；与current六值同world安装，不在Client推进target／step",
+          "evidence": "6F6D30／7021A0；docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "status": "已核",
+          "wire": {
+            "kind": "copy",
+            "type": "bool"
+          }
         },
         {
           "offset": "0x6691d",
@@ -2422,6 +2731,99 @@
           "fields": [
             "score",
             "hud_progress_blocked"
+          ]
+        },
+        {
+          "id": 3,
+          "name": "Q8 Game当前显示标量（本地相机偏移不上线）",
+          "sequence": "world",
+          "fields": [
+            "shake_countdown",
+            "bloom_countdown",
+            "bloom_duration",
+            "bloom_strength",
+            "hallucination_countdown",
+            "hallucination_duration",
+            "retrovision_countdown",
+            "retrovision_duration",
+            "secondary_fade_alpha",
+            "primary_fade_alpha",
+            "color_lerp_enabled"
+          ]
+        },
+        {
+          "id": 4,
+          "name": "Q11转场当前值／Q8 HUD可见性",
+          "sequence": "world",
+          "fields": [
+            "hud_visible",
+            "transition_mode",
+            "transition_counter",
+            "transition_duration",
+            "transition_progress",
+            "transition_direction",
+            "transition_room_index",
+            "transition_dimension",
+            "transition_animation",
+            "transition_boss_marker"
+          ]
+        },
+        {
+          "id": 5,
+          "name": "Q12权威暂停／终结分支与Game raw诅咒",
+          "sequence": "world",
+          "fields": [
+            "host_paused",
+            "display_branch",
+            "temporary_curses"
+          ]
+        },
+        {
+          "id": 6,
+          "name": "版本73 display_injections",
+          "sequence": "world",
+          "fields": [
+            "display_injections"
+          ]
+        },
+        {
+          "id": 7,
+          "name": "版本73 music_request",
+          "sequence": "world",
+          "fields": [
+            "music_request"
+          ]
+        },
+        {
+          "id": 8,
+          "name": "版本73 loop_sounds",
+          "sequence": "world",
+          "fields": [
+            "loop_sounds"
+          ]
+        },
+        {
+          "id": 9,
+          "name": "版本73 item_overlays",
+          "sequence": "world",
+          "fields": [
+            "item_overlays"
+          ]
+        },
+        {
+          "id": 10,
+          "name": "版本73 procedural_display",
+          "sequence": "world",
+          "fields": [
+            "procedural_display"
+          ]
+        },
+        {
+          "id": 11,
+          "name": "Boss演出恢复基线",
+          "sequence": "world",
+          "fields": [
+            "boss_display"
           ]
         }
       ],
@@ -3628,13 +4030,66 @@
         "hud_progress_blocked": {
           "kind": "boolean",
           "scalar": "u8"
+        },
+        "color_lerp_enabled": {
+          "kind": "boolean",
+          "scalar": "bool"
+        },
+        "bloom_strength": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "secondary_fade_alpha": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "primary_fade_alpha": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "hud_visible": {
+          "kind": "boolean",
+          "scalar": "bool"
+        },
+        "transition_progress": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "host_paused": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "display_branch": {
+          "kind": "enum",
+          "scalar": "u8",
+          "values": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
         }
       },
       "conversions": {
         "run_hud_progress_result_observed": "捕获97C300正常Host显示已计算的最终图标布尔，绑定run/world/显示批次；不额外调用资格/进度/随机查询；无有效结果报Gap，不填false。",
         "run_hud_progress_result_draw_borrow": "在对应HUD绘制分支提供最终布尔并恢复；不修改custom/debug/成就/挑战/保存资格，不把它当AchievementUnlocksDisallowed完整API。",
         "run_time_counter_anchor_read": "在同一有效主线程窗口读取Game+25A70 u32和+25A74 i32；线上base=u32(GameFrame)-bit_cast<u32>(TimeCounter)，模2^32。6F7889/6F7894/6F789D证实同分支递增，普通推进不改base；外部改时/回溯按实际当前二值重算，不调用Getter。",
-        "run_time_counter_anchor_install": "仅用该world已应用帧头的u32 game_frame：counter=bit_cast<i32>(game_frame-base)，模2^32后还原公开int符号；同展示作用域借用并恢复；不读Client墙钟/本地tick、不写进度。"
+        "run_time_counter_anchor_install": "仅用该world已应用帧头的u32 game_frame：counter=bit_cast<i32>(game_frame-base)，模2^32后还原公开int符号；同展示作用域借用并恢复；不读Client墙钟/本地tick、不写进度。",
+        "run_host_paused_read": "Q12同一world的Host Game::IsPaused结果；不得用旧D0或Client Manager状态替代；正常Authority Update后、完整world采集窗口内读取当前结果，不执行Client混合helper；未知或缺source报Gap，不默认normal",
+        "run_host_paused_install": "Q12同一world的Host Game::IsPaused结果；不得用旧D0或Client Manager状态替代；仅写C/S已安装world的纯值owner，world失败／退休时撤销；不改本地菜单或启动原生FSM",
+        "run_display_branch_read": "正常Authority Update后的同一world状态按RE-1优先级选分支：Console阻断→pause_countdown→GameOver→Leaderboard→StageTransition→RoomTransition→ACTIVE Overlay组合→Prompt→24ECC→secondary alpha→PauseScreen→24444→normal；WAITING Overlay不直接返回；不运行helper求下一状态，缺source报Gap",
+        "run_display_branch_install": "Q12终结分支枚举display_branch 0..12；不是paused的别名；仅写C/S已安装world的纯值owner，world失败／退休时撤销；不改本地菜单或启动原生FSM",
+        "display_value_read": "Host正常来源封存的同world自有值，逐字段按生成索引读取；不在后台读取原生对象，不从旧显示缓存补值",
+        "display_value_install": "world、Player库存与资源成功安装后交具名显示／注入owner；不运行玩法Update，不写PGD"
       },
       "synthetic_fields": [
         {
@@ -3644,6 +4099,22 @@
           "evidence": "97C300的custom/Seeds资格/rerun/debug/challenge分支；docs/design/binary-state/run-synchronization-review.md",
           "host": "run_hud_progress_result_observed",
           "client": "run_hud_progress_result_draw_borrow"
+        },
+        {
+          "name": "host_paused",
+          "type": "u8",
+          "semantics": "Q12同一world的Host Game::IsPaused结果；不得用旧D0或Client Manager状态替代",
+          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-1/early-return-branches.md",
+          "host": "run_host_paused_read",
+          "client": "run_host_paused_install"
+        },
+        {
+          "name": "display_branch",
+          "type": "u8",
+          "semantics": "Q12终结分支枚举display_branch 0..12；不是paused的别名",
+          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-1/early-return-branches.md",
+          "host": "run_display_branch_read",
+          "client": "run_display_branch_install"
         }
       ],
       "contexts": {
@@ -3693,7 +4164,7 @@
           "evidence": "docs/design/binary-state/run-synchronization-review.md"
         }
       },
-      "notes": "Game的Run视图，不代表整个Game完整。932AB3 push680E8/932ACF调用6ED4B0核实际分配大小；跨域委派区域明确UNKNOWN，不能标本地后丢弃。Host主线程同run/world有资格窗口复制，后台只持自有纯值；Client在具名显示范围借用并恢复，不进入原版Online/Isaac Sync或玩法Update。所有新handler仍为声明，正式接线归10/13步。",
+      "notes": "Game的Run视图，不代表整个Game完整。932AB3 push680E8/932ACF调用6ED4B0核实际分配大小；跨域委派余段继续保留UNKNOWN。版本72按Q8/Q11/Q12安装Host当前值，取代旧的显示作用域借用／恢复方案；GameFrame由帧头唯一承载，相机偏移留本机。Host主线程同run/world有资格窗口复制，后台只持自有纯值；不进入原版Online/Isaac Sync或玩法Update。所有新handler仍为声明，正式接线归10/13步。",
       "catalog_rows": [
         {
           "catalog": "docs/design/observation-expansion/run-catalog.json",
@@ -6035,6 +6506,62 @@
           "route": "本地纯值/资源/UI",
           "reason": "本地纯转换／配置查询／菜单交互，不是当前run状态负载；不把该API作为远程调用；原stream行3537归属AuthorityOnly保留为历史，本轮重新决定。"
         }
+      ],
+      "companions": [
+        {
+          "name": "display_injections",
+          "type": "DisplayInjectionState",
+          "semantics": "版本73 Host同world显示需求；真实来源失败不发布",
+          "evidence": "client-display-delegation 6.3／6.4",
+          "host": "display_value_read",
+          "client": "display_value_install",
+          "status": "已核"
+        },
+        {
+          "name": "music_request",
+          "type": "MusicRequestState",
+          "semantics": "版本73 Host同world显示需求；真实来源失败不发布",
+          "evidence": "client-display-delegation 6.3／6.4",
+          "host": "display_value_read",
+          "client": "display_value_install",
+          "status": "已核"
+        },
+        {
+          "name": "loop_sounds",
+          "type": "LoopSoundSet",
+          "semantics": "版本73 Host同world显示需求；真实来源失败不发布",
+          "evidence": "client-display-delegation 6.3／6.4",
+          "host": "display_value_read",
+          "client": "display_value_install",
+          "status": "已核"
+        },
+        {
+          "name": "item_overlays",
+          "type": "OverlayDisplaySet",
+          "semantics": "版本73 Host同world显示需求；真实来源失败不发布",
+          "evidence": "client-display-delegation 6.3／6.4",
+          "host": "display_value_read",
+          "client": "display_value_install",
+          "status": "已核"
+        },
+        {
+          "name": "procedural_display",
+          "type": "ProceduralDisplaySet",
+          "semantics": "版本73 Host同world显示需求；真实来源失败不发布",
+          "evidence": "client-display-delegation 6.3／6.4",
+          "host": "display_value_read",
+          "client": "display_value_install",
+          "status": "已核"
+        },
+        {
+          "name": "boss_display",
+          "type": "BossDisplayState",
+          "semantics": "正在进行的Boss演出身份与当前姿态",
+          "evidence": "J273 823D10／826430；RE-9",
+          "host": "display_value_read",
+          "client": "display_value_install",
+          "status": "已核"
+        }
       ]
     },
     {
@@ -6112,18 +6639,118 @@
           "size": "0x4",
           "name": "key",
           "type": "i32",
-          "category": "权威",
-          "semantics": "完整SeedEffect源key留Host；线上仅RunSeeds的七项显示membership投影",
-          "evidence": "452580／662BC0检查+10；原版SeedEffect.md枚举0..79",
-          "status": "已核"
+          "category": "状态",
+          "semantics": "当前SeedEffect的完整id；只读原有节点，线上为有界有序唯一id列表",
+          "evidence": "452580／662BC0检查+10；原版SeedEffect.md枚举0..79；docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "status": "已核",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
         }
       ],
-      "blocks": [],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "种子效果节点id（不传树链接）",
+          "sequence": "world",
+          "fields": [
+            "key"
+          ]
+        }
+      ],
       "members": [],
       "public_owners": [],
-      "validators": {},
+      "validators": {
+        "key": {
+          "kind": "range",
+          "scalar": "i32",
+          "min": 0,
+          "max": 79
+        }
+      },
       "conversions": {},
-      "notes": "只记录外部节点ABI，不作为状态记录发送或在Client重建树；+0E..0F仍未知，不能因14B分配假定padding。"
+      "notes": "D5：只为RunSeeds容器提供id元素布局；左／父／右地址、颜色与+E..F未知不上线。双端具名owner负责有界遍历和原生Seeds树安装，不能只挂getter替代音乐的内联树读取。"
+    }
+  ],
+  "protocol_constants": [
+    {
+      "domain": "display_branch",
+      "name": "normal",
+      "value": 0,
+      "semantics": "Q12终结分支：normal；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用"
+    },
+    {
+      "domain": "display_branch",
+      "name": "console_hold",
+      "value": 1,
+      "semantics": "Q12终结分支：console_hold；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用"
+    },
+    {
+      "domain": "display_branch",
+      "name": "pause_countdown",
+      "value": 2,
+      "semantics": "Q12终结分支：pause_countdown；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用"
+    },
+    {
+      "domain": "display_branch",
+      "name": "game_over",
+      "value": 3,
+      "semantics": "Q12终结分支：game_over；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用"
+    },
+    {
+      "domain": "display_branch",
+      "name": "leaderboard",
+      "value": 4,
+      "semantics": "Q12终结分支：leaderboard；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用"
+    },
+    {
+      "domain": "display_branch",
+      "name": "stage_transition",
+      "value": 5,
+      "semantics": "Q12终结分支：stage_transition；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用"
+    },
+    {
+      "domain": "display_branch",
+      "name": "room_transition",
+      "value": 6,
+      "semantics": "Q12终结分支：room_transition；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用"
+    },
+    {
+      "domain": "display_branch",
+      "name": "active_overlay",
+      "value": 7,
+      "semantics": "Q12终结分支：active_overlay；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用"
+    },
+    {
+      "domain": "display_branch",
+      "name": "generic_prompt",
+      "value": 8,
+      "semantics": "Q12终结分支：generic_prompt；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用"
+    },
+    {
+      "domain": "display_branch",
+      "name": "unknown_ui_byte_24ecc",
+      "value": 9,
+      "semantics": "Q12终结分支：unknown_ui_byte_24ecc；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用"
+    },
+    {
+      "domain": "display_branch",
+      "name": "secondary_fade",
+      "value": 10,
+      "semantics": "Q12终结分支：secondary_fade；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用"
+    },
+    {
+      "domain": "display_branch",
+      "name": "pause_screen",
+      "value": 11,
+      "semantics": "Q12终结分支：pause_screen；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用"
+    },
+    {
+      "domain": "display_branch",
+      "name": "unknown_ui_word_24444",
+      "value": 12,
+      "semantics": "Q12终结分支：unknown_ui_word_24444；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用"
     }
   ]
 }

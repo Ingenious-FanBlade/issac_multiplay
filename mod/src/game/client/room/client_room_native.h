@@ -31,10 +31,5 @@ int ClientRoomBackdropSpritesLua(void *);
 int ClientRoomVeinSpritesLua(void *);
 int ClientRoomMapSpritesLua(void *);
 // 写入只发生于既有Manager用途窗口；Room析构清除内部状态，Game的全局借用由world owner恢复。
-bool ClientRoomStateApply(void *game,void *room,const ClientRoomState &) noexcept;
-void ClientRoomFrameMaintain(void *game,void *room,int frame,bool initialized) noexcept;
-void ClientRoomRailsDraw(void *room,const ClientRoomState &,const ClientPoseVector &offset);
-void ClientRoomPitRailsDraw(void *room,const ClientRoomState &,const ClientPoseVector &offset);
 // 水面预绘制内部也会选择rail/pitrail帧；同样保护原选择器数组，外层负责渲染上下文恢复。
-void ClientRoomWaterPreDraw(void *room);
 } // namespace cs::game

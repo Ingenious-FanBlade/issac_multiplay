@@ -1,6 +1,8 @@
 # AudioWorldEvent
 
-由唯一布局源生成。布局编号 383；布局版本 71；原生大小 0x0；未知 0B；完整：是。
+由唯一布局源生成。布局编号 383；布局版本 75；原生大小 0x0；未知 0B；需求覆盖：完整。
+
+需求覆盖只表示清单字段已生成计划，不表示原生字节全部已知、Host/Client处理器已接通或第15步验收通过。旧成员映射与原生说明保留为参照，当前发送字段以下方状态表为准。
 
 具名显示结果合同（接线声明，不表示运行实现）：
 
@@ -14,17 +16,13 @@
 | 纯C/S协议记录：没有原生对象字节，不得向游戏地址加偏移 |
 |---|
 
-状态二进制布局（总计 1—20B，不含第 9 步记录头）：
+状态二进制布局（总计 0—0B，不含第 9 步记录头）：
 
-块 0：AudioWorldEvent具名当前结果（world，1—20B）：
+块 0：AudioWorldEvent具名当前结果（world，0—0B）：
 
-| +0x0 u8（C/S自有元数据，无原生偏移） kind：0=Start、1=Retrigger、2=Stop、3=有范围Clear、4=既有实例参数调整；独立事件序号／逻辑时点／范围由第9步外层固定。 | +0x1 AudioVoiceParameters（见该类型状态表）（伴随源，无根对象偏移）（仅audio_world_event_kind_kind__0__kind__1__kind__4(kind)成立时存在） parameters：Start／Retrigger／调整的实际已选资源与最终参数；不重抽sample。 |
-|---|---|
+| 无发送字节：显式预留块 |
+|---|
 
 证据：
 
 
-
-伴随来源（不属于上述原生对象字节）：
-
-- `parameters` → `AudioVoiceParameters`：Start／Retrigger／调整的实际已选资源与最终参数；不重抽sample。；docs/design/binary-state/8-run-presentation.md；presentation-result-batches.md；presentation-source-synchronization-review.md（已核）

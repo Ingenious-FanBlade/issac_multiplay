@@ -17,6 +17,7 @@ struct Layout {
   const char *name;
   std::uint32_t native_size, unknown_bytes;
   std::uint8_t block_count;
+  // complete自版本72表示需求清单已覆盖，不再以原生UNKNOWN阻塞；不表示运行接线或验收完成。
   bool complete, base_prefix, protocol; // protocol记录没有原生对象或可加偏移的地址。
   const char *rtti;
   std::uint32_t rtti_rva;
@@ -79,6 +80,9 @@ struct ClientField { std::uint16_t layout, field; Operation operation; const cha
 // 同一slot是同一个原生容器的各投影；不同slot才参与合计上限。
 struct CountConstraint { std::uint16_t layout, group, slot, field, limit; };
 struct Variant { std::uint16_t base, arm; std::uint32_t selector_offset; std::int32_t value; };
+// 工厂真实类映射与Grid描述共用world_layout源，未知type不回退基类布局。
+struct GridFactoryType {std::int32_t type;std::uint16_t layout;};
+std::uint16_t GridFactoryLayout(std::int32_t) noexcept;
 // 嵌套布局可从父资源/容器位置获得语义输入；上下文不冒充为对象内的字节或重复发送字段。
 struct ContextField { std::uint16_t layout; const char *name, *type, *semantics, *evidence; };
 // 条件只依赖同块先行字段；谓词在注册时绑定，不能由报文提供函数或偏移。
@@ -126,6 +130,8 @@ struct ProtocolConstant {
 // 这组只读视图由同一次布局生成提供给后续采集、解码、写入和 E2E 对照。
 // 布局版本与第 9 步帧头 layout_version 同为 u16，两端按整数直接比较。
 std::uint16_t LayoutVersion() noexcept;
+// 195／196是具名C/S身份／控制组根；其余protocol布局只能作封装或嵌套值。
+bool IsStateMemberLayout(std::uint16_t) noexcept;
 std::span<const Layout> Layouts() noexcept;
 std::span<const Field> Fields() noexcept;
 std::span<const CopyRange> CopyRanges() noexcept;

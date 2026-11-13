@@ -1,4 +1,5 @@
 #include "replica/stream_codec.h"
+#include "state/host_publish.h"
 #include <algorithm>
 #include <bit>
 #include <cmath>
@@ -23,9 +24,6 @@ const Slots &Schema(Kind kind){
     {Kind::ScenePrepare,{{"world",'w'},{"next_route",'u'},{"manifest",'u'},{"generation",'u'},{"native_domains",'u'},{"retained_domains",'u'},{"contract",'s'}}},
     {Kind::ScenePrepared,{{"world",'w'},{"manifest",'u'},{"generation",'u'},{"native_domains",'u'},{"retained_domains",'u'},{"contract",'s'}}},
     {Kind::ReceiveAck,{{"transfer",'u'},{"part_count",'u'},{"window",'u'},{"bitmap",'x'},{"complete",'b'}}},
-    {Kind::ContextReady,{{"world",'w'},{"versions",'v'}}},
-    {Kind::AppliedAck,{{"world",'w'},{"versions",'v'},{"results",'t'},{"native_domains",'u'},{"retained_domains",'u'},{"event_watermark",'u'}}},
-    {Kind::Resync,{{"world",'w'},{"failed_revision",'u'},{"reason",'s'}}},
     {Kind::Cancel,{{"transfer",'u'},{"reason",'s'}}},
     {Kind::OperationAck,{{"operation",'u'},{"operation_sequence",'u'},{"stage",'u'},{"progress_sequence",'u'},{"reason",'s'}}},
     {Kind::Retire,{{"reason",'s'}}},
@@ -99,10 +97,7 @@ struct Writer final {
   void Var(std::uint64_t n){do{const auto b=std::uint8_t(n&127);n>>=7;U(b|(n?128:0),1);}while(n);}
   void String(std::string_view s){if(s.size()>limits.string_bytes||s.size()>UINT32_MAX||!Utf8(s))Fail("compact_string");U(s.size(),4);if(measure){measured+=s.size();return;}if(s.size()>limits.bytes-bytes.size())Fail("compact_byte_budget");bytes.insert(bytes.end(),s.begin(),s.end());}
   void Name(std::string_view name){if(name.size()>limits.string_bytes||!Utf8(name))Fail("compact_string");const auto code=NameCode(name);Var(code);if(!code)String(name);}
-  void Key(SubjectKey k){Var(k.run);Var(k.id);U(k.space,1);}
   void World(WorldScope w){for(auto n:{w.session,w.run,w.floor,w.dimension,w.room,w.scene})Var(n);}
-  void Versions(const std::vector<Version> &v){if(v.size()>64)Fail("compact_versions");U(v.size(),1);for(const auto &x:v){U(unsigned(x.id.kind),1);Name(x.id.name);Key(x.id.body);Var(x.revision);}}
-  void MemberValue(const Member &m){Key(m.key);Var(m.use);Var(m.shape);Name(m.category);}
   void Tree(const Value &v,unsigned depth=0){
     if(depth>limits.depth)Fail("compact_depth");Nodes();
     if(v.IsNull())U(0,1);else if(v.IsBool())U(v.GetBool()?2:1,1);
@@ -123,16 +118,7 @@ struct Writer final {
     }
     else Fail("compact_value_type");
   }
-  void RangeValue(const RangeData &d){
-    World(d.world);U(unsigned(d.id.kind),1);Name(d.id.name);Key(d.id.body);Var(d.revision);U(d.complete,1);U(d.membership_complete,1);
-    const auto &s=d.sample;for(auto n:{s.epoch,s.sequence,s.tick,s.outer,s.owner,s.mutation,s.loss,s.last_native_update_tick,s.required_world_sequence,s.binding_revision})Var(n);U(unsigned(s.kind),1);
-    Versions(d.dependencies);Versions(d.required);Var(d.native_domains);Var(d.retained_domains);Var(d.event_watermark);
-    Nodes(d.members.size()+d.records.size());Var(d.members.size());for(const auto &m:d.members)MemberValue(m);
-    Var(d.records.size());for(const auto &r:d.records){MemberValue(r.member);Name(r.layout);Nodes(r.fields.size());Var(r.fields.size());for(const auto &f:r.fields){Var(f.id);U(unsigned(f.status),1);U(f.value.index(),1);switch(f.value.index()){
-      case 0:break;case 1:U(std::get<bool>(f.value),1);break;case 2:Var(std::get<std::uint64_t>(f.value));break;case 3:Var(Zigzag(std::get<std::int64_t>(f.value)));break;case 4:U(std::bit_cast<std::uint64_t>(std::get<double>(f.value)));break;case 5:String(std::get<std::string>(f.value));break;case 6:Tree(*std::get<std::shared_ptr<const Json>>(f.value));break;default:Fail("compact_atom_tag");
-    }}}
-    U(bool(d.components),1);if(d.components)Tree(*d.components);
-  }
+
 };
 // 自有DocumentTree按SAX结束时一次分配容器；预扫描模拟同一4KiB arena，
 // 并单列构造栈/查重集合的并发峰值，不按每个标量/键重复预占最坏容量。
@@ -174,10 +160,7 @@ struct Reader final {
   unsigned Count(unsigned max,std::size_t minimum,std::size_t item){const auto n=U(4);if(n>max||n>(bytes.size()-p)/minimum)Fail("compact_count");Nodes(n);Measure(n*item*2);return unsigned(n);}
   unsigned VarCount(unsigned max,std::size_t minimum,std::size_t item){const auto n=Var();if(n>max||n>(bytes.size()-p)/minimum)Fail("compact_count");Nodes(n);Measure(n*item*2);return unsigned(n);}
   unsigned TreeCount(unsigned max,std::size_t item){const auto n=Var();if(n>max||n>bytes.size()-p)Fail("compact_count");Nodes(n);Measure(n*item*2);return unsigned(n);}
-  SubjectKey Key(){const auto run=Var(),id=Var(),space=U(1);if((!run||!id||space<1||space>14)&&(run||id||space))Fail("compact_key");return {run,id,unsigned(space)};}
   WorldScope World(){WorldScope w;w.session=Var();w.run=Var();w.floor=Var();w.dimension=Var();w.room=Var();w.scene=Var();return w;}
-  std::vector<Version> Versions(){const auto n=U(1);if(n>64)Fail("compact_versions");Measure(n*sizeof(Version)*2);std::vector<Version> out;if(build)out.reserve(std::size_t(n));for(unsigned i=0;i<n;++i){const auto kind=U(1);auto name=NamedString();auto key=Key();const auto revision=Var();if(kind<1||kind>6||!revision)Fail("compact_version");if(build)out.push_back({{RangeKind(kind),std::move(name),key},revision});}return out;}
-  Member MemberValue(){auto k=Key();const auto use=Var(),shape=Var();auto category=NamedString();return {k,use,shape,std::move(category)};}
   // SAX构造让对象/数组按最终成员数分配，避免每个小对象默认预留16个成员槽。
   template<class Handler> Value Emit(Value v,Handler *handler){if(handler){if(!v.Accept(*handler))Fail("compact_tree_handler");return Value();}return v;}
   template<class Handler=Json> Value Tree(unsigned depth=0,Handler *handler=nullptr){
@@ -211,31 +194,14 @@ struct Reader final {
       default:Fail("compact_value_tag");
     }
   }
-  std::shared_ptr<const Json> DocumentTree(){
-    if(!build){TreeArena measured;tree_scan=true;Tree(0,&measured);tree_scan=false;Measure(measured.Owned());tree_temporary=(std::max)(tree_temporary,measured.Temporary());return {};}
-    auto tree=std::make_shared<Json>();
-    auto generate=[&](Json &handler){Tree(0,&handler);return true;};
-    tree->Populate(generate);return tree;
-  }
-  RangeData RangeValue(){
-    RangeData d;d.world=World();const auto kind=U(1);if(kind<1||kind>6)Fail("compact_range_kind");d.id.kind=RangeKind(kind);d.id.name=NamedString();d.id.body=Key();d.revision=Var();d.complete=Bool();d.membership_complete=Bool();
-    auto &s=d.sample;s.epoch=Var();s.sequence=Var();s.tick=Var();s.outer=Var();s.owner=Var();s.mutation=Var();s.loss=Var();s.last_native_update_tick=Var();s.required_world_sequence=Var();s.binding_revision=Var();const auto capture=U(1);if(capture>1)Fail("compact_capture_kind");s.kind=CaptureKind(capture);
-    d.dependencies=Versions();d.required=Versions();d.native_domains=Var();d.retained_domains=Var();d.event_watermark=Var();
-    const auto members=VarCount(16384,6,sizeof(Member));if(build)d.members.reserve(members);for(unsigned i=0;i<members;++i){auto m=MemberValue();if(build)d.members.push_back(std::move(m));}
-    const auto records=VarCount(16384,8,sizeof(Record));if(build)d.records.reserve(records);for(unsigned i=0;i<records;++i){Record r;r.member=MemberValue();r.layout=NamedString();const auto fields=VarCount(32768,3,sizeof(Field));if(build)r.fields.reserve(fields);for(unsigned j=0;j<fields;++j){Field f;const auto field_id=Var();const auto status=U(1),tag=U(1);if(!field_id||field_id>UINT32_MAX||status>unsigned(FieldStatus::Truncated)||tag>6)Fail("compact_field");f.id=std::uint32_t(field_id);f.status=FieldStatus(status);switch(tag){
-      case 0:break;case 1:f.value=Bool();break;case 2:f.value=Var();break;case 3:f.value=Unzigzag(Var());break;case 4:{const auto n=std::bit_cast<double>(U());if(!std::isfinite(n))Fail("compact_nonfinite");f.value=n;break;}case 5:f.value=String();break;case 6:{auto tree=DocumentTree();if(build){if(!tree->IsObject()&&!tree->IsArray())Fail("compact_atom_tree");f.value=std::move(tree);}break;}
-    }if(build)r.fields.push_back(std::move(f));}if(build)d.records.push_back(std::move(r));}
-    if(Bool()){d.components=DocumentTree();}return d;
-  }
+
 };
 Value WorldJson(WorldScope w,Allocator &a){Value v(rapidjson::kObjectType);const std::uint64_t ns[]={w.session,w.run,w.floor,w.dimension,w.room,w.scene};unsigned i=0;for(auto k:{"session","run","floor","dimension","room","scene"})Put(v,k,Decimal(ns[i++],a),a);return v;}
-Value VersionsJson(const std::vector<Version> &vs,Allocator &a){Value out(rapidjson::kArrayType);for(const auto &v:vs){Value x(rapidjson::kObjectType),key;Put(x,"kind",Decimal(unsigned(v.id.kind),a),a);Put(x,"name",v.id.name,a);if(v.id.body!=SubjectKey{}){key.SetObject();Put(key,"run",Decimal(v.id.body.run,a),a);Put(key,"id",Decimal(v.id.body.id,a),a);Put(key,"space",Decimal(v.id.body.space,a),a);}Put(x,"body",std::move(key),a);Put(x,"revision",Decimal(v.revision,a),a);out.PushBack(x,a);}return out;}
 void ReadBody(Reader &r,Message &m){
   if(r.U(2)!=kCompactSchema)Fail("compact_payload_schema");
-  if(m.kind==Kind::Range){auto d=r.RangeValue();if(r.build){d.memory=r.lease;m.range=std::make_shared<const RangeData>(std::move(d));}return;}
   if(r.build)m.body.SetObject();auto &a=r.arena.GetAllocator();for(const auto &slot:Schema(m.kind)){Value v;r.Nodes();r.Measure(256);switch(slot.type){
     case 'u':{const auto n=r.U();if(r.build)v=Decimal(n,a);break;}case 'b':v.SetBool(r.Bool());break;case 's':{const auto s=r.View();if(r.build)v.SetString(s.data(),rapidjson::SizeType(s.size()),a);break;}
-    case 'w':{const auto w=r.World();if(r.build)v=WorldJson(w,a);break;}case 'v':{auto vs=r.Versions();if(r.build)v=VersionsJson(vs,a);break;}case 't':v=r.Tree();break;
+    case 'w':{const auto w=r.World();if(r.build)v=WorldJson(w,a);break;}case 't':v=r.Tree();break;
     case 'a':case 'x':{v.SetArray();const auto count=slot.type=='a'?2u:4u;for(unsigned i=0;i<count;++i){const auto n=r.U(slot.type=='a'?2:8);if(r.build){if(slot.type=='a')v.PushBack(Value(std::int32_t(std::bit_cast<std::int16_t>(std::uint16_t(n)))),a);else v.PushBack(Value(n),a);}}break;}
     default:Fail("compact_slot");
   }if(r.build)Put(m.body,slot.name,std::move(v),a);}
@@ -244,18 +210,17 @@ void ReadBody(Reader &r,Message &m){
 }
 // 实际编码与计量共用同一写入路径，避免按协议最大值预占整个共享工作池。
 void WritePayload(Writer &w,const Message &m){
-  w.U(kCompactSchema,2);if(m.kind==Kind::Range){if(m.range)w.RangeValue(*m.range);else w.RangeValue(RangeDataFromMessage(m));}
-  else for(const auto &slot:Schema(m.kind)){w.Nodes();const auto &v=At(m.body,slot.name);switch(slot.type){
+  w.U(kCompactSchema,2);
+  for(const auto &slot:Schema(m.kind)){w.Nodes();const auto &v=At(m.body,slot.name);switch(slot.type){
     case 'u':w.U(Unsigned(v));break;case 'b':w.U(v.GetBool(),1);break;case 's':w.String({v.GetString(),v.GetStringLength()});break;
     case 'w':w.World({Unsigned(v["session"]),Unsigned(v["run"]),Unsigned(v["floor"]),Unsigned(v["dimension"]),Unsigned(v["room"]),Unsigned(v["scene"])});break;
-    case 'v':{std::vector<Version> vs;for(const auto &x:v.GetArray()){SubjectKey k;if(!x["body"].IsNull())k={Unsigned(x["body"]["run"]),Unsigned(x["body"]["id"]),unsigned(Unsigned(x["body"]["space"]))};vs.push_back({{RangeKind(Unsigned(x["kind"])),std::string(x["name"].GetString(),x["name"].GetStringLength()),k},Unsigned(x["revision"])});}w.Versions(vs);break;}
     case 't':w.Tree(v);break;case 'a':for(const auto &x:v.GetArray())w.U(std::bit_cast<std::uint16_t>(std::int16_t(x.GetInt())),2);break;case 'x':for(const auto &x:v.GetArray())w.U(Unsigned(x));break;default:Fail("compact_slot");
   }}
 }
 }
-std::uint64_t MeasureRangePayload(const RangeData &range){Writer w{Limits{}};w.measure=true;w.U(kCompactSchema,2);w.RangeValue(range);return w.measured;}
-std::uint64_t MeasurePayload(const Message &m,Limits l){Writer w{l};w.measure=true;WritePayload(w,m);return w.measured;}
+std::uint64_t MeasurePayload(const Message &m,Limits l){if(m.state_body)return m.state_body->bytes.size();Writer w{l};w.measure=true;WritePayload(w,m);return w.measured;}
 std::vector<std::uint8_t> EncodePayload(const Message &m,Limits l,std::uint64_t expected){
+  if(m.state_body){if(m.state_body->bytes.size()>l.bytes)Fail("binary_state_payload_budget");const auto b=m.state_body->bytes;return {reinterpret_cast<const std::uint8_t *>(b.data()),reinterpret_cast<const std::uint8_t *>(b.data()+b.size())};}
   if(!expected)expected=MeasurePayload(m,l);
   if(expected>l.bytes||expected>SIZE_MAX)Fail("compact_byte_budget");
   Writer w{l};w.bytes.reserve(std::size_t(expected));WritePayload(w,m);
@@ -267,8 +232,8 @@ void DecodePayload(std::span<const std::uint8_t> b,Message &m,Limits l){
   scan.Measure(scan.tree_temporary);
   auto lease=memory::Reserve(memory::Pool::Values,scan.owned_bytes+sizeof(Message),"compact_decode");Reader reader{b,l,true};reader.lease=lease;ReadBody(reader,m);if(reader.p!=b.size())Fail("compact_trailing_bytes");
   // 预扫描额度只保护构造峰值；完成后共享租约只保留实际拥有的容量，不能永久占用最坏上界。
-  const auto retained=(m.range?Footprint(*m.range):OwnedJsonBytes(m.body))+sizeof(Message)+128;
+  const auto retained=OwnedJsonBytes(m.body)+sizeof(Message)+128;
   if(retained>lease->Bytes())Fail("compact_decoded_footprint");lease->Resize(retained);
-  if(!m.range)m.memory=std::move(lease);
+  m.memory=std::move(lease);
 }
 } // namespace cs::replica::stream

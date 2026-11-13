@@ -29,6 +29,8 @@ struct CaptureRecord {
   CaptureWitness production;
   CaptureSubject owner;
   std::uint64_t instance=0,generation=0,event_sequence=0;
+  // 延后绑定的请求仍保留原调用帧，不把当前ordinary帧冒充事件发生时刻。
+  std::uint32_t event_game_frame=0;
   std::uint32_t call=0,parent=UINT32_MAX;
   std::uint16_t purpose=0,pass=0;
 };
@@ -44,6 +46,9 @@ struct CapturePacket {
   std::span<const std::byte> bytes;
   CaptureCatalogStamp catalog;
   std::span<const CaptureReferenceEntry> references;
+  // ordinary事件段覆盖闭区间[first_sequence,watermark]；空记录仍保留已丢外观的水位。
+  // 两者均为0表示本包不携带事件交接，body快包不能代替ordinary确认。
+  std::uint64_t event_first_sequence=0,event_watermark=0;
 };
 // 缓存的引用号属于原生产目录；克隆时按物理身份转入当前交接目录，资源handle只追加。
 struct CaptureAppendContext {
@@ -88,6 +93,7 @@ public:
   bool Seal(std::uint32_t expected_roots,CapturePacket &) noexcept;
   // 引用目录复制进本buffer；资源目录只追加，可凭stamp安全借用其不可变前缀。
   bool Catalog(CaptureCatalogStamp,std::span<const CaptureReferenceEntry>) noexcept;
+  bool EventRange(std::uint64_t first_sequence,std::uint64_t watermark) noexcept;
   // 克隆已经封存的纯值，不再访问原生对象；保留每根真实生产身份与修订。
   bool Append(const CapturePacket &,std::uint32_t record,CaptureAppendContext={}) noexcept;
   bool Production(const CaptureRecord &) noexcept;
@@ -105,6 +111,7 @@ private:
   CaptureWitness witness_;
   CaptureCatalogStamp catalog_;
   std::uint64_t reference_limit_=0;
+  std::uint64_t event_first_sequence_=0,event_watermark_=0;
   CaptureDiagnostic diagnostic_;
   CaptureRoot root_;
   std::uint32_t records_=0,cells_=0,paths_=0,bytes_=0,mark_cells_=0,mark_paths_=0,mark_bytes_=0;

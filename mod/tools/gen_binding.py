@@ -511,9 +511,7 @@ GENERATED_HEADER = """// 由 gen_binding.py 生成，请修改 binding/hooks.jso
 #include "binding/offsets.h"
 #include "game/common/bridge.h"
 #include "game/client/entity/client_objects_native.h"
-#include "game/client/grid/client_grid_native.h"
-#include "game/client/presentation/client_presentation_native.h"
-#include "game/client/entity/client_entity_draw_native.h"
+#include "game/client/display/client_display_bridge.h"
 #include "game/tests/client_entity_e2e.h"
 #include "game/observation/sources/loot.h"
 #include "game/observation/sources/lua_entity.h"
@@ -530,8 +528,13 @@ struct CsMtSeed {};
 struct CsEntityList {};
 struct CsRoom {};
 struct CsGraphics {};
+struct CsMinimapConfig {};
 struct CsStatHUD {};
 struct CsAudioStream {};
+struct CsMusic {};
+struct CsRoomTransition {};
+struct CsFortuneRng {};
+struct CsFXLayers {};
 struct CsLifecycle {};
 struct CsDevice {};
 struct CsButtonMaps {};
@@ -578,10 +581,6 @@ def legacy_body(row):
         out += ['    record.completed.fetch_add(1, std::memory_order_relaxed);']
         if ret != 'void': out += ['    return result;']
         return out
-    if ident == 'client_player_palette':
-        return ['    // 仅Client已提交Player的纯表现色；Host/Off原链恰好一次。',
-                '    if(cs::game::ClientPlayerDrawPalette(output,player)) return output;',
-                '    cs::CallScope scope(record);', '    return super(output,player);']
     if ident == 'world_player_esau_owner':
         return ['    // 703只观察真实换槽owner，保留原始返回word；不修改游戏槽或重演使用。',
                 '    cs::game::WorldPlayerChildSourceScope owner(this,4,{&record.calls,&record.foreign,&record.completed},slot);',
@@ -597,47 +596,22 @@ def legacy_body(row):
                 '    cs::game::WorldEntityReconfigurationScope owner(this,{&record.calls,&record.foreign,&record.completed});',
                 '    auto value=super();', '    owner.Returned();', '    return value;']
     if ident == 'client_entity_draw_paused':
-        return ['    bool value=false;', '    if(cs::game::ClientEntityDrawPaused(value)) return value;',
-                '    cs::CallScope scope(record);', '    const auto result=super();',
-                '    cs::game::BinaryDrawClockObserved(this,result);','    return result;']
-    if ident == 'client_entity_owned_final':
-        return ['    if(cs::game::ClientEntityDrawOwnedFinal(this,sprite,offset)) return;',
-                '    cs::CallScope scope(record);', '    super(sprite,offset);']
-    if ident.startswith('client_entity_draw_') or ident.startswith('client_entity_shadow_') or ident.startswith('client_entity_post_'):
-        kind=2 if ident.startswith('client_entity_post_') else 1 if ident.startswith('client_entity_shadow_') else 0
-        player_isolation=(['    cs::game::ClientPlayerIsolationScope isolation(cs::game::ClientPlayerOperation::Draw);',
-                           '    if(cs::game::ClientBusy()&&!isolation.Ready()) return%s;' % (' false' if ret=='bool' else '')]
-                          if ident in ('client_entity_draw_player','client_entity_shadow_player') else [])
-        return player_isolation+['    cs::game::ClientEntityDrawScope draw(this,%s,%d);' % ('nullptr' if kind==2 else 'offset',kind),
-                '    if(!draw.CallOriginal()) return%s;' % (' false' if ret=='bool' else ''),
-                '    cs::CallScope scope(record);', '    %ssuper(%s);' % ('return ' if ret!='void' else '',call)]
-    grid_light_queries={'client_grid_light_seed':0,'client_grid_light_stage':1,'client_grid_light_alt':2,
-                        'client_grid_light_boss':3,'client_grid_light_suffix':4}
-    if ident in grid_light_queries:
-        query=grid_light_queries[ident]
-        return ['    // 仅当前Client Grid灯光用途读取Authority条件；Host/Off与其它调用原样透传。',
-                '    std::int64_t result=0;',
-                '    if (cs::game::ClientGridLightQuery(%d, %s, %s, result)) return static_cast<%s>(result);'
-                % (query,'nullptr' if row['static'] else 'this','seedEffect' if query==0 else '0',ret),
-                '    cs::CallScope scope(record);',
-                '    return super(%s);' % call]
+        return ['    bool value=false;', '    if(cs::game::ClientNativeDisplayPaused(value)) return value;',
+                '    cs::CallScope scope(record);', '    return super();']
+    if ident == 'client_entity_draw_projectile':
+        return ['    cs::game::ClientProjectileRenderScope restore(this);',
+                '    if(!restore.Ready()) return;', '    cs::CallScope scope(record);',
+                '    super(offset);', '    restore.Returned();']
+    if ident == 'client_map_cache':
+        return ['    cs::game::ClientMapMirrorScope mirror(this);', '    if(!mirror.Ready()) return;',
+                '    cs::game::BinaryProductionScope binary(cs::game::BinaryProductionKind::MapCache,this,g_Manager);',
+                '    binary.Request();','    cs::CallScope scope(record);','    super();','    binary.Returned();']
     if ident.startswith('client_grid_water_'):
         return ['    cs::CallScope scope(record);',
                 '    auto* result=super(out);',
-                '    cs::game::ClientGridWaterClip(this,result);',
+                '    std::uint32_t flags=0;',
+                '    if(result&&cs::game::ClientBinaryGridWaterClip(this,flags)) result->bitFlags=flags;',
                 '    return result;']
-    if ident in ('client_player_render_body_diagnostic', 'client_player_render_head_diagnostic'):
-        body = 'true' if ident == 'client_player_render_body_diagnostic' else 'false'
-        return ['    // 只读诊断由当前Client实例限制；原链每次仍恰好执行一次。',
-                '    cs::CallScope scope(record);',
-                '    cs::game::ClientObjectPlayerDrawDiagnostic(this, position, %s, false);' % body,
-                '    super(position);',
-                '    cs::game::ClientObjectPlayerDrawDiagnostic(this, position, %s, true);' % body]
-    if ident == 'client_minimap_render_diagnostic':
-        return ['    cs::CallScope scope(record);',
-                '    cs::game::ClientPresentationMinimapDiagnostic(this, false);',
-                '    super();',
-                '    cs::game::ClientPresentationMinimapDiagnostic(this, true);']
     if ident == 'client_backdrop_effects':
         return ['    // Source只读记录真实独立RNG前后态，Client按完整来源重放并省去本地实体生成。',
                 '    cs::game::ClientBackdropEffectScope trace(this, %s);' % call,
@@ -648,34 +622,77 @@ def legacy_body(row):
     if ident == 'client_backdrop_wall':
         return ['    cs::game::ClientBackdropWallScope trace(this);',
                 '    if (!trace.Ready()) return;',
-                '    cs::game::BinarySceneBuildScope binary(this,false,g_Game&&g_Game->_room&&this==&g_Game->_room->_backdrop);',
+                '    cs::game::BinaryBackdropChanged(this,g_Game&&g_Game->_room&&this==&g_Game->_room->_backdrop);',
                 '    cs::CallScope scope(record);',
                 '    super();',
                 '    trace.Returned();']
     if ident == 'client_backdrop_graphics':
         return ['    cs::game::ClientBackdropBuildScope trace(this);',
                 '    if (!trace.Ready()) return 0;',
-                '    cs::game::BinarySceneBuildScope binary(this,true,g_Game&&g_Game->_room&&this==&g_Game->_room->_backdrop);',
+                '    cs::game::BinaryBackdropChanged(this,g_Game&&g_Game->_room&&this==&g_Game->_room->_backdrop);',
                 '    cs::CallScope scope(record);',
                 '    auto result=super();',
                 '    trace.Returned();',
                 '    return result;']
+    if ident == 'client_overlay_render':
+        return ['    cs::CallScope scope(record);', '    super();',
+                '    if (cs::game::ClientNativeDisplayCallbacks()) cs::game::ClientBinaryRenderOverlays(this);']
     if ident == 'client_hud_achievement_query':
         return ['    // 仅当前Client HUD绘制读取Authority的最终徽章条件；进度能力不受此查询影响。',
                 '    bool result=false;',
                 '    // J273 HUD传未使用的栈word（push ecx），不能以其bool值决定是否应用显示来源。',
-                '    if (cs::game::ClientPresentationHudAchievementQuery(result)) return result;',
+                '    if (cs::game::ClientDisplayProgressBlocked(_ReturnAddress(),result)) return result;',
                 '    cs::CallScope scope(record);',
                 '    result=super(unk);',
-                '    cs::game::BinaryHudProgressObserved(false,result);',
                 '    return result;']
-    binary_production={
-        'binary_player_hud':'PlayerHud','binary_score':'Score','binary_hud_render':'HudRender',
-        'binary_stat_recompute':'StatRecompute','binary_stat_tick':'StatTick'
-    }
+    display_paths={'binary_display_hud_update':'DisplayHudUpdate','binary_display_hud_post':'DisplayHudPostUpdate',
+        'binary_display_minimap_update':'DisplayMinimapUpdate','binary_display_minimap_refresh':'DisplayMinimapRefresh',
+        'binary_display_camera_drag':'DisplayCamera','binary_display_camera_smooth':'DisplayCamera',
+        'binary_display_fx':'DisplayFxUpdate','binary_display_overlay_update':'GameUpdate'}
+    if ident in display_paths:
+        return ['    cs::game::BinaryDisplayPathScope display{unsigned(cs::game::ClientEntry::%s)};' % display_paths[ident],
+                '    cs::CallScope scope(record);','    super(%s);' % call]
+    display_requests={
+        'binary_music_play':('MusicPlay','musicid, cs::game::BinaryFloatWord(volume), 0, 0, unsigned(cs::game::BinaryMusicQueueAdvance())'),
+        'binary_music_crossfade':('MusicCrossfade','musicid, cs::game::BinaryFloatWord(faderate)'),
+        'binary_music_queue':('MusicQueue','musicid'),
+        'binary_music_fadein':('MusicFadein','Id, cs::game::BinaryFloatWord(Volume), cs::game::BinaryFloatWord(FadeRate)'),
+        'binary_music_fadeout':('MusicFadeout','cs::game::BinaryFloatWord(FadeRate)'),
+        'binary_music_pause':('MusicPause',''),'binary_music_resume':('MusicResume',''),
+        'binary_music_jingle':('MusicJingle','musicid,unusedInt,unsigned(unusedBool)'),
+        'binary_music_layer_on':('MusicLayerOn','id,unsigned(instant)'),
+        'binary_music_layer_off':('MusicLayerOff','id'),
+        'binary_display_banner':('ItemBanner','cs::world::PackWord(player),cs::world::PackWord(item)'),
+        'binary_display_custom_banner':('CustomBanner','cs::world::PackWord(player),cs::world::PackWord(title),cs::world::PackWord(subtitle)'),
+        'binary_display_fortune':('Fortune','cs::world::PackWord(param_1)'),
+        'binary_display_overlay':('OverlayShow','eOverlayID,delay,cs::world::PackWord(player)'),
+        'binary_display_boss':('BossIntro','bossID1,bossID2'),
+        'binary_display_transition_start':('TransitionStart','index,direction,animation,cs::world::PackWord(player),dimension'),
+        'binary_display_fortune_source':('FortuneSource','cs::world::PackWord(category)')}
+    if ident in display_requests:
+        kind,args=display_requests[ident]
+        guard=['    if(cs::game::ClientDisplayBossAudioSuppressed(_ReturnAddress())) return;'] if ident=='binary_music_play' else []
+        return guard+['    cs::game::BinaryProductionScope binary(cs::game::BinaryProductionKind::%s,this,g_Manager);' % kind,
+                '    binary.Request(%s);' % args,'    cs::CallScope scope(record);','    super(%s);' % call,'    binary.Returned();']
+    if ident=='client_boss_ambient':
+        return ['    if(cs::game::ClientDisplayBossAudioSuppressed(_ReturnAddress())) return;',
+                '    cs::CallScope scope(record);','    super();']
+    if ident=='client_display_devil_chance':
+        return ['    float value=0;',
+                '    if(cs::game::ClientDisplayDealChance(this,value)) return value;',
+                '    cs::CallScope scope(record);','    return super();']
+    if ident=='client_display_deal_qualified':
+        return ['    bool value=false;',
+                '    if(cs::game::ClientDisplayDealQualified(_ReturnAddress(),this,value)) return value;',
+                '    cs::CallScope scope(record);','    return super();']
+    if ident=='binary_music_tick':
+        return ['    cs::game::BinaryMusicTickScope music_tick;', '    cs::CallScope scope(record);', '    super();']
+    if ident=='binary_display_banner_text':
+        return ['    cs::game::BinaryBannerTextObserved(str,asSubText);','    cs::CallScope scope(record);','    super(%s);' % call]
     if ident=='binary_audio_play':
         return ['    cs::game::BinaryProductionScope binary(cs::game::BinaryProductionKind::SfxPlay,this,g_Manager);',
                 '    binary.Audio(id,volume,pitch,pan,loop,cs::game::BinaryAudioWorldContext());',
+                '    binary.Request(unsigned(delay));',
                 '    cs::CallScope scope(record);','    super(%s);' % call,'    binary.Returned();']
     if ident=='binary_audio_pan':
         return ['    cs::CallScope scope(record);','    super(pan);','    cs::game::BinaryAudioPanObserved(this);']
@@ -686,32 +703,14 @@ def legacy_body(row):
                     'binary_audio_ambient':('SfxAmbient','id,volume,pitch,0,true')}
     if ident in audio_controls:
         kind,args=audio_controls[ident]
-        return ['    cs::game::BinaryProductionScope binary(cs::game::BinaryProductionKind::%s,this,g_Manager);' % kind,
+        out=['    cs::game::BinaryProductionScope binary(cs::game::BinaryProductionKind::%s,this,g_Manager);' % kind,
                 '    binary.Audio(%s,cs::game::BinaryAudioWorldContext());' % args,
                 '    cs::CallScope scope(record);','    super(%s);' % call,'    binary.Returned();']
-    if ident in binary_production:
-        out=['    cs::game::BinaryProductionScope binary(cs::game::BinaryProductionKind::%s,this,g_Manager);' % binary_production[ident]]
-        if ident=='binary_stat_recompute':out+=['    binary.Stat(playerId,flags);']
-        if ident=='binary_player_hud':
-            out+=['    // HUD Drop与真实玩法consumer共用C/S输入查询；观察最终返回值，不读取物理按键补值。',
-                  '    cs::game::ConsumerScope input(this->_player,cs::game::ConsumerKind::Drop);']
-        out+=['    cs::CallScope scope(record);','    %ssuper(%s);' % ('auto result=' if ret!='void' else '',call),
-              '    binary.Returned();']
-        if ret!='void':out+=['    return result;']
+        if ident=='binary_audio_remix':out+=['    cs::game::ClientDisplaySfxRefreshed(this);']
         return out
-    if ident in ('binary_hud_mantle','binary_hud_drop','binary_hud_seed_progress'):
-        notify={'binary_hud_mantle':'BinaryHudMantleObserved(this,id)',
-                'binary_hud_drop':'BinaryHudDropObserved(action,player,result)',
-                'binary_hud_seed_progress':'BinaryHudProgressObserved(true,result)'}[ident]
-        out=['    cs::CallScope scope(record);','    const auto result=super(%s);' % call,'    cs::game::%s;' % notify]
-        if ident=='binary_hud_mantle':out+=['    cs::game::BinaryRoomEffectObserved(this,id,result);']
-        return out+['    return result;']
-    if ident == 'client_menu_render':
-        return ['    if (cs::game::ClientMenuRenderBoundary()) return;',
-                '    // 替代分派先决策；仅原菜单真正进入时才记录原调用。',
-                '    record.calls.fetch_add(1, std::memory_order_relaxed);',
-                '    super();',
-                '    record.completed.fetch_add(1, std::memory_order_relaxed);']
+    if ident == 'binary_score':
+        return ['    cs::game::BinaryProductionScope binary(cs::game::BinaryProductionKind::Score,this,g_Manager);',
+                '    cs::CallScope scope(record);','    super();','    binary.Returned();']
     # Client 外层只负责决策；CallOriginal 才进入既有观察 Hook 与官方原链。
     outer_dispatch={
         'client_game_update':'GameUpdate','client_post_update':'PostUpdate',
@@ -721,36 +720,25 @@ def legacy_body(row):
         'client_door_nested':'DoorNested','client_new_room':'NewRoom',
         'room_init':'RoomInit','game_render':'GameRender',
         'room_prerender':'RoomPreRender','room_render':'RoomRender',
-        'entitylist_render_sort':'EntityListRenderSort','client_game_start':'GameStart'
+        'entitylist_render_sort':'EntityListRenderSort','client_game_start':'GameStart',
+        'client_transition_change':'TransitionChangeRoom'
     }
     if ident == 'binary_level_owner':
         return ['    cs::game::BinaryFloorScope state;',
                 '    record.calls.fetch_add(1, std::memory_order_relaxed);',
                 '    super(%s);' % call,
                 '    record.completed.fetch_add(1, std::memory_order_relaxed);']
-    if ident == 'binary_scene_image':
-        return ['    cs::game::BinarySceneImageBefore(this,source,destination,tl,tr,bl,br);',
-                '    cs::CallScope scope(record);',
-                '    auto result=super(%s);' % call,
-                '    cs::game::BinarySceneImageAfter(result);', '    return result;']
-    if ident in ('binary_scene_target','binary_scene_push','binary_scene_restore','binary_scene_clear','binary_scene_present','binary_scene_present_no_swap'):
-        if ident=='binary_scene_clear':return ['    cs::game::BinarySceneClearScope binary;', '    cs::CallScope scope(record);', '    super();']
-        out=['    cs::game::%s();' % ('BinarySceneGraphicsBoundary' if ident=='binary_scene_clear' else 'BinarySceneGraphicsFinish'), '    cs::CallScope scope(record);', '    super(%s);' % call]
-        if ident=='binary_scene_target':out += [
-            '    // 只在当前Room拥有的四张离屏图上观察，不把屏幕／反射FBO录成背景资源。',
-            '    if(g_Game&&g_Game->_room){auto& b=g_Game->_room->_backdrop;',
-            '      cs::game::BinarySceneTargetAfter(&b,target&&(target==b.floorBuffer.image||target==b.wallsBuffer.image||target==b.floorSurface2.image||target==b.tempBackdropSurface.image));}']
-        return out
     if ident in outer_dispatch:
         entry=outer_dispatch[ident]
-        out=['    if (cs::game::ClientDispatchBefore(cs::game::ClientEntry::%s) != cs::game::ClientEntryDecision::CallOriginal) return%s;'
+        out=['    cs::game::BinaryDisplayPathScope display{unsigned(cs::game::ClientEntry::%s)};' % entry]
+        if ident=='game_render':out+=['    cs::game::ClientGameRenderScope native_render(this);','    if(!native_render.CallOriginal()) return;']
+        out+=['    if (cs::game::ClientDispatchBefore(cs::game::ClientEntry::%s) != cs::game::ClientEntryDecision::CallOriginal) return%s;'
              % (entry,' 0' if ret!='void' else ''),
              '    // 主动跳过单独由Client计数，观察调用只对应真正进入的原链。',
              '    record.calls.fetch_add(1, std::memory_order_relaxed);']
-        if ident in ('game_render','room_render'):
-            out.append('    cs::game::BinaryProductionScope binary(cs::game::BinaryProductionKind::%s,this,g_Manager);' % ('Screen' if ident=='game_render' else 'RoomRender'))
+        if ident=='client_transition_change':out.append('    cs::game::BinaryProductionScope transition(cs::game::BinaryProductionKind::TransitionFinish,this,g_Manager);')
         out.append('    %ssuper(%s);' % ('auto result = ' if ret!='void' else '',call))
-        if ident in ('game_render','room_render'):out.append('    binary.Returned();')
+        if ident=='client_transition_change':out.append('    transition.Returned();')
         out += ['    cs::game::ClientDispatchReturned(cs::game::ClientEntry::%s);' % entry,
                 '    record.completed.fetch_add(1, std::memory_order_relaxed);']
         if ret!='void':out.append('    return result;')
@@ -775,12 +763,16 @@ def legacy_body(row):
              '    cs::game::NativeRandomCall observation(this, cs::game::RandomAlgorithm::%s, "%s", %s, %s, %s);'
              % (algorithm,member,argument,str(initialize).lower(),'shift' if ident in ('native_rng_ctor','native_rng_seed') else '0'),
              '    record.calls.fetch_add(1, std::memory_order_relaxed);']
+        if ident=='native_rng_int':
+            out[:0]=['    unsigned selected=0;',
+                     '    if(cs::game::ClientDisplayMapRandom(_ReturnAddress(),max,selected)) return selected;']
         if ret=='void':
             out+=['    super(%s);' % call,'    observation.Returned(0);']
         elif ret=='float':
             out+=['    auto result=super();','    std::uint32_t bits=0; std::memcpy(&bits,&result,4);','    observation.Returned(bits,true);']
         else:
             out+=['    auto result=super(%s);' % call,'    observation.Returned(result);']
+            if ident=='native_rng_int':out+=['    cs::game::BinaryDisplayRandomObserved(result,_ReturnAddress());']
         return out+['    record.completed.fetch_add(1, std::memory_order_relaxed);']+([] if ret=='void' else ['    return result;'])
     if ident in ('native_global_random','native_global_seed'):
         return ['    if(cs::game::ClientPlayerRandomDenied()) return 0;']+( ['    unsigned initialization_value=0;',
@@ -815,9 +807,7 @@ def legacy_body(row):
                 '    binary.Returned();',
                 '    record.completed.fetch_add(1, std::memory_order_relaxed);']
     if ident == 'native_text_render':
-        return ['    cs::game::ClientEntityDrawScope draw(this,offset,0);',
-                '    if(!draw.CallOriginal()) return;',
-                '    cs::game::ActualValueScope observation;',
+        return ['    cs::game::ActualValueScope observation;',
                 '    cs::game::EntityTextRenderWitness witness;',
                 '    if(observation.main && cs::game::ObservationLuaNeeded("Render") && g_Manager && g_Game && offset)',
                 '      witness=cs::game::BeginEntityTextRender(this,g_Manager->_framecount,g_Game->IsPaused(),offset->x,offset->y);',
@@ -847,16 +837,16 @@ def legacy_body(row):
                 '    record.completed.fetch_add(1, std::memory_order_relaxed);',
                 '    return result;']
     lines = []
-    if ident == 'client_player_pre_stats':
-        return ['    cs::CallScope scope(record);', '    if (cs::game::ClientObjectSuppressPlayerPreStats(this)) return;', '    super();']
-    # Client 主动持久分派位于观察作用域之外；被隔离的调用绝不进入官方外层 Hook。
-    if ident in ('start_game', 'restore', 'game_exit', 'post_start', 'lua_post_render',
+
+    if ident in ('start_game', 'restore', 'game_exit', 'post_start',
                  'manager_set_save_slot', 'manager_save_game_state', 'manager_record_completion', 'game_save_state',
                  'pgd_add_challenge', 'pgd_add_collection', 'pgd_add_boss', 'pgd_unlock_steam',
                  'gamestate_clear',
                  'pgd_counter', 'pgd_local', 'pgd_cloud',
                  'gamestate_delete', 'gamestate_delete_rerun', 'load_game_state'):
         lines.append('    if (cs::game::ClientPersistenceBlocked()) { cs::game::ObserveClientPersistenceDenied("%s"); return; }' % ident)
+    elif ident == 'lua_post_render':
+        lines.append('    if (cs::game::ClientBusy()&&!cs::game::ClientNativeDisplayCallbacks()) return;')
     elif ident in ('pgd_unlock', 'gamestate_write', 'gamestate_read',
                    'pgd_add_bestiary_kill', 'pgd_encounter', 'gamestate_write_rerun', 'gamestate_read_rerun'):
         lines.append('    if (cs::game::ClientPersistenceBlocked()) { cs::game::ObserveClientPersistenceDenied("%s"); return false; }' % ident)
@@ -1734,6 +1724,12 @@ def main():
         % (exit_patch['rva'], exit_patch['resume'], exit_patch['alternate'],
            exit_patch['expected'], exit_patch['size']), encoding='utf-8')
     # 背景实体生成两点同样来自唯一清单；Source/Off重放被覆盖的真实GlobalRandom调用。
+    angel_rows = [row for row in document['byte_patches'] if row['id'].startswith('client_stat_angel_share')]
+    (args.out / 'display_patch.inc').write_text(
+        'inline constexpr uintptr_t AngelOriginalRva = %s;\n' % angel_rows[0]['alternate'] +
+        'inline constexpr uintptr_t AngelCallRva[] = {%s};\n' % ','.join(row['rva'] for row in angel_rows) +
+        'inline constexpr const char *AngelCallPattern[] = {%s};\n' % ','.join('"%s"' % row['expected'] for row in angel_rows),
+        encoding='utf-8')
     backdrop_rows = [next(row for row in document['byte_patches'] if row['id'] == ident)
                      for ident in ('client_backdrop_effect_1', 'client_backdrop_effect_2')]
     backdrop_random = next(row['rva'] for row in legacy if row['id'] == 'native_global_random')

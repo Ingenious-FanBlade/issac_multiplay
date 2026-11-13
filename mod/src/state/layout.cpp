@@ -9,8 +9,14 @@ namespace {
 #include "state_capture.inc"
 #include "state_client.inc"
 #include "state_members.inc"
+#include "state_grid_factory.inc"
 }
 std::uint16_t LayoutVersion() noexcept { return kStateLayoutVersion; }
+std::uint16_t GridFactoryLayout(std::int32_t type) noexcept {
+  const auto i=std::lower_bound(kGridFactoryTypes.begin(),kGridFactoryTypes.end(),type,[](const auto &p,std::int32_t n){return p.type<n;});
+  return i!=kGridFactoryTypes.end()&&i->type==type?i->layout:0;
+}
+bool IsStateMemberLayout(std::uint16_t id) noexcept {const auto *layout=FindLayout(id);return layout&&(!layout->protocol||id==195||id==196);}
 std::span<const Layout> Layouts() noexcept { return kStateLayouts; }
 std::span<const Field> Fields() noexcept { return kStateFields; }
 std::span<const CopyRange> CopyRanges() noexcept { return kStateCopyRanges; }

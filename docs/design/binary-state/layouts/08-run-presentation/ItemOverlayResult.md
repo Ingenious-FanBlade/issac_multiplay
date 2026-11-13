@@ -1,6 +1,8 @@
 # ItemOverlayResult
 
-由唯一布局源生成。布局编号 378；布局版本 71；原生大小 0x0；未知 0B；完整：否。
+由唯一布局源生成。布局编号 378；布局版本 75；原生大小 0x0；未知 0B；需求覆盖：完整。
+
+需求覆盖只表示清单字段已生成计划，不表示原生字节全部已知、Host/Client处理器已接通或第15步验收通过。旧成员映射与原生说明保留为参照，当前发送字段以下方状态表为准。
 
 具名显示结果合同（接线声明，不表示运行实现）：
 
@@ -14,21 +16,16 @@
 | 纯C/S协议记录：没有原生对象字节，不得向游戏地址加偏移 |
 |---|
 
-状态二进制布局（总计 1—2097152B，不含第 9 步记录头）：
+状态二进制布局（总计 0—0B，不含第 9 步记录头）：
 
-块 0：ItemOverlayResult具名当前结果（world，1—17825821B）：
+块 0：ItemOverlayResult具名当前结果（world，0—0B）：
 
-| +0x0 u8（C/S自有元数据，无原生偏移） kind：0隐藏、1普通、2MegaMush；不发送WAITING倒计时。 | +0x1 i32（C/S自有元数据，无原生偏移）（仅item_overlay_result_kind_kind__0(kind)成立时存在） overlay_id：实际所选overlay身份，不重放Show。 | 顺序变长偏移 u16（C/S自有元数据，无原生偏移）（仅item_overlay_result_kind_kind__2(kind)成立时存在） player：MegaMush真实身体锚点。 | 顺序变长偏移 ANM2（见该类型状态表）（伴随源，无根对象偏移）（仅item_overlay_result_kind_kind__1(kind)成立时存在） sprite：正常实际主姿态。 | 顺序变长偏移 ANM2（见该类型状态表）（伴随源，无根对象偏移）（仅item_overlay_result_kind_kind__2(kind)成立时存在） mega_mush：正常MegaMush当前Sprite姿态。 |
-|---|---|---|---|---|
+| 无发送字节：显式预留块 |
+|---|
 
 证据：
 
 
-
-伴随来源（不属于上述原生对象字节）：
-
-- `sprite` → `ANM2`：正常实际主姿态。；docs/design/binary-state/8-run-presentation.md；presentation-result-batches.md；presentation-source-synchronization-review.md（已核）
-- `mega_mush` → `ANM2`：正常MegaMush当前Sprite姿态。；docs/design/binary-state/8-run-presentation.md；presentation-result-batches.md；presentation-source-synchronization-review.md（已核）
 
 逐行公开目录回映射（来源目录＋一基行号；保留重载和原签名）：
 

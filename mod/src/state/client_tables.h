@@ -32,6 +32,8 @@ public:
   explicit ClientResourceSnapshot(const std::shared_ptr<ClientStateMemory> &);
   ResourceDirectoryView Directory() const noexcept;
   ResourceGraphPlan Graph() const noexcept;
+  // 主线程从首个资源工作沿用同一 Peer 账户，不另建一份准备额度。
+  std::shared_ptr<ClientStateMemory> Memory()const noexcept{return entries_.get_allocator().Memory();}
 private:
   friend struct ClientStateTableStorage;
   std::uint64_t session_=0,run_=0;
@@ -78,6 +80,8 @@ public:
   std::optional<StateContextReady> MetadataReady() const;
   // 仅固定本目标的非空资源根。空集合直接返回合法空闭包，避免审阅整个无关目录。
   ResourceGraphView Prepare(const ClientResourceSnapshotRef &,std::span<const ResourceKey>,ResourceGraphScratch &) const;
+  // 完整计划的图校验复用调用者租约；不将同线程的另一项独立工作默认视为可重入。
+  ResourceGraphView Prepare(const ClientResourceSnapshotRef &,std::span<const ResourceKey>,ResourceGraphScratch &,const ClientStateWorkspace &) const;
   ClientResourceState ResourceState(std::uint32_t epoch,ResourceKey) const;
   ClientResourcePreparationTicket BeginResourcePreparation(std::uint32_t epoch,ResourceKey);
   // Pending保留票据和快照；只有最终完成／取消释放准备借用。旧票据最终反馈仅排空。

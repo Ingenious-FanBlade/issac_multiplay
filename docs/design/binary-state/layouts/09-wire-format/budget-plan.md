@@ -1,6 +1,6 @@
 # 完整消息静态预算
 
-布局版本 71；普通构建生成，仅整数公式，不运行编解码样例或测试。
+布局版本 75；普通构建生成，仅整数公式，不运行编解码样例或测试。
 
 | 合同 | 数值 |
 |---|---|
@@ -80,11 +80,11 @@
 | 64颗Tear运动块 | 3688 | 4176 | 30 | 125280 | 375840 |
 | 稠密运动设计负载 | 6376 | 7088 | 30 | 212640 | 637920 |
 | 八身体全部body成员投影下界 | 18408 | 20352 | 0 | 0 | 0 |
-| 四参与者八身体及稠密房间成员Baseline下界 | 124109 | 136469 | 0 | 0 | 0 |
+| 四参与者八身体及稠密房间成员Baseline下界 | 124242 | 136602 | 0 | 0 | 0 |
 | 上述成员表258项（另计） | 8574 | 9510 | 0 | 0 | 0 |
-| 648项本地资源声明设计样例 | 41604 | 45788 | 0 | 0 | 0 |
-| 单个100Quad纯值recipe资源 | 21305 | 23473 | 0 | 0 | 0 |
-| 八身体独立HUD时钟完整消息设计下界 | 1792 | 2056 | 60 | 123360 | 370080 |
+| 648项本地资源声明设计样例 | 36420 | 40156 | 0 | 0 | 0 |
+| 单个100Quad纯值recipe资源 | 60 | 212 | 0 | 0 | 0 |
+| 八身体独立HUD时钟完整消息设计下界 | 1464 | 1728 | 60 | 103680 | 311040 |
 
 | 负载 | 组成 |
 |---|---|
@@ -149,7 +149,7 @@
 | EntityEffect_TearFlags | 102 | 420 | 8913180 |
 | EntityEffect_GridDesc | 103 | 420 | 8913180 |
 | EntityEffect_MrMe | 104 | 568 | 17826088 |
-| EntityEffect_SpriteTrail | 105 | 423 | 8921311 |
+| EntityEffect_SpriteTrail | 105 | 422 | 8921310 |
 | EntityEffect_PickupGhost | 106 | 427 | 44564751 |
 | EntityFamiliar | 120 | 610 | 17826130 |
 | EntityKnife | 121 | 420 | 8913180 |
@@ -261,19 +261,19 @@
 | GridEntityPressurePlate | 227 | 212 | 17432522 |
 | GridEntityDoor | 228 | 223 | 17432533 |
 | GridEntityPlus | 229 | 0 | 0 |
-| RunSeeds | 230 | 5 | 5 |
+| RunSeeds | 230 | 7 | 327 |
 | RunAmbush | 231 | 0 | 0 |
 | RunChallengeParam | 232 | 0 | 0 |
 | RunDailyChallenge | 233 | 1 | 1 |
 | RunScoreSheet | 234 | 64 | 64 |
 | RunColorModState | 235 | 24 | 24 |
 | RunGameStateFlags | 236 | 1 | 1 |
-| GameRun | 237 | 132 | 132 |
-| RunSeedEffectNode | 238 | 0 | 0 |
-| Room | 239 | 368 | 33554432 |
-| Backdrop | 240 | 23 | 35651672 |
+| GameRun | 237 | 415 | 675846 |
+| RunSeedEffectNode | 238 | 4 | 4 |
+| Room | 239 | 502 | 33554432 |
+| Backdrop | 240 | 21 | 35651649 |
 | BackdropConfig | 241 | 0 | 0 |
-| FXLayers | 242 | 1 | 26419581 |
+| FXLayers | 242 | 1 | 1 |
 | FXParams | 243 | 0 | 0 |
 | FXPose | 244 | 10 | 10 |
 | FX | 245 | 15 | 163855 |
@@ -283,8 +283,8 @@
 | RailManager | 249 | 138 | 8389066 |
 | Camera | 250 | 0 | 0 |
 | CameraRing | 251 | 0 | 0 |
-| RoomShockwave | 252 | 0 | 0 |
-| RoomHellBackdrop | 253 | 1 | 8912912 |
+| RoomShockwave | 252 | 28 | 28 |
+| RoomHellBackdrop | 253 | 1 | 8912916 |
 | EntityList | 254 | 0 | 0 |
 | EntityListEL | 255 | 0 | 0 |
 | RoomTemporaryEffects | 256 | 0 | 0 |
@@ -301,62 +301,62 @@
 | RoomEntry | 267 | 0 | 0 |
 | DestinationQuad | 268 | 0 | 0 |
 | SourceQuad | 269 | 0 | 0 |
-| RoomDescriptor | 270 | 54 | 65 |
+| RoomDescriptor | 270 | 55 | 70 |
 | RoomDescriptorSavedPickupMapInput | 271 | 0 | 0 |
 | RoomDescriptorSavedGridMapInput | 272 | 0 | 0 |
 | RoomDescriptorShopKinds | 273 | 0 | 0 |
 | RoomDescriptorRestockCounts | 274 | 0 | 0 |
 | RoomDescriptorRestrictedSetHeader | 275 | 0 | 0 |
-| LevelGamePrefix | 276 | 1037 | 1037 |
+| LevelGamePrefix | 276 | 1036 | 1036 |
 | LevelRoomOffsetEntry | 277 | 0 | 0 |
 | LevelTemporaryCurseField | 278 | 0 | 0 |
 | LevelASM | 279 | 0 | 0 |
 | LevelCustomStageNameABI | 280 | 0 | 0 |
 | RoomVeinSprite | 281 | 91 | 8912851 |
 | RoomRailSprite | 282 | 136 | 8388616 |
-| BackdropBindingEntry | 283 | 3 | 3 |
-| BackdropBinding | 284 | 2 | 23 |
-| WaterShaderResult | 285 | 32 | 32 |
-| WaterVisualPayload | 286 | 46 | 46 |
-| WaterVisual | 287 | 1 | 47 |
-| RoomLightingResult | 288 | 5 | 50 |
-| RoomWaveResult | 289 | 1 | 57 |
-| ForcedCameraFocus | 290 | 1 | 9 |
-| SelectedRayGroup | 291 | 1 | 40991 |
-| PoopVisualPayload | 292 | 52 | 163892 |
-| PoopVisual | 293 | 1 | 163893 |
-| VeinGraphPayload | 294 | 193 | 17826063 |
-| VeinGraphVisual | 295 | 1 | 17826064 |
-| FXScenePayload | 296 | 29 | 26419580 |
+| BackdropBindingEntry | 283 | 0 | 0 |
+| BackdropBinding | 284 | 0 | 0 |
+| WaterShaderResult | 285 | 0 | 0 |
+| WaterVisualPayload | 286 | 0 | 0 |
+| WaterVisual | 287 | 0 | 0 |
+| RoomLightingResult | 288 | 0 | 0 |
+| RoomWaveResult | 289 | 0 | 0 |
+| ForcedCameraFocus | 290 | 0 | 0 |
+| SelectedRayGroup | 291 | 0 | 0 |
+| PoopVisualPayload | 292 | 0 | 0 |
+| PoopVisual | 293 | 0 | 0 |
+| VeinGraphPayload | 294 | 0 | 0 |
+| VeinGraphVisual | 295 | 0 | 0 |
+| FXScenePayload | 296 | 0 | 0 |
 | SavedMapIconPayload | 297 | 2 | 11 |
 | FinalSavedMapIcons | 298 | 1 | 12 |
-| CurrentDescriptorVisual | 299 | 1 | 1 |
-| MapFocusResult | 300 | 1 | 7 |
-| MapFocusPair | 301 | 2 | 14 |
-| MapBadgeList | 302 | 1 | 8 |
-| MinimapQuestionImageBinding | 303 | 2 | 2 |
-| ResourceEntryHeader | 304 | 8 | 8 |
-| SurfacePixelsDescriptor | 305 | 16 | 16 |
-| ResourceBlobChunkHeader | 306 | 15 | 15 |
-| SurfaceRecipeHeader | 307 | 16 | 16 |
-| SurfaceRecipeClear | 308 | 21 | 21 |
-| SurfaceRecipeQuad | 309 | 212 | 212 |
-| PlayerHUDHeart | 310 | 1 | 9 |
-| PlayerHUDActiveItem | 311 | 7 | 13 |
-| PlayerHUDTrinket | 312 | 2 | 16 |
-| PlayerHUDPocket | 313 | 147 | 4194304 |
-| InventoryVisual | 314 | 6 | 6 |
-| PlayerHUD | 315 | 653 | 4194304 |
-| StatHUDValue | 316 | 12 | 12 |
-| StatHUDPlayer | 317 | 99 | 111 |
-| StatHUD | 318 | 148 | 4194304 |
-| HUDMessage | 319 | 1 | 4194304 |
-| HistoryHUDItem | 320 | 6 | 6 |
-| HistoryHUDPlayer | 321 | 4 | 24580 |
+| CurrentDescriptorVisual | 299 | 0 | 0 |
+| MapFocusResult | 300 | 0 | 0 |
+| MapFocusPair | 301 | 0 | 0 |
+| MapBadgeList | 302 | 0 | 0 |
+| MinimapQuestionImageBinding | 303 | 0 | 0 |
+| ResourceEntryHeader | 304 | 0 | 0 |
+| SurfacePixelsDescriptor | 305 | 0 | 0 |
+| ResourceBlobChunkHeader | 306 | 0 | 0 |
+| SurfaceRecipeHeader | 307 | 0 | 0 |
+| SurfaceRecipeClear | 308 | 0 | 0 |
+| SurfaceRecipeQuad | 309 | 0 | 0 |
+| PlayerHUDHeart | 310 | 0 | 0 |
+| PlayerHUDActiveItem | 311 | 0 | 0 |
+| PlayerHUDTrinket | 312 | 0 | 0 |
+| PlayerHUDPocket | 313 | 0 | 0 |
+| InventoryVisual | 314 | 0 | 0 |
+| PlayerHUD | 315 | 0 | 0 |
+| StatHUDValue | 316 | 0 | 0 |
+| StatHUDPlayer | 317 | 0 | 0 |
+| StatHUD | 318 | 0 | 0 |
+| HUDMessage | 319 | 0 | 0 |
+| HistoryHUDItem | 320 | 0 | 0 |
+| HistoryHUDPlayer | 321 | 0 | 0 |
 | HistoryHUD | 322 | 0 | 0 |
-| HUD | 323 | 1508 | 4194304 |
-| MinimapConfig | 324 | 136 | 4194304 |
-| Minimap | 325 | 561 | 4194304 |
+| HUD | 323 | 0 | 0 |
+| MinimapConfig | 324 | 0 | 0 |
+| Minimap | 325 | 0 | 0 |
 | ColorModState | 326 | 0 | 0 |
 | GenericPrompt | 327 | 0 | 0 |
 | ItemOverlayDefinition | 328 | 0 | 0 |
@@ -384,37 +384,37 @@
 | NightmareSnapshot | 350 | 0 | 0 |
 | BossOverlayDefinition | 351 | 0 | 0 |
 | BossOverlay | 352 | 0 | 0 |
-| VisiblePlayerHUDHeart | 353 | 6 | 8 |
-| StatHUDRows | 354 | 97 | 109 |
-| MapDisplaySprite | 355 | 136 | 4194304 |
-| PresentationDrawClock | 356 | 5 | 5 |
-| PickupRandomAlphaResult | 357 | 1 | 5 |
-| FamiliarRandomAlphaResult | 358 | 1 | 5 |
-| PillDisplayResult | 359 | 1 | 13 |
-| PickupPreviewItem | 360 | 6 | 6 |
-| PickupPreviewResult | 361 | 1 | 1539 |
-| PlayerDrawImageBindings | 362 | 4 | 4 |
-| HudBodySelection | 363 | 4 | 4 |
-| ControlGroupHudSelection | 364 | 3 | 131 |
-| PresentationSpriteContribution | 365 | 160 | 1048576 |
-| PresentationImageContribution | 366 | 213 | 213 |
-| ScreenBloomResult | 367 | 1 | 5 |
-| ScreenPixelationResult | 368 | 1 | 5 |
-| ScreenRetrovisionResult | 369 | 1 | 5 |
-| ScreenHallucinationResult | 370 | 1 | 5 |
-| RoomGlitchResult | 371 | 1 | 1 |
-| ScreenFadeContribution | 372 | 17 | 19 |
-| ScreenEffectsResult | 373 | 4 | 1780 |
-| BossVersusResult | 374 | 1 | 4194305 |
-| NightmareSceneResult | 375 | 1 | 5066755 |
-| GameOverResult | 376 | 1 | 5066759 |
-| StageTransitionResult | 377 | 2 | 306 |
-| ItemOverlayResult | 378 | 1 | 2097152 |
-| BossOverlayResult | 379 | 1 | 1048576 |
-| GenericPromptResult | 380 | 1 | 1048576 |
-| AudioVoiceParameters | 381 | 19 | 19 |
-| AudioVoiceState | 382 | 23 | 23 |
-| AudioWorldEvent | 383 | 1 | 20 |
+| VisiblePlayerHUDHeart | 353 | 0 | 0 |
+| StatHUDRows | 354 | 0 | 0 |
+| MapDisplaySprite | 355 | 0 | 0 |
+| PresentationDrawClock | 356 | 0 | 0 |
+| PickupRandomAlphaResult | 357 | 0 | 0 |
+| FamiliarRandomAlphaResult | 358 | 0 | 0 |
+| PillDisplayResult | 359 | 0 | 0 |
+| PickupPreviewItem | 360 | 0 | 0 |
+| PickupPreviewResult | 361 | 0 | 0 |
+| PlayerDrawImageBindings | 362 | 0 | 0 |
+| HudBodySelection | 363 | 0 | 0 |
+| ControlGroupHudSelection | 364 | 0 | 0 |
+| PresentationSpriteContribution | 365 | 0 | 0 |
+| PresentationImageContribution | 366 | 0 | 0 |
+| ScreenBloomResult | 367 | 0 | 0 |
+| ScreenPixelationResult | 368 | 0 | 0 |
+| ScreenRetrovisionResult | 369 | 0 | 0 |
+| ScreenHallucinationResult | 370 | 0 | 0 |
+| RoomGlitchResult | 371 | 0 | 0 |
+| ScreenFadeContribution | 372 | 0 | 0 |
+| ScreenEffectsResult | 373 | 0 | 0 |
+| BossVersusResult | 374 | 0 | 0 |
+| NightmareSceneResult | 375 | 0 | 0 |
+| GameOverResult | 376 | 0 | 0 |
+| StageTransitionResult | 377 | 0 | 0 |
+| ItemOverlayResult | 378 | 0 | 0 |
+| BossOverlayResult | 379 | 0 | 0 |
+| GenericPromptResult | 380 | 0 | 0 |
+| AudioVoiceParameters | 381 | 0 | 0 |
+| AudioVoiceState | 382 | 0 | 0 |
+| AudioWorldEvent | 383 | 0 | 0 |
 | PickupRenderRNG | 384 | 0 | 0 |
 | FamiliarRenderRNG | 385 | 0 | 0 |
 | RenderRNGInitializationGuard | 386 | 0 | 0 |
@@ -453,9 +453,9 @@
 | StateAppliedAckHeader | 419 | 2 | 2 |
 | StateAppliedAckEntry | 420 | 21 | 21 |
 | StateResyncHeader | 421 | 11 | 11 |
-| DisplayTextRun | 422 | 1 | 2073 |
-| FortuneText | 423 | 1 | 16586 |
-| LocalHistoryOverlay | 424 | 46 | 46 |
+| DisplayTextRun | 422 | 0 | 0 |
+| FortuneText | 423 | 0 | 0 |
+| LocalHistoryOverlay | 424 | 0 | 0 |
 | ResourcePath | 425 | 2 | 4098 |
 | ResourceImageFile | 426 | 10 | 4106 |
 | ResourceBuiltinShader | 427 | 1 | 1 |
@@ -466,8 +466,27 @@
 | ResourceEntityConfig | 432 | 22 | 22 |
 | ResourceAudio | 433 | 4 | 8198 |
 | RoomWaveSprite | 434 | 133 | 8323078 |
-| PlayerHUDLocalClock | 435 | 41 | 41 |
-| HudMantleEffects | 436 | 5 | 163845 |
+| PlayerHUDLocalClock | 435 | 0 | 0 |
+| HudMantleEffects | 436 | 0 | 0 |
+| SFXVolumeState | 437 | 4 | 4 |
+| DisplayInjectionState | 438 | 105 | 105 |
+| MusicRequestState | 439 | 57 | 57 |
+| LoopSoundState | 440 | 38 | 38 |
+| LoopSoundSet | 441 | 10 | 19466 |
+| OverlayDisplayState | 442 | 320 | 131072 |
+| OverlayDisplaySet | 443 | 2 | 131074 |
+| ProceduralDisplayDefinition | 444 | 12 | 12300 |
+| ProceduralDisplaySet | 445 | 6 | 524292 |
+| StateEventQueueHeader | 446 | 22 | 22 |
+| StateEventHeader | 447 | 22 | 22 |
+| SfxPlayEvent | 448 | 22 | 22 |
+| ItemBannerEvent | 449 | 13 | 16397 |
+| FortuneLine | 450 | 2 | 4098 |
+| FortuneEvent | 451 | 8 | 131272 |
+| BossIntroEvent | 452 | 24 | 24 |
+| RoomTransitionEvent | 453 | 43 | 43 |
+| BossDisplayState | 454 | 26 | 323 |
+| BossDisplayPose | 455 | 9 | 9 |
 
 ## 容量边界单价
 
@@ -613,7 +632,7 @@
 | EntityEffect_SpriteTrail | 105/10 | world | 16 | 16 |
 | EntityEffect_SpriteTrail | 105/11 | world | 13 | 13 |
 | EntityEffect_SpriteTrail | 105/12 | world | 0 | 0 |
-| EntityEffect_SpriteTrail | 105/13 | world | 1 | 1 |
+| EntityEffect_SpriteTrail | 105/13 | world | 0 | 0 |
 | EntityEffect_SpriteTrail | 105/14 | world | 2 | 8130 |
 | EntityEffect_PickupGhost | 106/0 | world | 34 | 34 |
 | EntityEffect_PickupGhost | 106/1 | world | 44 | 44 |
@@ -1196,120 +1215,134 @@
 | GridEntityDoor | 228/6 | world | 22 | 1048582 |
 | GridEntityDoor | 228/7 | world | 2 | 7667597 |
 | RunSeeds | 230/0 | world | 5 | 5 |
+| RunSeeds | 230/1 | world | 2 | 322 |
 | RunDailyChallenge | 233/0 | world | 1 | 1 |
 | RunScoreSheet | 234/0 | world | 64 | 64 |
 | RunColorModState | 235/0 | world | 24 | 24 |
 | RunGameStateFlags | 236/0 | world | 1 | 1 |
-| GameRun | 237/0 | world | 19 | 19 |
-| GameRun | 237/1 | world | 48 | 48 |
-| GameRun | 237/2 | world | 65 | 65 |
+| GameRun | 237/0 | world | 21 | 341 |
+| GameRun | 237/1 | world | 40 | 40 |
+| GameRun | 237/2 | world | 64 | 64 |
+| GameRun | 237/3 | world | 41 | 41 |
+| GameRun | 237/4 | world | 37 | 37 |
+| GameRun | 237/5 | world | 6 | 6 |
+| GameRun | 237/6 | world | 105 | 105 |
+| GameRun | 237/7 | world | 57 | 57 |
+| GameRun | 237/8 | world | 10 | 19466 |
+| GameRun | 237/9 | world | 2 | 131074 |
+| GameRun | 237/10 | world | 6 | 524292 |
+| GameRun | 237/11 | world | 26 | 323 |
+| RunSeedEffectNode | 238/0 | world | 4 | 4 |
 | Room | 239/0 | world | 36 | 36 |
 | Room | 239/1 | world | 8 | 8 |
 | Room | 239/2 | world | 104 | 104 |
 | Room | 239/3 | world | 48 | 48 |
-| Room | 239/4 | world | 23 | 35651672 |
-| Room | 239/5 | world | 1 | 26419581 |
-| Room | 239/6 | world | 1 | 47 |
-| Room | 239/7 | world | 5 | 50 |
-| Room | 239/8 | world | 1 | 57 |
-| Room | 239/9 | world | 1 | 9 |
+| Room | 239/4 | world | 21 | 35651649 |
+| Room | 239/5 | world | 1 | 1 |
+| Room | 239/6 | world | 0 | 0 |
+| Room | 239/7 | world | 0 | 0 |
+| Room | 239/8 | world | 0 | 0 |
+| Room | 239/9 | world | 0 | 0 |
 | Room | 239/10 | world | 138 | 8389066 |
-| Room | 239/11 | world | 1 | 8912912 |
+| Room | 239/11 | world | 1 | 8912916 |
 | Room | 239/12 | world | 1 | 8323079 |
-| Backdrop | 240/0 | world | 23 | 35651672 |
-| FXLayers | 242/0 | world | 1 | 26419581 |
+| Room | 239/13 | world | 144 | 144 |
+| Backdrop | 240/0 | world | 21 | 35651649 |
+| FXLayers | 242/0 | world | 1 | 1 |
 | FXPose | 244/0 | world | 10 | 10 |
 | FX | 245/0 | world | 15 | 163855 |
 | Ray | 246/0 | world | 10 | 10 |
 | RayGroup | 247/0 | world | 30 | 40990 |
 | Vein | 248/0 | world | 35 | 35 |
 | RailManager | 249/0 | world | 138 | 8389066 |
-| RoomHellBackdrop | 253/0 | world | 1 | 8912912 |
+| RoomShockwave | 252/0 | world | 28 | 28 |
+| RoomHellBackdrop | 253/0 | world | 1 | 8912916 |
 | RoomConfig_Room | 263/0 | world | 15 | 15 |
-| RoomDescriptor | 270/0 | world | 53 | 53 |
+| RoomDescriptor | 270/0 | world | 54 | 58 |
 | RoomDescriptor | 270/1 | world | 1 | 12 |
-| LevelGamePrefix | 276/0 | world | 22 | 22 |
+| LevelGamePrefix | 276/0 | world | 18 | 18 |
 | LevelGamePrefix | 276/1 | world | 1014 | 1014 |
-| LevelGamePrefix | 276/2 | world | 1 | 1 |
+| LevelGamePrefix | 276/2 | world | 0 | 0 |
+| LevelGamePrefix | 276/3 | world | 4 | 4 |
 | RoomVeinSprite | 281/0 | body | 67 | 65602 |
 | RoomVeinSprite | 281/1 | body | 22 | 1048582 |
 | RoomVeinSprite | 281/2 | body | 2 | 7798667 |
 | RoomRailSprite | 282/0 | body | 123 | 65658 |
 | RoomRailSprite | 282/1 | body | 11 | 524291 |
 | RoomRailSprite | 282/2 | body | 2 | 7798667 |
-| BackdropBindingEntry | 283/0 | world | 3 | 3 |
-| BackdropBinding | 284/0 | world | 2 | 23 |
-| WaterShaderResult | 285/0 | world | 32 | 32 |
-| WaterVisualPayload | 286/0 | world | 46 | 46 |
-| WaterVisual | 287/0 | world | 1 | 47 |
-| RoomLightingResult | 288/0 | world | 5 | 50 |
-| RoomWaveResult | 289/0 | world | 1 | 57 |
-| ForcedCameraFocus | 290/0 | world | 1 | 9 |
-| SelectedRayGroup | 291/0 | world | 1 | 40991 |
-| PoopVisualPayload | 292/0 | world | 52 | 163892 |
-| PoopVisual | 293/0 | world | 1 | 163893 |
-| VeinGraphPayload | 294/0 | world | 193 | 17826063 |
-| VeinGraphVisual | 295/0 | world | 1 | 17826064 |
-| FXScenePayload | 296/0 | world | 29 | 26419580 |
+| BackdropBindingEntry | 283/0 | world | 0 | 0 |
+| BackdropBinding | 284/0 | world | 0 | 0 |
+| WaterShaderResult | 285/0 | world | 0 | 0 |
+| WaterVisualPayload | 286/0 | world | 0 | 0 |
+| WaterVisual | 287/0 | world | 0 | 0 |
+| RoomLightingResult | 288/0 | world | 0 | 0 |
+| RoomWaveResult | 289/0 | world | 0 | 0 |
+| ForcedCameraFocus | 290/0 | world | 0 | 0 |
+| SelectedRayGroup | 291/0 | world | 0 | 0 |
+| PoopVisualPayload | 292/0 | world | 0 | 0 |
+| PoopVisual | 293/0 | world | 0 | 0 |
+| VeinGraphPayload | 294/0 | world | 0 | 0 |
+| VeinGraphVisual | 295/0 | world | 0 | 0 |
+| FXScenePayload | 296/0 | world | 0 | 0 |
 | SavedMapIconPayload | 297/0 | world | 2 | 11 |
 | FinalSavedMapIcons | 298/0 | world | 1 | 12 |
-| CurrentDescriptorVisual | 299/0 | world | 1 | 1 |
-| MapFocusResult | 300/0 | world | 1 | 7 |
-| MapFocusPair | 301/0 | world | 2 | 14 |
-| MapBadgeList | 302/0 | world | 1 | 8 |
-| MinimapQuestionImageBinding | 303/0 | world | 2 | 2 |
-| ResourceEntryHeader | 304/0 | world | 8 | 8 |
-| SurfacePixelsDescriptor | 305/0 | world | 16 | 16 |
-| ResourceBlobChunkHeader | 306/0 | world | 15 | 15 |
-| SurfaceRecipeHeader | 307/0 | world | 16 | 16 |
-| SurfaceRecipeClear | 308/0 | world | 21 | 21 |
-| SurfaceRecipeQuad | 309/0 | world | 212 | 212 |
-| PlayerHUDHeart | 310/0 | world | 1 | 9 |
-| PlayerHUDActiveItem | 311/0 | world | 7 | 13 |
-| PlayerHUDTrinket | 312/0 | world | 2 | 16 |
-| PlayerHUDPocket | 313/0 | world | 147 | 8912907 |
-| InventoryVisual | 314/0 | world | 6 | 6 |
-| PlayerHUD | 315/0 | body | 653 | 16802101 |
-| StatHUDValue | 316/0 | world | 12 | 12 |
-| StatHUDPlayer | 317/0 | body | 99 | 111 |
-| StatHUD | 318/0 | world | 148 | 8912908 |
-| HUDMessage | 319/0 | world | 1 | 8917054 |
-| HistoryHUDItem | 320/0 | world | 6 | 6 |
-| HistoryHUDPlayer | 321/0 | body | 4 | 24580 |
-| HUD | 323/0 | world | 1508 | 135283026 |
-| MinimapConfig | 324/0 | world | 136 | 4194304 |
-| Minimap | 325/0 | world | 561 | 16777252 |
-| VisiblePlayerHUDHeart | 353/0 | world | 6 | 8 |
-| StatHUDRows | 354/0 | world | 97 | 109 |
-| MapDisplaySprite | 355/0 | world | 136 | 8388616 |
-| PresentationDrawClock | 356/0 | world | 5 | 5 |
-| PickupRandomAlphaResult | 357/0 | world | 1 | 5 |
-| FamiliarRandomAlphaResult | 358/0 | world | 1 | 5 |
-| PillDisplayResult | 359/0 | body | 1 | 13 |
-| PickupPreviewItem | 360/0 | world | 6 | 6 |
-| PickupPreviewResult | 361/0 | world | 1 | 1539 |
-| PlayerDrawImageBindings | 362/0 | body | 4 | 4 |
-| HudBodySelection | 363/0 | world | 4 | 4 |
-| ControlGroupHudSelection | 364/0 | world | 3 | 131 |
-| PresentationSpriteContribution | 365/0 | world | 160 | 8912920 |
-| PresentationImageContribution | 366/0 | world | 213 | 213 |
-| ScreenBloomResult | 367/0 | world | 1 | 5 |
-| ScreenPixelationResult | 368/0 | world | 1 | 5 |
-| ScreenRetrovisionResult | 369/0 | world | 1 | 5 |
-| ScreenHallucinationResult | 370/0 | world | 1 | 5 |
-| RoomGlitchResult | 371/0 | world | 1 | 1 |
-| ScreenFadeContribution | 372/0 | world | 17 | 19 |
-| ScreenEffectsResult | 373/0 | world | 4 | 1780 |
-| BossVersusResult | 374/0 | world | 1 | 4194305 |
-| NightmareSceneResult | 375/0 | world | 1 | 5066755 |
-| GameOverResult | 376/0 | world | 1 | 5066759 |
-| StageTransitionResult | 377/0 | world | 2 | 306 |
-| ItemOverlayResult | 378/0 | world | 1 | 17825821 |
-| BossOverlayResult | 379/0 | world | 1 | 8912908 |
-| GenericPromptResult | 380/0 | world | 1 | 8923277 |
-| AudioVoiceParameters | 381/0 | world | 19 | 19 |
-| AudioVoiceState | 382/0 | world | 23 | 23 |
-| AudioWorldEvent | 383/0 | world | 1 | 20 |
+| CurrentDescriptorVisual | 299/0 | world | 0 | 0 |
+| MapFocusResult | 300/0 | world | 0 | 0 |
+| MapFocusPair | 301/0 | world | 0 | 0 |
+| MapBadgeList | 302/0 | world | 0 | 0 |
+| MinimapQuestionImageBinding | 303/0 | world | 0 | 0 |
+| ResourceEntryHeader | 304/0 | world | 0 | 0 |
+| SurfacePixelsDescriptor | 305/0 | world | 0 | 0 |
+| ResourceBlobChunkHeader | 306/0 | world | 0 | 0 |
+| SurfaceRecipeHeader | 307/0 | world | 0 | 0 |
+| SurfaceRecipeClear | 308/0 | world | 0 | 0 |
+| SurfaceRecipeQuad | 309/0 | world | 0 | 0 |
+| PlayerHUDHeart | 310/0 | world | 0 | 0 |
+| PlayerHUDActiveItem | 311/0 | world | 0 | 0 |
+| PlayerHUDTrinket | 312/0 | world | 0 | 0 |
+| PlayerHUDPocket | 313/0 | world | 0 | 0 |
+| InventoryVisual | 314/0 | world | 0 | 0 |
+| PlayerHUD | 315/0 | body | 0 | 0 |
+| StatHUDValue | 316/0 | world | 0 | 0 |
+| StatHUDPlayer | 317/0 | body | 0 | 0 |
+| StatHUD | 318/0 | world | 0 | 0 |
+| HUDMessage | 319/0 | world | 0 | 0 |
+| HistoryHUDItem | 320/0 | world | 0 | 0 |
+| HistoryHUDPlayer | 321/0 | body | 0 | 0 |
+| HUD | 323/0 | world | 0 | 0 |
+| MinimapConfig | 324/0 | world | 0 | 0 |
+| Minimap | 325/0 | world | 0 | 0 |
+| VisiblePlayerHUDHeart | 353/0 | world | 0 | 0 |
+| StatHUDRows | 354/0 | world | 0 | 0 |
+| MapDisplaySprite | 355/0 | world | 0 | 0 |
+| PresentationDrawClock | 356/0 | world | 0 | 0 |
+| PickupRandomAlphaResult | 357/0 | world | 0 | 0 |
+| FamiliarRandomAlphaResult | 358/0 | world | 0 | 0 |
+| PillDisplayResult | 359/0 | body | 0 | 0 |
+| PickupPreviewItem | 360/0 | world | 0 | 0 |
+| PickupPreviewResult | 361/0 | world | 0 | 0 |
+| PlayerDrawImageBindings | 362/0 | body | 0 | 0 |
+| HudBodySelection | 363/0 | world | 0 | 0 |
+| ControlGroupHudSelection | 364/0 | world | 0 | 0 |
+| PresentationSpriteContribution | 365/0 | world | 0 | 0 |
+| PresentationImageContribution | 366/0 | world | 0 | 0 |
+| ScreenBloomResult | 367/0 | world | 0 | 0 |
+| ScreenPixelationResult | 368/0 | world | 0 | 0 |
+| ScreenRetrovisionResult | 369/0 | world | 0 | 0 |
+| ScreenHallucinationResult | 370/0 | world | 0 | 0 |
+| RoomGlitchResult | 371/0 | world | 0 | 0 |
+| ScreenFadeContribution | 372/0 | world | 0 | 0 |
+| ScreenEffectsResult | 373/0 | world | 0 | 0 |
+| BossVersusResult | 374/0 | world | 0 | 0 |
+| NightmareSceneResult | 375/0 | world | 0 | 0 |
+| GameOverResult | 376/0 | world | 0 | 0 |
+| StageTransitionResult | 377/0 | world | 0 | 0 |
+| ItemOverlayResult | 378/0 | world | 0 | 0 |
+| BossOverlayResult | 379/0 | world | 0 | 0 |
+| GenericPromptResult | 380/0 | world | 0 | 0 |
+| AudioVoiceParameters | 381/0 | world | 0 | 0 |
+| AudioVoiceState | 382/0 | world | 0 | 0 |
+| AudioWorldEvent | 383/0 | world | 0 | 0 |
 | StateCommonHeader | 408/0 | world | 50 | 50 |
 | StateFrameHeader | 409/0 | world | 2 | 2 |
 | StateSectionHeader | 410/0 | world | 52 | 52 |
@@ -1324,9 +1357,9 @@
 | StateAppliedAckHeader | 419/0 | world | 2 | 2 |
 | StateAppliedAckEntry | 420/0 | world | 21 | 21 |
 | StateResyncHeader | 421/0 | world | 11 | 11 |
-| DisplayTextRun | 422/0 | world | 1 | 2073 |
-| FortuneText | 423/0 | world | 1 | 16586 |
-| LocalHistoryOverlay | 424/0 | world | 46 | 46 |
+| DisplayTextRun | 422/0 | world | 0 | 0 |
+| FortuneText | 423/0 | world | 0 | 0 |
+| LocalHistoryOverlay | 424/0 | world | 0 | 0 |
 | ResourcePath | 425/0 | world | 2 | 4098 |
 | ResourceImageFile | 426/0 | world | 10 | 4106 |
 | ResourceBuiltinShader | 427/0 | world | 1 | 1 |
@@ -1339,5 +1372,24 @@
 | RoomWaveSprite | 434/0 | world | 117 | 117 |
 | RoomWaveSprite | 434/1 | world | 14 | 524294 |
 | RoomWaveSprite | 434/2 | world | 2 | 7798667 |
-| PlayerHUDLocalClock | 435/0 | body | 41 | 41 |
-| HudMantleEffects | 436/0 | body | 5 | 163845 |
+| PlayerHUDLocalClock | 435/0 | body | 0 | 0 |
+| HudMantleEffects | 436/0 | body | 0 | 0 |
+| SFXVolumeState | 437/0 | world | 4 | 4 |
+| DisplayInjectionState | 438/0 | world | 105 | 105 |
+| MusicRequestState | 439/0 | world | 57 | 57 |
+| LoopSoundState | 440/0 | world | 38 | 38 |
+| LoopSoundSet | 441/0 | world | 10 | 19466 |
+| OverlayDisplayState | 442/0 | world | 320 | 17825840 |
+| OverlayDisplaySet | 443/0 | world | 2 | 131074 |
+| ProceduralDisplayDefinition | 444/0 | world | 12 | 12300 |
+| ProceduralDisplaySet | 445/0 | world | 6 | 524292 |
+| StateEventQueueHeader | 446/0 | world | 22 | 22 |
+| StateEventHeader | 447/0 | world | 22 | 22 |
+| SfxPlayEvent | 448/0 | world | 22 | 22 |
+| ItemBannerEvent | 449/0 | world | 13 | 16397 |
+| FortuneLine | 450/0 | world | 2 | 4098 |
+| FortuneEvent | 451/0 | world | 8 | 131272 |
+| BossIntroEvent | 452/0 | world | 24 | 24 |
+| RoomTransitionEvent | 453/0 | world | 43 | 43 |
+| BossDisplayState | 454/0 | world | 26 | 323 |
+| BossDisplayPose | 455/0 | world | 9 | 9 |

@@ -61,9 +61,9 @@ bool EntitySource::Impl::Incubus(std::uint32_t familiar,std::int32_t &amount,Cap
 // 每个叶子只写当前数字路径的一项，所有有符号窄化、掩码及可空关系都显式处理。
 bool EntitySource::Impl::Leaf(const CaptureFieldAccess &a,CaptureValueWriter &writer,CaptureDiagnostic &d) noexcept {
   const auto recipe=Recipe(a.field);const auto address=std::uint64_t(a.root.address)+a.field.native_offset;
+  if(recipe==EntityRead::Display)return DisplayLeaf(a,writer,d);
   if(recipe>=EntityRead::GridWater && recipe<=EntityRead::DoorLight)return GridLeaf(a,writer,d);
   if(recipe==EntityRead::Run)return RunLeaf(a,writer,d);
-  if(recipe==EntityRead::Presentation)return PresentationLeaf(a,writer,d);
   if(recipe==EntityRead::Scene || recipe==EntityRead::RoomConfig)return SceneLeaf(a,writer,d);
   if(a.field.operation==Operation::Container)return ScalarContainer(a,writer,d);
   if(a.format.linked){CaptureLink link{CapturedReferenceKind::Null,0};

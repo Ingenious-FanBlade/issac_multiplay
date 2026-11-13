@@ -265,10 +265,24 @@
           "size": 4,
           "name": "spawn_seed",
           "type": "u32",
-          "category": "权威",
+          "category": "状态",
           "status": "已核",
-          "semantics": "实体出生／Error饰品效果选择输入；同步决定：原seed及完整Error效果ID留Host；D1只发u8布尔error_is_modeling_clay供最终颜色adapter；效果>0在目标版恒真；实际Image仍由Presentation承接",
-          "evidence": "RoomDescriptor.zhl；J273 ctor6EBB10/dtor6EBF40；公开字段原绑定852A6A..852B77；Minimap缓存9635B0；Wiki SpawnSeed；官方GetErrorTrinketEffect说明；IsaacRepentance_static.cpp:588；NUM_TRINKETS=190；ASMHud.cpp:62/207/223"
+          "semantics": "Q9当前房间描述的完整Host SpawnSeed；按变化安装，年龄30的历史画面读取不得为0；不授权Client生成",
+          "evidence": "RoomDescriptor.zhl；J273 ctor6EBB10/dtor6EBF40；公开字段原绑定852A6A..852B77；Minimap缓存9635B0；Wiki SpawnSeed；官方GetErrorTrinketEffect说明；IsaacRepentance_static.cpp:588；NUM_TRINKETS=190；ASMHud.cpp:62/207/223；docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "wire": {
+            "kind": "convert",
+            "type": "u32",
+            "host": "room_descriptor_spawn_seed_read",
+            "client": "room_descriptor_spawn_seed_install",
+            "when": {
+              "field": "spawn_seed_current",
+              "predicate": "room_descriptor_is_current",
+              "test": {
+                "kind": "equal",
+                "value": 1
+              }
+            }
+          }
         },
         {
           "offset": 96,
@@ -407,7 +421,9 @@
             "display_flags",
             "visited_count",
             "flags",
-            "greed_treasure_icon"
+            "greed_treasure_icon",
+            "spawn_seed_current",
+            "spawn_seed"
           ]
         },
         {
@@ -435,7 +451,12 @@
         "room_descriptor_greed_treasure_icon_read": "Greed特殊宝物房当前最终图标开关；不适用规范0；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
         "room_descriptor_greed_treasure_icon_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；Greed特殊宝物房当前最终图标开关；不适用规范0；不调用Update／Init／Restore或写访客进度。",
         "room_descriptor_map_icons_read": "L2完整可显示事实，DisplayFlags0不读隐藏保存体；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
-        "room_descriptor_map_icons_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；L2完整可显示事实，DisplayFlags0不读隐藏保存体；不调用Update／Init／Restore或写访客进度。"
+        "room_descriptor_map_icons_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；L2完整可显示事实，DisplayFlags0不读隐藏保存体；不调用Update／Init／Restore或写访客进度。",
+        "room_descriptor_current_read": "同world比较已核描述owner与当前Room+4，输出0／1，不读取非当前seed",
+        "room_descriptor_current_install": "只作当前seed的presence选择器，不能用它切房或选路",
+        "room_descriptor_spawn_seed_read": "仅current选择器为真时读取当前描述+5C原值；按变化同步，不读取其它房间seed",
+        "room_descriptor_spawn_seed_install": "仅随当前Room事务安装非零Host SpawnSeed，不写其它描述的seed",
+        "room_descriptor_is_current": "spawn_seed_current == 1；只允许当前描述的seed负载"
       },
       "validators": {
         "dimension": {
@@ -467,6 +488,12 @@
           "scalar": "u8",
           "min": 0,
           "max": 1
+        },
+        "spawn_seed_current": {
+          "kind": "range",
+          "scalar": "u8",
+          "min": 0,
+          "max": 1
         }
       },
       "members": [],
@@ -481,6 +508,14 @@
           "evidence": "docs/design/binary-state/7-room-level.md；room-display-resource-design.md及对应原生账本",
           "host": "room_descriptor_greed_treasure_icon_read",
           "client": "room_descriptor_greed_treasure_icon_install"
+        },
+        {
+          "name": "spawn_seed_current",
+          "type": "u8",
+          "semantics": "仅当前描述为1；其它描述不读取／不发送seed",
+          "evidence": "Q9仅同步当前房间描述的SpawnSeed",
+          "host": "room_descriptor_current_read",
+          "client": "room_descriptor_current_install"
         }
       ],
       "companions": [
@@ -2819,10 +2854,14 @@
           "size": 4,
           "name": "raw_curses",
           "type": "u32",
-          "category": "权威",
+          "category": "状态",
           "status": "已核",
-          "semantics": "未合并temporary／强制／阻止的原始诅咒；同步决定：只发L0.effective_curses；不发原值",
-          "evidence": "742450；6F55C0/6F5750；966300/966680"
+          "semantics": "Level+0xC原始诅咒；原生getter结合Game raw与种子效果求有效值，不能将effective再写入raw",
+          "evidence": "742450；6F55C0/6F5750；966300/966680；docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          }
         },
         {
           "offset": 16,
@@ -3471,6 +3510,14 @@
           "sequence": "world",
           "fields": [
             "current_visual"
+          ]
+        },
+        {
+          "id": 3,
+          "name": "Q8原始Level诅咒",
+          "sequence": "world",
+          "fields": [
+            "raw_curses"
           ]
         }
       ],

@@ -1,3 +1,15 @@
+**2026-11-14 第 14 步，布局 74**。[旧同步与手工绘制退役](design/binary-state/14-retire-old-path.md#2026-11-14-实施记录)已移除正式 Range 和 Lua DTO 入口，Client 走原生显示。Lua 对照随 E2E 构建提供，Backdrop 冷构图仍待接线，测试留到第 15 步。
+
+**2026-11-13 原子安装组件，布局74不变**：[通用原生writer、安装租约与保管](design/binary-state/implementation-12-atomic-install.md)已入源。完整Init／特殊字段／成员发布owner、Manager／Start及事件链仍待实施；没有启用正式二进制能力，未测试，第15步唯一统一验收。
+
+**2026-11-13 Host采集审阅与续接，当前布局74**：[最新实现与剩余边界](design/binary-state/implementation-10-host-display-capture.md)记录按需来源、第二批状态／事件、事件交接与回收、转场身份修复及音乐Queue自然接续。来源和交接组件已入源，worker实际发布与完整Client安装／回放仍需串联；正式网络未切换，未运行测试，第15步仍唯一统一整体验收。
+
+**2026-11-13 Client显示安装组件已入源**：[实现与实际边界](design/binary-state/implementation-13-display-install.md)覆盖Q8／Q11／Q12、SpawnSeed、方案B、Q13镜像、Manager显示根、原生Game::Render及RE-10维护。纯编译通过，未测试；完整批次投递、Host采集和第二批事件仍待串联，正式运行尚未切换。
+
+**2026-11-12 版本72需求收缩已入源**：`demand.json`、生成器内存剥离及D1—D8布局声明已完成，[需求覆盖表](design/binary-state/layouts/demand-coverage.md)与全部布局文档已重新生成。空块和布局编号保留，字节账本／成员映射仍全量；旧专用表暂保留以便迁移。Release／Win32产品DLL纯编译与链接通过，未运行测试。实际采集、安装及显示边界仍待后续接线，见[第1步实现说明](design/binary-state/1-layout-source.md)。以下“仅文档”条目保留原时点。
+
+**2026-11-12 Q14 布局收缩方式，仅文档**：第 4 步不再逐字段标“需求”属性，改为需求清单 `demand.json` 直接列出同步量；Entity／Player／Grid／Effect／Level／Run 及 Room 显示子结构整类型照旧，presentation 显示结果、random、hud-local 与房间显示结果不列入；版本 72 只补 D1—D8 标量／小结构，事件队列、表现状态与注入值随第 8／9／13 步分批。见[修改方案第 8 节](design/binary-state/client-display-delegation.md#8-布局源收缩需求清单q14)。未实施／未测试。
+
 **2026-11-12 Q13 地图拾取图标，仅文档**：用户决定包装地图缓存构建 `0x9635B0`（IDA 复核：它是 `Minimap::Refresh 0x965D60` 调用的 FBO 构建，不是 RE-7 所称的 `MinimapConfig::Render`），作用域内临时镜像按 Host 摘要合成的最小 SavedEntities／保存 Grid 条目，调用后恢复；不常驻镜像、不构建后修补。见[修改方案第 5 节表后](design/binary-state/client-display-delegation.md#5-仍需同步的显示相关状态候选)。未实施／未测试。
 
 **2026-11-12 RE-10 静态完成**：优先查本地 Wiki／REPENTOGON SDK，再用 J273 指令核定 [Manager 的 50 个业务调用点与音频调度](design/binary-state/client-display-delegation/RE-10/README.md)。音乐更新不随相机 paused 跳过；`0x908340` 明确是 ClearVolumeModifier 条件混音刷新，撤销“通用 SFX tick”猜测。补入当前 SFX 乘数、音乐种子效果／dizzy／红房读取、输入泵复用、本机保持条件及 FrameDelay=0 不能绕过已有截止的交接；方案、规范、第 13／15 步和入口已同步。仅文档，未改运行代码／wire／版本／IDB，未测试。

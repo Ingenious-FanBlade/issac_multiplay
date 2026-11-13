@@ -7,6 +7,9 @@ ClientStateWorkspace::ClientStateWorkspace() {
   if(client_workspace.test_and_set(std::memory_order_acquire))throw ClientTableError(ClientTableFailure::WorkspaceBusy,"client_state_workspace_busy");
 }
 ClientStateWorkspace::~ClientStateWorkspace() {client_workspace.clear(std::memory_order_release);}
+void ClientStateWorkspace::RequireCurrentThread() const {
+  if(thread_!=std::this_thread::get_id())throw ClientTableError(ClientTableFailure::WrongThread,"client_state_workspace_wrong_thread");
+}
 ClientStateMemory::ClientStateMemory() {
   const auto &policy=StateBudgets();limits_={policy.peer_value_bytes,policy.peer_wire_bytes,policy.workspace_job_bytes};
   // 账户及三份既有Charge的管理对象冷分配保守预留；容器及其控制块另外按实际分配收费。
@@ -41,5 +44,14 @@ void ClientStateMemory::Deallocate(memory::Pool pool,void *value,std::size_t byt
 }
 std::array<std::uint64_t,3> ClientStateMemory::Usage() const noexcept {
   std::lock_guard lock(mutex_);return {charges_[0]->Bytes(),charges_[1]->Bytes(),charges_[2]->Bytes()};
+}
+void ClientStateMemory::ChargeNative(std::size_t bytes) {
+  std::lock_guard lock(mutex_);auto &charge=*charges_[unsigned(memory::Pool::Values)];const auto before=charge.Bytes();
+  const auto available=before<=limits_[0]?limits_[0]-before:0;
+  if(before>limits_[0]||bytes>available)throw ClientTableError(ClientTableFailure::Budget,"client_native_peer_quota",bytes,available);
+  try {charge.Resize(before+bytes);}catch(const std::runtime_error &){throw ClientTableError(ClientTableFailure::Budget,"client_native_shared_pool",bytes,available);}
+}
+void ClientStateMemory::UnchargeNative(std::size_t bytes) noexcept {
+  std::lock_guard lock(mutex_);auto &charge=*charges_[unsigned(memory::Pool::Values)];charge.Resize(charge.Bytes()-bytes);
 }
 } // namespace cs::state

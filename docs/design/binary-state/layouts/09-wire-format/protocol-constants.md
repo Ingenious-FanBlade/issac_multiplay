@@ -1,9 +1,22 @@
 # 公共协议常量
 
-布局版本 71；由唯一布局源生成。数值登记不表示运行编解码已经接通。
+布局版本 75；由唯一布局源生成。数值登记不表示运行编解码已经接通。
 
 | 分类 | 名称 | 数值 | 语义 |
 |---|---|---|---|
+| display_branch | normal | 0 | Q12终结分支：normal；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用 |
+| display_branch | console_hold | 1 | Q12终结分支：console_hold；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用 |
+| display_branch | pause_countdown | 2 | Q12终结分支：pause_countdown；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用 |
+| display_branch | game_over | 3 | Q12终结分支：game_over；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用 |
+| display_branch | leaderboard | 4 | Q12终结分支：leaderboard；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用 |
+| display_branch | stage_transition | 5 | Q12终结分支：stage_transition；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用 |
+| display_branch | room_transition | 6 | Q12终结分支：room_transition；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用 |
+| display_branch | active_overlay | 7 | Q12终结分支：active_overlay；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用 |
+| display_branch | generic_prompt | 8 | Q12终结分支：generic_prompt；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用 |
+| display_branch | unknown_ui_byte_24ecc | 9 | Q12终结分支：unknown_ui_byte_24ecc；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用 |
+| display_branch | secondary_fade | 10 | Q12终结分支：secondary_fade；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用 |
+| display_branch | pause_screen | 11 | Q12终结分支：pause_screen；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用 |
+| display_branch | unknown_ui_word_24444 | 12 | Q12终结分支：unknown_ui_word_24444；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用 |
 | message | ContextReady | 8 | 公共协议Kind编号；仅合同登记，运行stream_codec尚未接通 |
 | message | AppliedAck | 9 | 公共协议Kind编号；仅合同登记，运行stream_codec尚未接通 |
 | message | Resync | 10 | 公共协议Kind编号；仅合同登记，运行stream_codec尚未接通 |
@@ -130,6 +143,7 @@
 | resource_graphics_use | Background | 10 | 资源唯一源的固定shader用途；精确shader允许集见resource_protocol，不是任意GPU参数分派。 |
 | resource_graphics_use | Fade | 11 | 资源唯一源的固定shader用途；精确shader允许集见resource_protocol，不是任意GPU参数分派。 |
 | acceptance_policy | binary_state_capability | 1 | 独立二进制状态能力；同时协商精确整数布局版本，不回退旧Range |
+| acceptance_policy | binary_payload_flag | 1 | ICSR封套flags=1表示正文直接从50B二进制公共头开始；flags=0仍为旧compact控制，二者不混读；不增加或改变布局字段 |
 | acceptance_policy | world_candidates | 1 | 普通world至多保留最新一个候选 |
 | acceptance_policy | joint_candidates | 1 | joint至多保留最新一个完整候选 |
 | acceptance_policy | inflight_applies | 1 | 同Peer一次最多一个原生应用批次 |

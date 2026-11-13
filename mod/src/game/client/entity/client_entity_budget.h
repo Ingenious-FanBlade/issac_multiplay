@@ -8,6 +8,8 @@ namespace cs::game {
 inline constexpr unsigned kClientEntityMembers=16384,kClientEntityCommands=131073;
 // J273 Factory ctor 6EEE60的真实槽数；Player另由具名owner提供，不挤占Factory。
 inline constexpr std::array<unsigned,13> kClientEntityPools={0,512,512,512,64,128,64,512,64,1024,128,128,128};
+inline constexpr std::array<unsigned,13> kClientEntityPoolOffsets={0,0x45fe40,0x223220,0x194218,0x16cc10,0x32c228,0x695e58,0x357630,0x130008,0,0x435638,0x64be48,0x675650};
+inline constexpr std::array<unsigned,13> kClientEntityPoolStrides={0,0xf60,0x848,0x478,0x9d8,0x568,0x520,0x6f0,0xf30,0x4c0,0x550,0x530,0x410};
 struct ClientEntityBudget final {
   unsigned members=0,players=0,retired=0,resources=0,references=0,curve_points=0,commands=0,completed=0;
   std::array<unsigned,13> categories{};

@@ -1,5 +1,19 @@
 # 原生二进制状态同步重构：总计划
 
+**2026-11-14 第 14 步，布局 74**。[退役记录](14-retire-old-path.md#2026-11-14-实施记录)登记旧 Range、Host Lua DTO 和 Client 手工绘制退出。原生显示与隔离继续使用共用代码。Backdrop 冷构图仍待接线，测试统一留在第 15 步。
+
+**2026-11-14 第13步正式连接接线，布局74**：[原生显示安装](implementation-13-display-install.md#2026-11-14-正式连接接线)记录 Client 正式启动和 Manager 批次安装、票据回执、原生音频、全局 Overlay、地图和转场。第15步仍是唯一整体验收。
+
+**2026-11-13 第12步原子安装组件，布局74未变**：[实施与实际范围](implementation-12-atomic-install.md)记录实体 Init、特殊字段及原生成员 owner。安装器已接入 Player roster、EntityList、Grid、门和内嵌描述槽，保留安装租约、容器交接及失败排空。正式 Manager／Start 与完整显示事件链仍需接线。第15步唯一验收。
+
+**2026-11-13 第11步接线，布局74**：[worker／Peer二进制发布与事件确认](implementation-11-worker-peer-publish.md)已接真实采集票据、后台封存／编码、表先行、每Peer事件队列、发送ledger与AppliedAck回收。正式Host不再发旧DTO；Client完整接收／安装／回放未接通且不声明该能力。仍未运行测试，第15步唯一统一验收。以下同日较早进度保留原时点。
+
+**2026-11-13 Host采集审阅，当前布局74**：[最新实施与实际边界](implementation-10-host-display-capture.md)整理版本73已有的按需采集／第二批状态／事件，继续修复事件交接与回收、容量、转场身份及音乐Queue自然接续。第10步来源与接口已入源；worker实际发送、第12步完整候选以及第二批Client安装／回放仍需连接，正式网络没有切换，未运行测试，第15步仍唯一统一验收。
+
+**2026-11-13 Client显示安装组件**：[实际交付与后续串联](implementation-13-display-install.md)新增Q8／Q11／Q12和SpawnSeed安装、方案B、Q13镜像、Manager分阶段显示、原生Game::Render包装与RE-10维护。产品纯编译通过，未测试；完整候选投递／其它域安装、Host新采集及第二批事件尚待连接，正式网络仍走旧DTO。第13步组件入源不代表运行切换完成。
+
+**2026-11-12 版本72布局收缩完成**：[需求清单覆盖](layouts/demand-coverage.md)已由`demand.json`生成，生成器仅为所选字段生成复制／正文计划，保留块号和全量原生／成员参照。D1—D8当前标量、种子效果有界ID列表、转场九值、Q12 paused／终结分支与SFX乘数已声明，见[第1步实现说明](1-layout-source.md)。旧显示结果、Random及HUD本地时钟正文退出需求，专用表暂保留以便迁移。Release／Win32产品DLL纯编译和链接通过；新处理器仍待第8／10／13步接线，未运行测试，第15步仍唯一统一验收。下方版本71及“仅文档”条目保留原时点。
+
 **2026-11-12 RE-10 静态完成**：[Manager 50 个业务调用点与音频／本地维护](client-display-delegation/RE-10/README.md)已逐项分类。音乐 tick 不随相机 paused 跳过；SDK `SoundEffects::ClearVolumeModifier` 是条件性混音刷新，撤销“通用 SFX tick”猜测。当前 SFX 乘数、音乐读取的种子效果／dizzy／红房位、输入泵复用、本机 A／B 保持与回放旧节流处理交第 8／10／13 步，E36／E37 仅登记至第 15 步。下方“新开／待做”保留审阅时点，当前 RE-10 静态工作已完成；未改运行代码／wire／版本，未测试。
 
 **2026-11-12 RE-1 补遗与 RE-7—RE-9 审阅，仅文档**：经 IDA J273 复核后，用户决定 Q11（RoomTransition 显示字段同步 Host 当前值，Client 不运行转场 FSM）与 Q12（保留 `client_entity_draw_paused`，Host 发送 paused 位与终结分支枚举），新开 RE-10（Manager 尾部非 Game 调用分类，待做）；并采纳 HUD 可见性 `Game+0x22E90` 按 Q8 同步、诅咒同步 raw 字段、SFX 回放 FrameDelay=0、Pα 由已安装 alpha 判定。见[修改方案](client-display-delegation.md)及下方第 1 节决定 13、14。未改代码，未测试。
@@ -456,5 +470,6 @@ Client 主线程（2026-11-12 起）
    - Q12（同日追加）：保留 `client_entity_draw_paused`；Host 发送 paused 位与终结分支枚举。
    - RE-10 静态分类已完成，音频状态需求与本地维护接线待第 8／10／13 步实施。
    - Q13（同日追加）：地图拾取图标由 Client 在地图缓存构建 `0x9635B0` 作用域内临时镜像 Host 摘要合成的最小条目，调用后恢复。
+   - Q14（同日追加）：布局收缩改为需求清单 `demand.json`（整类型照旧／只留字段），Room 显示子结构默认照旧，新增字段分两批，版本 72 只做 D1—D8（修改方案第 8 节）。
 
    不为 Client 边界改造单设验收点。改动前的快照已提交为 `3977b46e`。

@@ -5,6 +5,7 @@
 #include <memory>
 #include <optional>
 #include <span>
+namespace cs::state {class ClientStateMemory;}
 
 namespace cs::game {
 // 角色只用于索引同源生成表；不把字段名、布局号或网络偏移当执行参数。
@@ -17,7 +18,9 @@ enum class ClientRoomFieldRole : std::uint8_t {
   Occupancy, CurrentVisual,
   GridIndex, SafeGridIndex, DescriptorDimension, Data, OverrideData, AllowedDoors, DoorTargets,
   DisplayFlags, Visited, DisplayBits, GreedTreasureIcon, SavedIcons,
-  ConfigStageId, ConfigType, ConfigSubtype, ConfigWidth, ConfigHeight, ConfigShape, Count
+  ConfigStageId, ConfigType, ConfigSubtype, ConfigWidth, ConfigHeight, ConfigShape,
+  RawCurses, SpawnSeed, WaterStart, WaterMultiplierStart, WaterTarget, WaterMultiplierTarget,
+  WaterLerp, ShockwaveA, ShockwaveB, Count
 };
 enum class ClientWorldDescriptionKind : std::uint8_t { Room, Level, Descriptor, Configuration };
 // 第12步接受的同一完整world上下文；显示批次修订与GameFrame分别保留，不能互相替代。
@@ -88,16 +91,16 @@ struct ClientRoomValues final {
   std::array<std::int32_t,8> door_positions{};
 };
 struct ClientLevelValues final {
-  std::uint32_t stage=0,stage_type=0,effective_curses=0;
+  std::uint32_t stage=0,stage_type=0,raw_curses=0;
   std::int32_t current_entry=0,greed_wave=0;
   std::uint8_t dimension=0;
-  bool current_is_last_boss=false,error_is_modeling_clay=false;
+  bool current_is_last_boss=false;
 };
 struct ClientRoomDescriptorValues final {
   std::int32_t grid=0,safe_grid=0;
   std::uint8_t dimension=0,allowed_doors=0,display_bits=0;
-  std::uint32_t display_flags=0;
-  bool visited=false,greed_treasure_icon=false;
+  std::uint32_t display_flags=0,spawn_seed=0;
+    bool visited=false,greed_treasure_icon=false,spawn_seed_present=false;
   std::array<std::int32_t,8> doors{};
 };
 // 静态帧0由mask类别表示，动态帧保留于对应bit位置；不是原生保存槽列表。
@@ -147,7 +150,7 @@ private:
   friend class ClientLevelDescription;
   friend class ClientRoomDescription;
   friend class ClientRoomLevelDescription;
-  friend ClientRoomLevelDescription ClientDescribeRoomLevel(const ClientRoomLevelShadowView &,std::uint32_t);
+  friend ClientRoomLevelDescription ClientDescribeRoomLevel(const ClientRoomLevelShadowView &,std::uint32_t,std::shared_ptr<state::ClientStateMemory>);
   ClientRoomDescriptorDescription(std::shared_ptr<const ClientRoomLevelStorage>,std::uint16_t) noexcept;
   std::shared_ptr<const ClientRoomLevelStorage> storage_;
   std::uint16_t record_=0;
@@ -188,12 +191,13 @@ public:
   ClientRoomDescriptorDescription DescriptorAt(std::uint16_t) const;
   const void *StorageOwner() const noexcept;
   std::uint64_t StorageBytes() const noexcept;
+  long StorageReferences()const noexcept;
 private:
-  friend ClientRoomLevelDescription ClientDescribeRoomLevel(const ClientRoomLevelShadowView &,std::uint32_t);
+  friend ClientRoomLevelDescription ClientDescribeRoomLevel(const ClientRoomLevelShadowView &,std::uint32_t,std::shared_ptr<state::ClientStateMemory>);
   explicit ClientRoomLevelDescription(std::shared_ptr<const ClientRoomLevelStorage>) noexcept;
   std::shared_ptr<const ClientRoomLevelStorage> storage_;
 };
 // 输入必须已完成第12步递归字段／资源校验；此处核根结构及同world关系，取得自有不可变副本。
 // byte_limit只能收紧32MiB完整world负载上限；不执行原生写入、资源加载或AppliedAck。
-ClientRoomLevelDescription ClientDescribeRoomLevel(const ClientRoomLevelShadowView &,std::uint32_t byte_limit=32u<<20);
+ClientRoomLevelDescription ClientDescribeRoomLevel(const ClientRoomLevelShadowView &,std::uint32_t byte_limit=32u<<20,std::shared_ptr<state::ClientStateMemory> memory={});
 } // namespace cs::game

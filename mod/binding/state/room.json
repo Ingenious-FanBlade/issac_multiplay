@@ -494,22 +494,30 @@
           "size": 28,
           "name": "shockwave_a",
           "type": "RoomShockwave",
-          "category": "权威",
+          "category": "状态",
           "status": "已核",
-          "semantics": "第一份波纹显示与推进输入混合；同步决定：只发本相位最终波纹pass参数；不发未来max／speed／推进历史",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
-          "native_type": "RoomShockwave"
+          "semantics": "Q8独立冲击波的Host当前原生输入；Client只Render、不本地递增count／radius",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500；docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "native_type": "RoomShockwave",
+          "wire": {
+            "kind": "nested",
+            "type": "RoomShockwave"
+          }
         },
         {
           "offset": 28896,
           "size": 28,
           "name": "shockwave_b",
           "type": "RoomShockwave",
-          "category": "权威",
+          "category": "状态",
           "status": "已核",
-          "semantics": "第二份波纹显示与推进输入混合；同步决定：与A分别提供最终结果／存在性，不混成一个timer",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
-          "native_type": "RoomShockwave"
+          "semantics": "Q8独立冲击波的Host当前原生输入；Client只Render、不本地递增count／radius",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500；docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "native_type": "RoomShockwave",
+          "wire": {
+            "kind": "nested",
+            "type": "RoomShockwave"
+          }
         },
         {
           "offset": 28924,
@@ -690,54 +698,74 @@
           "size": 20,
           "name": "water_start",
           "type": "KColor",
-          "category": "权威",
+          "category": "状态",
           "status": "已核",
-          "semantics": "水色插值端点；非各自独立最终画面；同步决定：只取816BB0实际最终KColor＋三乘色浮点；原四KColor不上线",
-          "evidence": "816BB0：含默认FX色／seed79覆盖／duration>=0分支",
-          "native_type": "KColor"
+          "semantics": "Q8水色过渡原生当前端点／duration与countdown；816BB0在Client原生Render求值，不安装最终shader色",
+          "evidence": "816BB0：含默认FX色／seed79覆盖／duration>=0分支；docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "native_type": "KColor",
+          "wire": {
+            "kind": "nested",
+            "type": "KColor"
+          }
         },
         {
           "offset": 29272,
           "size": 20,
           "name": "water_multiplier_start",
           "type": "KColor",
-          "category": "权威",
+          "category": "状态",
           "status": "已核",
-          "semantics": "水色插值端点；非各自独立最终画面；同步决定：只取816BB0实际最终KColor＋三乘色浮点；原四KColor不上线",
-          "evidence": "816BB0：含默认FX色／seed79覆盖／duration>=0分支",
-          "native_type": "KColor"
+          "semantics": "Q8水色过渡原生当前端点／duration与countdown；816BB0在Client原生Render求值，不安装最终shader色",
+          "evidence": "816BB0：含默认FX色／seed79覆盖／duration>=0分支；docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "native_type": "KColor",
+          "wire": {
+            "kind": "nested",
+            "type": "KColor"
+          }
         },
         {
           "offset": 29292,
           "size": 20,
           "name": "water_target",
           "type": "KColor",
-          "category": "权威",
+          "category": "状态",
           "status": "已核",
-          "semantics": "水色插值端点；非各自独立最终画面；同步决定：只取816BB0实际最终KColor＋三乘色浮点；原四KColor不上线",
-          "evidence": "816BB0：含默认FX色／seed79覆盖／duration>=0分支",
-          "native_type": "KColor"
+          "semantics": "Q8水色过渡原生当前端点／duration与countdown；816BB0在Client原生Render求值，不安装最终shader色",
+          "evidence": "816BB0：含默认FX色／seed79覆盖／duration>=0分支；docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "native_type": "KColor",
+          "wire": {
+            "kind": "nested",
+            "type": "KColor"
+          }
         },
         {
           "offset": 29312,
           "size": 20,
           "name": "water_multiplier_target",
           "type": "KColor",
-          "category": "权威",
+          "category": "状态",
           "status": "已核",
-          "semantics": "水色插值端点；非各自独立最终画面；同步决定：只取816BB0实际最终KColor＋三乘色浮点；原四KColor不上线",
-          "evidence": "816BB0：含默认FX色／seed79覆盖／duration>=0分支",
-          "native_type": "KColor"
+          "semantics": "Q8水色过渡原生当前端点／duration与countdown；816BB0在Client原生Render求值，不安装最终shader色",
+          "evidence": "816BB0：含默认FX色／seed79覆盖／duration>=0分支；docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "native_type": "KColor",
+          "wire": {
+            "kind": "nested",
+            "type": "KColor"
+          }
         },
         {
           "offset": 29332,
           "size": 8,
           "name": "water_lerp_duration_countdown",
           "type": "i32[2]",
-          "category": "权威",
+          "category": "状态",
           "status": "已核",
-          "semantics": "duration<0使用FX色；0取目标；>0按clamp插值；同步决定：最终32B water shader投影；Client不计时，不调用颜色setter",
-          "evidence": "816BB0；7F7F60递减countdown"
+          "semantics": "Q8水色过渡原生当前端点／duration与countdown；816BB0在Client原生Render求值，不安装最终shader色",
+          "evidence": "816BB0；7F7F60递减countdown；docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "wire": {
+            "kind": "copy",
+            "type": "i32[2]"
+          }
         },
         {
           "offset": 29340,
@@ -1164,6 +1192,20 @@
           "fields": [
             "wave_sprite_present",
             "shockwave_overlay_sprite"
+          ]
+        },
+        {
+          "id": 13,
+          "name": "Q8水色端点／计时与两组冲击波当前值",
+          "sequence": "world",
+          "fields": [
+            "water_start",
+            "water_multiplier_start",
+            "water_target",
+            "water_multiplier_target",
+            "water_lerp_duration_countdown",
+            "shockwave_a",
+            "shockwave_b"
           ]
         }
       ],
@@ -6412,66 +6454,117 @@
           "size": 8,
           "name": "origin",
           "type": "Vector",
-          "category": "权威",
+          "category": "状态",
           "status": "已核",
-          "semantics": "本次波纹中心；同步决定：只发实际采用的最终pass输入；不以空值代替不适用",
-          "evidence": "7DFBCB..7DFC4D；7F7F60；804500波纹；8131D0",
-          "native_type": "Vector"
+          "semantics": "Q8冲击波当前origin；只安装Host当前值，不运行Room::Update",
+          "evidence": "7DFBCB..7DFC4D；7F7F60；804500波纹；8131D0；docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "native_type": "Vector",
+          "wire": {
+            "kind": "nested",
+            "type": "Vector"
+          }
         },
         {
           "offset": 8,
           "size": 4,
           "name": "radius",
           "type": "f32",
-          "category": "权威",
+          "category": "状态",
           "status": "已核",
-          "semantics": "推进参数与当前绘制计算混用；同步决定：只发最终半帧radius／包络／中心／pass资格；未用未来值不上线",
-          "evidence": "7DFBCB..7DFC4D；7F7F60；804500波纹；8131D0"
+          "semantics": "Q8冲击波当前radius；只安装Host当前值，不运行Room::Update",
+          "evidence": "7DFBCB..7DFC4D；7F7F60；804500波纹；8131D0；docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
         },
         {
           "offset": 12,
           "size": 4,
           "name": "strength",
           "type": "f32",
-          "category": "权威",
+          "category": "状态",
           "status": "已核",
-          "semantics": "推进参数与当前绘制计算混用；同步决定：只发最终半帧radius／包络／中心／pass资格；未用未来值不上线",
-          "evidence": "7DFBCB..7DFC4D；7F7F60；804500波纹；8131D0"
+          "semantics": "Q8冲击波当前strength；只安装Host当前值，不运行Room::Update",
+          "evidence": "7DFBCB..7DFC4D；7F7F60；804500波纹；8131D0；docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
         },
         {
           "offset": 16,
           "size": 4,
           "name": "speed",
           "type": "f32",
-          "category": "权威",
+          "category": "状态",
           "status": "已核",
-          "semantics": "推进参数与当前绘制计算混用；同步决定：只发最终半帧radius／包络／中心／pass资格；未用未来值不上线",
-          "evidence": "7DFBCB..7DFC4D；7F7F60；804500波纹；8131D0"
+          "semantics": "Q8冲击波当前speed；只安装Host当前值，不运行Room::Update",
+          "evidence": "7DFBCB..7DFC4D；7F7F60；804500波纹；8131D0；docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
         },
         {
           "offset": 20,
           "size": 4,
           "name": "current",
           "type": "i32",
-          "category": "权威",
+          "category": "状态",
           "status": "已核",
-          "semantics": "推进参数与当前绘制计算混用；同步决定：只发最终半帧radius／包络／中心／pass资格；未用未来值不上线",
-          "evidence": "7DFBCB..7DFC4D；7F7F60；804500波纹；8131D0"
+          "semantics": "Q8冲击波当前current；只安装Host当前值，不运行Room::Update",
+          "evidence": "7DFBCB..7DFC4D；7F7F60；804500波纹；8131D0；docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
         },
         {
           "offset": 24,
           "size": 4,
           "name": "maximum",
           "type": "i32",
-          "category": "权威",
+          "category": "状态",
           "status": "已核",
-          "semantics": "推进参数与当前绘制计算混用；同步决定：只发最终半帧radius／包络／中心／pass资格；未用未来值不上线",
-          "evidence": "7DFBCB..7DFC4D；7F7F60；804500波纹；8131D0"
+          "semantics": "Q8冲击波当前maximum；只安装Host当前值，不运行Room::Update",
+          "evidence": "7DFBCB..7DFC4D；7F7F60；804500波纹；8131D0；docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
         }
       ],
-      "blocks": [],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "Q8原生冲击波当前值",
+          "sequence": "world",
+          "fields": [
+            "origin",
+            "radius",
+            "strength",
+            "speed",
+            "current",
+            "maximum"
+          ]
+        }
+      ],
       "conversions": {},
-      "validators": {},
+      "validators": {
+        "radius": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "strength": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "speed": {
+          "kind": "finite",
+          "scalar": "f32"
+        }
+      },
       "members": [],
       "public_owners": [],
       "notes": " 原始静态证据保持；运行reader／writer尚待第10/13步接线。",
@@ -6574,13 +6667,37 @@
         },
         {
           "offset": 288,
-          "size": 8,
-          "name": "speed_and_accumulator",
-          "type": "f32[2]",
+          "size": 4,
+          "name": "scroll_speed",
+          "type": "f32",
           "category": "权威",
+          "semantics": "横移生产速度留Host；禁止为显示调用完整82EE90",
+          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "status": "已核"
+        },
+        {
+          "offset": 292,
+          "size": 4,
+          "name": "accumulated_offset",
+          "type": "f32",
+          "category": "换算",
+          "semantics": "Q8横移累计位移当前值；Client不推进",
+          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
           "status": "已核",
-          "semantics": "82EE90还用speed移动实体／累计下次offset；同步决定：留Host；禁止调用完整Update",
-          "evidence": "7DFFC4..7DFFE6；82E960/82EE90/82EFD0/82F210"
+          "wire": {
+            "kind": "convert",
+            "type": "f32",
+            "host": "room_hell_accumulated_offset_read",
+            "client": "room_hell_accumulated_offset_install",
+            "when": {
+              "field": "active",
+              "predicate": "roomhellbackdrop_active_present",
+              "test": {
+                "kind": "equal",
+                "value": 1
+              }
+            }
+          }
         }
       ],
       "blocks": [
@@ -6591,7 +6708,8 @@
           "fields": [
             "active",
             "sprite",
-            "display_offset"
+            "display_offset",
+            "accumulated_offset"
           ]
         }
       ],
@@ -6602,7 +6720,9 @@
         "room_hell_backdrop_sprite_read": "地狱背景实际资源、层与当前帧；同步决定：活动时保留实际资源／必要姿态；pass临时色／quad按明确绘制规则处理；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
         "room_hell_backdrop_sprite_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；地狱背景实际资源、层与当前帧；同步决定：活动时保留实际资源／必要姿态；pass临时色／quad按明确绘制规则处理；不调用Update／Init／Restore或写访客进度。",
         "room_hell_backdrop_display_offset_read": "当前横移位移，不按speed外推；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
-        "room_hell_backdrop_display_offset_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；当前横移位移，不按speed外推；不调用Update／Init／Restore或写访客进度。"
+        "room_hell_backdrop_display_offset_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；当前横移位移，不按speed外推；不调用Update／Init／Restore或写访客进度。",
+        "room_hell_accumulated_offset_read": "仅active时读取RoomHellBackdrop+124当前有限f32；不执行Update或读取未初始化inactive值",
+        "room_hell_accumulated_offset_install": "仅active时写+124当前值；不运行横移生产、实体移动或随机"
       },
       "validators": {
         "active": {
@@ -6612,6 +6732,10 @@
           "max": 1
         },
         "display_offset": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "accumulated_offset": {
           "kind": "finite",
           "scalar": "f32"
         }

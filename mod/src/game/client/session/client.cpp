@@ -1,13 +1,16 @@
 #include "game/tests/client_entity_e2e.h"
 #include "game/client/session/client.h"
 #include "game/client/scene/client_scene.h"
-#include "game/client/resources/client_resources.h"
-#include "game/client/entity/client_entity_draw_native.h"
+#include "game/client/scene/client_binary_scene.h"
+#include "game/client/player/client_player_control.h"
+#include "state/client_memory.h"
+#include "game/client/display/client_display_bridge.h"
 #include "game/client/isolation/client_player_isolation.h"
 #include "game/client/isolation/client_isolation.h"
 #include "replica/stream_e2e.h"
 #include "binding/offsets.h"
 #include "game/common/context.h"
+#include "game/common/display_paths.h"
 #include "game/input/input_a.h"
 #include "game/authority/tick.h"
 #include "game/participants/topology.h"
@@ -24,7 +27,7 @@
 
 namespace cs::game {
 namespace {
-enum class State { Off, Connecting, AwaitingWorld, PreparingWorld, Recovering, Retiring, Failed };
+enum class State { Off, Connecting, AwaitingWorld, PreparingWorld, Retiring, Failed };
 constexpr const char *kIsolationOriginals[]={"start_game","game_update","room_update","entity_list","odd_helper","restore","post_update","player_update","join_pass"};
 // 输入目标只投影到预计抵达服务器的时刻；不推进本地/Authority时钟，不放行过期命令。
 // 速率由服务器实际提交tick与同机单调时间的差值建立；暂停/换代立即丢弃旧估计。
@@ -68,17 +71,15 @@ struct ClientRuntime final {
   ClientApplyResult first_scene_failure{},cleanup_failure{};
   std::vector<ClientOwnerFact> first_owners;
   bool owner_diagnostics_missing=false;
-  bool have_scene_failure=false,terminal_frozen=false,recovery_requested=false,recovery_succeeded=false,stale=false,was_paused=false;
+  bool have_scene_failure=false,terminal_frozen=false,stale=false,was_paused=false;
 #ifdef ISAACCS_E2E
   bool visual_held=false;
 #endif
-  unsigned native_rebuilds=0,recoveries=0;
-  std::uint64_t recovery_started=0,recovery_sequence=0,failed_revision=0,stale_origin=0;
-  replica::Scope recovery_scope{};
-  std::uint64_t recovery_route=0;
-  std::string recovery_reason,stop_reason;
+  std::uint64_t stale_origin=0;
+  std::string stop_reason;
 
   ClientScene scene;
+  std::unique_ptr<ClientBinaryScene> binary;
   State state=State::Connecting;
   replica::Scope scope{};
   net::protocol::Ack progress{};
@@ -99,11 +100,10 @@ struct ClientRuntime final {
   unsigned held=0;
   bool baseline=false, eligible=false, sampled_this_loop=false, blocked=true;
   bool physical_neutral=false;
-  bool focused=false,ui_blocked=false,input_ready=false,fixture=false;
+  bool focused=false,ui_blocked=false,input_ready=false;
   InputTiming timing;
   ClientPlayerControlView control;
   unsigned neutral_loops=0;
-  unsigned fixture_cancel_stage=0;
   void *source=nullptr;
   std::string address, error;
   // I3 纯值分派诊断独立于观察记录，供最终整体验收区分预期跳过与漏链。
@@ -122,6 +122,9 @@ std::uint64_t connections=0;
 std::uint64_t ui_seen_ms=0,ui_frames=0;
 thread_local unsigned client_depth=0;
 thread_local ClientBorrowToken render_observation{};
+thread_local ClientBorrowToken native_render_graphics{};
+thread_local std::optional<ClientDispatchScope> native_render_dispatch;
+thread_local bool native_render_routed=false;
 // I3 的单根原生用途帧仅在主线程存放；每帧票据阻止连接/scene 提前回收。
 struct ClientDispatchFrame final {
   ClientScene *scene=nullptr;
@@ -132,6 +135,7 @@ struct ClientDispatchFrame final {
   Owner owner=Owner::None;
   std::uint64_t id=0,owner_token=0,expected=0;
   bool called=false,returned=false,fault=false;
+  std::array<unsigned,unsigned(ClientEntry::Count)> nested{};
 };
 thread_local ClientDispatchFrame dispatch_frame{};
 std::uint64_t next_dispatch_frame=0;
@@ -148,7 +152,10 @@ constexpr const char *kClientEntryNames[]={
   "game_update","post_update","room_update","entity_list","player_update",
   "odd_helper","lifecycle_fsm","door_update","door_nested","new_room",
   "room_init","game_render","room_prerender","room_render","render_sort","game_start",
-  "native_build","native_apply","native_teardown","presentation_maintenance","presentation_draw","menu_render","backdrop_effects"};
+  "native_build","native_apply","native_teardown","presentation_maintenance","presentation_draw","menu_render","backdrop_effects",
+  "display_hud_update","display_hud_post","display_minimap_update","display_minimap_refresh","display_sort","display_fx",
+  "display_background","display_transition","display_camera","display_sfx_refresh","display_music","display_sfx_replay","display_cursor","transition_change_room","binary_native_preparation","binary_native_atomic_install"};
+static_assert(std::size(kClientEntryNames)==unsigned(ClientEntry::Count));
 void CountDispatch(ClientRuntime &c,ClientEntry entry,ClientEntryDecision decision) noexcept {
   const auto index=unsigned(entry);
   if(index>=c.dispatch_original.size())return;
@@ -164,6 +171,14 @@ void CountDispatch(ClientRuntime &c,ClientEntry entry,ClientEntryDecision decisi
 bool DispatchRootAllowed(ClientOperation operation,ClientEntry root,
                          ClientSceneState state,Owner owner) noexcept {
   switch(operation){
+    case ClientOperation::BinaryInstall:
+    case ClientOperation::BinaryInstallRetire:
+      return owner==Owner::Manager&&root==ClientEntry::NativeAtomicInstall&&
+        ClientBinaryInstallationScopeActive(operation==ClientOperation::BinaryInstallRetire);
+    case ClientOperation::BinaryPreparation:
+    case ClientOperation::BinaryPreparationRetire:
+      return owner==Owner::Manager&&root==ClientEntry::NativePreparation&&
+        ClientBinaryPreparationScopeActive(operation==ClientOperation::BinaryPreparationRetire);
     case ClientOperation::Build:
       return state==ClientSceneState::Preparing&&owner==Owner::Manager&&
           root==ClientEntry::NativeBuild;
@@ -171,7 +186,7 @@ bool DispatchRootAllowed(ClientOperation operation,ClientEntry root,
       return state==ClientSceneState::Applying&&owner==Owner::Manager&&
           root==ClientEntry::NativeApply;
     case ClientOperation::PresentMaintenance:
-      return state==ClientSceneState::Applying&&owner==Owner::Manager&&
+      return (state==ClientSceneState::Applying||state==ClientSceneState::Displaying)&&owner==Owner::Manager&&
           root==ClientEntry::PresentationMaintenance;
     case ClientOperation::PresentDraw:
       return state==ClientSceneState::Displaying&&owner==Owner::Render&&
@@ -200,42 +215,21 @@ void Failure(ClientRuntime &c,const char *reason) noexcept {
   if(c.terminal_frozen)return;
   ClientIsolationObserve(ClientIsolationKind::Fault,reason);
   RememberFailure(c);
-  c.terminal_frozen=true;c.scene.CancelRecovery();
+  c.terminal_frozen=true;
   Neutral(c,true);c.network.RevokeInput();c.input_ready=false;c.timing={};c.progress={};
   c.prepare.reset();c.retire_control.reset();c.state=State::Retiring;c.neutral_loops=0;
   try {if(c.error.empty())c.error=reason;c.stop_reason=reason;}catch(...){}
+  if(c.binary)c.binary->Close();
   c.scene.Retire(reason);c.network.Stop();
   Trace("client","event=failed_retiring connection=%llu reason=%s",c.connection,reason);
-}
-// 只使用既有完整退休步骤；没有安全owner时保留隔离，不盲目重建旧T。
-void Recover(ClientRuntime &c,const char *reason) noexcept {
-  if(c.terminal_frozen||c.state==State::Recovering)return;
-  ClientIsolationObserve(ClientIsolationKind::Recover,reason);
-  const auto result=c.scene.Result();
-  const bool written=c.scene.NetworkStream()?c.scene.StreamFailureWritten():(!c.scene.DisplayReady()&&(result.native_written||result.failure_executed_prefix||c.scene.HasNativePrefix()));
-  const auto policy=replica::stream::ClassifyFailure(reason,written,!c.scene.StreamRecoverable());
-  RememberFailure(c);
-  if(!policy.recoverable||(written&&c.native_rebuilds>=1)){Failure(c,written?"native_recovery_exhausted_or_unsafe":reason);return;}
-  if(written)++c.native_rebuilds;
-  try {
-    if(c.error.empty())c.error=reason;
-    c.recovery_reason=(written?"native:":"state:")+std::string(reason);
-    if(c.recovery_reason.size()>120)c.recovery_reason.resize(120);
-  }catch(...){Failure(c,"recovery_reason_allocation");return;}
-  ++c.recoveries;if(!c.recovery_started||c.recovery_succeeded)c.recovery_started=GetTickCount64();c.recovery_requested=false;c.recovery_succeeded=false;
-  c.recovery_scope=c.scope;c.recovery_route=c.route;c.failed_revision=result.revision;
-  Neutral(c,true);c.network.RevokeInput();c.input_ready=false;c.timing={};c.progress={};c.prepare.reset();
-  if(!c.network.SuspendWorld()){Failure(c,"recovery_suspend_queue");return;}
-  c.state=State::Recovering;c.scene.Retire("stream_failure_safe_retirement");
 }
 void SceneFailure(ClientRuntime &c) noexcept {
   if(c.scene.RetirementFault()){
     RememberFailure(c);c.cleanup_failure=c.scene.Result();
     Failure(c,"native_retirement_failed");c.state=State::Failed;return;
   }
-  if(c.scene.State()!=ClientSceneState::Failed||c.state==State::Retiring||c.state==State::Failed)return;
-  if(!c.fixture&&c.route>1)Recover(c,c.scene.Result().failure_reason[0]?c.scene.Result().failure_reason.data():c.scene.Result().reason.data());
-  else if(!c.scene.RecoveryPending())Failure(c,c.scene.Result().reason.data());
+  if(c.scene.State()==ClientSceneState::Failed&&c.state!=State::Retiring&&c.state!=State::Failed)
+    Failure(c,c.scene.Result().reason.data());
 }
 bool Focused() noexcept {
   auto window=GetForegroundWindow();DWORD pid=0;
@@ -261,7 +255,7 @@ const char *ClientStartUnavailable() noexcept {
   ClientGuardLuaBindings();
   if(!ClientLuaGuardReady())return "lua_persistence_guard_unavailable";
   if(!ClientDispatchIsolationInstalled())return "client_dispatch_isolation_unavailable";
-  if(!ClientEntityInitIsolationInstalled()||!ClientEntityDrawIsolationInstalled())return "client_entity_isolation_unavailable";
+  if(!ClientEntityInitIsolationInstalled())return "client_entity_isolation_unavailable";
   if(!ClientPlayerIsolationInstalled())return "client_player_isolation_unavailable";
   if(connections==UINT64_MAX)return "connection_exhausted";
   return "";
@@ -273,22 +267,13 @@ ClientIsolationIdentity ClientIsolationCurrent() noexcept {
  if(!IsMain()||!client)return {};const auto &g=client->scene.Generations();
  return {client->connection,client->scope.connection,client->route,g.scene,g.instance,g.resource,g.lua,g.context,unsigned(client->scene.State())};
 }
-bool ClientPlayerBorrowAllowed() noexcept {
-  return IsMain()&&ClientBusy()&&client&&(client->scene.State()==ClientSceneState::Applying||client->scene.DisplayReady());
-}
-std::shared_ptr<const ClientPlayerDisplayView> ClientPlayerDisplay() noexcept {
-  return IsMain()&&ClientBusy()&&client?client->scene.PlayerDisplay():nullptr;
-}
-bool ClientPlayerDisplayCurrent(const std::shared_ptr<const ClientPlayerDisplayView> &view) noexcept {
-  return IsMain()&&ClientBusy()&&client&&client->scene.PlayerDisplayCurrent(view);
-}
 // 检查真实 trampoline，不能拿清单行或能力组存在冒充已经安装。
 bool ClientDispatchIsolationInstalled() noexcept {
   if(!IsMain()||!Capabilities[size_t(Group::Client)]||!ClientCallbackGuardReady())return false;
   static constexpr const char *required[]={"client_game_update","client_post_update",
     "client_room_update","client_entity_list","client_player_update","client_odd_helper",
     "client_room_lifecycle","client_door_update","client_door_nested","client_new_room",
-    "room_init","game_render","room_prerender","room_render","entitylist_render_sort","client_game_start","client_menu_render","client_backdrop_effects","client_backdrop_wall","client_backdrop_graphics"};
+    "room_init","game_render","room_prerender","room_render","entitylist_render_sort","client_game_start","client_entity_draw_paused","client_entity_draw_projectile","client_backdrop_effects","client_backdrop_wall","client_backdrop_graphics"};
   size_t count=0;auto hooks=Hooks(count);
   for(const char *id:required){
     bool installed=false;
@@ -387,11 +372,21 @@ ClientEntryDecision ClientDispatchBefore(ClientEntry entry) noexcept {
         frame.fault=true;Failure(*client,"client_dispatch_borrow_invalid");
         return decide(ClientEntryDecision::FaultSkip);
       }
-      if(!frame.scene->NoteNativeDispatchEntry()){
+      // 私有准备前缀归二进制 owner，不挂到旧 JSON 世界的退休位。
+      if(frame.operation!=ClientOperation::BinaryPreparation&&frame.operation!=ClientOperation::BinaryPreparationRetire&&
+         frame.operation!=ClientOperation::BinaryInstall&&frame.operation!=ClientOperation::BinaryInstallRetire&&
+         !frame.scene->NoteNativeDispatchEntry()){
         frame.fault=true;Failure(*client,"client_dispatch_prefix_budget");return decide(ClientEntryDecision::FaultSkip);
       }
       frame.called=true;return decide(ClientEntryDecision::CallOriginal);
     }
+    // 原生显示树只允许明确登记的显示入口；玩法Update仍走原先ExpectedSkip／拒绝。
+    const bool display_entry=NativeDisplayPath(entry);
+    if(frame.called&&!frame.returned&&!frame.fault&&display_entry&&ClientNativeDisplayCallbacks()){
+      if(frame.nested[unsigned(entry)]++){frame.fault=true;Failure(*client,"client_display_entry_reentrant");return decide(ClientEntryDecision::FaultSkip);}
+      return decide(ClientEntryDecision::CallOriginal);
+    }
+    if(entry==ClientEntry::TransitionChangeRoom)return decide(ClientEntryDecision::ExpectedSkip);
     if(frame.called&&!frame.returned&&(frame.expected&EntryBit(entry))&&
        !frame.fault)return decide(ClientEntryDecision::ExpectedSkip);
     frame.fault=true;
@@ -402,6 +397,14 @@ ClientEntryDecision ClientDispatchBefore(ClientEntry entry) noexcept {
 void ClientDispatchReturned(ClientEntry entry) noexcept {
   if(!ClientBusy())return;
   if(!IsMain()){foreign_client.store(true,std::memory_order_release);return;}
+  if(client&&dispatch_frame.id&&entry!=dispatch_frame.root&&unsigned(entry)<dispatch_frame.nested.size()&&
+     dispatch_frame.nested[unsigned(entry)]==1&&!dispatch_frame.fault&&ContextHealthy()&&
+     dispatch_frame.scene==&client->scene&&dispatch_frame.called&&!dispatch_frame.returned&&
+     dispatch_frame.scene->Valid(dispatch_frame.borrow)&&dispatch_frame.scene->State()==dispatch_frame.state&&
+     dispatch_frame.borrow.generations==client->scene.Generations()&&OwnerToken(dispatch_frame.owner)==dispatch_frame.owner_token){
+    dispatch_frame.nested[unsigned(entry)]=0;
+    ClientIsolationObserve(ClientIsolationKind::NativeReturn,kClientEntryNames[unsigned(entry)]);return;
+  }
   if(!client||!dispatch_frame.id||dispatch_frame.root!=entry||
      dispatch_frame.scene!=&client->scene||!dispatch_frame.called||dispatch_frame.returned||
      dispatch_frame.fault||!ContextHealthy()||
@@ -410,6 +413,8 @@ void ClientDispatchReturned(ClientEntry entry) noexcept {
      client->scene.State()!=dispatch_frame.state){
     if(client)Failure(*client,"client_dispatch_return_mismatch");return;
   }
+  if(std::any_of(dispatch_frame.nested.begin(),dispatch_frame.nested.end(),[](unsigned n){return n!=0;})){
+    dispatch_frame.fault=true;Failure(*client,"client_display_nested_incomplete");return;}
   dispatch_frame.returned=true;
   ClientIsolationObserve(ClientIsolationKind::NativeReturn,kClientEntryNames[unsigned(entry)]);
 }
@@ -417,21 +422,25 @@ const char *ClientStateName() noexcept {
   if(!client)return "Off";
   switch(client->state) {
     case State::Off:return "Off";case State::Connecting:return "Connecting";
-    case State::AwaitingWorld:return "AwaitingWorld";case State::PreparingWorld:return "PreparingWorld";case State::Recovering:return "Recovering";case State::Retiring:return "Retiring";
+    case State::AwaitingWorld:return "AwaitingWorld";case State::PreparingWorld:return "PreparingWorld";case State::Retiring:return "Retiring";
     case State::Failed:return "Failed";
   }
   return "Failed";
 }
 const char *StartClient(const std::string &ipv4,unsigned port,int device_key) noexcept {
   const auto unavailable=ClientStartUnavailable();if(*unavailable)return unavailable;
+  if(!BinaryDisplayCaptureHooksInstalled()||!ClientDisplayPatchInstalled())return "client_binary_display_hooks_unavailable";
   if(!ui_seen_ms||GetTickCount64()-ui_seen_ms>1000)return "client_ui_unavailable";
   if(port<1||port>65535||device_key<0||device_key>255)return "arguments";
   try {
     auto next=std::make_unique<ClientRuntime>();next->connection=++connections;
     next->address=ipv4;next->device_key=device_key;next->config=Settings.stream;
-    const auto error=next->network.Start(ipv4,std::uint16_t(port),Settings.peer_timeout_ms,next->config);
+    const auto memory=state::ClientStateMemory::Create();
+    next->binary=std::make_unique<ClientBinaryScene>(next->scene,next->network,memory);
+    const auto error=next->network.Start(ipv4,std::uint16_t(port),Settings.peer_timeout_ms,next->config,
+      ClientBinaryScene::Preparation(),memory);
     if(*error)return error;
-    // 真实网络Client同样冻结原调用起点；不能只给离线fixture提供隔离见证。
+    // 连接开始时冻结原生调用计数起点。
     size_t count=0;auto hooks=Hooks(count);
     for(unsigned j=0;j<next->original_begin.size();++j)for(size_t i=0;i<count;++i)
       if(std::strcmp(hooks[i]->id,kIsolationOriginals[j])==0)next->original_begin[j]=hooks[i]->calls.load();
@@ -443,56 +452,16 @@ const char *StartClient(const std::string &ipv4,unsigned port,int device_key) no
   } catch(...) {return "client_allocation";}
 }
 #ifdef ISAACCS_E2E
-// 只从真实已提交网络范围派生负向纯值，不使用本地文件或替代Client。
-std::string ClientTestStreamReject(const std::string &token,unsigned tx,const std::string &name) noexcept {
- if(!IsMain()||TopOwner()!=Owner::Manager||Settings.world_e2e_token.empty()||token!=Settings.world_e2e_token||!client||client->fixture||!client->scene.NetworkStream())return "ok=0\nerror=network_negative_context\n";
- return client->scene.TestStreamReject(tx,name);
-}
-// 使用本机收到的Authority锚点推算年龄，误差显式包含RTT与发布年龄。
-void ClientStreamAgeWitness(std::uint64_t source_tick) noexcept {
- if(!IsMain()||!client||!client->timing.received_ms)return;const auto now=GetTickCount64();const auto &t=client->timing;
- replica::stream::E2EAge(client->progress.server_tick,source_tick,now>=t.received_ms?now-t.received_ms:0,t.round_trip_ms+t.publication_age_ms+t.timing_uncertainty_ms,client->stale);
-}
-// 只读后态借用仍由Scene唯一提交资格决定，不用DTO取代原生检查。
-std::string ClientTestInspect(const std::string &token) noexcept {
-  if(!IsMain()||TopOwner()!=Owner::Manager||Settings.world_e2e_token.empty()||token!=Settings.world_e2e_token||!client||(!client->fixture&&!client->scene.NetworkStream()))return "ok=0\nerror=inspect_context\n";
-  return client->scene.TestInspect();
-}
-// 测试会话只替换目标来源；启动保护、原生应用、失败隔离及退休仍走同一正式 owner。
-const char *ClientTestBegin(const std::string &token,const replica::Scope &scope) noexcept {
-  if(Settings.world_e2e_token.empty()||token!=Settings.world_e2e_token)return "client_test_disabled";
-  const auto unavailable=ClientStartUnavailable();if(*unavailable)return unavailable;
-  if(!scope.session||!scope.connection||!scope.run||!scope.scene)return "formal_scope_required";
-  try {
-    auto next=std::make_unique<ClientRuntime>();next->connection=++connections;
-    next->fixture=true;next->address="e2e_value_fixture";next->scope=scope;
-    next->scope.run=next->scope.floor=next->scope.dimension=next->scope.room=next->scope.scene=0;
-    next->state=State::AwaitingWorld;next->scene.Begin(next->scope);
-    if(next->scene.State()==ClientSceneState::Failed)return "client_scene_begin_failed";
-    size_t count=0;auto hooks=Hooks(count);
-    for(unsigned j=0;j<next->original_begin.size();++j)for(size_t i=0;i<count;++i)
-      if(std::strcmp(hooks[i]->id,kIsolationOriginals[j])==0)next->original_begin[j]=hooks[i]->calls.load();
-    ForgetInputDevice();client=std::move(next);foreign_client=false;
-    client_active.store(true,std::memory_order_release);
-    Trace("client","event=fixture_begin connection=%llu source=e2e_value_fixture session=%llu wire_connection=%llu",connections,scope.session,scope.connection);
-    return "";
-  }catch(...){return "client_allocation";}
-}
-// 在真实Manager阶段边界取消，避免IPC轮询跳过短暂阶段；只调用正式StopClient。
-bool ClientTestCancelAfter(const std::string &token,unsigned stage) noexcept {
-  if(!IsMain()||TopOwner()!=Owner::Manager||Settings.world_e2e_token.empty()||token!=Settings.world_e2e_token||!client||!client->fixture||stage<1||stage>3)return false;
-  client->fixture_cancel_stage=stage;return true;
-}
-// 目标在 Manager 上复制为自有值；测试 token 不授予任意地址或额外 native 写入权限。
 // 统一实机验收在已发布真实场景检验owner拒绝；worker只携带自有纯值模型。
 std::string ClientTestExerciseOwnership(const std::string &token) noexcept {
   if(!IsMain()||TopOwner()!=Owner::Manager||Settings.world_e2e_token.empty()||token!=Settings.world_e2e_token||
-     !ClientBusy()||!client||(!client->fixture&&!client->scene.NetworkStream())||!client->scene.DisplayReady())return "ok=0\nerror=client_ownership_context\n";
+     !ClientBusy()||!client||!client->scene.DisplayReady())return "ok=0\nerror=client_ownership_context\n";
   try {
-    auto values=replica::Copy(*client->scene.Published());const auto scope=replica::ReadScope(values["scope"]);
-    const auto revision=replica::Unsigned(values["revision"]);bool accepted=true;
-    std::thread foreign([model=std::move(values),scope,revision,&accepted]{accepted=ClientAdmitTarget(scope,revision,model);});
-    foreign.join();if(accepted)return "ok=0\nerror=foreign_target_accepted\n";
+    bool accepted=true;
+    std::thread foreign([&]{ClientBorrowToken token;accepted=client->scene.Borrow(ClientPurpose::Graphics,token);});
+    foreign.join();
+    if(accepted)return "ok=0\nerror=foreign_graphics_borrow_accepted\n";
+    client->scene.ConsumeForeignFault();
     ClientBorrowToken borrowed{};
     if(!client->scene.Borrow(ClientPurpose::Graphics,borrowed)||!client->scene.Valid(borrowed))return "ok=0\nerror=graphics_borrow_missing\n";
     const auto stale=borrowed;client->scene.Release(borrowed);
@@ -509,7 +478,7 @@ std::string ClientTestExerciseOwnership(const std::string &token) noexcept {
 }
 // VM不匹配是终止当前场景的故障，单独编排并由正式退休/重建恢复。
 std::string ClientTestExerciseVm(const std::string &token) noexcept {
-  if(!IsMain()||TopOwner()!=Owner::Manager||Settings.world_e2e_token.empty()||token!=Settings.world_e2e_token||!client||(!client->fixture&&!client->scene.NetworkStream())||!client->scene.DisplayReady())return "ok=0\nerror=vm_exercise_context\n";
+  if(!IsMain()||TopOwner()!=Owner::Manager||Settings.world_e2e_token.empty()||token!=Settings.world_e2e_token||!client||!client->scene.DisplayReady())return "ok=0\nerror=vm_exercise_context\n";
   try {
     // 用真实独立Lua VM制造身份不匹配；保留游戏原根，并在同一栈释放旧借用和临时VM。
     void *vm=ClientTestCreateVm();if(!vm)return "ok=0\nerror=temporary_vm_allocation\n";
@@ -522,54 +491,14 @@ std::string ClientTestExerciseVm(const std::string &token) noexcept {
   }catch(...){return "ok=0\nerror=vm_exercise_exception\n";}
 }
 #endif
-bool ClientAdmitTarget(const replica::Scope &scope,std::uint64_t revision,const replica::Value &value) noexcept {
-  ClientEntityTestMeasure measure("target_parse_plan");
-  if(!IsMain()||TopOwner()!=Owner::Manager||client_depth||!ClientBusy()||!client||
-     (client->state!=State::AwaitingWorld&&!(client->fixture&&client->state==State::Failed)))return false;
-  const bool admitted=client->scene.AdmitTarget(scope,revision,value);
-  if(admitted){
-    Neutral(*client,true);client->input_ready=false;
-    // 测试来源可交付新的完整T进行正式恢复；真实断连不借此恢复已停止的网络线程。
-    if(client->fixture){client->state=State::AwaitingWorld;client->error.clear();}
-  }
-  return admitted;
-}
 void StopClient() noexcept {
   if(!IsMain()||!ClientBusy())return;
   if(client->terminal_frozen||client->state==State::Retiring)return;
+  if(client->binary)client->binary->Close();
   ClientIsolationObserve(ClientIsolationKind::Stop,"client_stop");
   client->terminal_frozen=true;client->stop_reason="client_stop";
   Neutral(*client,true);client->network.RevokeInput();client->input_ready=false;client->timing={};client->progress={};client->prepare.reset();client->retire_control.reset();client->state=State::Retiring;client->scene.Retire("client_stop");client->neutral_loops=0;client->network.Stop();
   Trace("client","event=retiring connection=%llu",client->connection);
-}
-bool ClientAdmitGridIndependent(const replica::Message &message,const char *&reason) noexcept {
-  if(!IsMain()||!client||!ClientBusy()||client_depth){reason="grid_independent_client_unavailable";return false;}
-  return client->scene.AdmitGridIndependent(message,reason);
-}
-bool ClientVisitGridIndependent(void *context,ClientGridIndependentVisitor visitor) noexcept {
-  return IsMain()&&client&&ClientBusy()&&client->scene.VisitGridIndependent(context,visitor);
-}
-bool ClientCompleteGridIndependent(std::uint64_t sequence,std::uint64_t scope,const char *phase) noexcept {
-  return IsMain()&&client&&ClientBusy()&&client->scene.CompleteGridIndependent(sequence,scope,phase);
-}
-bool ClientAdmitEntityIndependent(const replica::Message &message,const char *&reason) noexcept {
-  if(!IsMain()||!client||!ClientBusy()||client_depth){reason="entity_independent_client_unavailable";return false;}
-  return client->scene.AdmitEntityIndependent(message,reason);
-}
-bool ClientVisitEntityIndependent(void *context,ClientEntityEvents::Visitor visitor) noexcept {
-  return IsMain()&&client&&ClientBusy()&&client->scene.VisitEntityIndependent(context,visitor);
-}
-bool ClientCompleteEntityIndependent(replica::Kind kind,std::uint64_t sequence,std::uint64_t source,const char *phase) noexcept {
-  return IsMain()&&client&&ClientBusy()&&client->scene.CompleteEntityIndependent(kind,sequence,source,phase);
-}
-// 主线程再次确认当前路由；仅交付自有值，不改变Scene或Authority时钟。
-bool ClientPollWorld(net::live::Event &event) noexcept {
-  if(!IsMain()||!client||client->fixture||client->state!=State::AwaitingWorld)return false;
-  for(unsigned n=0;n<72&&client->network.PollWorld(event);++n){
-    if(event.scope==client->scope&&event.route==client->route&&event.ordinal==client->ordinal)return true;
-    event={};
-  }
-  return false;
 }
 // 该入口在FrameScope之后、完整Manager原链之前；从不推进Authority时钟。
 bool ClientManagerBoundary() noexcept {
@@ -584,20 +513,15 @@ bool ClientManagerBoundary() noexcept {
     SceneFailure(c);
     c.scene.Pump();
 #ifdef ISAACCS_E2E
-    if(!c.fixture&&c.scene.State()==ClientSceneState::Retiring){const auto r=c.scene.Result();
+    if(c.scene.State()==ClientSceneState::Retiring){const auto r=c.scene.Result();
       replica::stream::E2EStreamProgress("client-boundary-retiring",{r.revision,0,unsigned(c.state),r.executed_prefix,0,GetTickCount64(),0,0});}
 #endif
-    if(c.fixture_cancel_stage){const auto r=c.scene.Result();const auto stage=c.fixture_cancel_stage;
-      if((stage==1&&r.native_written)||(stage==2&&r.grid_prefix)||(stage==3&&c.scene.DisplayReady())){
-        c.fixture_cancel_stage=0;StopClient();
-      }
-    }
     c.scene.DrainRetained();
     SceneFailure(c);
     if(foreign_client.exchange(false))Failure(c,"client_foreign_manager");
     ++c.manager_skipped;
     net::live::Event event;
-    for(unsigned i=0;!c.fixture&&i<256&&c.network.Poll(event);++i) {
+    for(unsigned i=0;i<256&&c.network.Poll(event);++i) {
       if(c.terminal_frozen)continue;
       switch(event.type) {
         case net::live::Event::Type::Welcome:
@@ -626,59 +550,51 @@ bool ClientManagerBoundary() noexcept {
             c.input_ack=event.progress.processed;c.input_ack_tick=event.progress.processed_tick;
           }
           break;
-        case net::live::Event::Type::World:
         case net::live::Event::Type::Control:Failure(c,"client_world_on_notification_queue");break;
         case net::live::Event::Type::Stopped:if(!c.terminal_frozen)Failure(c,event.reason);break;
         case net::live::Event::Type::Failed:if(!c.terminal_frozen)Failure(c,event.reason);break;
       }
     }
-    // 产品世界只从网络自有值进入唯一Scene；文件/fixture入口不参与此路径。
-    for(unsigned n=0;!c.fixture&&(c.state==State::AwaitingWorld||c.state==State::PreparingWorld||c.state==State::Recovering)&&n<16&&c.network.PollWorld(event);++n){
+    // 控制信封只准备和退休路由，世界批次由二进制邮箱交给原生协调器。
+    for(unsigned n=0;(c.state==State::AwaitingWorld||c.state==State::PreparingWorld)&&n<16&&c.network.PollWorld(event);++n){
       if(event.type==net::live::Event::Type::Prepared){
         if(c.state!=State::PreparingWorld||!c.prepare||!c.prepare_sent||!c.scene.CanReturnToMenu()||!event.world){Failure(c,"client_prepare_activation_state");break;}
         const auto &p=c.prepare->world->body;if(event.route!=replica::Unsigned(p["next_route"])||event.scope!=replica::stream::Connected({replica::Unsigned(p["world"]["session"]),replica::Unsigned(p["world"]["run"]),replica::Unsigned(p["world"]["floor"]),replica::Unsigned(p["world"]["dimension"]),replica::Unsigned(p["world"]["room"]),replica::Unsigned(p["world"]["scene"])},c.scope.connection)){Failure(c,"client_prepare_activation_identity");break;}
         Neutral(c,true);c.network.RevokeInput();c.input_ready=false;c.timing={};c.progress={};c.generation=0;c.control={};c.last_tick=c.last_target=0;c.scope=event.scope;c.route=event.route;c.scene.Begin(c.scope);
-        if(c.scene.State()==ClientSceneState::Failed||!c.scene.BeginStream(c.scope,c.route,replica::Unsigned(p["manifest"]),replica::Unsigned(p["generation"]),c.config,c.prepare->received_ms)){Failure(c,"client_stream_begin");break;}
+        const auto &scope=c.scope;
+        const bool opened=c.scene.State()!=ClientSceneState::Failed&&c.binary&&
+            c.binary->Open({scope.connection,c.route,{scope.session,scope.run,scope.floor,scope.dimension,scope.room,scope.scene}});
+        if(!opened){Failure(c,"client_stream_begin");break;}
         c.prepare.reset();c.prepare_sent=false;c.state=State::AwaitingWorld;continue;
       }
       if(event.scope!=c.scope||event.route!=c.route||event.ordinal!=c.ordinal||!event.world)continue;
       const auto &m=*event.world;
       if(m.kind==replica::stream::Kind::ScenePrepare){
-        const auto &p=m.body;if(replica::Unsigned(p["world"]["session"])!=c.scope.session||replica::Unsigned(p["next_route"])!=c.route+1||replica::Unsigned(p["native_domains"])!=71||replica::Unsigned(p["retained_domains"])!=(2047u^71u)){Failure(c,"client_prepare_route_or_native_contract");break;}
+        const auto &p=m.body;
+        if(replica::Unsigned(p["world"]["session"])!=c.scope.session||replica::Unsigned(p["next_route"])!=c.route+1||
+           replica::Unsigned(p["native_domains"])!=2047||replica::Unsigned(p["retained_domains"])||!c.binary){
+          Failure(c,"client_prepare_route_or_native_contract");break;
+        }
         if(c.prepare){if(c.prepare->world->sequence!=m.sequence||c.prepare->world->body!=m.body)Failure(c,"client_prepare_conflict");continue;}
         Neutral(c,true);c.network.RevokeInput();c.input_ready=false;c.timing={};c.progress={};c.prepare=event;c.prepare_sent=false;c.prepare_progress={};c.state=State::PreparingWorld;
+        if(c.binary)c.binary->Close(replica::Unsigned(p["world"]["run"])==c.scope.run);
         if(!c.scene.CanReturnToMenu())c.scene.Retire("network_scene_prepare");
       }else if(m.kind==replica::stream::Kind::Retire){
+        if(c.binary)c.binary->Close(m.body.HasMember("reason")&&std::string_view(m.body["reason"].GetString())=="binary_scope_changed");
         Neutral(c,true);c.network.RevokeInput();c.input_ready=false;c.timing={};c.progress={};c.prepare.reset();c.retire_control=event;c.prepare_progress={};c.state=State::PreparingWorld;c.scene.Retire("network_source_retired");
-      }else if(m.kind==replica::stream::Kind::Range&&c.state==State::AwaitingWorld){const char *why="client_stream_admission";if(GetTickCount64()>=event.received_ms)c.scene.ObserveStreamQueueAge((GetTickCount64()-event.received_ms)*1000);if(!c.scene.AdmitStream(m,why)){Recover(c,why);break;}}
-      // 准备/退休期间的旧路由在途范围只撤销，不重建stream、不制造第二个失败首因。
-      else if(m.kind!=replica::stream::Kind::Cancel&&!(m.kind==replica::stream::Kind::Range&&(c.state==State::Recovering||c.state==State::PreparingWorld))){Failure(c,"client_stream_control_kind");break;}
+      }else if(m.kind!=replica::stream::Kind::Cancel){Failure(c,"client_stream_control_kind");break;}
     }
-    if(!c.fixture&&(c.prepare||c.retire_control)&&!c.scene.CanReturnToMenu()){
+    if(c.binary)c.binary->Pump();
+    if((c.prepare||c.retire_control)&&!c.scene.CanReturnToMenu()){
       const auto r=c.scene.Result();const std::array<std::uint64_t,6> step{r.attempt,r.executed_prefix,r.native_owners,r.grid_prefix,r.grid_owners,r.pending_owners};
       // 只报告真实完整退休步骤的变化；不以Manager心跳延长准备超时。
       if(step!=c.prepare_progress&&c.network.Complete(c.prepare?*c.prepare:*c.retire_control,net::live::OperationStage::Executing,"native_retirement_progress"))c.prepare_progress=step;
     }
-    if(!c.fixture&&c.state==State::PreparingWorld&&c.prepare&&!c.prepare_sent&&c.scene.CanReturnToMenu()){
+    if(c.state==State::PreparingWorld&&c.prepare&&!c.prepare_sent&&c.scene.CanReturnToMenu()){
       if(!c.network.Prepare(*c.prepare))Failure(c,"client_prepare_queue");else c.prepare_sent=true;
     }
-    if(!c.fixture&&c.retire_control&&c.scene.CanReturnToMenu()){
+    if(c.retire_control&&c.scene.CanReturnToMenu()){
       if(c.network.Complete(*c.retire_control,net::live::OperationStage::Complete,"native_scene_retired")){c.retire_control.reset();c.scene.Begin(c.scope);} // 成功排队后才释放真实退休结果。
-    }
-    if(!c.fixture&&c.state==State::AwaitingWorld&&!c.retire_control){
-      c.scene.PumpStream();SceneFailure(c);for(unsigned n=0;n<16;++n){auto m=c.scene.StreamControl();if(!m||!c.network.SendControl(m))break;c.scene.StreamControlSent();}
-      SceneFailure(c);
-    }
-    if(!c.fixture&&c.recovery_started&&!c.recovery_succeeded&&!c.terminal_frozen){
-      const auto now=GetTickCount64();
-      if(now<c.recovery_started||now-c.recovery_started>=c.config.absolute_timeout_ms)Failure(c,"recovery_deadline");
-      else if(c.state==State::Recovering&&c.scene.CanReturnToMenu()&&!c.recovery_requested){
-        if(c.recovery_sequence>=UINT64_MAX-1){throw replica::ContractError("recovery_sequence_exhausted");}
-        auto m=std::make_shared<replica::stream::Message>();m->kind=replica::stream::Kind::Resync;m->sequence=++c.recovery_sequence;m->connection=c.recovery_scope.connection;m->route=c.recovery_route;m->body.SetObject();auto &a=m->body.GetAllocator();
-        replica::Put(m->body,"world",replica::stream::WorldValue(replica::stream::World(c.recovery_scope),a),a);replica::Put(m->body,"failed_revision",replica::Decimal(c.failed_revision,a),a);replica::Put(m->body,"reason",c.recovery_reason,a);
-        if(c.network.SendControl(std::move(m)))c.recovery_requested=true;
-      }
-      else if(c.scene.DisplayReady()&&c.state==State::AwaitingWorld){c.recovery_succeeded=true;c.stale_origin=now;}
     }
     bool visual_hold=false;
 #ifdef ISAACCS_E2E
@@ -686,14 +602,16 @@ bool ClientManagerBoundary() noexcept {
     if(c.visual_held&&!visual_hold){c.stale_origin=GetTickCount64();c.stale=false;}
     c.visual_held=visual_hold;
 #endif
-    if(!c.fixture&&!visual_hold&&c.state==State::AwaitingWorld&&c.scene.DisplayReady()){
+    if(!visual_hold&&c.state==State::AwaitingWorld&&c.scene.DisplayReady()){
       const auto now=GetTickCount64();
       if(c.was_paused&&!c.progress.authority_paused)c.stale_origin=now;
       c.was_paused=c.progress.authority_paused;
       const auto last=(std::max)(c.scene.LastStreamCommit(),c.stale_origin);
       const auto age=last&&now>=last?now-last:0;
       c.stale=!c.progress.authority_paused&&age>=c.config.stale_ms;
-      if(c.stale&&age>=c.config.recovery_ms&&!c.scene.StreamTransactionActive(now))Recover(c,"client_state_stale");
+      if(c.stale&&age>=c.config.recovery_ms){
+        Neutral(c,true);c.network.RevokeInput();c.binary->Recover(state::StateResyncReason::Base);
+      }
     }
     if(c.state==State::Retiring||c.state==State::Failed){net::live::Event discarded;for(unsigned n=0;n<80&&c.network.PollWorld(discarded);++n){}}
     if(c.state==State::Retiring) {
@@ -701,7 +619,7 @@ bool ClientManagerBoundary() noexcept {
       c.sampled_this_loop=false;c.physical_neutral=false;c.blocked=true;ClientPollInput();
       if(!c.sampled_this_loop||c.physical_neutral)++c.neutral_loops;else c.neutral_loops=0;
       // 只有无原生执行前缀、无借用与在途使用时才能交还本地菜单。
-      if((c.fixture||c.network.Finished())&&c.neutral_loops>=2&&MenuReady()&&c.scene.CanReturnToMenu()) {
+      if(c.network.Finished()&&(!c.binary||c.binary->Drained())&&c.neutral_loops>=2&&MenuReady()&&c.scene.CanReturnToMenu()) {
         ClientIsolationObserve(ClientIsolationKind::Retired,"scene_and_worker_drained");
         c.state=State::Off;ForgetInputDevice();client_active.store(false,std::memory_order_release);
         Trace("client","event=off connection=%llu input_closed=1 worker_finished=1 local_run=0",c.connection);
@@ -712,16 +630,15 @@ bool ClientManagerBoundary() noexcept {
       std::uint64_t target=0;
       // 16 的等待场景仍能向 Authority 发输入；已有目标的构建/替换窗口则清边沿并保持中性。
       const bool input_scene=c.scene.DisplayReady();
-      const auto control=c.scene.PlayerControl(c.ordinal);
+      const auto control=c.binary->Control(c.ordinal);
       // 构建中的无视图不是新的绑定；停止发意图并清FIFO，保留旧身份用于重建后的比较。
       if(c.scene.DisplayReady()){
         if(!ClientPlayerControlSame(c.control,control)){Neutral(c);c.timing={};}
         c.control=control;
       }
       // 观测binding_revision与Authority participant generation出自同一绑定；旧A不得给新代次发边沿。
-      const bool group_ready=!c.scene.HasPlayerControl()||
-          (control.present&&control.consumers&&control.binding_revision==c.generation);
-      c.input_ready=!c.fixture&&input_scene&&!c.blocked&&c.progress.input_enabled&&c.state==State::AwaitingWorld&&
+      const bool group_ready=control.present&&control.consumers&&control.binding_revision==c.generation;
+      c.input_ready=input_scene&&!c.blocked&&c.progress.input_enabled&&c.state==State::AwaitingWorld&&
                     group_ready&&c.progress.session_state==core::SessionState::Active&&c.generation&&
                     c.timing.Target(c.progress.server_tick,GetTickCount64(),target);
       ClientPollInput();
@@ -745,13 +662,15 @@ bool ClientManagerBoundary() noexcept {
           } else Failure(c,"client_input_queue_full");
         }
       }
-      if(!c.fixture&&c.network.Finished()&&c.state!=State::Failed){
+      if(c.network.Finished()&&c.state!=State::Failed){
         // worker可在本轮耗时预检中结束；Poll优先交付已发布的终态，不能用通用文字抢占真实首因。
         net::live::Event ending;
         if(c.network.Poll(ending)&&(ending.type==net::live::Event::Type::Failed||ending.type==net::live::Event::Type::Stopped))Failure(c,ending.reason);
         else Failure(c,"client_transport_finished");
       }
     }
+    // 输入owner已经完成唯一一次平台泵；显示根位于本轮world安装之后，音频／光标在相机后。
+    if(!c.scene.AdvanceDisplay(c.blocked))Failure(c,"client_display_schedule");
   } catch(const std::exception &error){Failure(c,error.what());}
   catch(...){Failure(c,"client_main_exception");}
   --client_depth;
@@ -800,36 +719,45 @@ void ClientInputUnavailable() noexcept {
 void ClientMenuRendered() noexcept {
   if(IsMain()&&ClientBusy())++client->render_calls;
 }
-// 观察窗口跨过Manager Render完整原链；具体原生展示在其菜单绘制子入口替代，保留清屏/Swap职责。
+// Manager Render 保留清屏和 Swap，场景绘制由其原生 Game::Render 分派完成。
 ClientRenderScope::ClientRenderScope(bool enabled) noexcept
   :exceptions_(std::uncaught_exceptions()) {
   if(!enabled||!IsMain()||!ClientBusy())return;
   if(render_observation.active){client->scene.Fail("client_render_reentrant");return;}
   client->scene.RenderWindow();
   active_=client->scene.Borrow(ClientPurpose::RenderObservation,render_observation);
+  if(active_&&client->scene.NativeDisplay()){
+    native_render_routed=client->scene.RouteNativeRender(true);
+    if(!native_render_routed)Failure(*client,"client_manager_render_route");
+  }
 }
 ClientRenderScope::~ClientRenderScope() noexcept {
   if(!active_||!client)return;
+  if(native_render_routed){client->scene.RouteNativeRender(false);native_render_routed=false;}
   if(std::uncaught_exceptions()!=exceptions_)client->scene.Fail("client_render_exception");
   client->scene.Release(render_observation);
 }
-// 原生菜单绘制子入口中执行已发布场景，既不调用完整Game Render，也不在Swap之后补画。
-bool ClientMenuRenderBoundary() noexcept {
-  if(!ClientBusy())return false;
-  if(!IsMain()){foreign_client.store(true,std::memory_order_release);return true;}
-  if(!client)return true;
-  if(TopOwner()!=Owner::Render||!render_observation.active||
-     !client->scene.Valid(render_observation)||dispatch_frame.id){
-    CountDispatch(*client,ClientEntry::MenuRender,ClientEntryDecision::FaultSkip);
-    Failure(*client,"client_menu_render_phase");return true;
-  }
-  if(!client->scene.HasNativePrefix()&&!client->scene.DisplayReady()){
-    CountDispatch(*client,ClientEntry::MenuRender,ClientEntryDecision::CallOriginal);
-    return false;
-  }
-  CountDispatch(*client,ClientEntry::MenuRender,ClientEntryDecision::ExpectedSkip);
-  if(client->scene.DisplayReady())client->scene.RenderPublished();
-  return true;
+ClientGameRenderScope::ClientGameRenderScope(void *game) noexcept:exceptions_(std::uncaught_exceptions()) {
+  if(!ClientBusy()){call_=true;return;}
+  if(!IsMain()){foreign_client.store(true,std::memory_order_release);return;}
+  if(!client)return;
+  if(!client->scene.NativeDisplay()){
+    CountDispatch(*client,ClientEntry::GameRender,ClientEntryDecision::ExpectedSkip);return;}
+  if(TopOwner()!=Owner::Render||!render_observation.active||!client->scene.Valid(render_observation)||
+     client->scene.NativeRoots().game!=game||native_render_dispatch){Failure(*client,"client_game_render_context");return;}
+  if(!client->scene.Borrow(ClientPurpose::Graphics,native_render_graphics))return;
+  native_render_dispatch.emplace(ClientOperation::PresentDraw,ClientEntry::PresentationDraw);
+  if(!native_render_dispatch->Ready()||ClientDispatchBefore(ClientEntry::PresentationDraw)!=ClientEntryDecision::CallOriginal||
+     !client->scene.BeginNativeRender()){
+    native_render_dispatch.reset();client->scene.Release(native_render_graphics);Failure(*client,"client_game_render_begin");return;}
+  active_=call_=true;
+}
+ClientGameRenderScope::~ClientGameRenderScope() noexcept {
+  if(!active_||!client)return;
+  client->scene.EndNativeRender();ClientDispatchReturned(ClientEntry::PresentationDraw);
+  const bool success=native_render_dispatch&&native_render_dispatch->Succeeded()&&std::uncaught_exceptions()==exceptions_;
+  native_render_dispatch.reset();client->scene.Release(native_render_graphics);
+  if(!success)Failure(*client,"client_game_render_incomplete");
 }
 // Lua VM 关闭先换代并撤销本方借用，不能把 unref 当作 userdata 析构。
 void ClientLuaClosing() noexcept {
@@ -907,7 +835,7 @@ bool ClientProcessExitDecision() noexcept {
   if(!client_exit_progress_guard.exchange(true,std::memory_order_acq_rel))
     Trace("client","event=process_exit_progress_guard connection=%llu",client->connection);
   if(client->state!=State::Retiring)StopClient();
-  return (client->fixture||client->network.Finished())&&client->scene.CanReturnToMenu();
+  return client->network.Finished()&&client->binary->Drained()&&client->scene.CanReturnToMenu();
 }
 // 详细有界聚合只在显式诊断命令读取；普通每帧status不展开128个范围。
 std::string ClientStreamFields(unsigned page) {
@@ -916,20 +844,17 @@ std::string ClientStreamFields(unsigned page) {
   out+=Settings.stream.Fields("stream.requested.");out+=c.config.Fields("stream.effective.");
   out+=replica::stream::LimitsFields(c.network.EffectiveLimits(),"stream.negotiated.");out+=replica::stream::LimitsFields(c.network.EffectiveFastLimits(),"stream.negotiated_fast.");
   out+=c.network.TransmitMetrics().Fields("stream.transmit.",page);
-  out+=c.network.Metrics().Fields("stream.receive.",page);out+=c.scene.StreamMetrics().Fields("stream.native.",page);
+  out+=c.network.Metrics().Fields("stream.receive.",page);
   const auto t=c.network.TransferStatus();
   const auto add=[&](const char *name,std::uint64_t value){out+="stream."+std::string(name)+"="+std::to_string(value)+"\n";};
   add("fragments",t.fragments);add("duplicates",t.duplicates);add("conflicts",t.conflicts);add("decoded",t.decoded);add("decoded_bytes",t.decoded_bytes);add("decode_us",t.decode_us);add("expired",t.expired);add("ack_windows",t.ack_windows);
-  out+="stream.native_recovery_count_semantics=reserved_attempts_not_completed_rebuilds\n";
-  add("native_rebuilds",c.native_rebuilds);add("recoveries",c.recoveries);add("recovery_succeeded",c.recovery_succeeded);add("state_stale",c.stale);add("authority_paused",c.progress.authority_paused);
+  add("state_stale",c.stale);add("authority_paused",c.progress.authority_paused);
   add("owner_diagnostics_missing",c.owner_diagnostics_missing);add("failure_owner_count",c.first_owners.size());
   for(unsigned i=page*34;i<(std::min)(unsigned(c.first_owners.size()),page*34+34);++i){const auto &f=c.first_owners[i];out+="stream.failure_owner."+std::to_string(i)+"="+std::to_string(f.ticket)+"/"+std::to_string(f.kind)+"/"+std::to_string(f.phase)+"/"+std::to_string(f.resource)+"/"+std::to_string(f.lua)+"/"+std::to_string(f.context)+"/"+std::to_string(f.cpu)+"/"+std::to_string(f.gpu)+"/"+std::to_string(f.failed)+"\n";}
   add("first_failure_native_owners",c.first_scene_failure.native_owners);add("first_failure_grid_owners",c.first_scene_failure.grid_owners);add("first_failure_pending_owners",c.first_scene_failure.pending_owners);add("first_failure_instance",c.first_scene_failure.generations.instance);add("first_failure_resource",c.first_scene_failure.generations.resource);
   add("first_failure_attempt",c.first_scene_failure.attempt);add("first_failure_prefix",c.first_scene_failure.failure_executed_prefix);add("first_failure_key_run",c.first_scene_failure.failed_key.run);add("first_failure_key_id",c.first_scene_failure.failed_key.id);add("first_failure_key_space",c.first_scene_failure.failed_key.space);
   out+="stream.first_wait_reason="+std::string(c.first_scene_failure.stream_wait_reason.data())+"\n";add("first_wait_kind",c.first_scene_failure.stream_wait_kind);add("first_wait_revision",c.first_scene_failure.stream_wait_revision);
   out+="stream.first_reason="+c.error+"\nstream.first_phase="+c.first_scene_failure.failure_phase.data()+"\nstream.first_native_reason="+c.first_scene_failure.failure_reason.data()+"\nstream.cleanup_failure="+c.cleanup_failure.retirement_failure.data()+"\nstream.stop_reason="+c.stop_reason+"\n";
-  const auto policy=replica::stream::ClassifyFailure(c.error.c_str(),c.native_rebuilds>0,!c.scene.StreamRecoverable());
-  out+="stream.reason_class="+(c.error.empty()?std::string("none"):std::string(policy.name))+"\nstream.user_message="+(c.error.empty()?std::string{}:c.recovery_succeeded?std::string("场景已恢复"):std::string(policy.message))+"\n";add("native_recovery_available",c.scene.StreamRecoverable()&&c.native_rebuilds<1&&!c.terminal_frozen);add("state_recovery_available",c.scene.StreamRecoverable()&&!c.terminal_frozen);
   PROCESS_MEMORY_COUNTERS_EX pm{};pm.cb=sizeof(pm);if(GetProcessMemoryInfo(GetCurrentProcess(),reinterpret_cast<PROCESS_MEMORY_COUNTERS *>(&pm),sizeof(pm))){add("process_private_bytes",pm.PrivateUsage);add("process_working_set_bytes",pm.WorkingSetSize);}else out+="stream.process_memory=unavailable\n";
   const auto pools=memory::ReplicationBudget()->Snapshot();for(unsigned i=0;i<3;++i){out+="stream.pool."+std::to_string(i)+"="+std::to_string(pools[i].current)+"/"+std::to_string(pools[i].high_water)+"/"+std::to_string(pools[i].limit)+"\n";}
   out+=memory::ReplicationBudget()->FailureFields();
@@ -944,7 +869,7 @@ std::string ClientFields() {
   if(!client)return s;
   const auto &c=*client;
   const auto result=c.scene.Result();
-  s+="client.target_source="+std::string(c.fixture?"e2e_value_fixture":"network")+"\n";
+  s+="client.target_source=network\n";
   const auto add=[&](const char *name,std::uint64_t value){s+="client."+std::string(name)+"="+std::to_string(value)+"\n";};
   for(unsigned i=0;i<c.original_begin.size();++i)add((std::string("original_begin.")+kIsolationOriginals[i]).c_str(),c.original_begin[i]);
   add("connection",c.connection);add("participant",c.ordinal);add("roster",c.roster);add("generation",c.generation);
@@ -971,8 +896,6 @@ std::string ClientFields() {
   add("scene_state",unsigned(c.scene.State()));
   add("native_result",unsigned(result.kind));
   add("native_revision",result.revision);
-  add("player_status_version",1);add("target_revision",c.scene.TargetRevision());
-  add("player_role_types",c.scene.PlayerRoleTypes());add("player_body_roles",c.scene.PlayerBodyRoles());
   add("applied_revision",c.scene.AppliedRevision());
   add("native_scope_run",result.scope.run);
   add("native_scope_scene",result.scope.scene);
@@ -989,10 +912,7 @@ std::string ClientFields() {
   add("player_random_denied",ClientPlayerRandomDenials());
   add("failure_executed_prefix",result.failure_executed_prefix);
   add("stream_stale",c.stale);add("authority_paused",c.progress.authority_paused);
-  add("stream_recoveries",c.recoveries);add("stream_native_rebuilds",c.native_rebuilds);add("stream_recovery_requested",c.recovery_requested);add("stream_recovery_succeeded",c.recovery_succeeded);
   s+="client.stop_reason="+c.stop_reason+"\n";
-  add("recovery_pending",c.scene.RecoveryPending());
-  s+="client.recovery_state="+std::string(c.scene.RecoveryState())+"\n";
   // 主线程帧尾复制稳定Key/字段/前缀；控制口和Rust只读字符串快照，不访问Player地址。
   const auto player_diagnostic=[&](const char *prefix,const ClientPlayerDiagnostics &d){
     const auto number=[&](const char *name,std::uint64_t value){add((std::string(prefix)+name).c_str(),value);};
@@ -1007,27 +927,11 @@ std::string ClientFields() {
   player_diagnostic("player_step_",result.player_step);player_diagnostic("player_failure_",result.player_failure);
   s+="client.retirement_cause="+std::string(result.retirement_cause.data())+"\n";
   s+="client.retirement_failure="+std::string(result.retirement_failure.data())+"\n";
-  const auto players=c.scene.PlayerBudget();
-  add("player_participants",players.participants);add("player_group_nodes",players.group_nodes);
-  add("player_bodies",players.bodies);add("player_roster",players.roster);add("player_non_roster",players.non_roster);add("player_backups",players.backups);
-  add("player_inventory_entries",players.inventory);add("player_effects",players.effects);add("player_history",players.history);
-  add("player_costumes",players.costumes);add("player_weapons",players.weapons);add("player_slots",players.slots);add("player_records",players.records);
-  add("player_dynamic_hud_owners",players.hud_owners);
-  add("player_references",players.references);add("player_resource_slots",players.resources);add("player_layers",players.layers);add("player_selectors",players.selectors);
-  add("player_plan_cost",players.steps);add("player_source_bytes",players.source_bytes);add("player_source_nodes",players.source_nodes);add("player_owned_estimate_bytes",players.owned_bytes);
   // 只在显式status查询采进程实际内存；估算的模型成本与操作系统值分开，不写逐tick日志。
   PROCESS_MEMORY_COUNTERS_EX memory{};memory.cb=sizeof(memory);
   if(K32GetProcessMemoryInfo(GetCurrentProcess(),reinterpret_cast<PROCESS_MEMORY_COUNTERS *>(&memory),sizeof(memory))){
     add("process_working_set_bytes",memory.WorkingSetSize);add("process_private_bytes",memory.PrivateUsage);
   }
-  const auto entity_budget=c.scene.EntityBudget();
-  add("entity_members",entity_budget.members);add("entity_players",entity_budget.players);add("entity_retired_rows",entity_budget.retired);
-  add("entity_resource_slots",entity_budget.resources);add("entity_references",entity_budget.references);add("entity_curve_points",entity_budget.curve_points);
-  add("entity_commands",entity_budget.commands);add("entity_commands_completed",entity_budget.completed);
-  add("entity_independent_pending",c.scene.EntityIndependentPending());
-  const auto independent=c.scene.EntityIndependentStatus();
-  add("entity_independent_presented",independent.presented);add("entity_independent_expired",independent.expired);
-  add("entity_independent_superseded",independent.superseded);add("entity_independent_bytes",independent.bytes);
   add("grid_prefix",result.grid_prefix);
   add("grid_owners",result.grid_owners);
   add("failure_key_run",result.failed_key.run);
@@ -1050,16 +954,10 @@ std::string ClientFields() {
          std::to_string(c.dispatch_original[i])+","+
          std::to_string(c.dispatch_expected[i])+","+
          std::to_string(c.dispatch_fault[i])+"\n";
-  const auto budget=c.scene.Budget();
-  add("target_bytes",budget.bytes);add("target_nodes",budget.nodes);add("target_resources",budget.resources);
-  add("target_layers",budget.layers);add("target_aliases",budget.aliases);add("target_fx",budget.fragments);
-  add("unadopted_descriptor_grid_indices",budget.unadopted_grid_indices);
   if(Settings.diagnostics&&!Settings.world_e2e_token.empty()){
     void *dc=nullptr,*context=nullptr;
     if(ClientRendererHandles(dc,context))add("renderer_window",reinterpret_cast<std::uintptr_t>(WindowFromDC(static_cast<HDC>(dc))));
   }
-  const auto resources=ClientResourcesStatistics();add("resource_unchanged",resources.unchanged);
-  add("resource_graphics_reused",resources.reused_graphics);add("resource_candidate_loads",resources.candidate_loads);
   s+="client.native_phase="+std::string(result.phase.data())+"\n";
   s+="client.stream_wait_reason="+std::string(result.stream_wait_reason.data())+"\nclient.stream_wait_kind="+std::to_string(result.stream_wait_kind)+"\nclient.stream_wait_revision="+std::to_string(result.stream_wait_revision)+"\n";
   s+="client.native_reason="+std::string(result.reason.data())+"\n";

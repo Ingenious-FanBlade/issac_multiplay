@@ -1,10 +1,12 @@
 #include "replica/model.h"
 #include "core/owned_source.h"
+#ifdef ISAACCS_E2E
 #include "replica/stream_source_value.h"
 #include "replica/projection_graph.h"
 #include "replica/room_grid_target.h"
 #include "replica/entity_target.h"
 #include "replica/player_target.h"
+#endif
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
 #include <algorithm>
@@ -117,6 +119,7 @@ void CheckValue(const Value &v,Limits l){
     if(x.IsObject())for(auto i=x.MemberBegin();i!=x.MemberEnd();++i){self(self,i->name);self(self,i->value);}
   };count(count,v);
 }
+#ifdef ISAACCS_E2E
 void ValidateModel(const Value &v){
   CheckValue(v);Model(v);const auto scope=ReadScope(v["scope"]);Unsigned(At(v,"event_watermark"));
   if(At(v,"native_applied")!=false)Fail("wire_cannot_claim_native_apply");
@@ -149,6 +152,7 @@ void ValidateModel(const Value &v){
     for(auto i=x.MemberBegin();i!=x.MemberEnd();++i){if(IsInternal(Str(i->name)))Fail("native_pointer_or_handle");self(self,i->value);}
   };references(references,v["components"]);
 }
+#endif
 Value Decimal(std::uint64_t n,Allocator &a){return String(std::to_string(n),a);}
 std::uint64_t Unsigned(const Value &v){
   if(v.IsUint64()) return v.GetUint64();
@@ -168,6 +172,7 @@ Scope ReadScope(const Value &v){
   Scope s{Unsigned(At(v,"session")),Unsigned(At(v,"connection")),Unsigned(At(v,"run")),Unsigned(At(v,"floor")),Unsigned(At(v,"dimension")),Unsigned(At(v,"room")),Unsigned(At(v,"scene"))};
   if(!s.session||!s.connection||!s.scene) Fail("scope_generation");return s;
 }
+#ifdef ISAACCS_E2E
 const Json &Catalog(){static const auto d=Parse(
 #include "replication_catalog.inc"
   ,Limits{32u<<20,1048576,64,2u<<20});return d;}
@@ -406,6 +411,7 @@ Message InputProgress(const Scope &s,std::uint64_t participant,std::uint64_t gen
   if(participant>3||!generation||!sequence||!tick)Fail("input_ack_range");Message m;m.kind=Kind::InputAck;m.sequence=sequence;m.body.SetObject();auto &a=m.body.GetAllocator();
   Put(m.body,"scope",ScopeValue(s,a),a);Put(m.body,"participant",Value(unsigned(participant)),a);Put(m.body,"generation",Decimal(generation,a),a);Put(m.body,"input_sequence",Decimal(sequence,a),a);Put(m.body,"processed_tick",Decimal(tick,a),a);return m;
 }
+#endif
 // 网络身份到可信Participant的选择仍由16的主线程连接owner完成，不能由payload改投。
 Message InputIntent(const Scope &s,unsigned participant,std::uint64_t generation,std::uint64_t sequence,std::uint64_t target,const core::InputStateDraftV2 &state){
   if(participant>3||!generation||!sequence||!target||!core::Valid(state))Fail("input_intent_invalid");
@@ -414,6 +420,7 @@ Message InputIntent(const Scope &s,unsigned participant,std::uint64_t generation
   Value movement(rapidjson::kArrayType),aim(rapidjson::kArrayType);movement.PushBack(Value(int(state.move_x)),a).PushBack(Value(int(state.move_y)),a);aim.PushBack(Value(int(state.aim_x)),a).PushBack(Value(int(state.aim_y)),a);
   Put(m.body,"movement",std::move(movement),a);Put(m.body,"aim",std::move(aim),a);Put(m.body,"held",Value(state.held_flags),a);Put(m.body,"edge",Value(state.edge_flags),a);return m;
 }
+#ifdef ISAACCS_E2E
 Json Capabilities(){auto out=Parse(R"({"protocol":1,"model":2,"game":"v1.9.7.12.J273","repentogon":"1.1.3","required":["typed-values-v1","stable-keys-v1","scope-components-v1","complete-delta-v1"],"supported":["typed-values-v1","stable-keys-v1","scope-components-v1","complete-delta-v1"],"domains":[1,2,3,4,5,6,7,8,9,10,11],"model_categories":{"entity":["Player","NPC","Delirium","Tear","Projectile","Bomb","Laser","Knife","Pickup","Familiar","Effect","Slot","NativeText","NativeDummy"],"grid":"all target-version categories;specialized fields and explicit Unsupported","modes":["Normal","Hard","Greed","Greedier","Challenge","SeedEffects","DailyNonRanking"],"resource_pose":["ANM2","texture-replacements","main","overlay","layers","tracks","shader","camera","transition"],"unexposed":"Unavailable;never synthesized"},"native_appliers":[],"mods":[],"resources":{"base":"J273","status":"InstallationRequired"},"limits":{"bytes":33554432,"datagram":1200,"candidates":2,"fragments":32768,"timeout_ms":5000}})");
   // 只提升模型语义版本；ICSR v1类型标签和网络lane保持原格式，旧模型在协商时明确拒绝。
   out["required"].PushBack(Value("replica-projection-v2",out.GetAllocator()),out.GetAllocator());
@@ -430,6 +437,7 @@ Json Capabilities(){auto out=Parse(R"({"protocol":1,"model":2,"game":"v1.9.7.12.
   out["required"].PushBack(Value("player-target-v2",allocator),allocator);
   out["supported"].PushBack(Value("player-target-v2",allocator),allocator);return out;
 }
+#endif
 Json Negotiate(const Value &local,const Value &remote){
   for(const auto *v:{&local,&remote}){
     if(!v->IsObject()||v->MemberCount()!=12)Fail("capability_schema");

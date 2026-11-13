@@ -1,5 +1,5 @@
 #pragma once
-#include "state/presentation_envelope.h"
+#include "state/frame_events.h"
 
 namespace cs::state {
 // 与旧Range／JSON入口隔离。这里只接收重组完成的正文，连接与route取外层可信封套。
@@ -12,6 +12,7 @@ struct StateRoute {
 };
 struct StateAgreement { std::uint32_t binary_state=0; std::uint16_t layout_version=0; };
 StateAgreement LocalStateAgreement() noexcept;
+std::uint8_t StateBinaryEnvelopeFlag() noexcept;
 bool CompatibleStateAgreement(StateAgreement) noexcept;
 
 enum class MemberOperation : std::uint8_t { Join, Reshape, Leave };
@@ -55,7 +56,7 @@ struct StateRecordPayload {
 struct StateSectionView {
   PresentationBatchContext context;
   std::span<const StateRecordPayload> records;
-  PresentationBatchView presentation;
+  StateFrameEventView presentation;
 };
 struct StateFrameView {
   StateScope scope;
@@ -75,10 +76,9 @@ public:
 };
 struct StateFrameScratch {
   std::span<StateRecordPayload> records;
-  std::span<ResultGroupView> groups;
   std::span<PresentationAudioEvent> events;
   std::span<std::uint16_t> member_order;
-  PresentationEnvelopeScratch presentation;
+  BodyCodecScratch body;
 };
 // reliable仅解码内存保护；不会让普通超预算帧改走Baseline。预算由整帧统一扣除。
 StateFrameView DecodeStateFrame(const StateScope &,std::span<const std::byte>,std::uint64_t installed_events,

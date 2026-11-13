@@ -16,7 +16,9 @@
 | [5：EntityPlayer](05-player/README.md) | 48 | 0 |
 | [6：GridEntity](06-grid/README.md) | 32 | 1 |
 | [7：Room、Level、RoomSave 与 Exploration](07-room-level/README.md) | 72 | 4 |
-| [8：Run、Presentation 与 Random](08-run-presentation/README.md) | 112 | 3 |
-| [9：公共报文结构](09-wire-format/README.md) | 23 | 0 |
+| [8：Run、Presentation 与 Random](08-run-presentation/README.md) | 129 | 3 |
+| [9：公共报文结构](09-wire-format/README.md) | 25 | 0 |
 
 旧证据路径仅保留 [EntitySaveState](EntitySaveState.md) 和 [GridEntityDesc](GridEntityDesc.md) 两个跳转页，正式表见对应步骤目录。
+
+[需求清单覆盖与收缩统计](demand-coverage.md)；UNKNOWN仅作原生字节参照，不阻塞需求覆盖。

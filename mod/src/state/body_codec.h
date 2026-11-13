@@ -136,11 +136,22 @@ struct BodyNodeView {
   Operation operation=Operation::Copy;
   std::uint8_t resource_table=255;
   std::span<const std::byte> bytes;
+  // 固定引用数组的分量号；不把八门等数组的各项压成同一路径。
+  std::uint16_t component=0;
+};
+// 完整字段边界由同一次正文遍历提供，包括合法空容器、条件缺席及共享Null。
+// elements／slot_mask已解码，主线程安装计划不再读网络长度头或重跑条件谓词。
+struct BodyFieldNodeView {
+  std::span<const CodecPathStep> path;
+  std::span<const std::byte> bytes;
+  std::uint32_t elements=0,slot_mask=0;
+  bool present=false,payload_present=false;
 };
 class BodyNodeObserver {
 public:
   virtual ~BodyNodeObserver() = default;
   virtual void Node(const BodyNodeView &) = 0;
+  virtual void Field(const BodyFieldNodeView &) {}
 };
 // 调用者复用有界scratch；正文编解码器不分配字段树、map或逐元素临时vector。
 // root_fields为空时只输出块视图；提供该区域时必须容纳本次选中根字段。

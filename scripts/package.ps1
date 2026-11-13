@@ -9,18 +9,11 @@ if(Test-Path -LiteralPath $packageTarget){throw 'Product destination must be a n
 $inputRoot=if($E2E){'out/repentogon/e2e'}else{'out/repentogon'}
 $expectedFlavor=if($E2E){'e2e'}else{'product'}
 $flavor=Get-Content -LiteralPath (Join-Path $packageRepo "$inputRoot/build-flavor.json") -Raw | ConvertFrom-Json
-if($flavor.format -ne 'isaac.cs.build' -or $flavor.version -ne 2 -or $flavor.flavor -ne $expectedFlavor -or $flavor.e2e_tools -ne [bool]$E2E -or $flavor.framing -ne 2 -or $flavor.stream_schema -ne 1){throw 'Matching tx21 build flavor required'}
+if($flavor.format -ne 'isaac.cs.build' -or $flavor.version -ne 2 -or $flavor.flavor -ne $expectedFlavor -or $flavor.e2e_tools -ne [bool]$E2E -or $flavor.framing -ne 2 -or $flavor.stream_schema -ne 1){throw 'Matching binary state build flavor required'}
 $receipt=Get-Content -LiteralPath (Join-Path $packageRepo "$inputRoot/build-complete.json") -Raw | ConvertFrom-Json
 if($receipt.format -ne 'isaac.cs.build.complete' -or $receipt.flavor -ne $expectedFlavor){throw 'Completed matching build required'}
-$catalog=Get-Content -LiteralPath (Join-Path $packageRepo "$inputRoot/stream-catalog.json") -Raw | ConvertFrom-Json
-if($catalog.protocol.framing -ne $flavor.framing -or $catalog.protocol.stream_schema -ne $flavor.stream_schema -or $catalog.protocol.compact_schema -ne $flavor.compact_schema){throw 'DLL metadata and generated stream catalog must use the same source version'}
 $packageFiles=@(
     @('out/repentogon/zhlIsaacCS.dll','Repentogon/zhlIsaacCS.dll'),
-    @('out/repentogon/replication-catalog.json','Repentogon/isaac-cs/replication-catalog.json'),
-    @('out/repentogon/room-grid-application.json','Repentogon/isaac-cs/room-grid-application.json'),
-    @('out/repentogon/entity-application.json','Repentogon/isaac-cs/entity-application.json'),
-    @('out/repentogon/player-application.json','Repentogon/isaac-cs/player-application.json'),
-    @('out/repentogon/stream-catalog.json','Repentogon/isaac-cs/stream-catalog.json'),
     @('out/repentogon/build-flavor.json','Repentogon/isaac-cs/build-flavor.json')
 )
 $packageFiles=@($packageFiles | ForEach-Object { ,@($_[0].Replace('out/repentogon',$inputRoot),$_[1]) })
@@ -32,8 +25,10 @@ foreach($entry in $packageFiles){
     New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force | Out-Null
     Copy-Item -LiteralPath (Join-Path $packageRepo $entry[0]) -Destination $destination
 }
-$luaPackages=@(@('ui/isaac-cs-ui','mods/isaac-cs-ui'),@("$inputRoot/isaac-cs-observation",'mods/isaac-cs-observation'))
-if($E2E){$luaPackages+=,@("$inputRoot/isaac-cs-test",'mods/isaac-cs-test')}
+$luaPackages=@(@('ui/isaac-cs-ui','mods/isaac-cs-ui'))
+if($E2E){
+    $luaPackages+=,@("$inputRoot/isaac-cs-observation",'mods/isaac-cs-observation')
+    $luaPackages+=,@("$inputRoot/isaac-cs-test",'mods/isaac-cs-test')}
 foreach($entry in $luaPackages){
     $source=Join-Path $packageRepo $entry[0]
     if(-not (Test-Path -LiteralPath (Join-Path $source 'main.lua') -PathType Leaf)){throw "Missing product Lua: $source"}

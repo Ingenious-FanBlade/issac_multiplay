@@ -79,6 +79,8 @@ bool ClientShutdownPatchInstalled() noexcept;
 void InstallClientShutdownPatch() noexcept;
 bool ClientBackdropPatchInstalled() noexcept;
 void InstallClientBackdropPatch() noexcept;
+void InstallClientDisplayPatch() noexcept;
+bool ClientDisplayPatchInstalled() noexcept;
 void RefreshVersion() noexcept;
 void *GamePointer() noexcept;
 Config ReadConfig();

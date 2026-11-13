@@ -104,7 +104,7 @@ EntitySource::Impl::Impl(MemoryReader m,std::thread::id t,EntityServices s,Entit
   if(t==std::thread::id{} || !s.current || !s.reference || !c.scratch_bytes || !c.witnesses || !c.resources ||
      c.resources>65535 || !c.resource_bytes || !c.animation_layers || !c.topology_bodies || c.topology_bodies>256 || !c.topology_bytes_per_body)
     throw std::invalid_argument("entity_capture_source_capacity");
-  const auto retained=sizeof(*this)+512+4096u*sizeof(NativeSurfaceOperation)+Fields().size()*sizeof(EntityRead)+c.scratch_bytes+
+  const auto retained=sizeof(*this)+512+Fields().size()*sizeof(EntityRead)+c.scratch_bytes+
     std::uint64_t(c.witnesses)*sizeof(NativeReadWitness)+std::uint64_t(c.resources)*(sizeof(NativeResource)+sizeof(NativeConfigOwner))+c.resource_bytes+
     std::uint64_t(c.animation_layers)*sizeof(NativeAnimationLayer)+std::uint64_t(c.topology_bodies)*(sizeof(NativeTopology)+c.topology_bytes_per_body)+65536u*sizeof(NativeSpriteDependency);
   memory_charge=memory::Reserve(memory::Pool::Values,retained,"entity_capture_native_sources");
@@ -113,8 +113,8 @@ EntitySource::Impl::Impl(MemoryReader m,std::thread::id t,EntityServices s,Entit
   topology_bytes.resize(std::size_t(c.topology_bodies)*c.topology_bytes_per_body);
   sprite_dependencies.resize(65536);
   config_owners.resize(c.resources);
-  surface_operations.resize(4096);
   std::vector<std::uint8_t> supported(65536);
+  for(unsigned id=437;id<=453;++id)supported[id]=1;
   for(const auto &layout:Layouts())if((layout.id>=310 && layout.id<=383) || (layout.id>=422 && layout.id<=424) || layout.id==435 || layout.id==436)supported[layout.id]=1;
   for(const auto &layout:Layouts()){auto parent=&layout;while(parent && parent->id!=100 && parent->id!=199 && parent->id!=239 && parent->id!=270 && parent->id!=276 && parent->id!=237)parent=FindLayout(parent->parent);
     if(parent)supported[layout.id]=1;}
@@ -127,13 +127,10 @@ EntitySource::Impl::Impl(MemoryReader m,std::thread::id t,EntityServices s,Entit
     if(f.operation==Operation::Reference)recipe=EntityRead::Reference;
     for(const auto &binding:recipes)if(binding.name==name){recipe=binding.read;break;}
     if(name=="room_door_slots_read")recipe=EntityRead::Scene;
+    if(name=="display_value_read")recipe=EntityRead::Display;
     if(recipe==EntityRead::None)recipe=GridRecipe(name);
     if(recipe==EntityRead::None)recipe=SceneRecipe(name);
     if(recipe==EntityRead::None)recipe=RunRecipe(name);
-    if(recipe==EntityRead::None)recipe=PresentationRecipe(f);
-    if((f.layout==435 || f.layout==436) && f.operation==Operation::Reference)recipe=EntityRead::Presentation;
-    if((f.layout==317||f.layout==321) && f.operation==Operation::Reference)recipe=EntityRead::Presentation;
-    if((f.layout==321&&f.operation==Operation::Container)||(f.layout==320&&f.operation==Operation::Resource))recipe=EntityRead::Presentation;
     reads[i]=recipe;
     if(name.empty() || recipe==EntityRead::None)continue;
     bool seen=false;for(const auto &b:leaves)if(b.name==name && b.operation==f.operation){seen=true;break;}
@@ -177,8 +174,6 @@ bool EntitySource::Impl::Current(const CaptureWitness &w,const CaptureRoot &root
 // 任何地址都只在已核主线程root窗口内借用，所有乘加先用u64检查。
 bool EntitySource::Impl::Read(std::uint64_t address,std::span<std::byte> out,CaptureDiagnostic &d) noexcept {
   const CaptureRoot root{facts.subject,facts.address,0,0};
-  if(production_read){if(std::this_thread::get_id()!=thread || !production_depth || !production_valid || !address || address>UINT32_MAX || out.size()>(std::uint64_t{1}<<32)-address ||
-      !memory.copy || !memory.copy(std::uint32_t(address),out.data(),out.size()))return FailCapture(d,CaptureFailure::ReadFailed,root);return true;}
   if(!Current(window.witness,root))return FailCapture(d,CaptureFailure::InvalidWindow,root);
   if(!address || address>UINT32_MAX || out.size()>(std::uint64_t{1}<<32)-address)return FailCapture(d,CaptureFailure::AddressRange,root);
   if(!memory.copy || !memory.copy(std::uint32_t(address),out.data(),out.size()))return FailCapture(d,CaptureFailure::ReadFailed,root);
@@ -220,7 +215,7 @@ EntitySource::~EntitySource()=default;
 // 每根同步执行独立暂存；资源只追加，失败根不会把未齐备的记录交后台。
 bool EntitySource::Capture(const CaptureWitness &w,EntityFacts f,BodyStream stream,CaptureValueWriter &writer,CaptureDiagnostic &d,bool joint) noexcept {
   auto &s=*impl_;if(s.active || std::this_thread::get_id()!=s.thread){FailCapture(d,s.active?CaptureFailure::Reentrant:CaptureFailure::WrongThread,{f.subject,f.address});return writer.Fail(d);}
-  s.facts=f;s.scratch_used=s.witness_used=0;s.topology_revision=0;s.map_ready=false;s.lighting_ready=false;s.active=true;
+  s.facts=f;s.scratch_used=s.witness_used=0;s.topology_revision=0;s.map_ready=false;s.active=true;
   struct End {bool &active;~End(){active=false;}} end{s.active};
   s.window={s.thread,w,&s,
     [](void *p,const CaptureWitness &v,const CaptureRoot &r) noexcept {return static_cast<Impl *>(p)->Current(v,r);},

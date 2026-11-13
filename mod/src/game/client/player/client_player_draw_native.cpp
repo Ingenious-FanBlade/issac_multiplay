@@ -4,7 +4,6 @@
 #include "game/client/player/client_player_state.h"
 #include "game/client/player/client_player_equipment.h"
 #include "game/client/entity/client_entity_adapters.h"
-#include "game/client/entity/client_entity_draw_native.h"
 #include "game/common/bridge.h"
 #include "game/common/context.h"
 #include "runtime.h"
@@ -73,68 +72,4 @@ void ClientPlayerDrawCapture(void *lua,void *pointer){
   lua::luabridge::UserdataPtr::push(L,&RecordSprite(p),lua::Metatables::SPRITE);lua_setfield(L,-2,"record_sprite");
 }
 // 直接安装有界列表及cursor；不调用录像/回放Update，不使用另一身体的初始化历史。
-bool ClientPlayerDrawRecords(void *pointer,const ClientPlayerDescription &d,bool check,const char *&reason){
-  if(!pointer||!d.special||!IsMain()||!ClientBusy()||!HasOwner(Owner::Manager)){reason="player_record_install_context";return false;}
-  auto &p=*static_cast<Entity_Player *>(pointer);auto &list=Records(p);const auto &s=*d.special;
-  if(check){if(list.size()!=s.records.size()){reason="player_record_count_postcondition";return false;}
-    int selected=-1;unsigned i=0;auto *head=Head(list),*node=head->next;
-    for(const auto &r:list){if(node==Cursor(p))selected=int(i);const auto &x=s.records[i++];
-      if(r.position.x!=x.position.x||r.position.y!=x.position.y||r.animation!=x.animation||r.frame!=x.frame||r.second_animation!=x.second_animation||r.second_frame!=x.second_frame){reason="player_record_values_postcondition";return false;}node=node->next;}
-    if((selected<0&&Cursor(p)!=head)||selected!=s.record_cursor){reason="player_record_cursor_postcondition";return false;}
-  }else{
-    NativeRecords candidate;for(const auto &r:s.records)candidate.push_back({Vector(r.position.x,r.position.y),0,0,r.animation,r.frame,r.second_animation,r.second_frame});
-    list.swap(candidate);auto *head=Head(list);auto *cursor=head;
-    if(s.record_cursor>=0){cursor=head->next;for(int i=0;i<s.record_cursor;++i)cursor=cursor->next;}Cursor(p)=cursor;
-  }reason=check?"player_record_current_native_checked":"player_record_current_list_installed";return true;
-}
-bool ClientPlayerDrawPreflight(const ClientPlayerDescription &d,const char *&reason) noexcept {
-  if(!d.special||!d.entity.derived||!d.entity.derived->player_full_draw||!d.equipment||!d.equipment->main.exact_phase){reason="player_complete_draw_source_required";return false;}
-  if(d.render_member&&!d.equipment->main.loaded){reason="player_render_main_sprite_unloaded";return false;}
-  if((d.player_type==29||d.player_type==38)&&d.state)for(const auto &f:d.state->fields)
-    if(f.member.find("Scale")!=std::string::npos&&f.kind==ClientEntityValueKind::Real&&f.real==0){reason="player_flip_draw_scale_divisor_zero";return false;}
-  for(const auto &image:d.special->images)if(image.present&&(!Format(image)||image.attributes.empty())){reason="player_draw_image_format_unsupported";return false;}
-  reason="player_draw_values_resources_ready";return true;
-}
-// 只在资源阶段、CPU借用已退尽后换strong；所有图身份/格式从同T读取，不按角色重新选图。
-bool ClientPlayerDrawResources(void *pointer,const ClientPlayerDescription &d,bool check,const char *&reason){
-  if(!IsMain()||!ClientBusy()||!pointer||!HasOwner(Owner::Manager)||!ClientNativeCpuQueuesEmpty()||!ClientEntityDrawDrained()||!ClientPlayerDrawPreflight(d,reason))return false;
-  auto &p=*static_cast<Entity_Player *>(pointer);
-  auto &record_sprite=RecordSprite(p);
-  if(check){if(!ClientResourcePoseMatches(&record_sprite,d.special->record_sprite)){reason="player_record_sprite_postcondition";return false;}}
-  else {const auto applied=ClientApplyResourcePose(&record_sprite,d.special->record_sprite);if(!applied.complete){reason=applied.reason;return false;}}
-  for(const auto &r:d.special->records)for(int animation:{r.animation,r.second_animation})if(animation>=0&&(!record_sprite._loaded||animation>=record_sprite._animCount)){reason="player_record_local_animation_range";return false;}
-  for(unsigned slot=0;slot<2;++slot){auto &pair=Image(p,slot);const auto &s=d.special->images[slot];if(Matches(pair,s))continue;
-    if(check){reason="player_draw_image_native_postcondition";return false;}
-    if(!s.present){pair=KAGE_SmartPointer_ImageBase{};continue;}
-    KAGE_SmartPointer_ImageBase candidate;
-    const auto path=s.path.rfind("resources/gfx/",0)==0?s.path.substr(10):s.path;
-    Manager::LoadImage(&candidate,path.c_str(),__ptr_g_VertexAttributeDescriptor_Position,false);
-    if(!candidate.image||!candidate.counter||!candidate.image->_name||s.path!=candidate.image->_name){reason="player_draw_image_load";return false;}
-    const auto *format=s.shader==1?__ptr_g_VertexAttributeDescriptor_Position:
-        reinterpret_cast<const KAGE_Graphics_ImageBase_VertexAttributeDescriptor *>(Base+(s.stride==44?0x788734:0x788760));
-    candidate.image->SetVertexFormat(*format);auto **table=*reinterpret_cast<void ***>(candidate.image);
-    using Parameters=void (__thiscall *)(KAGE_Graphics_ImageBase *,unsigned,unsigned);
-    reinterpret_cast<Parameters>(table[16])(candidate.image,s.min_filter,s.mag_filter);reinterpret_cast<Parameters>(table[17])(candidate.image,s.wrap_s,s.wrap_t);
-    if(!Matches(candidate,s)){reason="player_draw_image_loaded_format";return false;}pair=std::move(candidate);
-  }reason=check?"player_draw_images_checked":"player_draw_images_installed";return true;
-}
-// 唯一常驻Hook只替代已提交Player的纯色查询；不把Source设备索引装进本地Player。
-bool ClientPlayerDrawPalette(void *output,void *pointer) noexcept {
-  if(!IsMain()||!ClientBusy()||!HasOwner(Owner::Render)||!output)return false;
-  const auto *d=ClientNativeObjectDrawDescription(pointer);if(!d||!d->derived||!d->derived->player_full_draw)return false;
-  const auto &c=d->derived->player_palette;*static_cast<ColorMod *>(output)=ColorMod(c.tint[0],c.tint[1],c.tint[2],c.tint[3],c.offset[0],c.offset[1],c.offset[2],c.colorize[0],c.colorize[1],c.colorize[2],c.colorize[3]);return true;
-}
-ClientPlayerAdapter ClientPlayerBuiltinAdapter(){
-  ClientPlayerAdapter adapter;
-  adapter.prepare=[](void *,const ClientPlayerDescription &d,const char *&reason) noexcept {return ClientPlayerDrawPreflight(d,reason);};
-  adapter.install=[](void *,void *p,const ClientPlayerDescription &d,bool resources,bool check,const char *&reason){return resources?ClientPlayerDrawResources(p,d,check,reason):ClientPlayerSpecialFields(p,d,check,reason);};
-  adapter.relations=[](void *,void *pointer,const ClientPlayerDescription &,const ClientEntityOwners &,const ClientNativeRoots &,bool,bool,const char *&reason){
-    // 跨Player/Weapon/held/Entity边已由各唯一owner安装；本adapter的有限槽不拥有Entity指针。
-    if(!IsMain()||!ClientBusy()||!pointer||static_cast<Entity_Player *>(pointer)->_controllerIndex!=-1){reason="player_client_must_not_bind_native_input";return false;}reason="player_special_has_no_duplicate_entity_owner";return true;};
-  adapter.retire=[](void *,void *pointer,const ClientPlayerDescription &,unsigned,const char *&reason){
-    if(!IsMain()||!ClientBusy()||!pointer||!ClientEntityDrawDrained()||!ClientNativeCpuQueuesEmpty()){reason="player_draw_retire_inflight";return false;}
-    // deque/Image strong/内嵌ANM皆由真实Player析构；此处只撤控制资格，不重复析构。
-    static_cast<Entity_Player *>(pointer)->_controllerIndex=-1;reason="player_draw_native_owned_until_unique_Free";return true;};
-  return adapter;
-}
-}
+} // namespace cs::game

@@ -31,7 +31,8 @@ bool ProductionCache::Store(const CapturePacket &packet,CaptureDiagnostic &d) no
   if(packet.records.empty() || packet.records.size()>UINT32_MAX || packet.cells.size()>UINT32_MAX ||
      packet.paths.size()>UINT32_MAX || packet.bytes.size()>UINT32_MAX)return FailCapture(d,CaptureFailure::InvalidValue,{});
   const auto &root=packet.records.front();CaptureRoot location{root.subject,0,0,root.layout};
-  if(!root.purpose || !root.instance || !root.generation || !ValidCaptureWitness(root.production) || root.production.phase!=CapturePhase::Production)
+  if(!root.purpose || !root.instance || !root.generation || !ValidCaptureWitness(root.production) ||
+     (root.production.phase!=CapturePhase::Production&&!(root.event_sequence&&root.production.phase==CapturePhase::IntentionBinding)))
     return FailCapture(d,CaptureFailure::MissingQualification,location);
   if(++reference_generation_==0){std::fill(reference_seen_.begin(),reference_seen_.end(),0u);reference_generation_=1;}
   std::uint32_t references=0;
@@ -68,7 +69,7 @@ bool ProductionCache::Store(const CapturePacket &packet,CaptureDiagnostic &d) no
       old.paths.size()==packet.paths.size()&&old.bytes.size()==packet.bytes.size()&&old.references.size()==references;
     for(std::size_t i=0;i<old.records.size()&&same;++i){const auto &a=old.records[i],&b=packet.records[i];same=a.subject==b.subject&&a.owner==b.owner&&
       a.layout==b.layout&&a.stream==b.stream&&a.mask==b.mask&&a.first_cell==b.first_cell&&a.cell_count==b.cell_count&&
-      a.instance==b.instance&&a.generation==b.generation&&a.purpose==b.purpose&&a.event_sequence==b.event_sequence&&a.pass==b.pass;}
+      a.instance==b.instance&&a.generation==b.generation&&a.purpose==b.purpose&&a.event_sequence==b.event_sequence&&a.event_game_frame==b.event_game_frame&&a.pass==b.pass;}
     for(std::size_t i=0;i<old.cells.size()&&same;++i){const auto &a=old.cells[i],&b=packet.cells[i];same=a.path==b.path&&a.offset==b.offset&&a.bytes==b.bytes&&
       a.count==b.count&&a.layout==b.layout&&a.field==b.field&&a.aux==b.aux&&a.depth==b.depth&&a.kind==b.kind&&a.scalar==b.scalar;}
     if(same)same=std::equal(old.paths.begin(),old.paths.end(),packet.paths.begin())&&std::equal(old.bytes.begin(),old.bytes.end(),values);
@@ -91,6 +92,18 @@ void ProductionCache::Retire(CaptureSubject subject) noexcept {if(std::this_thre
 void ProductionCache::RetirePurpose(CaptureSubject subject,std::uint16_t purpose) noexcept {if(std::this_thread::get_id()!=thread_)return;
   for(auto &entry:entries_)if(entry.pages&&entry.purpose==purpose&&SameBody(entry.subject,subject))Release(entry);}
 void ProductionCache::Clear() noexcept {if(std::this_thread::get_id()!=thread_)return;for(auto &entry:entries_)Release(entry);}
+void ProductionCache::RetireInstance(CaptureSubject subject,std::uint16_t purpose,std::uint64_t instance) noexcept {
+  if(std::this_thread::get_id()!=thread_)return;
+  for(auto &entry:entries_)if(entry.pages&&entry.purpose==purpose&&entry.instance==instance&&SameBody(entry.subject,subject))Release(entry);
+}
+bool ProductionCache::AppendEvents(const StateScope &scope,CaptureValueWriter &writer,std::uint32_t &roots,CaptureDiagnostic &d,CaptureAppendContext context) const noexcept {
+  if(std::this_thread::get_id()!=thread_)return FailCapture(d,CaptureFailure::WrongThread,{});
+  for(const auto &entry:entries_)if(entry.pages&&entry.witness.scope.session==scope.session&&entry.witness.scope.run==scope.run){
+    const auto packet=View(entry);
+    for(std::uint32_t i=0;i<packet.records.size();++i){if(!packet.records[i].event_sequence)return FailCapture(d,CaptureFailure::InvalidValue,{});
+      if(!writer.Append(packet,i,context)){d=writer.Diagnostic();return false;}++roots;}}
+  return true;
+}
 bool ProductionCache::Contains(const StateScope &scope,std::uint16_t purpose) const noexcept {
   if(std::this_thread::get_id()!=thread_)return false;
   for(const auto &entry:entries_)if(entry.pages&&entry.witness.scope==scope&&entry.purpose==purpose)return true;return false;

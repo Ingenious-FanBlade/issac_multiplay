@@ -1,17 +1,20 @@
 #include "game/observation/binary_entities.h"
 #include "game/observation/world_bridge.h"
-#include "game/observation/binary_probability.h"
+#include "game/observation/binary_display_capture.h"
 #include "game/authority/state.h"
 #include "game/authority/tick.h"
 #include "game/common/bridge.h"
 #include "world/observe.h"
 #include "state/budget.h"
-#include "state/production_cache.h"
+#include "world/binary/resource_export.h"
+#include <mutex>
 #include <algorithm>
+#include <bit>
 #include <tuple>
 #include <cmath>
 #include <limits>
 #include <windows.h>
+#include <atomic>
 
 namespace cs::game {
 namespace {
@@ -53,65 +56,42 @@ struct BinaryEntities::Impl {
   memory::Lease memory;
   world::binary::EntitySource source;
   CaptureExchange exchange;
-  ProductionCache production;
-  CaptureBuffer production_scratch;
-  // 每个身体保留独立HUD实例及冻结P8修订；两个Stat/History原生槽不构成系统人数上限。
-  struct HudState {
-    CaptureSubject subject;
-    StateScope scope;
-    std::uint32_t address=0;
-    std::uint64_t instance=0,mantle=0;
-    HudLocalClock clock;
-    std::optional<HudClockCapture> tracker;
-    bool complete=false,stats=false,history=false;
-    std::uint32_t body=0;
-    std::array<world::binary::NativeStatRow,10> rows{};
-    bool rows_initialized=false;
-  };
-  std::array<HudState,256> hud_states;
+  BinaryDisplayCapture display;
+  // 以下状态仅由consumer访问；outbox是与主线程之间的自有值邮箱。
+  HostStateCapture publisher;
+  CaptureExchange::ReadTicket transferring;
+  HostStateSnapshotRef transfer_source;
+  std::mutex outbox;
+  HostStateSnapshotRef published,ordinary_published;
+  std::vector<HostStateResource> published_resources;
+  std::uint64_t resource_session=0,resource_run=0;
+  std::array<char,128> publish_failure{};
+  std::atomic<std::uint32_t> network_publication{0};
+  std::uint64_t publication_floor=0; // 仅producer访问，撤销前的邮箱值不能在新提交后复活。
+  // consumer写、主线程读的SPSC回执；64位数据置于release/acquire保护的槽中，不用64位原子。
+  struct EventReceipt {std::uint64_t session=0,run=0,watermark=0;};
+  std::array<EventReceipt,32> event_receipts{};
+  static_assert(std::atomic<std::uint32_t>::is_always_lock_free,"event receipts require lock-free Win32 u32 atomics");
+  std::atomic<std::uint32_t> receipt_write{0},receipt_read{0};
   struct Produced {
     world::NativeCaptureWindow window;
     CaptureWitness witness;
-    BinaryProductionKind kind=BinaryProductionKind::PlayerHud;
-    std::uint32_t token=0,object=0,manager=0,body=0,hud_index=UINT32_MAX,drop_reads=0,parent=UINT32_MAX;
-    bool held=false,seed_seen=false,seed_blocked=false,manager_seen=false,manager_blocked=false;
+    BinaryProductionKind kind=BinaryProductionKind::Score;
+    std::uint32_t token=0,object=0,manager=0;
     std::int32_t sound=-1;
     float volume=0,pitch=1,pan=0;
     std::uint32_t stream=0,selected=0;
     bool loop=false,audio_world=false;
     std::int32_t ambient=-1;
-    float retro=0;
-    bool room_effect_known=false,glitch=false;
-    std::int32_t stat_index=-1;
-    std::uint32_t stat_flags=0;
-    world::binary::NativeDrawClock draw_clock;
-    bool draw_known=false,draw_conflict=false;
+    std::array<std::uint32_t,8> args{};
+    std::array<char,4096> title{},subtitle{};
+    bool title_seen=false,subtitle_seen=false,display_failed=false;
+    std::int32_t frame_delay=0;
   };
   std::array<Produced,16> producing{};
   std::uint32_t production_depth=0,next_production_token=0;
-  std::uint64_t next_presentation_instance=0;
   struct ScoreCache {StateScope scope;std::array<std::uint32_t,16> values{};std::uint64_t revision=0;};
   ScoreCache score;
-  StateScope progress_scope;
-  std::uint64_t progress_revision=0;
-  bool progress_blocked=false,planetarium_known=false,planetarium_qualified=false;
-  // 只保留实际Recompute已经写出的公共概率值，位图区别真实生产与构造零值。
-  struct ProbabilityCache {StateScope scope;std::array<float,3> values{};std::array<std::uint32_t,3> frames{};std::uint8_t mask=0;};
-  ProbabilityCache probability;
-  struct AudioVoice {
-    world::binary::NativeAudioValue value;
-    CaptureWitness production;
-    std::uint64_t instance=0,generation=0;
-    std::uint32_t stream=0,sound=0;
-    std::int32_t ambient=-1;
-    bool active=false;
-  };
-  struct AudioEvent {world::binary::NativeAudioValue value;CaptureWitness production;std::uint64_t instance=0,generation=0,sequence=0;};
-  std::array<AudioVoice,512> voices{};
-  std::array<AudioEvent,1024> audio_events{};
-  std::uint32_t audio_event_count=0;
-  std::uint64_t next_audio_voice=0,next_audio_event=0;
-  bool audio_gap=false;
   std::vector<EntityFacts> roots,ordinary_facts;
   std::vector<std::uint32_t> root_index,link_index,published_addresses;
   std::vector<CaptureReferenceEntry> links;
@@ -120,7 +100,7 @@ struct BinaryEntities::Impl {
   std::array<world::RawSource,10> member_sources{};
   std::array<GroupFacts,4> groups{};
   NativeScene scene;
-  std::array<EntityFacts,985> scene_roots{};
+  std::array<EntityFacts,986> scene_roots{};
   std::array<std::array<std::uint32_t,15>,527> descriptor_shapes{};
   std::array<std::uint64_t,527> descriptor_revisions{};
   std::uint32_t scene_root_count=0,floor_depth=0;
@@ -142,6 +122,7 @@ struct BinaryEntities::Impl {
   CaptureWitness reading_witness;
   std::uint32_t root_used=0,ordinary_count=0,published_count=0,link_used=0,text_used=0;
   std::uint64_t revision=0,last_ordinary=0,next_related=0,resource_mutation=0,reading_resource_mutation=0,run=0,room=0;
+  std::uint64_t display_run=0;
   BinaryEntityStats stats;
   bool collecting=false,invalidated=false;
   Impl(WorldCapture &c,std::thread::id p,std::thread::id worker):capture(c),producer(p),consumer(worker),
@@ -157,16 +138,30 @@ struct BinaryEntities::Impl {
       if(owner.reading_window.production){const auto *id=owner.capture.identities.Find(world::ObjectDomain::Entity,address);
         return id&&!id->Retired()&&!id->candidate&&id->readiness>=2&&owner.capture.collector->NativeCurrent(owner.reading_window,address,id->local_id,id->use,id->revision);}
       return index!=UINT32_MAX && owner.roots[index].ready && owner.Current(owner.reading_witness,owner.roots[index]);}},SourceCapacity(c.source_memory)),exchange(Buffers(),p,worker),
-    production(p),production_scratch({8,16384,32768,256u<<10,16392}) {
+    display(p) {
     roots.resize(16384);ordinary_facts.resize(16384);root_index.resize(16384);links.resize(16392);link_index.resize(16392);texts.resize(16384);
     published_addresses.resize(16384);
     members.resize(world::kMembershipBudget);member_check.resize(world::kMembershipBudget);
-    for(auto &hud:hud_states)hud.tracker.emplace(p);
     // 全部自有暂存与交接合计占用同一64MiB shared额度，不给每个owner重复领取。
-    if(memory->Bytes()+source.RetainedBytes()+exchange.RetainedBytes()+production.RetainedBytes()+production_scratch.RetainedBytes()>StateBudgets().shared_value_bytes)
+    if(memory->Bytes()+source.RetainedBytes()+exchange.RetainedBytes()+display.RetainedBytes()>StateBudgets().shared_value_bytes)
       throw std::invalid_argument("binary_entity_shared_capacity");
   }
   bool Main() const noexcept {return std::this_thread::get_id()==producer;}
+  void DrainEventReceipts() noexcept {
+    const auto end=receipt_write.load(std::memory_order_acquire);auto at=receipt_read.load(std::memory_order_relaxed);
+    for(;at!=end;++at){const auto &receipt=event_receipts[at%event_receipts.size()];
+      if(capture.collector&&receipt.session==capture.session_key&&receipt.run==capture.collector->CurrentRunToken())
+        display.EventsTransferred(receipt.watermark);}
+    receipt_read.store(at,std::memory_order_release);
+  }
+  void DisplayRun() noexcept {if(!capture.collector)return;const auto current=capture.collector->CurrentRunToken();
+    if(!current)return;if(display_run&&display_run!=current)display.Reset(true);display_run=current;}
+  BinaryDisplayRead DisplayRead() noexcept {return {this,
+    [](void *p,std::uint64_t address,std::span<std::byte> out) noexcept {auto &s=*static_cast<Impl *>(p);return s.Main()&&s.collecting&&s.capture.collector&&s.capture.collector->NativeWindowCurrent(s.reading_window)&&
+      address&&address<=UINT32_MAX&&out.size()<=(std::uint64_t{1}<<32)-address&&s.capture.source_memory.copy(std::uint32_t(address),out.data(),out.size())&&s.capture.collector->NativeWindowCurrent(s.reading_window);},
+    [](void *p,std::uint32_t address) noexcept {return static_cast<Impl *>(p)->Reference(address);},
+    [](void *p) noexcept {auto &s=*static_cast<Impl *>(p);return std::span<const CaptureReferenceEntry>(s.links).first(s.link_used);},
+    [](void *p,const CaptureReferenceEntry &ref) noexcept {return static_cast<Impl *>(p)->Register({ref.space,ref.local,ref.use});}};}
   // 结构读取与字段执行器共用当前窗口，地址加法保持u64直到检查完成，错误不形成环回读取。
   template<class T> bool NativeValue(std::uint64_t address,T &value) noexcept {
     return Main() && collecting && capture.collector && capture.collector->NativeWindowCurrent(reading_window) && address && address<=UINT32_MAX &&
@@ -178,10 +173,19 @@ struct BinaryEntities::Impl {
     if(f.subject.space==1 || f.subject.space==2){if(!capture.collector->NativeCurrent(reading_window,f.identity_address?f.identity_address:f.address,f.subject.local,f.subject.use,f.subject.shape,
         f.subject.space==2?world::ObjectDomain::Grid:world::ObjectDomain::Entity))return false;}
     else if(reading_window.production){if(w.scope.run!=reading_window.run || w.scope.room!=reading_window.room || !f.ready)return false;}
-    else if(!reading_window.ordinary || !floor_ready || floor_depth || w.scope.floor!=floor || f.scene!=&scene ||
-      (f.layout==239?f.address!=scene.room:(f.layout==276||f.layout==237||f.layout==382||f.layout==383)?f.address!=scene.game:
-        f.layout!=270 || f.source_slot>=scene.descriptors.size() || scene.descriptors[f.source_slot]!=f.address ||
-        f.subject.use!=floor || f.subject.shape!=descriptor_revisions[f.source_slot]))return false;
+    else {
+      if(!reading_window.ordinary||!floor_ready||floor_depth||w.scope.floor!=floor||f.scene!=&scene)return false;
+      bool mapped=false;
+      if(f.layout==239)mapped=f.address==scene.room;
+      else if(f.layout==437)mapped=f.manager&&std::uint64_t(f.manager)+0x2a170==f.address;
+      else if(f.layout==276||f.layout==237||f.layout==382||f.layout==383)mapped=f.address==scene.game;
+      else if(f.layout==270)mapped=f.source_slot<scene.descriptors.size()&&scene.descriptors[f.source_slot]==f.address&&
+        f.subject.use==floor&&f.subject.shape==descriptor_revisions[f.source_slot];
+      // 448—453只接纳锚定同一Game／run的自有事件树，不扩大任意原生对象可读范围。
+      else if(f.layout>=448&&f.layout<=453)mapped=f.ready&&f.address==scene.game&&
+        f.subject==CaptureSubject{3,w.scope.run,1,1}&&!f.display_values.empty()&&f.display_values.front().layout==f.layout;
+      if(!mapped)return false;
+    }
     if(f.ordinal<4){const auto *runtime=Runtime();if(!runtime || runtime->finished || runtime->retiring || runtime->failure ||
         !runtime->session.HasParticipant(f.ordinal) || SessionGeneration(*runtime)!=f.control_session ||
         runtime->players[f.ordinal].Generation()!=f.binding_revision)return false;}
@@ -273,14 +277,7 @@ struct BinaryEntities::Impl {
   }
   void ReadWindow(const Pending &p) noexcept {reading_window=p.window;reading_witness=p.witness;reading_resource_mutation=p.resource_change;collecting=true;}
   void ReadProduction(const Produced &p) noexcept {reading_window=p.window;reading_witness=p.witness;reading_resource_mutation=resource_mutation;collecting=true;}
-  EntityFacts ProductionBody(std::uint32_t,const Produced &) noexcept;
-  bool SaveProduction(Produced &,EntityFacts,std::uint16_t,std::uint64_t) noexcept;
   bool ProductionInto(CaptureValueWriter &,std::uint32_t &,CaptureDiagnostic &) noexcept;
-  void ClearProduction() noexcept;
-  void ProduceOwnedStats(Produced &) noexcept;
-  bool AudioInto(CaptureValueWriter &,std::uint32_t &,CaptureDiagnostic &) noexcept;
-  bool AudioEventFor(AudioVoice &,const Produced &,std::uint8_t kind) noexcept;
-  void AudioControl(Produced &) noexcept;
   void Failure(CaptureDiagnostic d) noexcept {++stats.gaps;stats.failure=d;}
   bool GroupsInto(CaptureValueWriter &writer,std::uint32_t &count) noexcept {
     const auto scalar=[&](std::uint16_t field,ScalarKind kind,std::uint64_t number,unsigned bytes){std::array<std::byte,8> data{};
@@ -411,12 +408,16 @@ struct BinaryEntities::Impl {
     if(!push(context))return false;context.address=scene.room;context.subject={7,reading_window.room,1,1};context.layout=239;
     if(!push(context))return false;
     context.address=scene.game;context.subject={3,reading_window.run,1,1};context.layout=237;
-    context.progress_ready=progress_revision && progress_scope==reading_witness.scope;context.progress_blocked=progress_blocked;
     std::array<std::uint32_t,16> current_score{};std::array<std::uint32_t,15> components{};
     context.score_ready=score.revision && score.scope==reading_witness.scope &&
       NativeValue(std::uint64_t(scene.game)+0x25c5c,components) && NativeValue(std::uint64_t(scene.game)+0x25ca8,current_score[15]);
     std::copy(components.begin(),components.end(),current_score.begin());context.score_ready=context.score_ready&&current_score==score.values;
-    return push(context);
+    BinaryDisplayInputs inputs;
+    if(!NativeValue(std::uint64_t(capture.source_memory.image_base)+0x7e4a1c,context.manager) || !context.manager ||
+       !source.ReadDisplayContext(reading_witness,context,diagnostic) || !QueryBinaryDisplayInputs(reinterpret_cast<void *>(context.address),reinterpret_cast<void *>(scene.room),inputs)||
+       !display.Prepare(reading_witness,context,source,DisplayRead(),inputs,diagnostic)||!push(context))return false;
+    context.layout=437;context.address=context.manager+0x2a170;context.subject={12,reading_window.run,1,1};
+    return context.manager<=UINT32_MAX-0x2a174 && push(context);
   }
   bool SceneInto(CaptureValueWriter &writer,std::uint32_t &count,CaptureDiagnostic &diagnostic) noexcept {
     for(std::uint32_t i=0;i<scene_root_count;++i)if(!source.Capture(reading_witness,scene_roots[i],BodyStream::World,writer,diagnostic,true))return false;else ++count;
@@ -436,172 +437,41 @@ struct BinaryEntities::Impl {
     const bool result=p.ticket.Publish(window,p.anchor,p.roots);collecting=false;return result;
   }
 };
-// 正常生产只借用本调用的原生窗口；身份仍由Collector持有，显示对象地址不成为网络身份。
-EntityFacts BinaryEntities::Impl::ProductionBody(std::uint32_t body,const Produced &p) noexcept {
-  EntityFacts out;const auto *id=capture.identities.Find(world::ObjectDomain::Entity,body);
-  if(!id || id->Retired() || id->candidate || id->readiness<2)return out;
-  out.address=out.identity_address=body;out.subject={1,id->local_id,id->use,id->revision};out.ready=out.player_ready=true;
-  Control(out);out.subject.topology=source.Topology(out.subject);out.manager=p.manager;return out;
-}
-bool BinaryEntities::Impl::SaveProduction(Produced &p,EntityFacts facts,std::uint16_t layout,std::uint64_t instance) noexcept {
-  ReadProduction(p);CaptureDiagnostic diagnostic;facts.layout=layout;
-  CaptureValueWriter writer(production_scratch,p.witness);
-  const auto *description=FindLayout(layout);bool body=false;
-  if(description)for(unsigned i=0;i<description->block_count;++i)body|=Blocks()[description->first_block+i].body;
-  bool success=source.Capture(p.witness,facts,body?BodyStream::Body:BodyStream::World,writer,diagnostic,true);
-  CaptureRecord origin;origin.production=p.witness;origin.owner=facts.subject;origin.instance=instance;origin.generation=capture.epoch;
-  origin.purpose=layout;origin.call=p.token;origin.parent=p.parent;
-  if(success)success=writer.Production(origin);
-  const auto resources=source.Resources();CapturePacket packet;
-  if(success)success=writer.Catalog({0,std::uint32_t(resources.entries.size()),std::uint32_t(resources.bytes.size()),std::uint32_t(resources.layers.size())},std::span(links).first(link_used))&&writer.Seal(1,packet);
-  if(success)success=production.Store(packet,diagnostic);
-  collecting=false;
-  if(!success){production.RetirePurpose(facts.subject,layout);Failure(diagnostic.reason==CaptureFailure::None?writer.Diagnostic():diagnostic);}return success;
-}
-void BinaryEntities::Impl::ClearProduction() noexcept {
-  production.Clear();score={};probability={};progress_revision=0;progress_scope={};planetarium_known=false;
-  for(auto &hud:hud_states){hud.subject={};hud.scope={};hud.address=hud.body=0;hud.instance=hud.mantle=0;hud.clock={};hud.complete=hud.stats=hud.history=false;
-    hud.rows={};hud.rows_initialized=false;hud.tracker->Retire();}
-}
-// 自有纯显示生产器：以真实Stat正常tick为时钟，所有身体各自维护差值与相位。
-// 六个输入是Host已核最终属性，仅在这里换成原生显示单位；Client仍只消费最终三值。
-// 概率优先复用本帧正常结果，按用户明确例外复用C++查询补缺；不运行HUD Update／Recompute或Lua API。
-void BinaryEntities::Impl::ProduceOwnedStats(Produced &p) noexcept {
-  ReadProduction(p);if(!Groups()){collecting=false;return;}
-  std::uint8_t unlocked=0,override_flag=0;std::uint32_t mode=0,override_count=0;
-  const bool qualification=NativeValue(std::uint64_t(p.manager)+0x1e2,unlocked)&&NativeValue(std::uint64_t(p.manager)+8,mode)&&
-    NativeValue(std::uint64_t(p.window.game)+0x25ba8,override_count)&&NativeValue(std::uint64_t(p.window.game)+0x25b01,override_flag);
-  planetarium_known=qualification;planetarium_qualified=qualification&&(unlocked || (mode==2&&(override_count||override_flag)));
-  // 当前原生HUD最终值优先；只补当前scope／帧缺失的概率位，不为每个参与者再算一遍。
-  std::uint8_t missing=0;std::array<float,3> probability_values{};
-  for(unsigned row=0;row<3;++row){if(row==2&&!planetarium_qualified)continue;
-    if(probability.scope==p.witness.scope&&(probability.mask&(1u<<row))&&probability.frames[row]==p.witness.game_frame)probability_values[row]=probability.values[row];
-    else missing|=std::uint8_t(1u<<row);}
-  if(missing){EntityFacts context;context.subject={3,p.window.run,1,1};context.address=p.window.game;context.manager=p.manager;context.ready=true;
-    CaptureDiagnostic diagnostic;BinaryProbabilityInput input;
-    const auto read_inputs=[&](BinaryProbabilityInput &value){ReadProduction(p);return
-      NativeValue(std::uint64_t(p.window.game)+0x25ac0,value.game_flags)&&NativeValue(std::uint64_t(p.window.game)+0x1839c,value.level_flags)&&
-      NativeValue(std::uint64_t(p.window.game)+0x25ae8,value.donation)&&NativeValue(std::uint64_t(p.window.game)+0x25ae0,value.deals)&&
-      NativeValue(std::uint64_t(p.window.game)+0x182f4,value.angel_modifier);};
-    bool valid=!(missing&3)||(source.HudDealEligibility(p.witness,context,input.eligible,diagnostic)&&read_inputs(input));
-    if(valid)valid=QueryBinaryHudProbability(reinterpret_cast<void *>(p.window.game),reinterpret_cast<void *>(p.window.room_address),missing,input,probability_values);
-    ReadProduction(p);valid=valid&&capture.collector->NativeWindowCurrent(p.window);
-    if(valid&&(missing&3)){BinaryProbabilityInput after;valid=read_inputs(after)&&input.game_flags==after.game_flags&&input.level_flags==after.level_flags&&
-      input.donation==after.donation&&input.deals==after.deals&&input.angel_modifier==after.angel_modifier;}
-    if(valid){
-      if(probability.scope!=p.witness.scope){probability={};probability.scope=p.witness.scope;}
-      for(unsigned row=0;row<3;++row)if(missing&(1u<<row)){probability.values[row]=probability_values[row];probability.frames[row]=p.witness.game_frame;probability.mask|=std::uint8_t(1u<<row);}
-    }else Failure(diagnostic.reason==CaptureFailure::None?CaptureDiagnostic{CaptureFailure::SourceChanged,{},317}:diagnostic);}
-  std::array<float,10> thresholds{};bool template_valid=true;
-  for(unsigned row=0;row<thresholds.size();++row)template_valid=template_valid&&
-    NativeValue(std::uint64_t(p.object)+292+row*20,thresholds[row])&&std::isfinite(thresholds[row])&&thresholds[row]>=0;
-  for(auto &hud:hud_states){if(!hud.body || hud.scope!=p.witness.scope)continue;
-    ReadProduction(p);auto facts=ProductionBody(hud.body,p);
-    if(facts.subject!=hud.subject || facts.ordinal>=4 || !(facts.control_flags&1))continue;
-    hud.stats=false;std::array<float,6> values{};std::uint32_t birth=0;
-    constexpr std::uint32_t offsets[]={0x155c,0x145c,0x146c,0x147c,0x1460,0x1560};
-    bool valid=template_valid&&qualification&&NativeValue(std::uint64_t(hud.body)+808,birth);
-    for(unsigned row=0;row<values.size();++row)valid=valid&&NativeValue(std::uint64_t(hud.body)+offsets[row],values[row])&&std::isfinite(values[row]);
-    if(valid){values[1]=float(30.0f/float(values[1]+1.0f));values[3]=float(values[3]/40.0f);
-      valid=std::isfinite(values[1])&&std::isfinite(values[3]);}
-    if(!valid){production.RetirePurpose(hud.subject,317);Failure({CaptureFailure::MissingQualification,hud.subject,317});continue;}
-    if(!hud.rows_initialized){hud.rows={};for(unsigned row=0;row<hud.rows.size();++row)hud.rows[row].threshold=thresholds[row];hud.rows_initialized=true;}
-    const bool animate=std::bit_cast<std::int32_t>(std::uint32_t(p.witness.game_frame-birth))>1;
-    const auto update=[&](unsigned index,float value){auto &row=hud.rows[index];const auto old=row.value;
-      if(!animate){row.previous=old;row.delta=0;row.countdown=0;}
-      else if(value!=old){if(row.countdown>30){row.delta=float(value-row.previous);row.countdown=std::max(row.countdown,135);}
-        else {row.previous=old;row.delta=float(value-old);if(std::fabs(row.delta)>=row.threshold)row.countdown=150;}}
-      row.value=value;};
-    for(unsigned row=0;row<values.size();++row)update(row,values[row]);
-    for(unsigned row=0;row<3;++row){const bool needed=row<2||planetarium_qualified;
-      if(needed && (probability.scope!=p.witness.scope || !(probability.mask&(1u<<row)) || probability.frames[row]!=p.witness.game_frame)){valid=false;continue;}
-      if(needed)update(row+6,probability.values[row]);}
-    for(auto &row:hud.rows)if(row.countdown>0)--row.countdown;
-    if(!valid){production.RetirePurpose(hud.subject,317);Failure({CaptureFailure::MissingQualification,hud.subject,317});continue;}
-    facts.stat_rows=&hud.rows;facts.planetarium_known=true;facts.planetarium_qualified=planetarium_qualified;
-    hud.stats=SaveProduction(p,facts,317,hud.instance);
-  }
-  collecting=false;
-}
-// 必要身体来源不因原生只有两槽而默认缺席；合法尚未产生的结果保持明确缺口。
 bool BinaryEntities::Impl::ProductionInto(CaptureValueWriter &writer,std::uint32_t &count,CaptureDiagnostic &diagnostic) noexcept {
-  for(std::uint32_t i=0;i<root_used;++i){const auto &f=roots[i];if(f.ordinal>=4 || !(f.control_flags&1))continue;
-    const auto at=std::find_if(hud_states.begin(),hud_states.end(),[&](const auto &hud){return hud.subject==f.subject && hud.scope==reading_witness.scope && hud.complete;});
-    if(at==hud_states.end())return FailCapture(diagnostic,CaptureFailure::MissingQualification,{f.subject,0,0,315});
-    if(!at->stats)return FailCapture(diagnostic,CaptureFailure::MissingQualification,{f.subject,0,0,317});
-    if(!at->history)return FailCapture(diagnostic,CaptureFailure::MissingQualification,{f.subject,0,0,321});
-  }
-  // 已登记但尚未取得正常来源的必需world用途不能被空列表掩盖。
-  // 原版分支“不显示”同样要由该owner明确生产present=0，不能仅因本端没有调用就推导缺席。
-  constexpr std::uint16_t required[]={323,325,356,367,368,369,370,371,373,374,375,376,377,378,379,380};
-  for(const auto purpose:required)if(!production.Contains(reading_witness.scope,purpose))
-    return FailCapture(diagnostic,CaptureFailure::MissingQualification,{{3,reading_witness.scope.run,1,1},0,0,purpose});
-  if(!production.Append(reading_witness.scope,writer,count,diagnostic,{this,
+  // Q14不再要求旧HUD／D0／显示结果生产缓存；普通值由收缩后的GameRun计划采集。
+  return display.Events(reading_witness.scope,writer,count,diagnostic,{this,
     [](void *owner,const CaptureReferenceEntry &ref) noexcept {auto &s=*static_cast<Impl *>(owner);
-      bool present=false;
-      if(ref.space==1)for(std::uint32_t i=0;i<s.root_used;++i){const auto &f=s.roots[i];if(f.subject.local==ref.local&&f.subject.use==ref.use){present=true;break;}}
-      else present=ref.space==3 || ref.space==9 || ref.space==10;
-      return present?s.Register({ref.space,ref.local,ref.use}):CaptureLink{CapturedReferenceKind::Invalid,0};}}))return false;
-  return AudioInto(writer,count,diagnostic);
+      return s.Register({ref.space,ref.local,ref.use});}});
 }
-// voice与可靠事件分开保留；ordinary只复制，不因latest替换丢事件或重启同一声部。
-bool BinaryEntities::Impl::AudioInto(CaptureValueWriter &writer,std::uint32_t &count,CaptureDiagnostic &d) noexcept {
-  if(audio_gap)return FailCapture(d,CaptureFailure::Incomplete,{{3,reading_witness.scope.run,1,1},0,0,383});
-  const auto append=[&](const world::binary::NativeAudioValue &value,const CaptureWitness &origin,std::uint64_t instance,std::uint64_t generation,std::uint64_t sequence,std::uint16_t layout){
-    EntityFacts f;f.subject={3,reading_witness.scope.run,1,1};f.address=scene.game;f.layout=layout;f.ready=true;f.scene=&scene;f.audio=&value;
-    if(!source.Capture(reading_witness,f,BodyStream::World,writer,d,true))return false;
-    CaptureRecord record;record.production=origin;record.owner=f.subject;record.instance=instance;record.generation=generation;record.purpose=layout;
-    record.event_sequence=sequence;if(!writer.Production(record))return false;++count;return true;};
-  for(const auto &voice:voices)if(voice.active && voice.value.loop && voice.production.scope.run==reading_witness.scope.run)
-    if(!append(voice.value,voice.production,voice.instance,voice.generation,0,382))return false;
-  for(unsigned i=0;i<audio_event_count;++i){const auto &event=audio_events[i];if(event.production.scope.run!=reading_witness.scope.run)continue;
-    if(!append(event.value,event.production,event.instance,event.generation,event.sequence,383))return false;}
-  return true;
+void BinaryEntities::Intention(const BinaryMusicIntent &intent) noexcept {auto &s=*impl_;if(!s.Main()||!s.stats.active)return;s.DisplayRun();s.display.BootstrapMusic(intent);}
+void BinaryEntities::Intention(const BinarySfxIntent &intent) noexcept {auto &s=*impl_;if(!s.Main()||!s.stats.active)return;s.DisplayRun();s.display.BootstrapSfx(intent);}
+void BinaryEntities::MapFocus(std::uint32_t owner,std::uint32_t descriptor,std::uint32_t frame,std::uint32_t selected) noexcept {
+  auto &s=*impl_;if(!s.Main()||!s.stats.active)return;s.DisplayRun();s.display.MapFocus(owner,descriptor,frame,selected);
 }
-// 可靠事件不因latest状态替换丢失；停止只退休所指实例，容量不足明确撤销音频完整性。
-bool BinaryEntities::Impl::AudioEventFor(AudioVoice &voice,const Produced &p,std::uint8_t kind) noexcept {
-  if(audio_event_count==audio_events.size() || next_audio_event==UINT64_MAX){audio_gap=true;Failure({CaptureFailure::ValueBudget,{},383});return false;}
-  auto &event=audio_events[audio_event_count++];event={voice.value,p.witness,voice.instance,voice.generation,++next_audio_event};event.value.kind=kind;
-  voice.production=p.witness;if(kind==2)voice.active=false;return true;
+void BinaryEntities::OverlayShown(std::uint32_t owner,std::int32_t controller) noexcept {
+  auto &s=*impl_;if(!s.Main()||!s.stats.active)return;s.DisplayRun();s.display.OverlayShown(owner,controller);
 }
-// 正常控制返回后更新自有逻辑声部，不再次查询后端IsPlaying，也不将设备丢失广播为Stop。
-// 这里控制的集合来自已接受的world实例；本地Options单独刷新不进入此world生产范围。
-void BinaryEntities::Impl::AudioControl(Produced &p) noexcept {
-  if(!p.audio_world)return;ReadProduction(p);std::array<std::uint32_t,3> table{};float modifier=0;
-  if(!NativeValue(p.object,table)||table[0]>table[1]||table[1]>table[2]||(table[1]-table[0])%440 ||
-     !NativeValue(std::uint64_t(p.object)+16,modifier)||!std::isfinite(modifier)){audio_gap=true;Failure({CaptureFailure::SourceChanged,{},383});return;}
-  const auto count=(table[1]-table[0])/440;
-  for(auto &voice:voices){if(!voice.active || voice.production.scope.run!=p.witness.scope.run)continue;
-    const bool all=p.kind==BinaryProductionKind::SfxRemix||p.kind==BinaryProductionKind::SfxStopLoops;
-    const bool ambient=p.kind==BinaryProductionKind::SfxAmbient;
-    if(ambient?(voice.ambient!=p.sound||p.volume>0.009999999776482582f):(!all&&voice.sound!=std::uint32_t(p.sound)))continue;
-    if(voice.sound>=count){audio_gap=true;Failure({CaptureFailure::SourceChanged,{},383});continue;}
-    if(p.kind==BinaryProductionKind::SfxStop || (p.kind==BinaryProductionKind::SfxStopLoops&&voice.value.loop) || ambient){AudioEventFor(voice,p,2);continue;}
-    if(p.kind==BinaryProductionKind::SfxStopLoops)continue;
-    auto value=voice.value;
-    if(p.kind==BinaryProductionKind::SfxPitch)value.pitch=p.pitch;
-    else {float volume=p.volume;if(p.kind==BinaryProductionKind::SfxRemix &&
-        !NativeValue(std::uint64_t(table[0])+std::uint64_t(voice.sound)*440+404,volume)){audio_gap=true;Failure({CaptureFailure::ReadFailed,{},381});continue;}
-      value.gain=float(std::max(modifier,0.0f)*volume);value.mix_rule=p.kind==BinaryProductionKind::SfxRemix?1:0;}
-    if(!std::isfinite(value.gain)||!std::isfinite(value.pitch)){audio_gap=true;Failure({CaptureFailure::InvalidValue,{},381});continue;}
-    if(value.gain!=voice.value.gain||value.pitch!=voice.value.pitch||value.mix_rule!=voice.value.mix_rule){voice.value=value;AudioEventFor(voice,p,4);}
-  }
-  collecting=false;
+void BinaryEntities::BossShown(std::uint32_t owner,std::uint32_t first,std::uint32_t second,std::int32_t room,std::int32_t dimension) noexcept {
+  auto &s=*impl_;if(!s.Main()||!s.stats.active)return;s.DisplayRun();s.display.BossShown(owner,first,second,room,dimension);
 }
 BinaryEntities::BinaryEntities(WorldCapture &c,std::thread::id p,std::thread::id worker):impl_(std::make_unique<Impl>(c,p,worker)) {}
 BinaryEntities::~BinaryEntities()=default;
 bool BinaryEntities::Active() const noexcept {return impl_->stats.active;}
 void BinaryEntities::Active(bool active) noexcept {auto &s=*impl_;if(!s.Main() || active==s.stats.active)return;
-  if(active&&!StreamResourceHooksInstalled()){s.Failure({CaptureFailure::MissingQualification});return;}
+  if(active&&(!StreamResourceHooksInstalled()||!BinaryDisplayCaptureHooksInstalled())){s.Failure({CaptureFailure::MissingQualification});return;}
   s.ordinary={};for(auto &body:s.bodies)body={};s.fast_keys={};s.fast_addresses={};s.last_ordinary=0;s.published_count=0;s.source.Invalidate();
-  s.ClearProduction();s.voices={};s.audio_events={};s.audio_event_count=0;s.audio_gap=false;s.production_depth=0;
+  s.score={};s.production_depth=0;
+  s.display.Reset(true);
+  s.display_run=0;
+  s.publication_floor=s.revision==UINT64_MAX?UINT64_MAX:s.revision+1;
   s.invalidated=false;if(active)s.stats.active=s.exchange.Begin();else {s.exchange.Stop();s.stats.active=false;}}
 void BinaryEntities::FrameBegin() noexcept {auto &s=*impl_;if(!s.Main())return;s.ordinary={};s.ordinary_count=0;s.link_used=0;for(auto &body:s.bodies)body={};s.collecting=false;
+  s.DrainEventReceipts();
   if(s.stats.active && s.capture.collector && ((s.run && s.run!=s.capture.collector->CurrentRunToken()) ||
       (s.room && s.room!=s.capture.collector->CurrentRoomToken()))){
     for(std::uint32_t i=0;i<s.scene_root_count;++i)s.source.Retire(s.scene_roots[i].subject);
-    s.scene_root_count=0;s.ClearProduction();
-    if(s.run && s.run!=s.capture.collector->CurrentRunToken()){s.voices={};s.audio_events={};s.audio_event_count=0;s.audio_gap=false;}
+    s.scene_root_count=0;s.score={};
+    if(s.run && s.run!=s.capture.collector->CurrentRunToken()){if(s.display_run!=s.capture.collector->CurrentRunToken())s.display.Reset(true);}
     Invalidate();}}
 void BinaryEntities::FrameEnd() noexcept {auto &s=*impl_;if(!s.Main())return;
   bool pending=s.ordinary.ticket.Values()!=nullptr;s.ordinary={};for(auto &body:s.bodies){pending|=body.ticket.Values()!=nullptr;body={};}
@@ -692,12 +562,10 @@ void BinaryEntities::Commit(bool committed,const core::TickPostState &post) noex
 void BinaryEntities::Invalidate() noexcept {auto &s=*impl_;if(!s.Main() || !s.stats.active)return;
   s.ordinary={};for(auto &body:s.bodies)body={};s.last_ordinary=0;s.published_count=0;
   if(s.invalidated)return;s.invalidated=true;
+  s.publication_floor=s.revision==UINT64_MAX?UINT64_MAX:s.revision+1;
   if(s.resource_mutation==UINT64_MAX){s.stats.active=false;s.exchange.Stop(CaptureFailure::SequenceExhausted);return;}++s.resource_mutation;s.source.Invalidate();
   for(auto &key:s.fast_keys)if(key.local){s.exchange.RetireBody(key);key={};}s.fast_addresses={};s.exchange.Invalidate(CaptureFailure::Revoked);}
 void BinaryEntities::RetireBody(std::uint32_t address) noexcept {auto &s=*impl_;if(!s.Main())return;
-  for(auto &hud:s.hud_states)if(hud.address && hud.subject.local){const auto *id=s.capture.identities.Find(world::ObjectDomain::Entity,address);
-    if(id&&hud.subject.local==id->local_id){s.production.Retire(hud.subject);hud.complete=hud.stats=hud.history=false;hud.mantle=0;hud.tracker->Retire();
-      if(id->Retired()){hud.subject={};hud.address=hud.body=0;hud.instance=0;hud.rows={};hud.rows_initialized=false;}}}
   if(address&&s.Known(address))Invalidate();
   for(unsigned i=0;i<s.fast_keys.size();++i)if(s.fast_addresses[i]==address && s.fast_keys[i].local)s.DropFast(i);
   if(const auto *id=s.capture.identities.Find(world::ObjectDomain::Entity,address);id&&id->Retired()){
@@ -713,10 +581,7 @@ void BinaryEntities::TextWritten(std::uint32_t address,std::uint64_t local,std::
   if(where==end || where->address!=address){if(s.text_used==s.texts.size()){s.Failure({CaptureFailure::ValueBudget,{1,local,use,shape}});return;}std::move_backward(where,end,end+1);++s.text_used;}
   *where={address,local,use,shape};}
 void BinaryEntities::ResourceChanged(std::uint32_t address) noexcept {auto &s=*impl_;if(!s.Main()||!s.source.UsesSprite(address))return;Invalidate();
-  // 共享HUD Sprite可能供多个身体使用；加载／替换进入即撤销所有相关显示副本，历史P8与时钟不伪造重置。
-  for(auto &hud:s.hud_states)if(hud.subject.local){s.production.RetirePurpose(hud.subject,315);s.production.RetirePurpose(hud.subject,321);hud.complete=hud.history=false;}
-  for(const auto purpose:{323,325,373,374,375,376,377,378,379,380}){
-    s.production.RetirePurpose({3,s.run,1,1},std::uint16_t(purpose));s.production.RetirePurpose({7,s.room,1,1},std::uint16_t(purpose));}}
+}
 // Init进入即退休旧floor候选；多层嵌套合并一个episode，异常不恢复读取资格。
 void BinaryEntities::FloorBoundary(bool entering,bool normal) noexcept {auto &s=*impl_;if(!s.Main())return;
   if(entering){if(!s.floor_depth){Invalidate();s.floor_ready=true;if(s.next_floor>=UINT64_MAX/3-1)s.floor_ready=false;
@@ -726,66 +591,67 @@ void BinaryEntities::FloorBoundary(bool entering,bool normal) noexcept {auto &s=
 void BinaryEntities::GridChanged(std::uint32_t address) noexcept {auto &s=*impl_;if(!s.Main() || !address)return;
   if(std::find(s.scene.grids.begin(),s.scene.grids.end(),address)!=s.scene.grids.end())Invalidate();
   if(const auto *id=s.capture.identities.Find(world::ObjectDomain::Grid,address);id&&id->Retired())s.source.Retire({2,id->local_id,id->use});}
-BinaryEntityStats BinaryEntities::Statistics() const noexcept {auto out=impl_->stats;out.exchange=impl_->exchange.Statistics();return out;}
+BinaryEntityStats BinaryEntities::Statistics() const noexcept {auto &s=*impl_;auto out=s.stats;out.exchange=s.exchange.Statistics();out.events=s.display.Statistics();
+  std::unique_lock lock(s.outbox,std::try_to_lock);if(lock){out.publication_revision=s.published?s.published->witness.revision:0;out.publication_failure=s.publish_failure;}return out;}
 // 先建立真实生产窗口与有界调用栈；暂停显示允许tick=0，不能借用上一次Authority tick。
 std::uint32_t BinaryEntities::ProductionBegin(BinaryProductionKind kind,std::uint32_t object,std::uint32_t manager) noexcept {
   auto &s=*impl_;if(!s.Main() || !s.stats.active || !s.capture.collector || !object)return 0;
+  s.DisplayRun();
   if(s.production_depth==s.producing.size() || s.next_production_token==UINT32_MAX){s.Failure({CaptureFailure::TraversalBudget});return 0;}
   Impl::Produced p;p.kind=kind;p.object=object;p.manager=manager;p.token=++s.next_production_token;
-  p.parent=s.production_depth?s.producing[s.production_depth-1].token:UINT32_MAX;
   if(!s.capture.collector->NativeProduction(p.window,p.token))return 0;
-  if((kind==BinaryProductionKind::Screen && object!=p.window.game) || (kind==BinaryProductionKind::RoomRender && object!=p.window.room_address))return 0;
   if(kind>=BinaryProductionKind::SfxPlay && kind<=BinaryProductionKind::SfxAmbient &&
      (!manager||std::uint64_t(manager)+0x2a160!=object))return 0;
   p.witness=s.Witness(p.window,CapturePhase::Production);if(!ValidCaptureWitness(p.witness))return 0;
-  if(kind==BinaryProductionKind::PlayerHud){
-    s.ReadProduction(p);if(!s.NativeValue(object,p.body)||!p.body||!s.Groups()){s.collecting=false;return 0;}
-    auto facts=s.ProductionBody(p.body,p);s.collecting=false;
-    if(!facts.ready || !facts.group_known || facts.ordinal>=4 || !facts.subject.binding){s.Failure({CaptureFailure::MissingQualification,facts.subject,315});return 0;}
-    unsigned index=unsigned(s.hud_states.size()),free=index;
-    for(unsigned i=0;i<s.hud_states.size();++i){auto &hud=s.hud_states[i];if(!hud.subject.local){if(free==s.hud_states.size())free=i;continue;}
-      if(hud.subject.space==facts.subject.space&&hud.subject.local==facts.subject.local&&hud.subject.use==facts.subject.use){index=i;break;}}
-    if(index==s.hud_states.size())index=free;if(index==s.hud_states.size()){s.Failure({CaptureFailure::RecordBudget,facts.subject,315});return 0;}
-    auto &hud=s.hud_states[index];
-    if(hud.subject!=facts.subject || hud.scope!=p.witness.scope || hud.address!=object){
-      if(s.next_presentation_instance==UINT64_MAX){s.Failure({CaptureFailure::SequenceExhausted,facts.subject,315});return 0;}
-      if(hud.subject.local)s.production.Retire(hud.subject);hud.tracker->Retire();hud.subject=facts.subject;hud.scope=p.witness.scope;hud.address=object;
-      hud.instance=++s.next_presentation_instance;hud.mantle=0;hud.clock={};hud.complete=hud.stats=hud.history=false;hud.rows={};hud.rows_initialized=false;
-    }
-    hud.body=p.body;p.hud_index=index;hud.complete=false;
-  }
   s.producing[s.production_depth++]=p;return p.token;
 }
-void BinaryEntities::ProductionDrop(std::uint32_t token,std::uint32_t body,bool held) noexcept {auto &s=*impl_;if(!s.Main())return;
-  for(unsigned i=s.production_depth;i;--i){auto &p=s.producing[i-1];if(p.token!=token)continue;
-    if(p.kind!=BinaryProductionKind::PlayerHud || p.body!=body || p.drop_reads==UINT32_MAX){s.Failure({CaptureFailure::SourceChanged,{},435});return;}
-    ++p.drop_reads;p.held=held;return;}}
-// 90A490真实查询已经发生后，保留那一次完整有序P8；冻结分支不重采，也不发护盾bool。
-void BinaryEntities::ProductionMantle(std::uint32_t token,std::uint32_t effects) noexcept {auto &s=*impl_;if(!s.Main())return;
-  for(unsigned i=s.production_depth;i;--i){auto &p=s.producing[i-1];if(p.token!=token)continue;
-    if(p.kind!=BinaryProductionKind::PlayerHud || p.hud_index>=s.hud_states.size() || std::uint64_t(p.body)+0x1500!=effects){s.Failure({CaptureFailure::SourceChanged,{},436});return;}
-    auto &hud=s.hud_states[p.hud_index];auto facts=s.ProductionBody(p.body,p);facts.address=effects;
-    auto historical=p;if(s.revision==UINT64_MAX){s.Failure({CaptureFailure::SequenceExhausted,facts.subject,436});return;}
-    historical.witness.revision=++s.revision;
-    if(s.SaveProduction(historical,facts,436,hud.instance))hud.mantle=s.production.Revision(facts.subject,436,hud.instance);else hud.mantle=0;return;}}
-void BinaryEntities::ProductionProgress(std::uint32_t token,bool seed,bool blocked) noexcept {auto &s=*impl_;if(!s.Main())return;
-  for(unsigned i=s.production_depth;i;--i){auto &p=s.producing[i-1];if(p.token!=token)continue;
-    if(seed){p.seed_seen=true;p.seed_blocked=blocked;}else {p.manager_seen=true;p.manager_blocked=blocked;}return;}}
 void BinaryEntities::ProductionAudio(std::uint32_t token,int sound,float volume,float pitch,float pan,bool loop,bool world) noexcept {auto &s=*impl_;if(!s.Main())return;
   for(unsigned i=s.production_depth;i;--i){auto &p=s.producing[i-1];if(p.token!=token)continue;
     p.sound=sound;p.volume=volume;p.pitch=pitch;p.pan=pan;p.loop=loop;p.audio_world=world;
     if(p.kind==BinaryProductionKind::SfxPlay)for(unsigned parent=i-1;parent;--parent){const auto &outer=s.producing[parent-1];
       if(outer.kind==BinaryProductionKind::SfxAmbient){p.ambient=outer.sound;p.audio_world=outer.audio_world;break;}}
     return;}}
-void BinaryEntities::ProductionStat(std::uint32_t token,int index,std::uint32_t flags) noexcept {auto &s=*impl_;if(!s.Main())return;
+void BinaryEntities::ProductionRequest(std::uint32_t token,const std::array<std::uint32_t,5> &args) noexcept {
+  auto &s=*impl_;if(!s.Main())return;
+  for(unsigned i=s.production_depth;i;--i){auto &p=s.producing[i-1];if(p.token!=token)continue;std::copy(args.begin(),args.end(),p.args.begin());
+    s.ReadProduction(p);
+    if(p.kind==BinaryProductionKind::SfxPlay)p.frame_delay=std::bit_cast<std::int32_t>(args[0]);
+    if(p.kind>=BinaryProductionKind::MusicPlay&&p.kind<=BinaryProductionKind::MusicLayerOff)
+      p.display_failed=!s.NativeValue(std::uint64_t(p.object)+0x30c,p.args[5]);
+    if(p.kind==BinaryProductionKind::Fortune){p.args[1]=0;p.args[2]=UINT32_MAX;
+      for(unsigned parent=i-1;parent;--parent){const auto &outer=s.producing[parent-1];if(outer.kind==BinaryProductionKind::FortuneSource){p.args[1]=outer.args[0];p.args[2]=outer.args[2];break;}}}
+    if(p.kind==BinaryProductionKind::FortuneSource)p.args[2]=UINT32_MAX;
+    if(p.kind==BinaryProductionKind::TransitionStart){const auto serial=s.display.ReserveTransition();
+      p.args[6]=std::uint32_t(serial);p.args[7]=std::uint32_t(serial>>32);
+      p.display_failed=!serial||!s.NativeValue(std::uint64_t(p.window.game)+0x1ba78,p.args[5]);}
+    if(p.kind==BinaryProductionKind::BossIntro)for(unsigned parent=i-1;parent;--parent){const auto &outer=s.producing[parent-1];
+      if(outer.kind==BinaryProductionKind::TransitionStart){p.args[6]=outer.args[6];p.args[7]=outer.args[7];break;}}
+    if(p.kind==BinaryProductionKind::MapCache)p.display_failed=!s.NativeValue(std::uint64_t(p.window.room_address)+4,p.args[0]);
+    s.collecting=false;return;}
+}
+void BinaryEntities::ProductionRandom(std::uint32_t token,std::uint32_t value) noexcept {
+  auto &s=*impl_;if(!s.Main())return;
   for(unsigned i=s.production_depth;i;--i){auto &p=s.producing[i-1];if(p.token!=token)continue;
-    if(p.kind==BinaryProductionKind::StatRecompute){p.stat_index=index;p.stat_flags=flags;}return;}}
-// 只观察原链真实暂停查询；Manager相位在同一个返回点复制，不另行调用IsPaused。
-void BinaryEntities::ProductionPaused(std::uint32_t token,std::uint32_t game,bool paused) noexcept {auto &s=*impl_;if(!s.Main())return;
-  for(unsigned i=s.production_depth;i;--i){auto &p=s.producing[i-1];if(p.token!=token)continue;if(game!=p.window.game)return;
-    s.ReadProduction(p);std::uint32_t frame=0;if(!s.NativeValue(std::uint64_t(p.manager)+0x4a8b8,frame)){p.draw_conflict=true;s.collecting=false;return;}
-    if(p.draw_known&&(p.draw_clock.manager_frame!=frame||p.draw_clock.paused!=paused))p.draw_conflict=true;
-    p.draw_clock={frame,paused};p.draw_known=true;s.collecting=false;return;}}
+    if(p.kind==BinaryProductionKind::FortuneSource){p.args[2]=value;return;}
+    if(p.kind==BinaryProductionKind::MapCache){s.ReadProduction(p);std::uint32_t count=0,focus=0;
+      if(s.NativeValue(std::uint64_t(p.window.game)+0x182cc,count)&&value<count&&count<=527&&
+         s.NativeValue(std::uint64_t(p.window.game)+36+std::uint64_t(value)*184+4,focus))
+        s.display.MapFocus(p.object,p.args[0],p.window.game_frame,focus);
+      else p.display_failed=true;s.collecting=false;return;}}
+}
+// 捕获正常LoadText实际消费的最终UTF16，再有界转UTF8；不额外本地化或重跑文字随机。
+void BinaryEntities::ProductionBannerText(std::uint32_t token,std::uint32_t text,bool subtitle) noexcept {
+  auto &s=*impl_;if(!s.Main())return;
+  for(unsigned i=s.production_depth;i;--i){auto &p=s.producing[i-1];if(p.token!=token||p.kind!=BinaryProductionKind::ItemBanner)continue;
+    s.ReadProduction(p);std::array<wchar_t,4096> value{};unsigned count=0;
+    if(text)for(;count<value.size()-1;++count){if(!s.NativeValue(std::uint64_t(text)+count*2,value[count])){p.display_failed=true;break;}if(!value[count])break;}
+    if(count==value.size()-1)p.display_failed=true;
+    auto &out=subtitle?p.subtitle:p.title;auto &seen=subtitle?p.subtitle_seen:p.title_seen;
+    if(seen)p.display_failed=true;
+    const int size=count?WideCharToMultiByte(CP_UTF8,WC_ERR_INVALID_CHARS,value.data(),int(count),out.data(),int(out.size()-1),nullptr,nullptr):0;
+    if(count&&!size)p.display_failed=true;else {out[std::size_t(size)]=0;seen=true;}
+    s.collecting=false;return;}
+}
 // 9F7970是正常选样本后的共同尾叶：即使本地source为空也会到达，不能以Play后端成功分配世界实例。
 void BinaryEntities::ProductionAudioPan(std::uint32_t token,std::uint32_t stream) noexcept {auto &s=*impl_;if(!s.Main())return;
   for(unsigned i=s.production_depth;i;--i){auto &p=s.producing[i-1];if(p.token!=token)continue;if(p.kind!=BinaryProductionKind::SfxPlay)return;
@@ -795,176 +661,92 @@ void BinaryEntities::ProductionAudioPan(std::uint32_t token,std::uint32_t stream
     const auto effect=std::uint64_t(table[0])+std::uint64_t(std::uint32_t(p.sound))*440;
     valid=valid && s.NativeValue(effect+400,samples) && samples>0 && samples<=7 && stream>=effect+32 &&
       (stream-effect-32)%56==0 && (stream-effect-32)/56<samples;
-    if(valid){p.stream=stream;++p.selected;}else {s.audio_gap|=p.audio_world;s.Failure({CaptureFailure::SourceChanged,{},381});}
+    if(valid){p.stream=stream;++p.selected;}else p.display_failed=true;
     s.collecting=false;return;}}
-// 此正常查询紧接8045EE写BE7704；在Room Render尾部清零和任何后续pass之前复制实际临时值。
-void BinaryEntities::ProductionRoomEffect(std::uint32_t token,std::uint32_t effects,bool enabled) noexcept {auto &s=*impl_;if(!s.Main())return;
-  for(unsigned i=s.production_depth;i;--i){auto &p=s.producing[i-1];if(p.token!=token)continue;
-    if(p.kind!=BinaryProductionKind::RoomRender || p.object!=p.window.room_address || std::uint64_t(p.object)+0x7310!=effects)return;
-    s.ReadProduction(p);if(s.NativeValue(std::uint64_t(s.capture.source_memory.image_base)+0x7e7704,p.retro)&&std::isfinite(p.retro)){
-      p.room_effect_known=true;p.glitch=enabled;
-    }else s.Failure({CaptureFailure::ReadFailed,{},369});s.collecting=false;return;}}
 // 正常返回才封存；所有失败阻断新完整显示目标，不改变Authority输入或原生调用次数。
 void BinaryEntities::ProductionEnd(std::uint32_t token,bool normal) noexcept {
   auto &s=*impl_;if(!s.Main() || !s.production_depth)return;auto p=s.producing[s.production_depth-1];
-  if(p.token!=token){s.Failure({CaptureFailure::Reentrant});s.ClearProduction();s.production_depth=0;return;}
-  --s.production_depth;if(!normal || !s.capture.collector->NativeWindowCurrent(p.window)){
-    if(p.hud_index<s.hud_states.size()){auto &hud=s.hud_states[p.hud_index];s.production.Retire(hud.subject);hud.complete=false;hud.mantle=0;hud.tracker->Retire();}
+  if(p.token!=token){s.Failure({CaptureFailure::Reentrant});s.score={};s.production_depth=0;return;}
+  --s.production_depth;
+  if(normal&&p.kind==BinaryProductionKind::TransitionFinish){
+    // ChangeRoom的正常完成会退休旧room；重新取得真实新room生产窗，不沿用旧凭据。
+    if(s.capture.collector->NativeProduction(p.window,p.token))p.witness=s.Witness(p.window,CapturePhase::Production);else normal=false;
+  }
+  if(!normal || !s.capture.collector->NativeWindowCurrent(p.window)){
     if(p.kind==BinaryProductionKind::Score)s.score.revision=0;
-    if(p.kind==BinaryProductionKind::StatTick)for(auto &hud:s.hud_states)if(hud.subject.local){s.production.RetirePurpose(hud.subject,317);hud.stats=false;}
-    if(p.audio_world)s.audio_gap=true;
-    if(p.kind==BinaryProductionKind::Screen)for(const auto purpose:{367,368,370})s.production.RetirePurpose({3,p.window.run,1,1},std::uint16_t(purpose));
-    if(p.kind==BinaryProductionKind::RoomRender)for(const auto purpose:{369,371})s.production.RetirePurpose({7,p.window.room,1,1},std::uint16_t(purpose));
     s.Failure({CaptureFailure::SourceChanged});return;}
   if(s.revision==UINT64_MAX){s.Failure({CaptureFailure::SequenceExhausted});return;}p.witness.revision=++s.revision;
   s.ReadProduction(p);
+  if(p.kind>=BinaryProductionKind::MusicPlay||p.kind>=BinaryProductionKind::SfxPlay&&p.kind<=BinaryProductionKind::SfxAmbient){
+    bool nested_music=false;
+    if(p.kind>=BinaryProductionKind::MusicPlay&&p.kind<=BinaryProductionKind::MusicLayerOff)
+      for(unsigned i=0;i<s.production_depth;++i)nested_music|=s.producing[i].kind>=BinaryProductionKind::MusicPlay&&s.producing[i].kind<=BinaryProductionKind::MusicLayerOff;
+    if(nested_music){s.collecting=false;return;}
+    EntityFacts facts;facts.subject={3,p.window.run,1,1};facts.address=p.window.game;facts.ready=true;facts.manager=p.manager;
+    CaptureDiagnostic diagnostic;bool ok=!p.display_failed;
+    if(p.kind==BinaryProductionKind::SfxPlay){if(p.audio_world&&p.selected){ok=ok&&p.selected==1;
+      if(ok)BinaryNativeSfxFallback(p.kind,reinterpret_cast<void *>(p.object),p.sound,p.volume,p.frame_delay,p.loop,p.pitch,p.pan,reinterpret_cast<void *>(p.stream),p.ambient);} }
+    else if(p.kind>=BinaryProductionKind::SfxVolume&&p.kind<=BinaryProductionKind::SfxAmbient){if(p.audio_world){p.args[0]=std::uint32_t(p.sound);p.args[1]=std::bit_cast<std::uint32_t>(p.volume);p.args[2]=std::bit_cast<std::uint32_t>(p.pitch);
+        if(ok)BinaryNativeSfxFallback(p.kind,reinterpret_cast<void *>(p.object),p.sound,p.volume,0,false,p.pitch,0,nullptr,-1);}}
+    else {if(p.kind==BinaryProductionKind::ItemBanner){p.args[6]=p.title_seen?world::PackWord(p.title.data()):0;p.args[7]=p.subtitle_seen?world::PackWord(p.subtitle.data()):0;}
+      ok=ok&&s.display.Observe(p.kind,p.object,p.args,p.witness,facts,s.source,s.DisplayRead(),std::span(s.links).first(s.link_used),diagnostic);}
+    if(!ok){s.display.Fault();s.Failure(diagnostic.reason==CaptureFailure::None?CaptureDiagnostic{CaptureFailure::MissingQualification}:diagnostic);}
+    s.collecting=false;return;
+  }
   if(p.kind==BinaryProductionKind::Score){
     std::array<std::uint32_t,15> values{};std::uint32_t time=0;
     if(p.object==std::uint64_t(p.window.game)+0x25c5c && s.NativeValue(p.object,values) && s.NativeValue(std::uint64_t(p.object)+0x4c,time)){
       s.score.scope=p.witness.scope;std::copy(values.begin(),values.end(),s.score.values.begin());s.score.values[15]=time;s.score.revision=p.witness.revision;
     }else s.Failure({CaptureFailure::MissingQualification,{},234});
-  }else if(p.kind==BinaryProductionKind::HudRender){
-    std::uint8_t custom=0,rerun=0;std::uint32_t challenge=0;
-    if(s.NativeValue(std::uint64_t(p.window.game)+0x1bb84,custom) && s.NativeValue(std::uint64_t(p.window.game)+0x25b00,rerun) &&
-       s.NativeValue(std::uint64_t(p.window.game)+0x25afc,challenge) && (custom || (p.seed_seen&&(p.seed_blocked||p.manager_seen)))){
-      s.progress_blocked=custom||p.seed_blocked||p.manager_blocked||rerun||challenge;s.progress_scope=p.witness.scope;s.progress_revision=p.witness.revision;
-    }
-  }else if(p.kind==BinaryProductionKind::PlayerHud){
-    auto &hud=s.hud_states[p.hud_index];auto facts=s.ProductionBody(p.body,p);std::array<std::int32_t,4> health{};float scale=0;
-    std::uint32_t actual_body=0,hud_owner=0;
-    bool valid=p.drop_reads==1 && facts.subject==hud.subject && s.NativeValue(p.object,actual_body) && actual_body==p.body &&
-      s.NativeValue(std::uint64_t(p.object)+4,hud_owner) && hud_owner==p.window.game+0x1d9ac && hud.mantle &&
-      s.NativeValue(std::uint64_t(p.body)+0x1344,health[0]) && s.NativeValue(std::uint64_t(p.body)+0x1348,health[1]) &&
-      s.NativeValue(std::uint64_t(p.body)+0x134c,health[2]) && s.NativeValue(std::uint64_t(p.body)+0x1d74,health[3]) &&
-      s.NativeValue(std::uint64_t(p.object)+1724,scale) && std::isfinite(scale) && scale>=0 && scale<=1 && float(unsigned(scale*4))*0.25f==scale;
-    if(valid){HudNormalUpdate value;value.identity.scope=p.witness.scope;
-      value.identity.body={1,197,facts.subject.local,facts.subject.use,facts.subject.shape};
-      const auto &g=s.groups[facts.ordinal];value.identity.group={10,196,g.group,1,0};
-      value.identity.binding=facts.binding_revision;value.identity.instance=hud.instance;value.identity.generation=s.capture.epoch;value.identity.topology=std::uint32_t(facts.subject.topology);
-      value.source_revision=p.witness.revision;value.mantle_revision=hud.mantle;value.game_frame=p.witness.game_frame;
-      value.critical_health=HudCriticalHealth(health[0],health[1],health[2],health[3]);value.drop_held=p.held;value.completed_drop_phase=std::uint8_t(scale*4);
-      try{hud.clock=hud.tracker->Observe(value);}catch(...){valid=false;s.Failure({CaptureFailure::InvalidValue,facts.subject,435});}
-      if(valid){facts.address=facts.hud=p.object;facts.hud_resources=hud_owner;facts.hud_clock=&hud.clock;
-        valid=s.SaveProduction(p,facts,315,hud.instance);if(valid)valid=s.SaveProduction(p,facts,435,hud.instance);}
-    }
-    hud.complete=valid;if(!valid)s.Failure({CaptureFailure::MissingQualification,hud.subject,435});
-    // 获得史按此身体自己的已选身份生产；不受History原生两槽、Host展开偏好或当前视口限制。
-    facts.address=p.body;facts.history_from_player=true;hud.history=s.SaveProduction(p,facts,321,hud.instance);
-  }else if(p.kind==BinaryProductionKind::RoomRender && p.room_effect_known){
-    EntityFacts facts;facts.subject={7,p.window.room,1,1};facts.address=p.object;facts.ready=true;
-    world::binary::NativeScreenValue value;value.amount=p.retro;value.present=p.retro>0;value.enabled=p.glitch;facts.screen=&value;
-    if(s.SaveProduction(p,facts,369,p.window.room))s.SaveProduction(p,facts,371,p.window.room);
-  }else if(p.kind==BinaryProductionKind::RoomRender){
-    s.production.RetirePurpose({7,p.window.room,1,1},369);s.production.RetirePurpose({7,p.window.room,1,1},371);s.Failure({CaptureFailure::MissingQualification,{},369});
-  }else if(p.kind==BinaryProductionKind::Screen){
-    EntityFacts facts;facts.subject={3,p.window.run,1,1};facts.address=p.window.game;facts.ready=true;
-    if(p.draw_known&&!p.draw_conflict){facts.draw_clock=&p.draw_clock;s.SaveProduction(p,facts,356,p.window.run);}
-    else {s.production.RetirePurpose(facts.subject,356);s.Failure({CaptureFailure::MissingQualification,facts.subject,356});}
-    world::binary::NativeScreenValue value;facts.screen=&value;
-    // 41CC80只消费当前BossOverlay；不调用41CB40进度／音乐／切房生产链。
-    s.ReadProduction(p);std::uint32_t overlay_active=0;
-    if(s.NativeValue(std::uint64_t(p.window.game)+0x1d294,overlay_active)){
-      value={};value.present=overlay_active!=0;auto overlay=facts;overlay.address=p.window.game+0x1d294;
-      s.SaveProduction(p,overlay,379,p.window.run);
-    }else {s.production.RetirePurpose(facts.subject,379);s.Failure({CaptureFailure::ReadFailed,facts.subject,379});}
-    const auto save=[&](std::uint16_t layout){if(!std::isfinite(value.amount)){s.production.RetirePurpose(facts.subject,layout);s.Failure({CaptureFailure::InvalidValue,facts.subject,layout});return false;}
-      return s.SaveProduction(p,facts,layout,p.window.run);};
-    std::int32_t remaining=0,total=0;float strength=0;
-    s.ReadProduction(p);
-    if(s.NativeValue(std::uint64_t(p.window.game)+0x25aa0,remaining)){
-      value={};if(remaining>0){value.present=true;
-        if(!s.NativeValue(std::uint64_t(p.window.game)+0x25aa4,total) || total<=0 || !s.NativeValue(std::uint64_t(p.window.game)+0x25aa8,strength))value.amount=std::numeric_limits<float>::quiet_NaN();
-        else {const float half=float(float(total)*0.5f),distance=float(std::fabs(float(float(remaining)-half))),ratio=float(distance/half);
-          const float angle=float(float(float(1.0f-ratio)*3.1415927410125732f)*0.5f);value.amount=float(std::sin(angle)*strength);}}
-      save(367);
-    }else {s.production.RetirePurpose(facts.subject,367);s.Failure({CaptureFailure::ReadFailed,facts.subject,367});}
-    s.ReadProduction(p);
-    if(s.NativeValue(std::uint64_t(p.window.game)+0x25ab0,remaining)){
-      value={};if(remaining>0){value.present=true;
-        if(!s.NativeValue(std::uint64_t(p.window.game)+0x25ab4,total) || total<=0)value.amount=std::numeric_limits<float>::quiet_NaN();
-        else if(remaining>std::int64_t(total)-10)value.amount=float(float(std::int64_t(total)-remaining)/10.0f);
-        else value.amount=remaining<10?float(float(remaining)/10.0f):1.0f;}
-      save(370);
-    }else {s.production.RetirePurpose(facts.subject,370);s.Failure({CaptureFailure::ReadFailed,facts.subject,370});}
-    s.ReadProduction(p);std::array<std::uint32_t,5> stage{};std::array<std::uint32_t,3> room_transition{};std::array<std::int32_t,2> level{};std::uint32_t style=0,upper_flags=0;
-    bool inputs=s.NativeValue(std::uint64_t(p.window.game)+0x1ba78,stage[0])&&s.NativeValue(std::uint64_t(p.window.game)+0x1b83c,room_transition[0]);
-    if(inputs&&(stage[0]==2||stage[0]==3))inputs=s.NativeValue(std::uint64_t(p.window.game)+0x1ba7c,stage[1])&&
-      s.NativeValue(std::uint64_t(p.window.game)+0x1ba80,stage[2])&&s.NativeValue(std::uint64_t(p.window.game)+0x1ba88,stage[4]);
-    if(inputs&&(room_transition[0]==2||room_transition[0]==3))inputs=s.NativeValue(std::uint64_t(p.window.game)+0x1b840,room_transition[1])&&
-      s.NativeValue(std::uint64_t(p.window.game)+0x1b844,room_transition[2])&&s.NativeValue(std::uint64_t(p.window.game)+0x1b858,style);
-    if(inputs && s.NativeValue(p.window.game,level) && s.NativeValue(std::uint64_t(p.window.game)+0x25ac4,upper_flags)){
-      const auto progress=[](const auto &v){if(v[0]!=2&&v[0]!=3)return -1.0f;if(!v[2])return std::numeric_limits<float>::quiet_NaN();
-        const auto amount=float(float(v[1])/float(v[2]));return v[0]==3?float(1.0f-amount):amount;};
-      const auto stage_progress=progress(stage),room_progress=progress(room_transition);
-      const auto adjusted_stage=std::int64_t(level[0])+((level[1]==4||level[1]==5)?1:0);
-      const bool stage_enabled=stage[4]!=5&&(level[0]<1||level[0]>6||!(upper_flags&0x10000)||(stage[0]==2&&adjusted_stage==1));
-      value={};value.present=(stage_progress>=0&&stage_enabled)||(room_progress>=0&&style==2);
-      if(!std::isfinite(stage_progress)||!std::isfinite(room_progress))value.amount=std::numeric_limits<float>::quiet_NaN();
-      else if(value.present)value.amount=std::max(float(std::max(stage_progress,room_progress)*0.30000001192092896f),0.00009999999747378752f);
-      save(368);
-    }else {s.production.RetirePurpose(facts.subject,368);s.Failure({CaptureFailure::ReadFailed,facts.subject,368});}
-  }else if(p.kind==BinaryProductionKind::SfxPlay && p.audio_world && p.selected){
-    s.ReadProduction(p);float modifier=0,pan=0;std::uint8_t loop=0;CaptureLink asset;CaptureDiagnostic d;
-    EntityFacts facts;facts.subject={3,p.window.run,1,1};facts.address=p.object;facts.ready=true;
-    bool valid=p.selected==1 && std::isfinite(p.volume) && std::isfinite(p.pitch) && std::isfinite(p.pan) &&
-      s.NativeValue(std::uint64_t(p.object)+16,modifier) && std::isfinite(modifier) &&
-      s.NativeValue(std::uint64_t(p.stream)+8,loop) && loop<=1 && loop==p.loop &&
-      s.NativeValue(std::uint64_t(p.stream)+16,pan) && std::isfinite(pan) && pan==p.pan;
-    // 非零pan尚须精确资源通道与实际生效来源，不能将非mono的未生效请求当成最终结果。
-    if(p.pan!=0){valid=false;d={CaptureFailure::MissingQualification,facts.subject,381,4};}
-    if(valid)valid=s.source.AudioResource(p.witness,facts,p.stream-24,asset,d);
-    const auto gain=float(std::max(modifier,0.0f)*p.volume);valid=valid&&std::isfinite(gain);
-    unsigned ambient=unsigned(s.voices.size());
-    if(p.ambient>=0)for(unsigned i=0;i<s.voices.size();++i)if(s.voices[i].active&&s.voices[i].ambient==p.ambient&&s.voices[i].production.scope.run==p.witness.scope.run){ambient=i;break;}
-    if(valid&&ambient<s.voices.size()){
-      // 后端重试保持已有逻辑实例；未知改号／资源替换不能伪装成一次新的world Start。
-      auto &voice=s.voices[ambient];if(voice.value.asset.kind!=asset.kind||voice.value.asset.handle!=asset.handle){s.audio_gap=true;s.Failure({CaptureFailure::SourceChanged,facts.subject,381});}
-      else {const bool changed=voice.value.gain!=gain||voice.value.pitch!=p.pitch||voice.value.pan!=pan;
-        voice.stream=p.stream;voice.sound=std::uint32_t(p.sound);voice.value.gain=gain;voice.value.pitch=p.pitch;voice.value.pan=pan;
-        if(changed)s.AudioEventFor(voice,p,4);}
-      s.collecting=false;return;
-    }
-    unsigned available=unsigned(s.voices.size()),previous=available;
-    for(unsigned i=0;i<s.voices.size();++i){if(s.voices[i].active&&s.voices[i].stream==p.stream)previous=i;else if(!s.voices[i].active&&available==s.voices.size())available=i;}
-    if(previous<s.voices.size())available=previous;
-    const auto events=previous<s.voices.size()?2u:1u;
-    valid=valid && available<s.voices.size() && events<=s.audio_events.size()-s.audio_event_count &&
-      s.next_audio_voice!=UINT64_MAX && s.next_audio_event<=UINT64_MAX-events;
-    if(valid){
-      if(previous<s.voices.size()){auto &old=s.voices[previous];auto &event=s.audio_events[s.audio_event_count++];
-        event={old.value,p.witness,old.instance,old.generation,++s.next_audio_event};event.value.kind=2;old.active=false;}
-      auto &voice=s.voices[available];voice={};voice.value.asset=asset;voice.value.gain=gain;voice.value.pitch=p.pitch;voice.value.pan=pan;
-      voice.value.loop=p.loop;voice.value.start_frame=p.witness.game_frame;voice.production=p.witness;voice.instance=++s.next_audio_voice;voice.generation=s.capture.epoch;
-      voice.stream=p.stream;voice.sound=std::uint32_t(p.sound);voice.ambient=p.ambient;voice.active=true;
-      s.audio_events[s.audio_event_count++]={voice.value,p.witness,voice.instance,voice.generation,++s.next_audio_event};
-    }else {s.audio_gap=true;s.Failure(d.reason==CaptureFailure::None?CaptureDiagnostic{CaptureFailure::ValueBudget,facts.subject,383}:d);}
-  }else if(p.kind>=BinaryProductionKind::SfxVolume && p.kind<=BinaryProductionKind::SfxAmbient){s.AudioControl(p);
-  }else if(p.kind==BinaryProductionKind::StatRecompute && p.stat_index>=0 && p.stat_index<2){
-    // 只在本次flags证明真实写过时采最终value，绝不把未更新行／构造值当成正常生产。
-    const auto address=std::uint64_t(p.object)+280+std::uint64_t(p.stat_index)*204;std::uint32_t actual_body=0;
-    if(!s.NativeValue(address-4,actual_body)||!actual_body){s.collecting=false;return;}
-    const auto facts=s.ProductionBody(actual_body,p);if(!facts.ready){s.collecting=false;return;}
-    if(s.probability.scope!=p.witness.scope){s.probability={};s.probability.scope=p.witness.scope;}
-    for(unsigned row=0;row<3;++row){if(!(p.stat_flags&(row<2?0xc0u:0x100u)))continue;float value=0;
-      if(s.NativeValue(address+std::uint64_t(row+6)*20,value)&&std::isfinite(value)){
-        s.probability.values[row]=value;s.probability.frames[row]=p.witness.game_frame;s.probability.mask|=std::uint8_t(1u<<row);
-      }else {s.probability.mask&=std::uint8_t(~(1u<<row));s.Failure({CaptureFailure::ReadFailed,{},317});}}
-  }else if(p.kind==BinaryProductionKind::StatTick){s.ProduceOwnedStats(p);
   }
   s.collecting=false;
 }
-void BinaryEntities::SceneBuild(std::uint32_t owner,bool entering,bool normal,bool replace) noexcept {
-  if(!impl_->Main())return;if(entering)Invalidate();impl_->source.SceneBuild(owner,entering,normal,replace);}
-void BinaryEntities::SceneGraphicsBoundary() noexcept {impl_->source.SceneGraphicsBoundary();}
-void BinaryEntities::SceneClear() noexcept {impl_->source.SceneClear();}
-void BinaryEntities::SceneImageBefore(std::uint32_t image,std::uint32_t source,std::uint32_t destination,const std::array<std::uint32_t,4> &colors) noexcept {
-  impl_->source.SceneImageBefore(image,source,destination,colors);}
-void BinaryEntities::SceneImageAfter(std::uint32_t vertices) noexcept {impl_->source.SceneImageAfter(vertices);}
 CaptureExchange::ReadTicket BinaryEntities::Take() noexcept {return impl_->exchange.Take();}
 BinaryEntityCatalog BinaryEntities::Catalog(const CaptureExchange::ReadTicket &ticket) const noexcept {const auto &s=*impl_;
   if(std::this_thread::get_id()!=s.consumer)return {};const auto *packet=ticket.Packet();if(!packet)return {};
   return {packet->references,s.source.PublishedResources(packet->catalog)};}
-// 当前步骤只让工作线程排控制；数据继续保留cold／latest，不冒充第11步编码／发送已接通。
-void BinaryEntities::Background(bool stopping) noexcept {auto &s=*impl_;CaptureControl control;while(s.exchange.PopControl(control)){}
-  if(stopping)for(;;){auto ticket=s.exchange.Take();if(!ticket.Packet())break;ticket.Reset();}}
+bool BinaryEntities::EventsTransferred(const CaptureExchange::ReadTicket &ticket) noexcept {
+  auto &s=*impl_;if(std::this_thread::get_id()!=s.consumer)return false;const auto *packet=ticket.Packet();
+  if(!packet||packet->witness.phase!=CapturePhase::Ordinary||!packet->event_first_sequence||packet->event_watermark==UINT64_MAX)return false;
+  const auto write=s.receipt_write.load(std::memory_order_relaxed),read=s.receipt_read.load(std::memory_order_acquire);
+  if(std::uint32_t(write-read)>=s.event_receipts.size())return false;
+  s.event_receipts[write%s.event_receipts.size()]={packet->witness.scope.session,packet->witness.scope.run,packet->event_watermark};
+  s.receipt_write.store(write+1,std::memory_order_release);return true;
+}
+// 控制先于数据；普通票据一直保留到网络worker接管，再经原有SPSC回执回收主线程事件副本。
+void BinaryEntities::Background(bool stopping) noexcept {auto &s=*impl_;if(std::this_thread::get_id()!=s.consumer)return;
+  const auto withdraw=[&]{s.transferring.Reset();s.transfer_source.reset();s.publisher.Reset();std::lock_guard lock(s.outbox);s.published.reset();s.ordinary_published.reset();};
+  CaptureControl control;while(s.exchange.PopControl(control)){
+    if(control.kind==CaptureControlKind::Begin||control.kind==CaptureControlKind::Stop){withdraw();}
+    else if(control.kind==CaptureControlKind::Invalidate||control.kind==CaptureControlKind::RetireBody){
+      s.transferring.Reset();s.transfer_source.reset();std::lock_guard lock(s.outbox);s.published.reset();s.ordinary_published.reset();
+    }
+    // RetireBody撤去后续快候选；下一份完整ordinary负责真实成员离开，不能合成缺读。
+  }
+  if(stopping){withdraw();for(;;){auto ticket=s.exchange.Take();if(!ticket.Packet())break;}return;}
+  if(s.transferring.Packet()){
+    // 独立观测／Recorder没有网络订阅者；空Peer集合的接管在本consumer完成，避免卡住快槽。
+    if(!s.network_publication.load(std::memory_order_acquire))s.transfer_source->events_transferred.store(1,std::memory_order_release);
+    if(!s.transferring.Current()){s.transferring.Reset();s.transfer_source.reset();}
+    else if(!s.transfer_source->events_transferred.load(std::memory_order_acquire)||!EventsTransferred(s.transferring))return;
+    else {s.transferring.Reset();s.transfer_source.reset();}
+  }
+  for(unsigned n=0;n<9;++n){auto ticket=s.exchange.Take();const auto *packet=ticket.Packet();if(!packet)break;
+    try {const auto catalog=Catalog(ticket);const auto &scope=packet->witness.scope;
+      if(scope.session!=s.resource_session||scope.run!=s.resource_run){s.published_resources.clear();s.resource_session=scope.session;s.resource_run=scope.run;}
+      auto resources=world::binary::ExportStateResources(catalog.resources,s.published_resources);
+      auto value=s.publisher.Capture(*packet,resources,&ticket,[](void *p) noexcept {return static_cast<CaptureExchange::ReadTicket *>(p)->Current();});if(!ticket.Current())continue;
+      s.published_resources=std::move(resources);
+      {std::lock_guard lock(s.outbox);s.published=value;if(packet->witness.phase==CapturePhase::Ordinary)s.ordinary_published=value;s.publish_failure={};}
+      if(packet->witness.phase==CapturePhase::Ordinary){s.transfer_source=std::move(value);s.transferring=std::move(ticket);break;}
+    }catch(const std::exception &error){std::lock_guard lock(s.outbox);strncpy_s(s.publish_failure.data(),s.publish_failure.size(),error.what(),_TRUNCATE);}
+    catch(...){std::lock_guard lock(s.outbox);strncpy_s(s.publish_failure.data(),s.publish_failure.size(),"binary_publish_exception",_TRUNCATE);}
+  }
+}
+void BinaryEntities::NetworkPublication(bool enabled) noexcept {auto &s=*impl_;if(!s.Main())return;
+  const auto before=s.network_publication.exchange(enabled?1:0,std::memory_order_acq_rel);if(enabled&&!before&&s.stats.active)Invalidate();}
+HostStateSnapshotRef BinaryEntities::Publication() const noexcept {auto &s=*impl_;if(!s.Main()||!s.stats.active||s.invalidated)return {};std::unique_lock lock(s.outbox,std::try_to_lock);
+  return lock&&s.published&&s.published->ordinary.revision>=s.publication_floor?s.published:nullptr;}
+HostStateSnapshotRef BinaryEntities::OrdinaryPublication() const noexcept {auto &s=*impl_;if(!s.Main()||!s.stats.active||s.invalidated)return {};std::unique_lock lock(s.outbox,std::try_to_lock);
+  return lock&&s.ordinary_published&&s.ordinary_published->ordinary.revision>=s.publication_floor?s.ordinary_published:nullptr;}
 }

@@ -81,6 +81,7 @@ struct WorkerStatus {
   std::uint64_t uplink_wire_bytes=0,uplink_budget_blocks=0;
   std::array<std::uint64_t,4> uplink_lane_bytes{},uplink_lane_packets{};
   unsigned publication_phase=0;
+  std::uint64_t binary_world_ack=0,binary_body_ack=0,binary_event_ack=0,binary_event_dropped_capacity=0,binary_event_dropped_expired=0,binary_unmatched_acks=0;
   bool stream_stale=false;
   replica::stream::RuntimeConfig stream_config;
   replica::stream::Metrics stream_metrics,encoder_metrics;
@@ -125,7 +126,6 @@ public:
   StartResult Start(const WorkerConfig &config) noexcept;
   bool QueueAck(const protocol::Ack &ack) noexcept;
   bool PublishWorld(std::shared_ptr<const live::Publication>) noexcept;
-  bool NeedsBaseline() noexcept;
   bool TryReceive(ReceivedInput &input, unsigned ordinal = 1) noexcept;
   // 单 Peer 退出只关闭自己的 Endpoint，监听线程和其他远端继续运行。
   void RequestPeerStop(unsigned ordinal, protocol::ByeReason reason) noexcept;

@@ -1,6 +1,8 @@
 # GridEntityStatue
 
-由唯一布局源生成。布局编号 220；布局版本 71；原生大小 0x158；未知 17B；完整：否。
+由唯一布局源生成。布局编号 220；布局版本 75；原生大小 0x158；未知 17B；需求覆盖：完整。
+
+需求覆盖只表示清单字段已生成计划，不表示原生字节全部已知、Host/Client处理器已接通或第15步验收通过。旧成员映射与原生说明保留为参照，当前发送字段以下方状态表为准。
 
 版本52：本轮仅静态字节归属、正式生成与纯编译；实际reader/writer/展示owner仍归第10/13步，第15步唯一统一验收；UNKNOWN保留，不宣称完整或已实测。
 
@@ -18,17 +20,17 @@
 
 块 1：G1 主Sprite外观（world，0—0B）：
 
-| +0x0 GridStatueUnusedSprite（见该类型状态表） 子块0 sprite#0：Statue的主Sprite专用展示视图；按具体Render消费者裁剪，原生范围和未知不变 |
+| 无发送字节：显式预留块 |
 |---|
 
 块 2：G2 主Sprite动画（world，0—0B）：
 
-| +0x0 GridStatueUnusedSprite（见该类型状态表） 子块1 sprite#1：Statue的主Sprite专用展示视图；按具体Render消费者裁剪，原生范围和未知不变 |
+| 无发送字节：显式预留块 |
 |---|
 
 块 3：G3 主Sprite图层（world，0—0B）：
 
-| +0x0 GridStatueUnusedSprite（见该类型状态表） 子块2 sprite#2：Statue的主Sprite专用展示视图；按具体Render消费者裁剪，原生范围和未知不变 |
+| 无发送字节：显式预留块 |
 |---|
 
 证据：

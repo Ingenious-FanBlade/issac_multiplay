@@ -167,12 +167,6 @@ bool ClientResourcePoseReusable(void *pointer,const ClientResourcePose &pose) no
   if(!pointer||!ResourceWindow())return false;try{auto &sprite=*static_cast<ANM2 *>(pointer);return pose.loaded?ReusableGraphics(sprite,pose):!sprite._loaded;}catch(...){return false;}
 }
 ClientResourceStatistics ClientResourcesStatistics() noexcept {return IsMain()?resource_statistics:ClientResourceStatistics{};}
-bool ClientNativeCpuQueuesEmpty() noexcept {
-  if(!IsMain()||!__ptr_g_KAGE_Graphics_ImageManager)return false;
-  const auto &manager=*__ptr_g_KAGE_Graphics_ImageManager;
-  // ImageManager 真实普通和透明 raw 提交队列；不把此结果解释成 GPU idle。
-  return manager._frameImages.empty()&&manager._transparentBatches.empty();
-}
 ClientResourceResult ClientApplyResourcePose(void *pointer,const ClientResourcePose &pose) noexcept {
   ClientResourceResult result;
   if(!pointer||!ResourceWindow()||!ClientNativeCpuQueuesEmpty()){result.reason="resource_context_or_inflight";return result;}

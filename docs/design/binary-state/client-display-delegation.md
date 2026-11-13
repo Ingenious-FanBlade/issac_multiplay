@@ -1,6 +1,16 @@
 # 客机显示委托与按需采集：修改方案
 
-状态：修改方案已确认，规范与各步文档已修订；代码未实施。上级：[总计划](README.md)。日期：2026-11-12。
+状态：当前布局版本 74。Host 与 Client 正式链路使用二进制发布和原生显示；第 14 步已退出旧 DTO 和手工绘制入口。Backdrop 冷构图接线待补，第 15 步统一验收。上级：[总计划](README.md)。更新：2026-11-14。
+
+**2026-11-14 第 14 步**。[退役实施记录](14-retire-old-path.md#2026-11-14-实施记录)登记产品与 E2E 构建边界、实际保留的 Hook 和 Backdrop 待接线项。下方历史进度保留原时点。
+
+**2026-11-13 第11步发布接线**：[worker／Peer实施与边界](implementation-11-worker-peer-publish.md)记录真实票据消费、不可变块快照、成员／资源表先行、每Peer事件队列、实际发送ledger、AppliedAck回收和超龄恢复。正式Host来源已切到二进制，不再发布旧DTO；当前Client不声明二进制能力，完整运行链及性能仍未验收。下方同日较早停点按各自记录时点阅读。
+
+**2026-11-13 Host采集审阅与续接**：[当前实现、修复与剩余边界](implementation-10-host-display-capture.md)记录版本73已有的第二批状态／事件及本次版本74修订：ordinary后绑定事件根、完整事件范围、worker接管回执与采集副本回收、实际容量计费、重传旧引用处理、转场稳定Player身份／拒绝请求／同房完成关联，以及音乐Queue自然接续mode=5。Q12仍按Update后态计算分支。worker实际领取／Peer发送、完整Client接收安装和第二批回放尚未连通，第14节第6项不能标为正式运行完成。0—14期间没有运行测试。
+
+**2026-11-13 Client显示接线**：[实现与实际边界](implementation-13-display-install.md)记录Q8／Q11／Q12、SpawnSeed、Q13临时地图镜像、方案B及RE-10本地音频维护。Manager显示根与原生Game::Render包装已登记；安装入口不从旧JSON补字段、不单独ACK。完整validator／主线程投递与其它域安装、Host新采集及第二批事件尚未把入口串成正式运行链；第14节第5项继续推进，不能标为已验收。
+
+**2026-11-12 布局源实施**：本轮完成第14节第4项，入口为[需求覆盖与收缩统计](layouts/demand-coverage.md)和[布局源实现说明](1-layout-source.md)。域文件仅补D1—D8，退役wire由`demand.json`在生成内存中剥离。Room／Backdrop／FXLayers用字段表排除旧结果companion，Room其余显示子结构照旧；Game相机偏移不发。Seeds物化至多80个id，Q12枚举登记13个分支，SFX乘数只拒非有限值。新处理器目前是具名合同，后续运行接线未完成。以下“仅文档／未实施”条目保留各自研究时点。
 
 **2026-11-12 RE-10 静态完成**：[Manager 调用分类与音频调度](client-display-delegation/RE-10/README.md)列全 50 个业务 call site（另有 3 个栈保护点）。音乐 `0x7D7DA0` 按有效 Manager 尾部周期更新，不受相机 paused 条件限制；`0x908340` 已由 SDK 核为 `SoundEffects::ClearVolumeModifier`，是条件性混音刷新，不是通用 SFX tick。补入当前 SFX 乘数、音乐读取的种子效果／dizzy／红房标志、已有输入泵复用及回放不能只靠 FrameDelay=0 绕过旧截止的交接。下方“疑为 SFX tick／待做”的历史开题事实保留于修订记录，当前调度以 6.2 和 RE-10 为准。仅文档，未实施／未测试。
 
@@ -34,7 +44,7 @@
 
 - 按字节归属取全量：每个类型从 0 到对象大小的每个字节都要有归属，未知字节必须列出。
 - 另外同步一批显示结果：第 8 步的 HUD 生产、场景光照、地图、绘制上下文 D0（布局 356）和随机 alpha（357／358），以及第 9 步的显示包络（414—417）、文字（422—424）和资源 recipe（425—433）。
-- 当前布局源版本是 71。第 10 步第五项“Run 与显示／音频生产缓存”仍在实施中。
+- 调整前布局源版本是 71。第 10 步第五项“Run 与显示／音频生产缓存”当时仍在实施中，现按本方案暂停；当前布局源已收缩至版本72。
 
 **Client**：
 
@@ -617,42 +627,97 @@ isaac-lan 排除不了的点：
 | 步 | 修改 |
 | --- | --- |
 | 0 | 增加 2026-11-12 起点说明；改动前先为当前未提交的工作做一次快照提交（第 14 节） |
-| 1 | 布局源格式保留，每个字段增加“需求”属性（Client 需要／Host 专属／Client 本地显示）。生成器只为“Client 需要”的字段生成复制计划和编解码表，字节归属表照常生成，作为参照。完整性报告改为需求清单覆盖 |
+| 1 | 布局源格式保留。~~每个字段增加“需求”属性~~（Q14 取代）：新增需求清单 `demand.json`，生成器只为清单列出的字段生成复制计划和编解码表；未列入的 wire 只在内存中剥离，域文件不改，字节归属表照常全量生成作为参照。完整性报告改为需求清单覆盖（第 8 节） |
 | 2 | 保留 Vector、ColorMod、ANM2、LayerState 等基础类型。RNG 不再作为同步状态，只同步由它选出的结果 |
-| 3、4 | Entity 公共字段和子类按第 5 节重标；Effect 各变体（E32）收窄到可见状态；Render 会重算的缓存一律标为本地 |
-| 5 | Player 重标；PlayerPost 身体约 60Hz 的窗口保留，只承载位置和 Sprite 等需要的字段 |
-| 6 | Grid 重标 |
-| 7 | Room／Level 保留描述和需要的房间状态，含 Q8 的 Room 显示标量（4.6）、Q9 的当前房间描述 SpawnSeed（第 5 节）和 raw 诅咒 `Level+0xC`（6.3，2026-11-12 审阅）；[房间显示资源设计](room-display-resource-design.md)中能由 Client 冷构建本地产生的显示资源改为本地（按 RE-2 复用显示资源子段，不调用 `Room::Init`） |
+| 3、4 | Entity 公共字段、子类与 Effect 各变体按 Q14 整类型照旧：现有 wire 已由版本 28—53 的同步审查收窄到原生绘制输入（第 8 节 A）；Render 会重算的缓存不在现有 wire 中 |
+| 5 | Player 按 Q14 整类型照旧（含 HUD 读取的库存、心与充能）；PlayerPost 身体约 60Hz 的窗口保留 |
+| 6 | Grid 按 Q14 整类型照旧 |
+| 7 | Room／Level 保留描述和需要的房间状态，含 Q8 的 Room 显示标量（4.6）、Q9 的当前房间描述 SpawnSeed（第 5 节）和 raw 诅咒 `Level+0xC`（6.3，2026-11-12 审阅）；[房间显示资源设计](room-display-resource-design.md)中能由 Client 冷构建本地产生的显示资源改为本地（按 RE-2 复用显示资源子段，不调用 `Room::Init`）。Q14：Room 显示子结构默认照旧，结果类 283—296、304—309 不列入（第 8 节） |
 | 8 | 改动最大，见第 8 节 |
 | 9 | 帧头、记录、块、zstd 和 ACK 保留；显示包络 414—417 退役；文字 422—424 并入事件队列；资源协议 425—433 收窄为实体、Grid 和 costume 等资源引用；新增事件队列段 |
 | 10 | 第五项“Run 与显示／音频生产缓存”（版本71）暂停，Run 只保留需要的窄投影，含 Q8 的 Game 显示标量（4.6）、HUD 可见性 `Game+0x22E90`、raw 诅咒 `Game+0x25AC8`、Q11 的 RoomTransition 显示字段（现 `run.json` 的 `room_transition_owner`／`hud_owner` 只是 UNKNOWN 整段占位，改为具名窄字段）和 Q12 的 paused 位／终结分支枚举（Host 在 Update 后计算）；采集窗口和执行器保留，复制计划随布局源收缩；收缩后重新评估 tx-04-21 的瓶颈 |
 | 11 | 机制保留；去掉显示结果批次；增加事件队列的序号与确认 |
-| 12 | 机制保留；影子状态随域收缩；增加事件队列的接收 |
+| 12 | 机制保留；影子状态随域收缩；增加事件队列的接收。2026-11-13：[接收／事务组件](implementation-12-client-receive.md)、[完整数字安装计划／Scene描述](implementation-12-install-plan.md)、[主线程资源准备／根对象暂存](implementation-12-main-preparation.md)、[StageFields私有字段暂存](implementation-12-stage-fields.md)及[原子执行器／安装保管](implementation-12-atomic-install.md)已入源；完整Init／特殊字段／成员发布owner仍无具体实现，完整安装、发布与事件播放尚待串联，不记为整条运行链完成 |
 | 13 | 13.4 的前提改为第 4 节的边界；13.6 由第 3 节取代；新增注入（2.3）；13.5 补入第 9 节的退役项；显示推进根挂在 Manager 边界，按 6.2 的阶段调度（4.1）；Q8 标量的安装与阈值补做（4.6）；Render 前置确认 SpawnSeed 已安装（4.2）；关闭插值时的相机节奏（4.1）；Q8 换算值的重写开销计入 13.3（第 3 节）；Q11 转场安装与 surface 捕获（4.5）；Q12 按终结分支枚举选序列、paused 位接入相机与 `client_entity_draw_paused`、本地菜单阻断的合并；Pα 规则（6.2）；RE-10 的音频 tick（6.2 阶段 6a）；SFX 回放 FrameDelay=0（6.4）；Q13 地图缓存构建 `0x9635B0` 的作用域临时镜像（第 5 节表后） |
-| 14 | 退役清单补入第 9 节；`client_entity_draw_projectile` 保留作恢复作用域（Q10）；`client_entity_draw_paused` 保留读同步 paused 位（Q12） |
+| 14 | [退役实施记录](14-retire-old-path.md#2026-11-14-实施记录)；`client_entity_draw_projectile` 保留作恢复作用域（Q10）；`client_entity_draw_paused` 保留读同步 paused 位（Q12） |
 | 15 | 见第 10 节 |
 
-## 8. 布局源逐文件修改
+## 8. 布局源收缩：需求清单（Q14）
 
-布局源在 `mod/binding/state/`，类型数为当前值。第一批收缩入源时，整数布局版本从 71 升到 72，不计算任何哈希。
+布局源在 `mod/binding/state/`。版本 72 为第一批收缩入源，整数布局版本从 71 升到 72，不计算任何哈希。
 
-| 文件 | 类型数／大小 | 修改 |
+### 8.1 方式
+
+- **不逐字段加“需求”属性**。原方案要给约 2900 个范围逐个标注；版本 71 实际发送的约 740 个 wire 字段中，Entity／Player／Grid／Effect 已由版本 28—53 的同步审查收窄到原生绘制输入，正是显示委托所需。
+- 新增 `demand.json`（由生成器读取，不作为 `version.json` 的域文件），直接列出要同步的量。两种粒度：**整类型照旧**（保留该类型全部现有 wire），或**只留列出的字段**。每项写一句消费方或依据。
+- 生成器规则：
+  - 只为清单可达的字段生成复制计划和编解码表；未列入的 wire 只在生成时的内存中剥离，域文件不改。
+  - 剥离后为空的块自动按 `reserved=true` 处理，块号不变；空投影按既有规则省略。
+  - 清单引用不存在的类型或字段、引用无 wire 的字段、列出“只留字段”后与“整类型照旧”重复时报错。
+  - 字节归属表、成员映射和 `layouts/` 文档照常全量生成，作为参照。
+  - `presentation_envelope`、`hud_local` 等专用表在第 14 步退役前照常生成，避免第 4—7 项之间断编译。
+- 域 JSON **只为新增字段改动**（8.4），其余不动。
+
+### 8.2 版本 72 清单
+
+**整类型照旧**（现有 wire 全保留）：
+
+| 域 | 类型 |
+| --- | --- |
+| `base.json` | Vector、ColorMod、KColor、BlendMode、AnimationState、LayerState、ANM2、BitSet128、EntityPtr、ActiveItemDesc、Weapon、TemporaryEffect、TemporaryEffects、WeaponUmbilicalWhip |
+| `entity.json`、`entity-effect.json`、`entity-classes.json`、`entity-text-dummy.json` | 全部带 wire 的类型（Entity 39 字段；Familiar 及其 data、Knife、Bomb、Tear、Pickup、Laser／HomingLaser、Slot、Projectile、NPC 及 overlay Sprite、Effect 各变体及其 Sprite；EntityText 为 E2E 夹具） |
+| `grid.json`、`grid-classes.json` | 全部带 wire 的类型 |
+| `player.json` | 全部带 wire 的类型（EntityPlayer 62 字段及其子类型） |
+| `level.json` | RoomDescriptor 10 字段（`flags` 已含 RE-10 红房位 `0x400`）、LevelGamePrefix 6 字段、地图摘要 297／298（Q13） |
+| `run.json` | RunSeeds、RunDailyChallenge、RunScoreSheet、RunColorModState、RunGameStateFlags、GameRun 13 字段（已含震屏、暗度、颜色、闪电、眩晕） |
+| `room.json` | Room 19 字段及其显示子结构（`render_scroll`、`fx_layers`、`backdrop`、`shockwave_overlay_sprite`、`rails`、`hell_backdrop`）和下挂的 Backdrop、FXLayers、FXPose、FX、Ray、RayGroup、Vein、RailManager、RoomHellBackdrop、RoomConfig_Room、RoomVeinSprite／RoomRailSprite／RoomWaveSprite |
+
+**Room 显示子结构默认照旧**（Q14）：这些是 Host 当前值，按 Q8 方式直接安装，不做额外工作。若第 15 步出现 Client 本地推进（RE-1 批次中的 FXLayers／Room ANM2）与安装来回覆盖的差异，再按差异从清单删除，符合 Q1 的差异驱动。
+
+**不列入**（即退役，不改文件）：
+
+| 域 | 布局 | 说明 |
 | --- | --- | --- |
-| `base.json` | 16／133KB | 保留；RNG 相关类型移出同步 |
-| `entity.json` | 2／103KB | 按需求清单重标 |
-| `entity-classes.json` | 21／347KB | 按需求清单重标 |
-| `entity-effect.json` | 6／85KB | 收窄到可见状态 |
-| `entity-text-dummy.json` | 2／7KB | 保留（E2E 夹具） |
-| `player.json` | 48／1775KB | 重标；玩法内部容器移出同步，HUD 读取的库存类字段保留 |
-| `grid.json`、`grid-classes.json` | 5／97KB、27／289KB | 重标；水面裁剪等本地显示项移出 |
-| `room.json` | 54／587KB | 保留描述与房间状态；光照、水面和显示资源投影移出；当前房间描述 Flags 须保留红房位 `0x400`（RE-10 音乐 tick） |
-| `level.json` | 18／350KB | 保留房间描述与探索状态；地图绘制结果移出 |
-| `run.json` | 9／293KB | 只保留第 5 节的 Run 项与注入值，以及 Q8 的 Game 显示标量（4.6；这些字段现已在本文件中）；种子效果 41—44 的存在性须在保留范围内（RE-10 音乐 tick） |
-| `presentation.json` | 77／596KB | 显示结果 310—407、D0 356 退役；保留项并入事件或注入；新增 6.4 的表现状态（音乐请求、循环音效集合、各控制器 ItemOverlay 状态）及 RE-10 的当前 SFX 全局乘数（f32，允许负的有限值，只拒 NaN／无穷） |
-| `hud-local.json` | 2／16KB | 版本70的纯值模块，凡是原生 HUD 能产生的部分退役；只保留原生 HUD 做不到的项（Q2 之后再评估） |
-| `random.json` | 24／81KB | 随机 alpha 357／358 及绘制随机退役；只保留 Host 选出的结果，并入相应域 |
-| `wire.json` | 23／148KB | 删去显示包络；新增事件队列段；收窄资源协议 |
-| `schema.json`、`version.json` | — | 增加“需求”属性；升到版本72 |
+| `presentation.json` | 310—325、355 | HUD／StatHUD／HistoryHUD／Minimap 显示结果；HUD 可见性改由 D2 承接 |
+| `presentation.json` | 356—383 | D0、随机 alpha、显示结果批次、音频 voice |
+| `presentation.json` | 422—424 | 文字；第二批并入事件队列 |
+| `presentation.json` | 326—352 | 原生对象视图（无 wire）；6.4 表现状态在第二批另建窄字段 |
+| `random.json` | 384—407 | 全部 |
+| `hud-local.json` | 435、436 | 原生 HUD 接通后不再需要 |
+| `room.json` | 283—296、304—309 | 光照／水面／波纹／便便／血管／FX 场景结果与 surface 资源配方 |
+| `level.json` | 299、301—303 | 当前描述显示结果、徽标、问号图；300 MapFocusResult 留待第二批（挑战 32 Host 选定） |
+
+### 8.3 未列入的视图
+
+level 271—280、room 241／243／250—269 中无 wire 的类型只作字节参照，不受清单影响。布局 271 `RoomDescriptorSavedPickupMapInput` 按 Q13 只作参照。
+
+### 8.4 新增字段
+
+**第一批，随版本 72**（标量或小结构）：
+
+| # | 内容 | 落点 |
+| --- | --- | --- |
+| D1 | Q8 中 GameRun 尚无的 Game 标量：Bloom、Hallucination、Retrovision、fade／开场遮罩 alpha；Room 的水色过渡端点与计时、冲击波 A／B、地狱横移位移。按 4.6 表逐项对照现有字段补缺 | `run.json` GameRun、`room.json` Room |
+| D2 | HUD 可见性 `Game+0x22E90`（1 字节） | `run.json` GameRun |
+| D3 | raw 诅咒 `Level+0xC`、`Game+0x25AC8`，取代 `LevelGamePrefix.effective_curses` | `level.json`、`run.json` |
+| D4 | 当前房间描述 SpawnSeed `+0x5C`（Q9）；[房间描述核对](room-descriptor-synchronization-review.md)中旧 1B 谓词 `error_is_modeling_clay` 同时退役 | `level.json` RoomDescriptor |
+| D5 | 种子效果集合（`Game+0x1BBD8` 树，物化为有界 id 列表）；诅咒 F／P、音乐 41—44 读取 | `run.json`（RunSeedEffectNode 由参照改为具名容器 owner） |
+| D6 | Q11 转场 9 字段，替换 `run.json` 的 `room_transition_owner`／`hud_owner` UNKNOWN 整段占位 | `run.json` |
+| D7 | Q12 paused 位与终结分支枚举（C/S 合成字段，无原生偏移） | `run.json` |
+| D8 | SFX 全局乘数 `Manager+0x2A170`（f32，允许负的有限值，只拒 NaN／无穷） | `presentation.json` 新窄类型 |
+
+**第二批，随第 8、9、13 步实际接线**（版本 73 起，按需逐批）：
+
+- 事件队列段（`wire.json`）；显示包络 414—417 删除、资源协议 425—433 收窄。
+- 6.4 表现状态：音乐请求、循环音效集合、各控制器 ItemOverlay 状态。
+- 6.3 注入值：天使／恶魔几率、药丸效果与识别、TMTRAINER 定义、水流、进度查询结果；挑战 32 的 Host 选定（300 MapFocusResult）。
+
+### 8.5 版本 72 的工作量
+
+- `demand.json`：A／B 两表。
+- 生成器：读取清单、内存剥离、空块 reserved、校验（约百行）。
+- D1—D8：域 JSON 新增字段及其具名 host／client 处理器声明。
+- 版本升到 72，重新生成 `layouts/`，Release 纯编译；不运行游戏或测试。
 
 ## 9. Hook 与代码退役
 
@@ -675,7 +740,7 @@ isaac-lan 排除不了的点：
 - ~~`client_entity_draw_paused`~~（2026-11-12 按 Q12 移入“保留”）；
 - `client_entity_owned_final`；
 - `client_player_palette`；
-- `client_grid_water_*`（6 个）；
+- `client_grid_water_*`（6 个）在第 14 步复审后保留，原生 Render 查询从当前二进制 Grid 绑定取值；
 - `client_grid_light_*`（5 个）。
 
 `client_backdrop_wall` 和 `client_backdrop_graphics` 原在此列，2026-11-12 按 RE-2 移入“保留”。`client_entity_draw_projectile` 同日按 RE-5 及用户决定（Q10）移入“保留”，`client_entity_draw_paused` 同日按 Q12 移入“保留”。
@@ -878,6 +943,10 @@ E36 中“默认拒绝入口的计数”不含 Q6 放行的回调分派；回调
 67. 回放虽传 FrameDelay=0，调用前却已有同 id 本地显示声音留下的非零 next，仍被 `now<next` 吞掉；或者为解决此问题全局取消普通播放节流／清缓存。now 实为本机 `M>>1`，不是 Host F，Clear 不递减它。
 68. 已有 ClientPollInput 与复制出的 Manager 输入泵重复消费，或普通路径 `0x92E826` 的本机 A／B 保持例外被漏掉；共享弹窗 callback、截图、设备重绑或原版 Online 被当作本地显示放行。
 
+**Q14 后补充**（2026-11-12）：
+
+69. 需求清单漏列 Client 原生显示实际读取的字段（静默缺显示），或生成器剥离 wire 后块号、投影顺序变化，使 Host／Client 编解码不一致；清单引用错名而生成器未报错。
+
 ## 13. 未决问题
 
 2026-11-12，用户确认全部按推荐执行。
@@ -897,6 +966,7 @@ E36 中“默认拒绝入口的计数”不含 Q6 放行的回调分派；回调
 | Q11（2026-11-12 已定） | 转场显示的驱动方式 | 按 Q8 方式同步 RoomTransition 显示字段的 Host 当前值，Client 不运行 Start／Update，也不写自有 FSM 驱动；本地只做旧／新 surface 捕获、滚动补偿、versus 动画与原生 Render。取代 RE-9 的自有显示驱动建议（4.5） |
 | Q12（2026-11-12 已定） | 暂停与提前返回分支 | 保留 `client_entity_draw_paused`；Host 每个 world 帧发送 paused 位和按原生优先级算出的终结分支枚举；Pα 由已安装 primary alpha 判定；与本地菜单的合并由第 13 步决定（6.2、9.1） |
 | Q13（2026-11-12 已定） | 地图拾取图标的 Client 接法 | 包装地图缓存构建 `0x9635B0`，作用域内临时镜像按 Host 摘要合成的最小 SavedEntities／保存 Grid 条目，调用后恢复；不常驻镜像，不在构建后修补纹理（第 5 节表后、6.3） |
+| Q14（2026-11-12 已定） | 布局收缩方式 | 用需求清单 `demand.json` 直接列出要同步的量（整类型照旧或只留字段），取代逐字段“需求”属性；Room 显示子结构默认照旧，差异驱动删减；新增字段分两批，版本 72 只做标量／小结构（D1—D8），事件队列、表现状态与注入值随第 8／9／13 步接线（第 8 节） |
 
 **审阅后的待办（2026-11-12）**：
 
@@ -910,9 +980,9 @@ E36 中“默认拒绝入口的计数”不含 Q6 放行的回调分派；回调
 1. **快照**（已完成）：按用户要求，分支 `codex/step4-text-dummy` 上的未提交工作（版本60—71）已提交为 `3977b46e`。
 2. **文档修订**（已完成）：已按第 11 节修订。
 3. **逆向**：RE-1—RE-4 原任务、RE-1 新增补遗、收窄后的 RE-5／RE-6 及 RE-7—RE-10 静态成果已完成（2026-11-12），均未实施／未测试。RE-1 补遗含提前返回分支、需求缺口及本机关闭插值的 Update→Render 节拍；RE-7—RE-9 补齐注入 ABI／限制、音频文字与演出来源、转场混合副作用及具名显示拆分（其中自有显示驱动被 Q11 取代）。RE-10 补齐 Manager 的 50 个业务调用分类、音乐／SFX 真正语义及音频／输入／本地维护调度。相关采集／布局／显示接线仍归第 7／8／10／13 步。RE-6 已并入 RE-5，排除项见 6.1；RE-5 其余写入交第 15 步 E28，不重新要求 Render 全树静态闭合。
-4. **布局源**：重标并收缩布局源，升到版本72，生成器只为“Client 需要”的字段出计划。
-5. **Client 边界**：实现第 4 节的显示推进、`Game::Render` 包装、帧号方案B 和注入。
-6. **Host 采集**：收缩采集，接入事件队列。
+4. **布局源（2026-11-12 已完成入源与产品纯编译，未测试）**：按 Q14 写需求清单 `demand.json`，生成器只为清单字段出计划；补第一批新增字段 D1—D8，升到版本72（第 8 节）。实际采集／安装仍归后续步骤。
+5. **Client 边界（2026-11-13组件已入源，串联未完）**：[安装与显示组件](implementation-13-display-install.md)已实现Manager显示根、原生Game::Render包装、方案B、Q8／Q11／Q12、SpawnSeed、Q13和RE-10维护。完整批次投递、其它域安装、第二批注入／事件与Boss资源回放继续接线；正式运行尚未切换。
+6. **Host 采集（2026-11-13版本74，来源与交接组件已入源）**：[实施与审阅记录](implementation-10-host-display-capture.md)。收缩后的Run／Room及第二批状态、正常事件来源、完整事件范围和采集接管回执已实现；worker实际领取、Peer二进制发布、事件队列与ACK回收已按[第11步接线](implementation-11-worker-peer-publish.md)入源；Boss／晚绑定旧引用等来源缺口与第二批Client安装回放仍未完成，不能标为整条正式运行链完成。
 7. **退役**：按第 9 节退役，并做产品与 E2E 构建的纯编译。
 8. **验收**：第 15 步统一整体验收。
 

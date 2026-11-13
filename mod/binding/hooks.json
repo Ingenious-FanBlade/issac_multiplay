@@ -11,8 +11,42 @@
       "生成器必须显式报告容量：pending_capacity 是本 DLL 待注册表的固定容量，行数超限是生成错误而不是静默忽略。"
     ]
   },
-  "explicit_abi": {"binary_audio_pan":["xmm1"]},
+  "explicit_abi": {
+    "binary_audio_pan": [
+      "xmm1"
+    ]
+  },
   "hooks": [
+    ["binary_music_play","world","Music","Play","void","int musicid, float volume","musicid, volume","0x3d8360","None",false,"",false,-20000,true],
+    ["binary_music_crossfade","world","Music","Crossfade","void","int musicid, float faderate","musicid, faderate","0x3d8480","None",false,"",false,-20000,true],
+    ["binary_music_queue","world","CsMusic","Queue","void","int musicid","musicid","0x3d8a80","None",false,"",true,-20000,true],
+    ["binary_music_fadein","world","Music","Fadein","void","unsigned int Id, float Volume, float FadeRate","Id, Volume, FadeRate","0x3d8690","None",false,"",false,-20000,true],
+    ["binary_music_fadeout","world","Music","Fadeout","void","float FadeRate","FadeRate","0x3d8710","None",false,"",false,-20000,true],
+    ["binary_music_pause","world","Music","Pause","void","","","0x3d8750","None",false,"",false,-20000,true],
+    ["binary_music_resume","world","Music","Resume","void","","","0x3d8800","None",false,"",false,-20000,true],
+    ["binary_music_jingle","world","Music","PlayJingle","void","int musicid, int unusedInt, bool unusedBool","musicid, unusedInt, unusedBool","0x3d8b80","None",false,"",false,-20000,true],
+    ["binary_music_layer_on","world","Music","EnableLayer","void","int id, bool instant","id, instant","0x3d8890","None",false,"",false,-20000,true],
+    ["binary_music_layer_off","world","Music","DisableLayer","void","int id","id","0x3d8a10","None",false,"",false,-20000,true],
+    ["binary_display_banner","world","HUD","ShowItemText","void","Entity_Player* player, ItemConfig_Item* item","player, item","0x57b080","None",false,"",false,-20000,true],
+    ["binary_display_custom_banner","world","HUD","ShowItemTextCustomUTF8","void","Entity_Player* player, char* title, char* subtitle","player, title, subtitle","0x57b720","None",false,"",false,-20000,true],
+    ["binary_display_fortune","world","HUD","ShowFortuneText","void","int** param_1","param_1","0x57bee0","None",false,"",false,-20000,true],
+    ["binary_display_banner_text","world","HUD_Message","LoadText","void","const wchar_t* str, bool asSubText","str, asSubText","0x431a60","None",false,"",false,-20000,true],
+    ["binary_display_overlay","world","ItemOverlay","Show","void","int eOverlayID, int delay, Entity_Player* player","eOverlayID, delay, player","0x5848b0","None",false,"",false,-20000,true],
+    ["client_overlay_render","client","ItemOverlay","Render","void","","","0x584660","None",false,"",false,-20000,true],
+    ["binary_display_boss","world","RoomTransition","StartBossIntro","void","unsigned int bossID1, unsigned int bossID2","bossID1, bossID2","0x423d10","None",false,"",false,-20000,true],
+    ["binary_display_transition_start","world","CsRoomTransition","Start","void","int index, int direction, int animation, Entity_Player* player, int dimension","index, direction, animation, player, dimension","0x423990","None",false,"",true,-20000,true],
+    ["binary_display_fortune_source","world","CsFortuneRng","ShowFortune","void","char* category","category","0x558c30","None",false,"",true,-20000,true],
+    ["binary_display_hud_update","world","HUD","Update","void","","","0x57acf0","None",false,"",false,-20000,true],
+    ["binary_display_hud_post","world","HUD","PostUpdate","void","","","0x57ae90","None",false,"",false,-20000,true],
+    ["binary_display_minimap_update","world","Minimap","Update","void","","","0x565db0","None",false,"",false,-20000,true],
+    ["binary_display_minimap_refresh","world","Minimap","Refresh","void","","","0x565d60","None",false,"",false,-20000,true],
+    ["binary_display_camera_drag","world","Camera","UpdateDrag2","void","","","0x51e5e0","None",false,"",false,-20000,true],
+    ["binary_display_camera_smooth","world","Camera","UpdateUltrasmooth","void","bool unk","unk","0x51d840","None",false,"",false,-20000,true],
+    ["binary_display_fx","world","CsFXLayers","DisplayUpdate","void","bool unk","unk","0x56bf40","None",false,"",true,-20000,true],
+    ["binary_display_overlay_update","world","ItemOverlay","Update","void","bool unk","unk","0x584110","None",false,"",false,-20000,true],
+    ["client_map_cache","client","CsMinimapConfig","BuildCache","void","","","0x5635B0","None",false,"",true,-20000,true],
+    ["client_transition_change","client","RoomTransition","ChangeRoom","void","","","0x4254B0","None",false,"",false,-20000,true],
+    ["binary_music_tick","world","CsMusic","NormalTick","void","","","0x3D7DA0","None",false,"",true,-20000,true],
     ["binary_audio_play","world","SoundEffects","Play","void","int id, float volume, int delay, bool loop, float pitch, float pan","id, volume, delay, loop, pitch, pan","0x507C60","None",false,"",false,10000,true],
     ["binary_audio_pan","world","CsAudioStream","SetPan","void","float pan","pan","0x5F7970","None",false,"",true,10000,true],
     ["binary_audio_volume","world","CsSoundEffects","AdjustVolume","void","int id, float volume","id, volume","0x507F60","None",false,"",true,10000,true],
@@ -20,22 +54,11 @@
     ["binary_audio_loops","world","CsSoundEffects","StopLoops","void","","","0x508210","None",false,"",true,10000,true],
     ["binary_audio_remix","world","SoundEffects","ClearVolumeModifier","void","","","0x508340","None",false,"",false,10000,true],
     ["binary_audio_ambient","world","CsSoundEffects","SetAmbient","void","int id, float volume, float pitch","id, volume, pitch","0x508530","None",false,"",true,10000,true],
-    ["binary_player_hud","world","PlayerHUD","Update","void","","","0x432C10","None",false,"",false,-20000,true],
+    ["client_boss_ambient","client","CsRoom","ClearAmbientForBoss","void","","","0x3e0880","None",false,"",true,0,true],
+    ["client_display_devil_chance","client","Room","GetDevilRoomChance","float","","","0x3ef200","None",false,"",false,-20000,true],
+    ["client_display_deal_qualified","client","CsGame","DealRoomQualified","bool","","","0x343800","None",false,"",true,-20000,true],
     ["binary_score","world","ScoreSheet","Calculate","void","","","0x5BAC90","None",false,"",false,-20000,true],
-    ["binary_hud_render","world","HUD","Render","void","","","0x57C300","None",false,"",false,-20000,true],
-    ["binary_stat_tick","world","CsStatHUD","NormalTick","unsigned int","","","0x43C860","None",false,"",true,-20000,true],
-    ["binary_stat_recompute","world","StatHUD","RecomputeStats","void","int playerId, unsigned int flags, bool immediate","playerId, flags, immediate","0x43CFD0","None",false,"",false,-20000,true],
-    ["binary_hud_mantle","world","TemporaryEffects","HasCollectibleEffect","bool","int id","id","0x50A490","None",false,"",false,-20000,true],
-    ["binary_hud_drop","world","CsStatic","HudHeldQuery","bool","int action, int controller, Entity_Player* player, unsigned int unused","action, controller, player, unused","0x52F610","None",true,"stdcall",true,-20000,true],
-    ["binary_hud_seed_progress","world","Seeds","AchievementUnlocksDisallowed","bool","","","0x5BEB50","None",false,"",false,-20000,true],
     ["binary_level_owner","world","Level","Init","void","bool resetLilPortalRoom","resetLilPortalRoom","0x33EB10","None",false,"",false,-20000,true],
-    ["binary_scene_image","world","CsGraphics","ImageQuad","float*","const void* source, const void* destination, const void* tl, const void* tr, const void* bl, const void* br","source, destination, tl, tr, bl, br","0x5E2460","None",false,"",true,-20000,true],
-    ["binary_scene_target","world","KAGE_Graphics_Manager","SetCurrentRenderTarget","void","KAGE_Graphics_ImageBase* target, bool usesScreenSize","target, usesScreenSize","0x5E80F0","None",false,"",false,-20000,true],
-    ["binary_scene_clear","world","KAGE_Graphics_Manager","Clear","void","","","0x5E8290","None",false,"",false,-20000,true],
-    ["binary_scene_present","world","KAGE_Graphics_Manager","Present","void","","","0x5E4170","None",false,"",false,-20000,true],
-    ["binary_scene_present_no_swap","world","KAGE_Graphics_Manager","PresentWithoutSwap","void","","","0x5E4140","None",false,"",false,-20000,true],
-    ["binary_scene_push","world","Rendering","PushCurrentRenderTarget","void","","","0x27EDD0","None",true,"cdecl",false,-20000,true],
-    ["binary_scene_restore","world","Rendering","RestorePreviousRenderTarget","void","","","0x27EEB0","None",true,"cdecl",false,-20000,true],
     ["stream_resource_ctor","world","ANM2","constructor","void","","","0x2B00","None",false,"",false,-10000,true],
     ["stream_resource_copy","world","ANM2","construct_from_copy","void","ANM2* right","right","0x2CD0","None",false,"",false,-10000,true],
     ["stream_resource_destroy","world","ANM2","destructor","void","","","0x3790","None",false,"",false,-10000,true],
@@ -67,28 +90,8 @@
     ["actual_pickup_loot","world","Entity_Pickup","GetLootList","LootList","bool advance, Entity_Player* player","advance, player","0x2D8700","None",false,"",false,-10000,true],
     ["actual_fireplace_loot","world","Entity_NPC","fireplace_get_loot","LootList","bool advance","advance","0x2CD630","None",false,"",false,-10000,true],
     ["actual_shopkeeper_loot","world","Entity_NPC","shopkeeper_get_loot","LootList","bool advance","advance","0x2BDC70","None",false,"",false,-10000,true],
-    ["client_entity_draw_player","client","Entity_Player","Render","void","Vector* offset","offset","0x384A60","None",false,"",false,-20000,true],
-    ["client_player_palette","client","CsGame","PlayerPalette","ColorMod*","ColorMod* output, Entity_Player* player","output, player","0x29440","None",false,"",true,-20000,true],
-    ["client_entity_draw_npc","client","CsEntity","ClientEntityDrawNpc","void","Vector* offset","offset","0x2cec90","None",false,"",true,-20000,true],
-    ["client_entity_draw_tear","client","CsEntity","ClientEntityDrawTear","void","Vector* offset","offset","0x275ac0","None",false,"",true,-20000,true],
     ["client_entity_draw_projectile","client","CsEntity","ClientEntityDrawProjectile","void","Vector* offset","offset","0x259460","None",false,"",true,-20000,true],
-    ["client_entity_draw_bomb","client","CsEntity","ClientEntityDrawBomb","void","Vector* offset","offset","0x2a0f90","None",false,"",true,-20000,true],
-    ["client_entity_draw_familiar","client","CsEntity","ClientEntityDrawFamiliar","void","Vector* offset","offset","0x21e360","None",false,"",true,-20000,true],
-    ["client_entity_draw_knife","client","CsEntity","ClientEntityDrawKnife","void","Vector* offset","offset","0x53ecd0","None",false,"",true,-20000,true],
-    ["client_entity_draw_pickup","client","CsEntity","ClientEntityDrawPickup","void","Vector* offset","offset","0x2e35d0","None",false,"",true,-20000,true],
-    ["client_entity_draw_laser","client","CsEntity","ClientEntityDrawLaser","void","Vector* offset","offset","0x5514b0","None",false,"",true,-20000,true],
-    ["client_entity_draw_slot","client","CsEntity","ClientEntityDrawSlot","void","Vector* offset","offset","0x2620e0","None",false,"",true,-20000,true],
-    ["client_entity_draw_effect","client","CsEntity","ClientEntityDrawEffect","void","Vector* offset","offset","0x200e60","None",false,"",true,-20000,true],
-    ["client_entity_draw_dummy","client","CsEntity","ClientEntityDrawDummy","void","Vector* offset","offset","0x2a3630","None",false,"",true,-20000,true],
-    ["client_entity_shadow_base","client","CsEntity","ClientEntityShadowBase","bool","Vector* offset","offset","0x2ad450","None",false,"",true,-20000,true],
-    ["client_entity_shadow_player","client","CsEntity","ClientEntityShadowPlayer","bool","Vector* offset","offset","0x3862A0","None",false,"",true,-20000,true],
-    ["client_entity_shadow_npc","client","CsEntity","ClientEntityShadowNpc","bool","Vector* offset","offset","0x2d0650","None",false,"",true,-20000,true],
-    ["client_entity_shadow_familiar","client","CsEntity","ClientEntityShadowFamiliar","bool","Vector* offset","offset","0x21e320","None",false,"",true,-20000,true],
-    ["client_entity_shadow_laser","client","CsEntity","ClientEntityShadowLaser","bool","Vector* offset","offset","0x555290","None",false,"",true,-20000,true],
-    ["client_entity_post_base","client","CsEntity","ClientEntityPostBase","void","","","0x2ac660","None",false,"",true,-20000,true],
-    ["client_entity_post_laser","client","CsEntity","ClientEntityPostLaser","void","","","0x556f80","None",false,"",true,-20000,true],
     ["client_entity_draw_paused","client","CsGame","EntityDrawPaused","bool","","","0x2f92a0","None",false,"",true,-20000,true],
-    ["client_entity_owned_final","client","CsEntity","OwnedFinalDraw","void","ANM2* sprite, Vector* offset","sprite, offset","0x247310","None",false,"",true,-20000,true],
     ["native_text_update","world","CsEntity","TextUpdate","int","","","0x1CC340","None",false,"",true,-10000,true],
     ["native_text_render","world","CsEntity","TextRender","void","Vector* offset","offset","0x1CC580","None",false,"",true,-10000,true],
     ["manager_update","loop","Manager","Update","void","bool value","value","0x52E3E0","Manager",true,"stdcall",false,-10000,true],
@@ -125,10 +128,6 @@
     ["device_update","input","CsDevice","DeviceCommonUpdate","bool","","","0x5EC900","Device",false,"",true,0,true],
     ["player_update","player","Entity_Player","Update","void","","","0x37BD40","None",false,"",false,-10000,true],
     ["client_player_update","client","Entity_Player","Update","void","","","0x37BD40","None",false,"",false,-20000,true],
-    ["client_player_pre_stats","client","Entity_Player","InitPreLevelInitStats","void","","","0x3B2C90","None",false,"",false,-20000,true],
-    ["client_player_render_body_diagnostic","client","Entity_Player","RenderBody","void","Vector* position","position","0x386460","None",false,"",false,-20000,true],
-    ["client_player_render_head_diagnostic","client","Entity_Player","RenderHead","void","Vector* position","position","0x386760","None",false,"",false,-20000,true],
-    ["client_minimap_render_diagnostic","client","Minimap","Render","void","","","0x566680","None",false,"",false,-20000,true],
     ["client_backdrop_effects","client","Backdrop","ClientBackdropEffects","void","int a, int b, unsigned int kind, int part, Vector* position, unsigned char flipX, bool flipY","a, b, kind, part, position, flipX, flipY","0x515890","None",false,"",true,-20000,true],
     ["client_backdrop_wall","client","Backdrop","pre_render_walls","void","","","0x511310","None",false,"",false,-20000,true],
     ["client_backdrop_graphics","client","Backdrop","ClientLoadGraphics","int","","","0x517910","None",false,"",true,-20000,true],
@@ -138,13 +137,7 @@
     ["client_grid_water_poop","client","GridEntity_Poop","GetWaterClipInfo","WaterClipInfo*","WaterClipInfo* out","out","0x311620","None",false,"",false,-20000,true],
     ["client_grid_water_plate","client","GridEntity_PressurePlate","GetWaterClipInfo","WaterClipInfo*","WaterClipInfo* out","out","0x55E940","None",false,"",false,-20000,true],
     ["client_grid_water_rock","client","GridEntity_Rock","GetWaterClipInfo","WaterClipInfo*","WaterClipInfo* out","out","0x318650","None",false,"",false,-20000,true],
-    ["client_menu_render","client","MenuManager","Render","void","","","0x5623C0","None",false,"",false,-20000,true],
     ["client_hud_achievement_query","client","Manager","AchievementUnlocksDisallowed","bool","bool unk","unk","0x5328C0","None",false,"",false,-20000,true],
-    ["client_grid_light_seed","client","Seeds","HasSeedEffect","bool","unsigned int seedEffect","seedEffect","0x052580","None",false,"",false,-20000,true],
-    ["client_grid_light_stage","client","Game","GetStageID","unsigned int","bool unused","unused","0x332CC0","None",false,"",false,-20000,true],
-    ["client_grid_light_alt","client","CsGame","GridLightRouteCondition","bool","","","0x348900","None",false,"",true,-20000,true],
-    ["client_grid_light_boss","client","CsStatic","GridLightCurrentBoss","bool","","","0x415B80","None",true,"cdecl",true,-20000,true],
-    ["client_grid_light_suffix","client","CsGame","GridLightStageSuffix","int","","","0x345B10","None",false,"",true,-20000,true],
     ["player_native","player","Entity_Player","Update","void","","","0x37BD40","None",false,"",false,10000,true],
     ["move","player","Entity_Player","ConsumerMove","void","","","0x372540","None",false,"",true,0,true],
     ["bomb","player","Entity_Player","ConsumerBomb","void","","","0x37A210","None",false,"",true,0,false],
@@ -202,12 +195,26 @@
       "pattern": "",
       "priority": -10000,
       "args": [
-        {"type": "unsigned int", "name": "type", "abi": "stack:1"},
-        {"type": "bool", "name": "force", "abi": "stack:1"}
+        {
+          "type": "unsigned int",
+          "name": "type",
+          "abi": "stack:1"
+        },
+        {
+          "type": "bool",
+          "name": "force",
+          "abi": "stack:1"
+        }
       ],
       "return": "Entity*",
       "return_abi": "eax",
-      "sdk": {"flags": 1, "argdata": ["stack:1", "stack:1"]},
+      "sdk": {
+        "flags": 1,
+        "argdata": [
+          "stack:1",
+          "stack:1"
+        ]
+      },
       "entry_bytes": "55 8B EC 51 8B 45 08",
       "completion": "Factory 返回非空只登记池取得/新 use；不证明物理构造、Init、Publish 或外层 owner 完成。",
       "reach": "本层进入只证明本层被调用；原生 body 是否到达为 UNKNOWN（单层 -10000 观察）。",
@@ -229,14 +236,38 @@
       "pattern": "",
       "priority": -10000,
       "args": [
-        {"type": "unsigned int", "name": "type", "abi": "stack:1"},
-        {"type": "unsigned int", "name": "variant", "abi": "stack:1"},
-        {"type": "unsigned int", "name": "subtype", "abi": "stack:1"},
-        {"type": "unsigned int", "name": "initSeed", "abi": "stack:1"}
+        {
+          "type": "unsigned int",
+          "name": "type",
+          "abi": "stack:1"
+        },
+        {
+          "type": "unsigned int",
+          "name": "variant",
+          "abi": "stack:1"
+        },
+        {
+          "type": "unsigned int",
+          "name": "subtype",
+          "abi": "stack:1"
+        },
+        {
+          "type": "unsigned int",
+          "name": "initSeed",
+          "abi": "stack:1"
+        }
       ],
       "return": "void",
       "return_abi": "",
-      "sdk": {"flags": 5, "argdata": ["stack:1", "stack:1", "stack:1", "stack:1"]},
+      "sdk": {
+        "flags": 5,
+        "argdata": [
+          "stack:1",
+          "stack:1",
+          "stack:1",
+          "stack:1"
+        ]
+      },
       "entry_bytes": "55 8B EC 83 EC 30",
       "completion": "基 Entity::Init 正常返回只证明基类这一层；七类派生 Init 与该次创建 owner 未闭合，重复 Init 不增加出生。",
       "reach": "vtable slot 1 的具体实现；派生类槽位各自指向不同函数，本入口不覆盖派生 Init。",
@@ -257,7 +288,11 @@
       "pattern": "55 8B EC 53 8B 5D 08",
       "priority": -10000,
       "args": [
-        {"type": "Entity*", "name": "entity", "abi": "stack:1"}
+        {
+          "type": "Entity*",
+          "name": "entity",
+          "abi": "stack:1"
+        }
       ],
       "return": "std::uint32_t",
       "return_abi": "eax",
@@ -285,7 +320,10 @@
       "args": [],
       "return": "void",
       "return_abi": "",
-      "sdk": {"flags": 5, "argdata": []},
+      "sdk": {
+        "flags": 5,
+        "argdata": []
+      },
       "entry_bytes": "51 56 8B F1 57",
       "completion": "逻辑移除请求；不等于析构、清引用或成员退出，也不等于物理释放。",
       "reach": "vtable slot 10；单层观察不证明后续清理链已执行。",
@@ -309,7 +347,10 @@
       "args": [],
       "return": "void",
       "return_abi": "",
-      "sdk": {"flags": 5, "argdata": []},
+      "sdk": {
+        "flags": 5,
+        "argdata": []
+      },
       "entry_bytes": "55 8B EC 51 53",
       "completion": "引用清理观察；与 revision 更新分开记录，不因此断定所有别名已退出。",
       "reach": "vtable slot 17；派生类另有覆盖实现，本入口不覆盖派生覆盖。",
@@ -333,7 +374,10 @@
       "args": [],
       "return": "void",
       "return_abi": "",
-      "sdk": {"flags": 5, "argdata": []},
+      "sdk": {
+        "flags": 5,
+        "argdata": []
+      },
       "entry_bytes": "55 8B EC 6A FF",
       "completion": "基类物理析构体，不承诺 operator delete；派生析构、slot 0 删除包装与分配器释放分列。",
       "reach": "派生删除包装可能先执行成员清理再调用本基类析构；基析构会重置 vptr。",
@@ -357,7 +401,10 @@
       "args": [],
       "return": "void",
       "return_abi": "",
-      "sdk": {"flags": 5, "argdata": []},
+      "sdk": {
+        "flags": 5,
+        "argdata": []
+      },
       "entry_bytes": "53 8B DC 83 EC 08",
       "completion": "构造 owner；进入或异常都不是完成，构造也不等于完整初始化。",
       "reach": "原生成功路径 EAX=this，官方包装为 void；不从 super 取 Entity*。",
@@ -378,11 +425,20 @@
       "pattern": "",
       "priority": -10000,
       "args": [
-        {"type": "int", "name": "playerType", "abi": "stack:1"}
+        {
+          "type": "int",
+          "name": "playerType",
+          "abi": "stack:1"
+        }
       ],
       "return": "Entity_Player*",
       "return_abi": "eax",
-      "sdk": {"flags": 1, "argdata": ["stack:1"]},
+      "sdk": {
+        "flags": 1,
+        "argdata": [
+          "stack:1"
+        ]
+      },
       "entry_bytes": "55 8B EC 6A FF",
       "completion": "普通 Player 创建 owner，含构造/Init/列表发布；不得再创建 B，也不把每次返回概括为普通 roster 发布。",
       "reach": "与既有 join_create CALL 补丁共用真实创建路径，但不是同一入口 wrapper。",
@@ -403,11 +459,20 @@
       "pattern": "",
       "priority": -10000,
       "args": [
-        {"type": "GameState *", "name": "state", "abi": "stack:1"}
+        {
+          "type": "GameState *",
+          "name": "state",
+          "abi": "stack:1"
+        }
       ],
       "return": "void",
       "return_abi": "",
-      "sdk": {"flags": 5, "argdata": ["stack:1"]},
+      "sdk": {
+        "flags": 5,
+        "argdata": [
+          "stack:1"
+        ]
+      },
       "entry_bytes": "55 8B EC 6A FF",
       "completion": "PlayerManager 的聚合恢复 owner，可恢复多名 Player 与保留关系；不是 Game::RestoreState，保留对象不自动成为 active roster。",
       "reach": "单名 PlayerRestore 或 ManagerRestore 返回都早于整个 Continue owner 完成。",
@@ -429,8 +494,16 @@
       "pattern": "53 8B DC 83 EC 08",
       "priority": -10000,
       "args": [
-        {"type": "Entity_Player*", "name": "old_player", "abi": "stack:1"},
-        {"type": "Entity_Player*", "name": "replacement", "abi": "stack:1"}
+        {
+          "type": "Entity_Player*",
+          "name": "old_player",
+          "abi": "stack:1"
+        },
+        {
+          "type": "Entity_Player*",
+          "name": "replacement",
+          "abi": "stack:1"
+        }
       ],
       "return": "bool",
       "return_abi": "al",
@@ -456,11 +529,20 @@
       "pattern": "",
       "priority": -10000,
       "args": [
-        {"type": "GameStatePlayer*", "name": "saveState", "abi": "stack:1"}
+        {
+          "type": "GameStatePlayer*",
+          "name": "saveState",
+          "abi": "stack:1"
+        }
       ],
       "return": "void",
       "return_abi": "",
-      "sdk": {"flags": 5, "argdata": ["stack:1"]},
+      "sdk": {
+        "flags": 5,
+        "argdata": [
+          "stack:1"
+        ]
+      },
       "entry_bytes": "53 8B DC 83 EC 08",
       "completion": "单名 Player 的状态恢复；不补造构造/出生历史，也不恢复旧 witness。",
       "reach": "进入即污染当前 token，外层正常结束只解除待定。",
@@ -481,14 +563,38 @@
       "pattern": "",
       "priority": -10000,
       "args": [
-        {"type": "int", "name": "EntityType", "abi": "stack:1"},
-        {"type": "int", "name": "Variant", "abi": "stack:1"},
-        {"type": "int", "name": "SubType", "abi": "stack:1"},
-        {"type": "int", "name": "Championid", "abi": "stack:1"}
+        {
+          "type": "int",
+          "name": "EntityType",
+          "abi": "stack:1"
+        },
+        {
+          "type": "int",
+          "name": "Variant",
+          "abi": "stack:1"
+        },
+        {
+          "type": "int",
+          "name": "SubType",
+          "abi": "stack:1"
+        },
+        {
+          "type": "int",
+          "name": "Championid",
+          "abi": "stack:1"
+        }
       ],
       "return": "void",
       "return_abi": "",
-      "sdk": {"flags": 5, "argdata": ["stack:1", "stack:1", "stack:1", "stack:1"]},
+      "sdk": {
+        "flags": 5,
+        "argdata": [
+          "stack:1",
+          "stack:1",
+          "stack:1",
+          "stack:1"
+        ]
+      },
       "entry_bytes": "55 8B EC 83 E4 F8",
       "completion": "Morph owner；相同参数可早退，回调可短路或改参；保留出生/use，更新分类与 revision，不建立新物理身份。",
       "reach": "REPENTOGON 的 Morph callback 可返回 false 而不调用 super；单层观察不区分。",
@@ -509,16 +615,50 @@
       "pattern": "",
       "priority": -10000,
       "args": [
-        {"type": "int", "name": "EntityType", "abi": "stack:1"},
-        {"type": "int", "name": "Variant", "abi": "stack:1"},
-        {"type": "int", "name": "SubType", "abi": "stack:1"},
-        {"type": "bool", "name": "KeepPrice", "abi": "stack:1"},
-        {"type": "bool", "name": "KeepSeed", "abi": "stack:1"},
-        {"type": "bool", "name": "IgnoreModifiers", "abi": "stack:1"}
+        {
+          "type": "int",
+          "name": "EntityType",
+          "abi": "stack:1"
+        },
+        {
+          "type": "int",
+          "name": "Variant",
+          "abi": "stack:1"
+        },
+        {
+          "type": "int",
+          "name": "SubType",
+          "abi": "stack:1"
+        },
+        {
+          "type": "bool",
+          "name": "KeepPrice",
+          "abi": "stack:1"
+        },
+        {
+          "type": "bool",
+          "name": "KeepSeed",
+          "abi": "stack:1"
+        },
+        {
+          "type": "bool",
+          "name": "IgnoreModifiers",
+          "abi": "stack:1"
+        }
       ],
       "return": "void",
       "return_abi": "",
-      "sdk": {"flags": 5, "argdata": ["stack:1", "stack:1", "stack:1", "stack:1", "stack:1", "stack:1"]},
+      "sdk": {
+        "flags": 5,
+        "argdata": [
+          "stack:1",
+          "stack:1",
+          "stack:1",
+          "stack:1",
+          "stack:1",
+          "stack:1"
+        ]
+      },
       "entry_bytes": "55 8B EC 6A FF",
       "completion": "内层 Init 返回时 Morph 未完成；本对象 RNG 可能被推进，保存/恢复 seed/Index/位置等，仍要等外层 owner 返回。",
       "reach": "REPENTOGON 的 Pickup Morph callback 同样可短路；原生 bool 只读低字节。",
@@ -562,12 +702,26 @@
       "pattern": "",
       "priority": -10000,
       "args": [
-        {"type": "int", "name": "Type", "abi": "ecx"},
-        {"type": "unsigned int", "name": "Index", "abi": "edx"}
+        {
+          "type": "int",
+          "name": "Type",
+          "abi": "ecx"
+        },
+        {
+          "type": "unsigned int",
+          "name": "Index",
+          "abi": "edx"
+        }
       ],
       "return": "GridEntity*",
       "return_abi": "eax",
-      "sdk": {"flags": 2, "argdata": ["ecx:0", "edx:0"]},
+      "sdk": {
+        "flags": 2,
+        "argdata": [
+          "ecx:0",
+          "edx:0"
+        ]
+      },
       "entry_bytes": "55 8B EC 6A FF",
       "completion": "工厂与 Init/Room 发布分开；既无此参数也无栈参，ECX/EDX 由官方 ArgData 表达。",
       "reach": "同址还有全局 CreateGridEntity 的错误元数据定义；本入口只复用 Isaac::CreateGridEntity，不为别名另建 owner。",
@@ -588,11 +742,20 @@
       "pattern": "",
       "priority": -10000,
       "args": [
-        {"type": "unsigned int", "name": "Seed", "abi": "stack:1"}
+        {
+          "type": "unsigned int",
+          "name": "Seed",
+          "abi": "stack:1"
+        }
       ],
       "return": "void",
       "return_abi": "",
-      "sdk": {"flags": 5, "argdata": ["stack:1"]},
+      "sdk": {
+        "flags": 5,
+        "argdata": [
+          "stack:1"
+        ]
+      },
       "entry_bytes": "55 8B EC 8B 45 08",
       "completion": "普通方法而非虚表派生入口；+3C 清零之后仍有虚调用 0x705085，返回后的最终值不由该 store 定论。",
       "reach": "MakeDoor 内含内联基 Grid 初始化，不保证经过本入口。",
@@ -613,15 +776,44 @@
       "pattern": "",
       "priority": -10000,
       "args": [
-        {"type": "int", "name": "GridIndex", "abi": "stack:1"},
-        {"type": "unsigned int", "name": "Type", "abi": "stack:1"},
-        {"type": "unsigned int", "name": "Variant", "abi": "stack:1"},
-        {"type": "unsigned int", "name": "Seed", "abi": "stack:1"},
-        {"type": "int", "name": "VarData", "abi": "stack:1"}
+        {
+          "type": "int",
+          "name": "GridIndex",
+          "abi": "stack:1"
+        },
+        {
+          "type": "unsigned int",
+          "name": "Type",
+          "abi": "stack:1"
+        },
+        {
+          "type": "unsigned int",
+          "name": "Variant",
+          "abi": "stack:1"
+        },
+        {
+          "type": "unsigned int",
+          "name": "Seed",
+          "abi": "stack:1"
+        },
+        {
+          "type": "int",
+          "name": "VarData",
+          "abi": "stack:1"
+        }
       ],
       "return": "bool",
       "return_abi": "al",
-      "sdk": {"flags": 1, "argdata": ["stack:1", "stack:1", "stack:1", "stack:1", "stack:1"]},
+      "sdk": {
+        "flags": 1,
+        "argdata": [
+          "stack:1",
+          "stack:1",
+          "stack:1",
+          "stack:1",
+          "stack:1"
+        ]
+      },
       "entry_bytes": "55 8B EC 53 56",
       "completion": "bool 返回；新指针在初始化完成前写入槽，失败不凭请求推断替换，返回后仍需确认实际槽。",
       "reach": "REPENTOGON 的 GridSpawn callback 可改参、返回 false 或转入 SpawnGridEntityDesc。",
@@ -642,11 +834,20 @@
       "pattern": "",
       "priority": -10000,
       "args": [
-        {"type": "int", "name": "slot", "abi": "stack:1"}
+        {
+          "type": "int",
+          "name": "slot",
+          "abi": "stack:1"
+        }
       ],
       "return": "void",
       "return_abi": "",
-      "sdk": {"flags": 5, "argdata": ["stack:1"]},
+      "sdk": {
+        "flags": 5,
+        "argdata": [
+          "stack:1"
+        ]
+      },
       "entry_bytes": "55 8B EC 6A FF",
       "completion": "门 owner，无 Entity* 返回契约；同一指针可同时带 Grid/door membership，只算一个对象/use。",
       "reach": "已有 door 槽可早退；复用 Door 不重记物理出生。",
@@ -667,13 +868,32 @@
       "pattern": "",
       "priority": -10000,
       "args": [
-        {"type": "int", "name": "GridIndex", "abi": "stack:1"},
-        {"type": "int", "name": "PathTrail", "abi": "stack:1"},
-        {"type": "bool", "name": "KeepDecoration", "abi": "stack:1"}
+        {
+          "type": "int",
+          "name": "GridIndex",
+          "abi": "stack:1"
+        },
+        {
+          "type": "int",
+          "name": "PathTrail",
+          "abi": "stack:1"
+        },
+        {
+          "type": "bool",
+          "name": "KeepDecoration",
+          "abi": "stack:1"
+        }
       ],
       "return": "void",
       "return_abi": "",
-      "sdk": {"flags": 5, "argdata": ["stack:1", "stack:1", "stack:1"]},
+      "sdk": {
+        "flags": 5,
+        "argdata": [
+          "stack:1",
+          "stack:1",
+          "stack:1"
+        ]
+      },
       "entry_bytes": "55 8B EC 8B 55 08",
       "completion": "移除 owner；越界、空槽或 type=1 且 KeepDecoration 可无事返回；请求不等于已释放，Grid 槽退出不证明 door 别名消失。",
       "reach": "实际删除分支先清槽再虚调 slot 0(flags=1)；空槽路径不进入释放。",
@@ -694,18 +914,62 @@
       "pattern": "",
       "priority": -10000,
       "args": [
-        {"type": "unsigned int", "name": "type", "abi": "stack:1"},
-        {"type": "unsigned int", "name": "variant", "abi": "stack:1"},
-        {"type": "const Vector &", "name": "position", "abi": "stack:1"},
-        {"type": "const Vector &", "name": "velocity", "abi": "stack:1"},
-        {"type": "Entity*", "name": "spawner", "abi": "stack:1"},
-        {"type": "unsigned int", "name": "subtype", "abi": "stack:1"},
-        {"type": "unsigned int", "name": "seed", "abi": "stack:1"},
-        {"type": "unsigned int", "name": "unk", "abi": "stack:1"}
+        {
+          "type": "unsigned int",
+          "name": "type",
+          "abi": "stack:1"
+        },
+        {
+          "type": "unsigned int",
+          "name": "variant",
+          "abi": "stack:1"
+        },
+        {
+          "type": "const Vector &",
+          "name": "position",
+          "abi": "stack:1"
+        },
+        {
+          "type": "const Vector &",
+          "name": "velocity",
+          "abi": "stack:1"
+        },
+        {
+          "type": "Entity*",
+          "name": "spawner",
+          "abi": "stack:1"
+        },
+        {
+          "type": "unsigned int",
+          "name": "subtype",
+          "abi": "stack:1"
+        },
+        {
+          "type": "unsigned int",
+          "name": "seed",
+          "abi": "stack:1"
+        },
+        {
+          "type": "unsigned int",
+          "name": "unk",
+          "abi": "stack:1"
+        }
       ],
       "return": "Entity*",
       "return_abi": "eax",
-      "sdk": {"flags": 1, "argdata": ["stack:1", "stack:1", "stack:1", "stack:1", "stack:1", "stack:1", "stack:1", "stack:1"]},
+      "sdk": {
+        "flags": 1,
+        "argdata": [
+          "stack:1",
+          "stack:1",
+          "stack:1",
+          "stack:1",
+          "stack:1",
+          "stack:1",
+          "stack:1",
+          "stack:1"
+        ]
+      },
       "entry_bytes": "55 8B EC 83 E4 F8",
       "completion": "完整八参 owner；Publish 之后仍有属性继承/引用/回调等后处理，只在外层实际返回后核对返回对象/use。",
       "reach": "Factory 可返回 null；末参原生读取低位，不能删去第八个栈 word。",
@@ -714,34 +978,265 @@
     }
   ],
   "byte_patches": [
-    {"id":"client_backdrop_effect_1","group":"client","rva":"0x51168F","expected":"E8 1C 9E DD FF","resume":"0x511694","alternate":"0x511778","kind":"jump","size":5,"evidence":"tx-04-18 J273 Luna核查及主审：源call GlobalRandom恰一次；Client只补scale的一次Backdrop独立xorshift，跳过Spawn7/Update，EDI=Backdrop，landing恢复ESI"},
-    {"id":"client_backdrop_effect_2","group":"client","rva":"0x5119E9","expected":"E8 C2 9A DD FF","resume":"0x5119EE","alternate":"0x511AEE","kind":"jump","size":5,"evidence":"tx-04-18 J273 Luna核查及主审：Backdrop30/39命中后唯一额外独立xorshift用于scale，保留原栈并于landing恢复ESI"},
-    {"id":"world_process_exit","group":"world","rva":"0x50AFC4","expected":"80 78 08 01 0F 85 73 FF FF FF","resume":"0x50AFCE","alternate":"0x50AF41","kind":"jump","size":10,"evidence":"tx-04-08 DE: GPT-6 Luna static main analysis, primary raw-instruction review; original cmp+jnz, no GLFW object writes"},
-    {"id":"client_shutdown_counter","group":"client","rva":"0x582D1B","expected":"85 C0 74 48 83 B8 A8 5B 02 00 00","resume":"0x582D26","alternate":"0x582D67","kind":"jump","size":11,"evidence":"J273 Isaac::Shutdown 0x982D1B-0x982D67；仅跳过 counter[192]/522 与 PGD 保存，保留后续 Options 保存"},
-    {"id":"client_shutdown_save","group":"client","rva":"0x582D72","expected":"A1 ?? ?? ?? ??","resume":"0x582D77","alternate":"0x582DD0","kind":"jump","size":5,"evidence":"J273 Isaac::Shutdown 0x982D72-0x982DD0；A1的绝对Manager地址由ASLR重定位，安装时另验其等于Base+Manager；跳过dirty/backup/cloud/local，保留Manager加载与Game::Exit/析构"},
-    {"id": "odd_normal", "group": "player", "rva": "0x2F9559", "expected": "FF 52 0C 6A 00", "resume": "0x2F955E"},
-    {"id": "join_mode_1", "group": "join", "rva": "0x5915ae", "expected": "E8 ED FA FF FF", "resume": "0x5915b3", "alternate": "0x0", "kind": "call", "size": 5},
-    {"id": "join_mode_2", "group": "join", "rva": "0x59174c", "expected": "E8 4F F9 FF FF", "resume": "0x591751", "alternate": "0x0", "kind": "call", "size": 5},
-    {"id": "join_mode_3", "group": "join", "rva": "0x591e67", "expected": "E8 34 F2 FF FF", "resume": "0x591e6c", "alternate": "0x0", "kind": "call", "size": 5},
-    {"id": "join_create", "group": "join", "rva": "0x591fe6", "expected": "E8 65 E2 FF FF", "resume": "0x591feb", "alternate": "0x5925e4", "kind": "call", "size": 5},
-    {"id": "k_register_notify", "group": "join", "rva": "0x5eeb7c", "expected": "8B 77 14 8B 5B 08", "resume": "0x5eeb82", "alternate": "0x5eeb9a", "kind": "jump", "size": 6},
-    {"id": "k_remove_notify", "group": "join", "rva": "0x5eebc3", "expected": "8B 73 20 3B 73 24", "resume": "0x5eebc9", "alternate": "0x5eebe6", "kind": "jump", "size": 6},
-    {"id": "k_poll_notify", "group": "join", "rva": "0x5edd2d", "expected": "8B 73 20 8B 41 08", "resume": "0x5edd33", "alternate": "0x5edd58", "kind": "jump", "size": 6},
-    {"id": "k_physical_disconnect", "group": "join", "rva": "0x5ec37c", "expected": "8B 4D 08 8B 87 F8 03 00 00", "resume": "0x5ec385", "alternate": "0x5ec389", "kind": "jump", "size": 9},
-    {"id": "k_controller_list", "group": "join", "rva": "0x4af970", "expected": "85 C0 0F 84 D5 00 00 00", "resume": "0x4af978", "alternate": "0x4afa4d", "kind": "jump", "size": 8},
-    {"id": "k_keyconfig_draw", "group": "join", "rva": "0x4b8d3d", "expected": "83 B8 8C 04 00 00 00", "resume": "0x4b8d44", "alternate": "0x4b9aa7", "kind": "jump", "size": 7},
-    {"id": "k_pause_disconnect", "group": "join", "rva": "0x534768", "expected": "83 B8 8C 04 00 00 00", "resume": "0x53476f", "alternate": "0x5347a9", "kind": "jump", "size": 7}
+    {
+      "id": "client_stat_angel_share",
+      "group": "client",
+      "rva": "0x43D156",
+      "expected": "E8 35 24 FB FF",
+      "resume": "0x43D15B",
+      "alternate": "0x3EF590",
+      "kind": "call",
+      "size": 5,
+      "evidence": "J273 StatHUD RecomputeStats 83D156，原生占比从 XMM0 返回。"
+    },
+    {
+      "id": "client_stat_angel_share_tick",
+      "group": "client",
+      "rva": "0x43D761",
+      "expected": "E8 2A 1E FB FF",
+      "resume": "0x43D766",
+      "alternate": "0x3EF590",
+      "kind": "call",
+      "size": 5,
+      "evidence": "J273 StatHUD Tick 83D761，原生占比从 XMM0 返回。"
+    },
+    {
+      "id": "client_backdrop_effect_1",
+      "group": "client",
+      "rva": "0x51168F",
+      "expected": "E8 1C 9E DD FF",
+      "resume": "0x511694",
+      "alternate": "0x511778",
+      "kind": "jump",
+      "size": 5,
+      "evidence": "tx-04-18 J273 Luna核查及主审：源call GlobalRandom恰一次；Client只补scale的一次Backdrop独立xorshift，跳过Spawn7/Update，EDI=Backdrop，landing恢复ESI"
+    },
+    {
+      "id": "client_backdrop_effect_2",
+      "group": "client",
+      "rva": "0x5119E9",
+      "expected": "E8 C2 9A DD FF",
+      "resume": "0x5119EE",
+      "alternate": "0x511AEE",
+      "kind": "jump",
+      "size": 5,
+      "evidence": "tx-04-18 J273 Luna核查及主审：Backdrop30/39命中后唯一额外独立xorshift用于scale，保留原栈并于landing恢复ESI"
+    },
+    {
+      "id": "world_process_exit",
+      "group": "world",
+      "rva": "0x50AFC4",
+      "expected": "80 78 08 01 0F 85 73 FF FF FF",
+      "resume": "0x50AFCE",
+      "alternate": "0x50AF41",
+      "kind": "jump",
+      "size": 10,
+      "evidence": "tx-04-08 DE: GPT-6 Luna static main analysis, primary raw-instruction review; original cmp+jnz, no GLFW object writes"
+    },
+    {
+      "id": "client_shutdown_counter",
+      "group": "client",
+      "rva": "0x582D1B",
+      "expected": "85 C0 74 48 83 B8 A8 5B 02 00 00",
+      "resume": "0x582D26",
+      "alternate": "0x582D67",
+      "kind": "jump",
+      "size": 11,
+      "evidence": "J273 Isaac::Shutdown 0x982D1B-0x982D67；仅跳过 counter[192]/522 与 PGD 保存，保留后续 Options 保存"
+    },
+    {
+      "id": "client_shutdown_save",
+      "group": "client",
+      "rva": "0x582D72",
+      "expected": "A1 ?? ?? ?? ??",
+      "resume": "0x582D77",
+      "alternate": "0x582DD0",
+      "kind": "jump",
+      "size": 5,
+      "evidence": "J273 Isaac::Shutdown 0x982D72-0x982DD0；A1的绝对Manager地址由ASLR重定位，安装时另验其等于Base+Manager；跳过dirty/backup/cloud/local，保留Manager加载与Game::Exit/析构"
+    },
+    {
+      "id": "odd_normal",
+      "group": "player",
+      "rva": "0x2F9559",
+      "expected": "FF 52 0C 6A 00",
+      "resume": "0x2F955E"
+    },
+    {
+      "id": "join_mode_1",
+      "group": "join",
+      "rva": "0x5915ae",
+      "expected": "E8 ED FA FF FF",
+      "resume": "0x5915b3",
+      "alternate": "0x0",
+      "kind": "call",
+      "size": 5
+    },
+    {
+      "id": "join_mode_2",
+      "group": "join",
+      "rva": "0x59174c",
+      "expected": "E8 4F F9 FF FF",
+      "resume": "0x591751",
+      "alternate": "0x0",
+      "kind": "call",
+      "size": 5
+    },
+    {
+      "id": "join_mode_3",
+      "group": "join",
+      "rva": "0x591e67",
+      "expected": "E8 34 F2 FF FF",
+      "resume": "0x591e6c",
+      "alternate": "0x0",
+      "kind": "call",
+      "size": 5
+    },
+    {
+      "id": "join_create",
+      "group": "join",
+      "rva": "0x591fe6",
+      "expected": "E8 65 E2 FF FF",
+      "resume": "0x591feb",
+      "alternate": "0x5925e4",
+      "kind": "call",
+      "size": 5
+    },
+    {
+      "id": "k_register_notify",
+      "group": "join",
+      "rva": "0x5eeb7c",
+      "expected": "8B 77 14 8B 5B 08",
+      "resume": "0x5eeb82",
+      "alternate": "0x5eeb9a",
+      "kind": "jump",
+      "size": 6
+    },
+    {
+      "id": "k_remove_notify",
+      "group": "join",
+      "rva": "0x5eebc3",
+      "expected": "8B 73 20 3B 73 24",
+      "resume": "0x5eebc9",
+      "alternate": "0x5eebe6",
+      "kind": "jump",
+      "size": 6
+    },
+    {
+      "id": "k_poll_notify",
+      "group": "join",
+      "rva": "0x5edd2d",
+      "expected": "8B 73 20 8B 41 08",
+      "resume": "0x5edd33",
+      "alternate": "0x5edd58",
+      "kind": "jump",
+      "size": 6
+    },
+    {
+      "id": "k_physical_disconnect",
+      "group": "join",
+      "rva": "0x5ec37c",
+      "expected": "8B 4D 08 8B 87 F8 03 00 00",
+      "resume": "0x5ec385",
+      "alternate": "0x5ec389",
+      "kind": "jump",
+      "size": 9
+    },
+    {
+      "id": "k_controller_list",
+      "group": "join",
+      "rva": "0x4af970",
+      "expected": "85 C0 0F 84 D5 00 00 00",
+      "resume": "0x4af978",
+      "alternate": "0x4afa4d",
+      "kind": "jump",
+      "size": 8
+    },
+    {
+      "id": "k_keyconfig_draw",
+      "group": "join",
+      "rva": "0x4b8d3d",
+      "expected": "83 B8 8C 04 00 00 00",
+      "resume": "0x4b8d44",
+      "alternate": "0x4b9aa7",
+      "kind": "jump",
+      "size": 7
+    },
+    {
+      "id": "k_pause_disconnect",
+      "group": "join",
+      "rva": "0x534768",
+      "expected": "83 B8 8C 04 00 00 00",
+      "resume": "0x53476f",
+      "alternate": "0x5347a9",
+      "kind": "jump",
+      "size": 7
+    }
   ],
   "runtime_random_hooks": [
-    {"id":"crt_rand","source":0,"module":"ucrtbase.dll","symbol":"rand","import_owners":["executable","zhlREPENTOGON.dll","zhlIsaacCS.dll"],"abi":"cdecl-int-noargs"},
-    {"id":"crt_srand","source":1,"module":"ucrtbase.dll","symbol":"srand","import_owners":["executable","zhlREPENTOGON.dll","zhlIsaacCS.dll"],"abi":"cdecl-void-u32"},
-    {"id":"repentogon_random_float","source":2,"lua":"RandomFloat","abi":"lua-CFunction"},
-    {"id":"lua_math_random","source":3,"lua":"math.random","abi":"lua-CFunction"},
-    {"id":"lua_math_randomseed","source":4,"lua":"math.randomseed","abi":"lua-CFunction"}
+    {
+      "id": "crt_rand",
+      "source": 0,
+      "module": "ucrtbase.dll",
+      "symbol": "rand",
+      "import_owners": [
+        "executable",
+        "zhlREPENTOGON.dll",
+        "zhlIsaacCS.dll"
+      ],
+      "abi": "cdecl-int-noargs"
+    },
+    {
+      "id": "crt_srand",
+      "source": 1,
+      "module": "ucrtbase.dll",
+      "symbol": "srand",
+      "import_owners": [
+        "executable",
+        "zhlREPENTOGON.dll",
+        "zhlIsaacCS.dll"
+      ],
+      "abi": "cdecl-void-u32"
+    },
+    {
+      "id": "repentogon_random_float",
+      "source": 2,
+      "lua": "RandomFloat",
+      "abi": "lua-CFunction"
+    },
+    {
+      "id": "lua_math_random",
+      "source": 3,
+      "lua": "math.random",
+      "abi": "lua-CFunction"
+    },
+    {
+      "id": "lua_math_randomseed",
+      "source": 4,
+      "lua": "math.randomseed",
+      "abi": "lua-CFunction"
+    }
   ],
   "native_dependencies": [
-    {"id":"input_backend_lock","rva":"0x5E60E0","expected":"55 8B EC 53 8B D9 56 57"},
-    {"id":"input_backend_unlock","rva":"0x5E61A0","expected":"56 8B F1 80 7E 04 00"}
+    {
+      "id": "input_backend_lock",
+      "rva": "0x5E60E0",
+      "expected": "55 8B EC 53 8B D9 56 57"
+    },
+    {
+      "id": "input_backend_unlock",
+      "rva": "0x5E61A0",
+      "expected": "56 8B F1 80 7E 04 00"
+    }
   ],
-  "pointer_hooks": ["keyboard_8","keyboard_9","keyboard_10","keyboard_35","gamepad_8","gamepad_9","gamepad_10","gamepad_35"]
+  "pointer_hooks": [
+    "keyboard_8",
+    "keyboard_9",
+    "keyboard_10",
+    "keyboard_35",
+    "gamepad_8",
+    "gamepad_9",
+    "gamepad_10",
+    "gamepad_35"
+  ]
 }

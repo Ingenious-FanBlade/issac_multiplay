@@ -1,10 +1,7 @@
 #include "replica/stream_e2e.h"
 #include "replica/stream_clock_e2e.h"
 #include "replica/stream_resource_e2e.h"
-#include "replica/stream_encoding_e2e.h"
 #include "replica/stream_codec.h"
-#include "replica/stream_materialize.h"
-#include "replica/stream_capture.h"
 #include <algorithm>
 #include <atomic>
 #include <deque>
@@ -14,14 +11,17 @@
 #include <set>
 namespace cs::replica::stream {
 namespace {
-Value RangeValue(const RangeId &id,Allocator &a){auto versions=VersionValues({{id,1}},a);Value value;value.CopyFrom(versions[0],a);value.RemoveMember("revision");return value;}
-void CopyField(Value &row,const char *name,const Value &source,Allocator &a){Value value;value.CopyFrom(source,a);Put(row,name,std::move(value),a);}
-constexpr unsigned kEvents=65536,kSnapshots=16,kChunk=262144;
+Value WorldValue(const WorldScope &scope,Allocator &a){
+  Value out(rapidjson::kObjectType);
+  const char *keys[]={"session","run","floor","dimension","room","scene"};
+  const std::uint64_t values[]={scope.session,scope.run,scope.floor,scope.dimension,scope.room,scope.scene};
+  for(unsigned i=0;i<6;++i)Put(out,keys[i],Decimal(values[i],a),a);
+  return out;
+}
+constexpr unsigned kEvents=65536;
 constexpr std::size_t kEventBytes=32u<<20;
-constexpr std::uint64_t kBytes=64ull<<20,kTtlUs=10000000;
 std::mutex mutex;
 std::atomic<bool> enabled{false};
-std::atomic<bool> encoding_saved{false};
 std::atomic<bool> drop_next{false};
 std::atomic<std::uint64_t> missed{0};
 std::atomic<bool> visual_requested{false};
@@ -34,13 +34,6 @@ struct Row {std::uint64_t cursor=0;std::shared_ptr<const std::string> value;};
 std::deque<Row> events;
 std::size_t event_bytes=0;
 std::uint64_t serial=0;
-struct Saved {unsigned id=0;std::uint64_t at=0,connection=0,route=0;Range root;std::string text,render;std::vector<Version> commit_vector;std::uint64_t read_started=0,last_read=0;};
-std::deque<Saved> snapshots;
-unsigned next_id=0,kind_filter=0;
-std::uint64_t revision_filter=0,armed_at=0,bytes=0;
-std::string role_filter;
-std::uint64_t arm_generation=0,source_selected_arm=0;
-std::atomic<bool> source_snapshot_working{false};
 void Add(Json row) noexcept {
  if(!enabled.load(std::memory_order_relaxed))return;
  if(drop_next.exchange(false)){++missed;return;}
@@ -59,38 +52,13 @@ void Add(Json row) noexcept {
 }
 Json Base(const char *kind,const Metrics *m=nullptr){Json row(rapidjson::kObjectType);auto &a=row.GetAllocator();Put(row,"event",kind,a);if(m){Put(row,"owner",Decimal(std::uintptr_t(m),a),a);Put(row,"world",WorldValue(m->scope,a),a);Put(row,"route",Decimal(m->route,a),a);}return row;}
 // 索引领取后给跨节点命令留出有界间隔；总读取寿命仍为120秒，数量和总字节上限不变。
-void Expire(){const auto now=MetricMicros();while(!snapshots.empty()){const auto &s=snapshots.front();const bool reading=s.read_started&&now-s.read_started<=120000000&&now-s.last_read<=30000000;if((reading||now-s.at<=kTtlUs)&&snapshots.size()<=kSnapshots&&bytes<=kBytes)break;bytes-=s.text.size();snapshots.pop_front();}}
 }
 void E2EStreamProgress(const char *site,const std::array<std::uint64_t,8> &values) noexcept {
  if(!enabled)return;try{auto row=Base("stream-progress");auto &a=row.GetAllocator();Put(row,"site",site,a);
  constexpr const char *names[]={"revision","sequence","phase","prefix","started_ms","now_ms","native_target","age_ms"};
  for(unsigned i=0;i<values.size();++i)Put(row,names[i],Decimal(values[i],a),a);Add(std::move(row));}catch(...){++missed;}
 }
-void E2ETrace(bool on) noexcept {try{std::lock_guard lock(mutex);enabled=on;encoding_saved=false;events.clear();event_bytes=0;snapshots.clear();bytes=0;missed=0;role_filter.clear();armed_at=0;visual_requested=false;visual_until=0;visual_neutral_until=0;drop_next=false;}catch(...){++missed;}}
-void E2EEncodingSource(const RangeData &range,const char *reason) noexcept {
- if(!enabled||encoding_saved.exchange(true))return;
- try{
-  std::uint64_t total=0;
-  for(unsigned record=0;record<range.records.size();++record)for(const auto &field:range.records[record].fields){
-   const auto tree=std::get_if<std::shared_ptr<const Json>>(&field.value);if(!tree||!*tree)continue;
-   const auto payload=Text(**tree);
-   if(payload.size()>(4u<<20)-total){auto row=Base("encoding-source-truncated");Put(row,"reason","diagnostic_value_budget",row.GetAllocator());Add(std::move(row));return;}
-   total+=payload.size();
-   for(std::size_t offset=0;offset<payload.size();){
-    auto end=(std::min)(offset+4096,payload.size());
-    // JSON字符串按UTF-8边界分页，不能截断多字节字符形成无效诊断。
-    while(end<payload.size()&&(std::uint8_t(payload[end])&0xc0)==0x80)--end;
-    auto row=Base("encoding-source");auto &a=row.GetAllocator();
-    Put(row,"range",RangeValue(range.id,a),a);Put(row,"revision",Decimal(range.revision,a),a);
-    Put(row,"reason",std::string(reason),a);Put(row,"record",Value(record),a);Put(row,"field",Value(field.id),a);
-    Put(row,"offset",Decimal(offset,a),a);Put(row,"total",Decimal(payload.size(),a),a);
-    Put(row,"payload",payload.substr(offset,end-offset),a);Add(std::move(row));offset=end;
-   }
-  }
-  auto complete=Base("encoding-source-complete");auto &allocator=complete.GetAllocator();
-  Put(complete,"records",Value(unsigned(range.records.size())),allocator);Put(complete,"bytes",Decimal(total,allocator),allocator);Add(std::move(complete));
- }catch(...){++missed;}
-}
+void E2ETrace(bool on) noexcept {try{std::lock_guard lock(mutex);enabled=on;events.clear();event_bytes=0;missed=0;visual_requested=false;visual_until=0;visual_neutral_until=0;drop_next=false;}catch(...){++missed;}}
 void E2EObservationLoss() noexcept {drop_next=true;}
 void E2EClockRejected(std::uint64_t echo,std::uint64_t now,std::uint64_t received,std::uint64_t sent,std::uint64_t sample) noexcept {
  if(!enabled)return;try{auto row=Base("clock-rejected");auto &a=row.GetAllocator();Put(row,"client_echo_ms",Decimal(echo,a),a);Put(row,"client_received_ms",Decimal(now,a),a);Put(row,"server_received_ms",Decimal(received,a),a);Put(row,"server_sent_ms",Decimal(sent,a),a);Put(row,"server_sample_ms",Decimal(sample,a),a);Add(std::move(row));}catch(...){++missed;}
@@ -142,9 +110,6 @@ bool E2EWirePayload(const Message &m,Limits limits,std::vector<std::uint8_t> &pa
 void E2EIsolation(const char *kind,const char *entry,bool main,bool guarded,bool context,unsigned owner,const std::array<std::uint64_t,9> &identity) noexcept {
  if(!enabled)return;try{auto row=Base("isolation");auto &a=row.GetAllocator();Put(row,"kind",kind,a);Put(row,"entry",entry,a);Put(row,"main_thread",Value(main),a);Put(row,"persistence_blocked",Value(guarded),a);Put(row,"context_valid",Value(context),a);Put(row,"owner",Value(owner),a);constexpr const char *keys[]={"local_connection","connection","route","scene_generation","instance","resource","lua","context","phase"};for(unsigned i=0;i<identity.size();++i)Put(row,keys[i],Decimal(identity[i],a),a);Add(std::move(row));}catch(...){++missed;}
 }
-void E2EFlow(const Metrics *m,const RangeId &id,std::uint64_t revision,const Sample &s,FlowStage stage) noexcept {
- if(!enabled)return;try{auto row=Base("flow",m);auto &a=row.GetAllocator();Put(row,"range",RangeValue(id,a),a);Put(row,"revision",Decimal(revision,a),a);Put(row,"stage",Value(unsigned(stage)),a);Put(row,"sequence",Decimal(s.sequence,a),a);Put(row,"tick",Decimal(s.tick,a),a);Put(row,"native_tick",Decimal(s.last_native_update_tick,a),a);Put(row,"binding",Decimal(s.binding_revision,a),a);Put(row,"authority_kind",Value(unsigned(s.kind)),a);Add(std::move(row));}catch(...){++missed;}
-}
 void E2ETime(const Metrics *m,CpuStage stage,std::uint64_t wall,std::uint64_t cpu) noexcept {if(!enabled)return;try{auto row=Base("duration",m);auto &a=row.GetAllocator();Put(row,"stage",Value(unsigned(stage)),a);Put(row,"wall_us",Decimal(wall,a),a);if(cpu==UINT64_MAX)Put(row,"cpu_us",Value(),a);else Put(row,"cpu_us",Decimal(cpu,a),a);Add(std::move(row));}catch(...){++missed;}}
 void E2EPacket(std::uint64_t connection,std::uint64_t route,std::uint64_t wire,const std::array<std::uint64_t,4> &lanes,const char *direction) noexcept {if(!enabled)return;try{auto row=Base("packet");auto &a=row.GetAllocator();Put(row,"connection",Decimal(connection,a),a);Put(row,"route",Decimal(route,a),a);Put(row,"wire_bytes",Decimal(wire,a),a);Put(row,"direction",direction,a);Value v(rapidjson::kArrayType);for(auto n:lanes)v.PushBack(Decimal(n,a),a);Put(row,"lanes",std::move(v),a);Add(std::move(row));}catch(...){++missed;}}
 void E2EBody(std::uint64_t local,std::uint64_t use,std::uint64_t shape,std::uint64_t binding,std::uint64_t tick,unsigned stage) noexcept {if(!enabled)return;try{auto row=Base("body-witness");auto &a=row.GetAllocator();Put(row,"local",Decimal(local,a),a);Put(row,"use",Decimal(use,a),a);Put(row,"shape",Decimal(shape,a),a);Put(row,"binding",Decimal(binding,a),a);Put(row,"tick",Decimal(tick,a),a);Put(row,"stage",Value(stage),a);Add(std::move(row));}catch(...){++missed;}}
@@ -174,49 +139,5 @@ std::string E2ETracePage(std::uint64_t cursor){
  Put(out,"rows",std::move(rows),a);Put(out,"more",Value(more),a);Put(out,"next",Decimal(next,a),a);
  Put(out,"lost",Decimal(lost,a),a);Put(out,"first",Decimal(first,a),a);
  Put(out,"enabled",Value(active),a);return "ok=1\ndata="+Text(out)+"\n";
-}
-void E2EArm(const std::string &role,unsigned kind,std::uint64_t revision){if((role!="source"&&role!="native")||kind<1||kind>6)throw ContractError("stream_snapshot_filter");std::lock_guard lock(mutex);++arm_generation;role_filter=role;kind_filter=kind;revision_filter=revision;armed_at=MetricMicros();snapshots.clear();bytes=0;}
-bool E2EWants(const char *role,const RangeData &r) noexcept {try{std::lock_guard lock(mutex);return enabled&&armed_at&&MetricMicros()-armed_at<=kTtlUs&&role_filter==role&&kind_filter==unsigned(r.id.kind)&&(!revision_filter||revision_filter==r.revision);}catch(...){++missed;return false;}}
-void E2ESourceSelected(const Range &root,const std::vector<Range> &ranges,std::uint64_t connection,std::uint64_t route) noexcept {
- if(!root||!E2EWants("source",*root)||source_snapshot_working.exchange(true))return;
- try{
-  std::uint64_t arm=0;
-  {std::lock_guard lock(mutex);arm=arm_generation;if(source_selected_arm==arm){source_snapshot_working=false;return;}source_selected_arm=arm;}
-  // 线程只持有不可变Range引用；既不访问Capture Store，也不接触Lua/游戏对象。
-  std::thread([root,ranges,connection,route,arm]{
-   try{
-    std::vector<Range> closure;std::set<Version> seen;
-    const auto visit=[&](const auto &self,const Range &r)->void{
-     if(!seen.insert({r->id,r->revision}).second)return;
-     if(seen.size()>128)throw ContractError("stream_snapshot_closure_capacity");
-     const auto &dependencies=r->id.kind==RangeKind::Manifest?r->required:r->dependencies;
-     for(const auto &d:dependencies){const auto i=std::find_if(ranges.begin(),ranges.end(),[&](const auto &v){return v->id==d.id&&v->revision==d.revision;});if(i==ranges.end())throw ContractError("stream_snapshot_selected_dependency");self(self,*i);}
-     closure.push_back(r);
-    };
-    visit(visit,root);E2ESnapshot("source",root,closure,connection,route,{}, {},arm);
-   }catch(...){++missed;}
-   source_snapshot_working=false;
-  }).detach();
- }catch(...){source_snapshot_working=false;++missed;}
-}
-void E2ESnapshot(const char *role,const Range &root,const std::vector<Range> &closure,std::uint64_t connection,std::uint64_t route,const std::string &native,const std::vector<Version> &commit_vector,std::uint64_t arm) noexcept {
- if(!root||!E2EWants(role,*root))return;
- try{Json row(rapidjson::kObjectType);auto &a=row.GetAllocator();Put(row,"role",role,a);Put(row,"connection",Decimal(connection,a),a);Put(row,"route",Decimal(route,a),a);Put(row,"world",WorldValue(root->world,a),a);CopyField(row,"root",RangeMessage(*root,1,1).body,a);Value ranges(rapidjson::kArrayType);std::uint64_t upper=0;Store values(root->world);for(const auto &r:closure){upper+=Footprint(*r);if(upper>kBytes/4)throw ContractError("stream_snapshot_budget");const auto admitted=values.Admit(r,CaptureLayouts());if(!admitted&&admitted.status!=Admission::WaitingDependencies)throw ContractError(admitted.reason);Value v;v.CopyFrom(RangeMessage(*r,1,1).body,a);ranges.PushBack(std::move(v),a);}Put(row,"closure",std::move(ranges),a);Put(row,"native",native,a);
-  // 指定版本的来源值供独立比较；只有纯值，绝不回填到native栏目。
-  if(root->id.kind==RangeKind::Manifest||root->id.kind==RangeKind::WorldDynamic){CopyField(row,"entity",DomainValue(values,*root,"entity"),a);CopyField(row,"grid",DomainValue(values,*root,"grid"),a);}
-  else if(root->id.kind==RangeKind::PlayerFast){Value members(rapidjson::kArrayType);const auto &tree=std::get<std::shared_ptr<const Json>>(root->records.front().fields.front().value);Value v;v.CopyFrom(*tree,a);Value key(rapidjson::kObjectType);Put(key,"run",Decimal(root->id.body.run,a),a);Put(key,"id",Decimal(root->id.body.id,a),a);Put(key,"space",Value(root->id.body.space),a);Put(v,"key",std::move(key),a);members.PushBack(std::move(v),a);Put(row,"fast_bodies",std::move(members),a);}
-  Put(row,"commit_vector",VersionValues(commit_vector,a),a);
-  auto text=Text(row);if(text.size()>kBytes/2)throw ContractError("stream_snapshot_budget");std::lock_guard lock(mutex);
-  // 旧worker不能消耗新一次arm，也不能在Trace关闭后重新发布快照。
-  if(!enabled||(arm&&arm!=arm_generation)||!armed_at||role_filter!=role||kind_filter!=unsigned(root->id.kind)||(revision_filter&&revision_filter!=root->revision))return;
-  Expire();while(!snapshots.empty()&&(snapshots.size()>=kSnapshots||bytes+text.size()>kBytes)){bytes-=snapshots.front().text.size();snapshots.pop_front();++missed;}bytes+=text.size();snapshots.push_back({++next_id,MetricMicros(),connection,route,root,std::move(text),{},commit_vector});if(std::strcmp(role,"native")==0&&visual_requested.exchange(false))visual_until=MetricMicros()+120000000;armed_at=0;role_filter.clear();
- }catch(const std::exception &e){
-  // 快照组合失败必须保留真实原因；缺快照仍失败，不以诊断替代原生回读。
-  ++missed;try{auto failure=Base("snapshot-failure");auto &a=failure.GetAllocator();Put(failure,"role",role,a);Put(failure,"range",RangeValue(root->id,a),a);Put(failure,"revision",Decimal(root->revision,a),a);Put(failure,"reason",std::string(e.what()),a);Add(std::move(failure));}catch(...){}
- }catch(...){++missed;}
-}
-void E2ERender(std::uint64_t connection,std::uint64_t route,const std::vector<Version> &versions,std::uint64_t revision) noexcept {try{std::lock_guard lock(mutex);Expire();for(auto &s:snapshots)if(s.connection==connection&&s.route==route&&s.render.empty()&&!s.commit_vector.empty()&&s.commit_vector==versions&&std::find(versions.begin(),versions.end(),Version{s.root->id,s.root->revision})!=versions.end())s.render="render_local_us="+std::to_string(MetricMicros())+";render_revision="+std::to_string(revision);}catch(...){++missed;}}
-std::string E2ESnapshotPage(unsigned slot,unsigned page){std::lock_guard lock(mutex);Expire();if(!slot){Json rows(rapidjson::kArrayType);for(auto &s:snapshots){s.last_read=MetricMicros();if(!s.read_started)s.read_started=s.last_read;Value v(rapidjson::kObjectType);auto &a=rows.GetAllocator();Put(v,"id",Value(s.id),a);Put(v,"revision",Decimal(s.root->revision,a),a);Put(v,"range",RangeValue(s.root->id,a),a);Put(v,"bytes",Value(unsigned(s.text.size())),a);Put(v,"render",s.render,a);rows.PushBack(std::move(v),a);}return "ok=1\ndata="+Text(rows)+"\n";}
- for(auto &s:snapshots)if(s.id==slot){const auto offset=std::uint64_t(page)*kChunk;if(offset>=s.text.size())throw ContractError("stream_snapshot_page");s.last_read=MetricMicros();if(!s.read_started)s.read_started=s.last_read;const auto count=(std::min)(std::uint64_t(kChunk),s.text.size()-offset);std::string part;part.reserve(std::size_t(count)*2);constexpr char hex[]="0123456789abcdef";for(std::uint64_t i=0;i<count;++i){const auto byte=static_cast<unsigned char>(s.text[std::size_t(offset+i)]);part+=hex[byte>>4];part+=hex[byte&15];}return "ok=1\nbytes="+std::to_string(s.text.size())+"\nencoding=hex-utf8-bytes\nrender="+s.render+"\ndata="+part+"\n";}return "ok=0\nerror=stream_snapshot_expired_or_missing\n";
 }
 }

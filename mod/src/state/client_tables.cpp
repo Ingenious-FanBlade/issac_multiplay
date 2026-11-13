@@ -78,7 +78,7 @@ struct ClientStateTableStorage final {
     Thread();if(policy.empty())Fail(ClientTableFailure::InvalidReference,"client_member_policy_empty");
     bindings.assign(policy.begin(),policy.end());std::sort(bindings.begin(),bindings.end());
     for(std::size_t i=0;i<bindings.size();++i){const auto &binding=bindings[i];const auto *layout=FindLayout(binding.layout);
-      if(!binding.space || !layout || layout->protocol || !layout->block_count || (i && binding==bindings[i-1]))
+      if(!binding.space || !layout || !IsStateMemberLayout(binding.layout) || (!layout->block_count&&binding.layout!=195) || (i && binding==bindings[i-1]))
         Fail(ClientTableFailure::InvalidReference,"client_member_policy_invalid");}
     if(StateBudgets().table_snapshots>std::numeric_limits<std::uint16_t>::max())Fail(ClientTableFailure::Internal,"client_snapshot_policy");
     members.reserve(std::size_t(StateBudgets().table_snapshots));resources.reserve(std::size_t(StateBudgets().table_snapshots));
@@ -267,7 +267,7 @@ ClientTableInstall ClientStateTables::RebaseResources(const StateRoute &retired,
 ClientMemberSnapshotRef ClientStateTables::Members(std::uint32_t epoch) const {storage_->Thread();return storage_->Member(epoch);}
 ClientResourceSnapshotRef ClientStateTables::Resources(std::uint32_t epoch) const {storage_->Thread();return storage_->Resource(epoch);}
 std::optional<StateContextReady> ClientStateTables::MetadataReady() const {
-  const auto &s=*storage_;s.Thread();if(!s.active || !s.current_members || !s.current_resources)return {};
+  const auto &s=*storage_;s.Thread();if(!s.active || !s.resource_seen || !s.current_members || !s.current_resources)return {};
   return StateContextReady{s.route.scope,s.current_members->Directory().epoch,s.current_resources->Directory().epoch};
 }
 ClientResourceState ClientStateTables::ResourceState(std::uint32_t epoch,ResourceKey key) const {
@@ -282,9 +282,13 @@ bool ClientStateTables::Materialized(const ResourceDirectoryView &directory,cons
   const auto *local=s.Local(entry.key);return local && local->generation==s.generation && local->state==ClientResourceState::Ready;
 }
 ResourceGraphView ClientStateTables::Prepare(const ClientResourceSnapshotRef &snapshot,std::span<const ResourceKey> roots,ResourceGraphScratch &scratch) const {
+  Workspace workspace;return Prepare(snapshot,roots,scratch,workspace);
+}
+ResourceGraphView ClientStateTables::Prepare(const ClientResourceSnapshotRef &snapshot,std::span<const ResourceKey> roots,ResourceGraphScratch &scratch,const ClientStateWorkspace &workspace) const {
+  workspace.RequireCurrentThread();
   const auto &s=*storage_;s.Thread();if(!snapshot || s.Resource(snapshot->Directory().epoch)!=snapshot)Fail(ClientTableFailure::MissingTable,"client_resource_snapshot_not_current_route");
   if(roots.empty())return {true,true,0,0,{}};
-  Workspace workspace;const auto count=snapshot->Directory().entries.size();
+  const auto count=snapshot->Directory().entries.size();
   if(scratch.order.size()<count || scratch.state.size()<count || scratch.heights.size()<count)
     Fail(ClientTableFailure::Budget,"client_resource_closure_scratch");
   return PrepareResourceClosure(snapshot->Directory(),snapshot->Graph(),scratch,this,roots);

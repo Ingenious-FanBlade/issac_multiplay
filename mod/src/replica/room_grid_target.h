@@ -1,5 +1,6 @@
 #pragma once
 #include "replica/model.h"
+#include "replica/subject_key.h"
 #include "replica/room_configuration.h"
 #include "replica/room_grid_budget.h"
 #include <array>
@@ -7,12 +8,6 @@
 #include <compare>
 
 namespace cs::replica {
-// 沿用Registry分配的Key，不生成第二套身份；原生地址/槽位/seed不进入Key。
-struct SubjectKey final {
-  std::uint64_t run=0,id=0;
-  unsigned space=0;
-  auto operator<=>(const SubjectKey &) const = default;
-};
 // 普通完整域保留各自的采样scope和序号，不借用独立Render/回调的时间。
 struct DomainCapture final {
   std::uint64_t version=0,scope=0,sequence=0,tick=0;

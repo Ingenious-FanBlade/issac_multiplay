@@ -1,5 +1,11 @@
 # 13：Client 原生应用
 
+**2026-11-14 中途加入与原生读回**：[布局 75 的实施说明](implementation-13-display-install.md#2026-11-14-中途加入与原生读回)记录多控制器 Overlay、TMTRAINER 本地承载、普通转场／Boss 演出恢复和 Manager 的按块读回。
+
+**2026-11-14 正式 Manager／Start 接线**：[本轮实施范围](implementation-13-display-install.md#2026-11-14-正式连接接线)记录二进制安装票据、原生音频、全局 ItemOverlay、HUD／Boss 事件及地图镜像。下方较早记录保留原时点，运行验收仍在第 15 步。
+
+**2026-11-13 显示委托安装组件已入源**：[实施说明与剩余串联](implementation-13-display-install.md)记录生成数字安装计划、Q8／Q11／Q12、方案B、SpawnSeed、Q13镜像、Manager分阶段显示、Game::Render包装和RE-10维护。产品Release／Win32纯编译、链接通过，未测试。完整validator／主线程批次投递、其它域原生安装与Host新采集尚未接到此组件；事件／音乐／loop／BossReplay属第二批。正式网络仍走旧DTO，不将组件入源写成整条Client运行已完成。下方“仅文档／未实施”保留原时点。
+
 **2026-11-12 显示委托修订**：
 
 - 13.4：漂移校正的前提改为新的 Client 边界。

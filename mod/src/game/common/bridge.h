@@ -1,12 +1,6 @@
 #pragma once
 #include "game/client/room/client_backdrop_native.h"
 #include "game/observation/binary_production.h"
-// 首个Player只在具名构建窗口隔离起始统计链；安装资格检查真实trampoline。
-namespace cs::game {
-bool ClientObjectSkipPlayerPreStats() noexcept;
-bool ClientObjectSuppressPlayerPreStats(void *player) noexcept;
-bool ClientObjectPreStatsIsolationInstalled() noexcept;
-}
 #include <array>
 #include <cstdint>
 #include <string>
@@ -14,35 +8,12 @@ bool ClientObjectPreStatsIsolationInstalled() noexcept;
 
 namespace cs::game {
 struct WorldCapture;
-// 正常背景生产栈的只读观察。图像Hook只在这个短借栈启用，不额外执行任何原生绘制。
-class BinarySceneBuildScope final {
-public:
-  BinarySceneBuildScope(void *backdrop,bool replace,bool enabled) noexcept;
-  ~BinarySceneBuildScope() noexcept;
-private:
-  std::shared_ptr<WorldCapture> capture_;
-  std::uint32_t backdrop_=0;
-  int exceptions_=0;
-};
-class BinarySceneClearScope final {
-public:
-  BinarySceneClearScope() noexcept;
-  ~BinarySceneClearScope() noexcept;
-private:
-  int exceptions_=0;
-  bool main_=false;
-};
-bool BinarySceneGraphicsActive() noexcept;
-void BinarySceneGraphicsBoundary() noexcept;
-void BinarySceneGraphicsFinish() noexcept;
-void BinarySceneTargetAfter(void *backdrop,bool enabled) noexcept;
-void BinarySceneClear() noexcept;
-void BinarySceneImageBefore(void *image,const void *source,const void *destination,const void *tl,const void *tr,const void *bl,const void *br) noexcept;
-void BinarySceneImageAfter(const void *vertices) noexcept;
+void BinaryBackdropChanged(void *,bool current) noexcept;
 // SDK公开ANM2资源写入的只读观察：original恰好一次，进入即撤旧资格，异常保持撤销。
 class StreamResourceScope final {
 public:
   explicit StreamResourceScope(void *object,bool retired=false,bool constructing=false,void *copy_source=nullptr,const char *operation="unspecified") noexcept;
+#ifdef ISAACCS_E2E
   ~StreamResourceScope() noexcept;
   void Returned() noexcept {returned_=true;}
 private:
@@ -54,9 +25,15 @@ private:
   std::uint64_t copied_generation_=0;
   std::uint32_t address_=0;
   int exceptions_=0;
+#else
+  void Returned() noexcept {}
+#endif
 };
+#ifdef ISAACCS_E2E
 std::uint64_t StreamResourceGeneration(void *object,bool copied_value=false) noexcept;
+#endif
 bool StreamResourceHooksInstalled() noexcept;
+bool BinaryDisplayCaptureHooksInstalled() noexcept;
 std::string ClientTestExerciseNative(const std::string &token) noexcept;
 // E2E专有独立VM，只用于实际不同VM身份的受控拒绝，不替换游戏Lua根。
 void *ClientTestCreateVm() noexcept;
@@ -107,12 +84,10 @@ bool ClientBusy() noexcept;
 void ClientPollInput();
 bool ClientUiBlocked() noexcept;
 // 仅当前原生HUD draw作用域供应服务器最终显示条件，不放行成就或任何持久写入。
-bool ClientPresentationHudAchievementQuery(bool &result) noexcept;
 bool ClientMenuAvailable() noexcept;
 void ClientInputUnavailable() noexcept;
 void ClientMenuRendered() noexcept;
 // 只替代 Manager Render 内的菜单绘制；保留外层真实清屏、提交与交换缓冲。
-bool ClientMenuRenderBoundary() noexcept;
 bool ClientProcessExitDecision() noexcept;
 bool ClientShutdownProgressBlocked() noexcept;
 // classes_registered 仅 RegisterClasses 外层正常返回可设，证明 vanilla main.lua 前已保护。
@@ -122,6 +97,7 @@ void ClientLuaGuardClosed() noexcept;
 void ClientGuardCallbackBindings(const char *path) noexcept;
 bool ClientCallbackGuardReady() noexcept;
 // main_ex返回、官方清除_LuaBindings之前保留同VM的真实EntityManager清理闭包。
+bool ClientObjectStagedPoolNotification(void *,bool execute,bool creating,const char *&reason) noexcept;
 bool ClientObjectSealEssmDeleteBinding(void *state) noexcept;
 void ClientCallbackFault(const char *reason) noexcept;
 bool ClientCallbackMenuAllowed() noexcept;
@@ -140,16 +116,26 @@ private:
   bool tracked_=false,returned_=false,allowed_=true;
 };
 // I3 入口分派只标记实际用途和原调用处置；不会把观察 Hook 的 skip 计作原调用返回。
-enum class ClientOperation : unsigned { Build, Apply, PresentMaintenance, PresentDraw, Retire };
+enum class ClientOperation : unsigned { Build, Apply, PresentMaintenance, PresentDraw, Retire, BinaryPreparation, BinaryPreparationRetire, BinaryInstall, BinaryInstallRetire };
 enum class ClientEntry : unsigned {
   GameUpdate, PostUpdate, RoomUpdate, EntityListUpdate, PlayerUpdate, OddHelper,
   LifecycleFSM, DoorUpdate, DoorNested, NewRoom, RoomInit, GameRender,
   RoomPreRender, RoomRender, EntityListRenderSort, GameStart,
   NativeBuild, NativeApply, NativeTeardown, PresentationMaintenance, PresentationDraw, MenuRender,
   BackdropEffects,
+  DisplayHudUpdate, DisplayHudPostUpdate, DisplayMinimapUpdate, DisplayMinimapRefresh,
+  DisplaySort, DisplayFxUpdate, DisplayBackground, DisplayTransition,
+  DisplayCamera, DisplaySfxRefresh, DisplayMusic, DisplaySfxReplay, DisplayCursor, TransitionChangeRoom, NativePreparation, NativeAtomicInstall,
   Count
 };
 enum class ClientEntryDecision : unsigned { CallOriginal, ExpectedSkip, FaultSkip };
+// 仅二进制准备 owner 当前主线程栈授予；不借用旧 JSON target 作为资源准备资格。
+bool ClientBinaryPreparationScopeActive(bool retirement) noexcept;
+bool ClientBinaryInstallationScopeActive(bool retirement) noexcept;
+bool ClientBinaryGridWaterClip(const void *,std::uint32_t &) noexcept;
+// 完整原生 Entity Init 依赖随机与音频隔离 Hook。
+bool ClientEntityInitIsolationInstalled() noexcept;
+bool ClientBinaryDrawOrder(const void *,std::uint32_t &) noexcept;
 constexpr std::uint64_t ClientEntryMask(ClientEntry entry) noexcept {
   return unsigned(entry)<64?std::uint64_t{1}<<unsigned(entry):0;
 }

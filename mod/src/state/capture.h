@@ -11,7 +11,7 @@ struct CaptureSubject {
   std::uint64_t local=0,use=0,shape=0,binding=0,topology=0;
   auto operator<=>(const CaptureSubject &) const = default;
 };
-enum class CapturePhase : std::uint8_t { Ordinary, PlayerPost, Production };
+enum class CapturePhase : std::uint8_t { Ordinary, PlayerPost, Production, IntentionBinding };
 // 来源证言与Peer传输版本分开；所有值必须由真实owner给出，不使用最近tick补缺。
 struct CaptureWitness {
   StateScope scope;

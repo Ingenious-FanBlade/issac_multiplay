@@ -1,0 +1,1533 @@
+{
+  "types": [
+    {
+      "type": "DisplayInjectionState",
+      "layout": 438,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "C/S主线程纯值，无原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "synthetic_fields": [
+        {
+          "name": "devil_total",
+          "type": "f32",
+          "semantics": "原始Room总率，非HUD百分比",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "angel_share",
+          "type": "f32",
+          "semantics": "原生XMM0天使占比",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "deal_qualified",
+          "type": "u8",
+          "semantics": "原生楼层资格",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "planetarium",
+          "type": "f32",
+          "semantics": "官方原始星象房概率",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "progress_blocked",
+          "type": "u8",
+          "semantics": "Host最终HUD进度查询结果",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "pill_effects",
+          "type": "i32[15]",
+          "semantics": "ItemPool原始15槽，不是各Player最终效果",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "pill_identified",
+          "type": "u8[15]",
+          "semantics": "原始识别字节",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "water_current",
+          "type": "f32[2]",
+          "semantics": "Room水流",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "map_focus",
+          "type": "i32",
+          "semantics": "挑战32 Host选定的当前地图位置",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "map_focus_large",
+          "type": "i32",
+          "semantics": "挑战32大地图的实际SafeGridIndex；分别观察，不假定与小地图相同",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "Host显示需求纯值",
+          "sequence": "world",
+          "fields": [
+            "devil_total",
+            "angel_share",
+            "deal_qualified",
+            "planetarium",
+            "progress_blocked",
+            "pill_effects",
+            "pill_identified",
+            "water_current",
+            "map_focus",
+            "map_focus_large"
+          ]
+        }
+      ],
+      "conversions": {
+        "display_value_read": "只从同窗已封存的主线程自有值读取；不在worker持有原生对象，不调用Lua／生产器补值；来源失败不发布",
+        "display_value_install": "完整world／事件资源与身份就绪后交具名Client适配器；不执行玩法Update，不写进度；缺来源不得补零"
+      },
+      "members": [],
+      "public_owners": [],
+      "validators": {
+        "devil_total": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "angel_share": {
+          "kind": "range",
+          "scalar": "f32",
+          "min": 0,
+          "max": 1
+        },
+        "planetarium": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "water_current": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "deal_qualified": {
+          "kind": "range",
+          "scalar": "u8",
+          "min": 0,
+          "max": 1
+        },
+        "progress_blocked": {
+          "kind": "range",
+          "scalar": "u8",
+          "min": 0,
+          "max": 1
+        },
+        "pill_identified": {
+          "kind": "range",
+          "scalar": "u8",
+          "min": 0,
+          "max": 1
+        },
+        "map_focus": {
+          "kind": "range",
+          "scalar": "i32",
+          "min": -1,
+          "max": 169
+        },
+        "map_focus_large": {
+          "kind": "range",
+          "scalar": "i32",
+          "min": -1,
+          "max": 169
+        }
+      },
+      "record_limit": 128
+    },
+    {
+      "type": "MusicRequestState",
+      "layout": 439,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "C/S主线程纯值，无原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "synthetic_fields": [
+        {
+          "name": "revision",
+          "type": "u64",
+          "semantics": "请求状态版本",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "generation",
+          "type": "u64",
+          "semantics": "播放代次，同曲新代次仍重播",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "mode",
+          "type": "u8",
+          "semantics": "0静止／1Play／2Crossfade／3Fadein／4Fadeout／5Queue自然接续（本地已接续不重播，恢复时按本机音量以0.08淡入）",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "id",
+          "type": "i32",
+          "semantics": "当前请求id",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "parameter",
+          "type": "f32",
+          "semantics": "Play音量或Crossfade速率",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "fade_rate",
+          "type": "f32",
+          "semantics": "Fadein／Fadeout参数",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "queued",
+          "type": "i32",
+          "semantics": "当前排队id，0明确为空",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "pitch",
+          "type": "f32",
+          "semantics": "原生当前pitch",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "target_pitch",
+          "type": "f32",
+          "semantics": "原生目标pitch",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "paused",
+          "type": "u8",
+          "semantics": "显式暂停请求",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "enabled",
+          "type": "u8",
+          "semantics": "音乐enabled",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "layers",
+          "type": "u8",
+          "semantics": "已核六层当前启用mask",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "jingle_id",
+          "type": "i32",
+          "semantics": "当前jingle请求",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "jingle_generation",
+          "type": "u64",
+          "semantics": "同jingle新代次",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "jingle_active",
+          "type": "u8",
+          "semantics": "jingle当前逻辑状态",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "Host显示需求纯值",
+          "sequence": "world",
+          "fields": [
+            "revision",
+            "generation",
+            "mode",
+            "id",
+            "parameter",
+            "fade_rate",
+            "queued",
+            "pitch",
+            "target_pitch",
+            "paused",
+            "enabled",
+            "layers",
+            "jingle_id",
+            "jingle_generation",
+            "jingle_active"
+          ]
+        }
+      ],
+      "conversions": {
+        "display_value_read": "只从同窗已封存的主线程自有值读取；不在worker持有原生对象，不调用Lua／生产器补值；来源失败不发布",
+        "display_value_install": "完整world／事件资源与身份就绪后交具名Client适配器；不执行玩法Update，不写进度；缺来源不得补零"
+      },
+      "members": [],
+      "public_owners": [],
+      "validators": {
+        "parameter": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "fade_rate": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "pitch": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "target_pitch": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "mode": {
+          "kind": "enum",
+          "scalar": "u8",
+          "values": [0, 1, 2, 3, 4, 5]
+        },
+        "paused": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "enabled": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "jingle_active": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "layers": {
+          "kind": "range",
+          "scalar": "u8",
+          "min": 0,
+          "max": 63
+        }
+      },
+      "record_limit": 80
+    },
+    {
+      "type": "LoopSoundState",
+      "layout": 440,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "C/S主线程纯值，无原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "synthetic_fields": [
+        {
+          "name": "instance",
+          "type": "u64",
+          "semantics": "逻辑实例",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "generation",
+          "type": "u64",
+          "semantics": "播放代次",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "id",
+          "type": "i32",
+          "semantics": "最终sound id",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "volume",
+          "type": "f32",
+          "semantics": "逻辑音量，不乘本机Options",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "pitch",
+          "type": "f32",
+          "semantics": "当前pitch",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "pan",
+          "type": "f32",
+          "semantics": "当前pan",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "start_frame",
+          "type": "u32",
+          "semantics": "Host开始帧",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "asset",
+          "type": "u16",
+          "semantics": "正常已选音频资源",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install",
+          "wire": {
+            "kind": "resource",
+            "type": "u16",
+            "target": "audio-table",
+            "host": "display_value_read",
+            "client": "display_value_install"
+          }
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "Host显示需求纯值",
+          "sequence": "world",
+          "fields": [
+            "instance",
+            "generation",
+            "id",
+            "volume",
+            "pitch",
+            "pan",
+            "start_frame",
+            "asset"
+          ]
+        }
+      ],
+      "conversions": {
+        "display_value_read": "只从同窗已封存的主线程自有值读取；不在worker持有原生对象，不调用Lua／生产器补值；来源失败不发布",
+        "display_value_install": "完整world／事件资源与身份就绪后交具名Client适配器；不执行玩法Update，不写进度；缺来源不得补零"
+      },
+      "members": [],
+      "public_owners": [],
+      "validators": {
+        "volume": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "pitch": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "pan": {
+          "kind": "finite",
+          "scalar": "f32"
+        }
+      },
+      "record_limit": 48
+    },
+    {
+      "type": "LoopSoundSet",
+      "layout": 441,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "C/S主线程纯值，无原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "synthetic_fields": [
+        {
+          "name": "revision",
+          "type": "u64",
+          "semantics": "完整集合版本，空集合亦有效",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "voices",
+          "type": "LoopSoundState",
+          "semantics": "同id多实例全部保留",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install",
+          "wire": {
+            "kind": "container",
+            "element": "LoopSoundState",
+            "storage": "aggregate",
+            "stride": 0,
+            "limit": 512,
+            "max_bytes": 24578,
+            "host": "display_value_read",
+            "client": "display_value_install"
+          }
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "Host显示需求纯值",
+          "sequence": "world",
+          "fields": [
+            "revision",
+            "voices"
+          ]
+        }
+      ],
+      "conversions": {
+        "display_value_read": "只从同窗已封存的主线程自有值读取；不在worker持有原生对象，不调用Lua／生产器补值；来源失败不发布",
+        "display_value_install": "完整world／事件资源与身份就绪后交具名Client适配器；不执行玩法Update，不写进度；缺来源不得补零"
+      },
+      "members": [],
+      "public_owners": [],
+      "validators": {},
+      "record_limit": 24586
+    },
+    {
+      "type": "OverlayDisplaySet",
+      "layout": 443,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "C/S主线程纯值，无原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "synthetic_fields": [
+        {
+          "name": "owners",
+          "type": "OverlayDisplayState",
+          "semantics": "按各真实controller／稳定Player关系保存，包含inactive",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install",
+          "wire": {
+            "kind": "container",
+            "element": "OverlayDisplayState",
+            "storage": "aggregate",
+            "stride": 0,
+            "limit": 65,
+            "max_bytes": 131074,
+            "host": "display_value_read",
+            "client": "display_value_install"
+          }
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "Host显示需求纯值",
+          "sequence": "world",
+          "fields": [
+            "owners"
+          ]
+        }
+      ],
+      "conversions": {
+        "display_value_read": "只从同窗已封存的主线程自有值读取；不在worker持有原生对象，不调用Lua／生产器补值；来源失败不发布",
+        "display_value_install": "完整world／事件资源与身份就绪后交具名Client适配器；不执行玩法Update，不写进度；缺来源不得补零"
+      },
+      "members": [],
+      "public_owners": [],
+      "validators": {},
+      "record_limit": 131074
+    },
+    {
+      "type": "ProceduralDisplayDefinition",
+      "layout": 444,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "C/S主线程纯值，无原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "synthetic_fields": [
+        {
+          "name": "id",
+          "type": "i32",
+          "semantics": "负id，按~id绑定",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "configuration",
+          "type": "u16",
+          "semantics": "只含显示配置资源",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install",
+          "wire": {
+            "kind": "resource",
+            "type": "u16",
+            "target": "item-config",
+            "host": "display_value_read",
+            "client": "display_value_install"
+          }
+        },
+        {
+          "name": "name",
+          "type": "u8",
+          "semantics": "本地化键／名称UTF8",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install",
+          "wire": {
+            "kind": "container",
+            "element": "u8",
+            "storage": "array",
+            "stride": 1,
+            "limit": 4096,
+            "host": "display_value_read",
+            "client": "display_value_install"
+          }
+        },
+        {
+          "name": "description",
+          "type": "u8",
+          "semantics": "本地化键／描述UTF8",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install",
+          "wire": {
+            "kind": "container",
+            "element": "u8",
+            "storage": "array",
+            "stride": 1,
+            "limit": 4096,
+            "host": "display_value_read",
+            "client": "display_value_install"
+          }
+        },
+        {
+          "name": "gfx",
+          "type": "u8",
+          "semantics": "实际选定图形路径",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install",
+          "wire": {
+            "kind": "container",
+            "element": "u8",
+            "storage": "array",
+            "stride": 1,
+            "limit": 4096,
+            "host": "display_value_read",
+            "client": "display_value_install"
+          }
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "Host显示需求纯值",
+          "sequence": "world",
+          "fields": [
+            "id",
+            "configuration",
+            "name",
+            "description",
+            "gfx"
+          ]
+        }
+      ],
+      "conversions": {
+        "display_value_read": "只从同窗已封存的主线程自有值读取；不在worker持有原生对象，不调用Lua／生产器补值；来源失败不发布",
+        "display_value_install": "完整world／事件资源与身份就绪后交具名Client适配器；不执行玩法Update，不写进度；缺来源不得补零"
+      },
+      "members": [],
+      "public_owners": [],
+      "validators": {},
+      "record_limit": 12300
+    },
+    {
+      "type": "ProceduralDisplaySet",
+      "layout": 445,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "C/S主线程纯值，无原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "synthetic_fields": [
+        {
+          "name": "definitions",
+          "type": "ProceduralDisplayDefinition",
+          "semantics": "不传effects／RNG／Host图集对象",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install",
+          "wire": {
+            "kind": "container",
+            "element": "ProceduralDisplayDefinition",
+            "storage": "aggregate",
+            "stride": 0,
+            "limit": 1024,
+            "max_bytes": 524288,
+            "host": "display_value_read",
+            "client": "display_value_install"
+          }
+        },
+        {
+          "name": "atlas",
+          "type": "u16",
+          "semantics": "本地图集分配资源，32像素槽",
+          "evidence": "J273 9B1A20／7A2910",
+          "host": "display_value_read",
+          "client": "display_value_install",
+          "wire": {"kind":"resource","type":"u16","target":"image-table","host":"display_value_read","client":"display_value_install"}
+        },
+        {
+          "name": "small_atlas",
+          "type": "u16",
+          "semantics": "本地小图集分配资源，16像素槽",
+          "evidence": "J273 9B1A20／972B20",
+          "host": "display_value_read",
+          "client": "display_value_install",
+          "wire": {"kind":"resource","type":"u16","target":"image-table","host":"display_value_read","client":"display_value_install"}
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "Host显示需求纯值",
+          "sequence": "world",
+          "fields": [
+            "definitions",
+            "atlas",
+            "small_atlas"
+          ]
+        }
+      ],
+      "conversions": {
+        "display_value_read": "只从同窗已封存的主线程自有值读取；不在worker持有原生对象，不调用Lua／生产器补值；来源失败不发布",
+        "display_value_install": "完整world／事件资源与身份就绪后交具名Client适配器；不执行玩法Update，不写进度；缺来源不得补零"
+      },
+      "members": [],
+      "public_owners": [],
+      "validators": {},
+      "record_limit": 524292
+    },
+    {
+      "type": "SfxPlayEvent",
+      "layout": 448,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "C/S主线程纯值，无原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "synthetic_fields": [
+        {
+          "name": "id",
+          "type": "i32",
+          "semantics": "节流接受后的最终id",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "volume",
+          "type": "f32",
+          "semantics": "逻辑volume",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "frame_delay",
+          "type": "i32",
+          "semantics": "Host重播间隔；Client回放传0",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "pitch",
+          "type": "f32",
+          "semantics": "最终pitch",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "pan",
+          "type": "f32",
+          "semantics": "最终pan",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "asset",
+          "type": "u16",
+          "semantics": "已选sample资源",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install",
+          "wire": {
+            "kind": "resource",
+            "type": "u16",
+            "target": "audio-table",
+            "host": "display_value_read",
+            "client": "display_value_install"
+          }
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "Host显示需求纯值",
+          "sequence": "world",
+          "fields": [
+            "id",
+            "volume",
+            "frame_delay",
+            "pitch",
+            "pan",
+            "asset"
+          ]
+        }
+      ],
+      "conversions": {
+        "display_value_read": "只从同窗已封存的主线程自有值读取；不在worker持有原生对象，不调用Lua／生产器补值；来源失败不发布",
+        "display_value_install": "完整world／事件资源与身份就绪后交具名Client适配器；不执行玩法Update，不写进度；缺来源不得补零"
+      },
+      "members": [],
+      "public_owners": [],
+      "validators": {
+        "volume": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "pitch": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "pan": {
+          "kind": "finite",
+          "scalar": "f32"
+        }
+      },
+      "record_limit": 24
+    },
+    {
+      "type": "ItemBannerEvent",
+      "layout": 449,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "C/S主线程纯值，无原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "synthetic_fields": [
+        {
+          "name": "player",
+          "type": "u16",
+          "semantics": "稳定Player身份",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "Entity",
+            "host": "display_value_read",
+            "client": "display_value_install"
+          }
+        },
+        {
+          "name": "configuration",
+          "type": "u16",
+          "semantics": "typed item配置；custom为Null",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install",
+          "wire": {
+            "kind": "resource",
+            "type": "u16",
+            "target": "item-config",
+            "host": "display_value_read",
+            "client": "display_value_install"
+          }
+        },
+        {
+          "name": "style",
+          "type": "u8",
+          "semantics": "0 typed／1 custom",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "title_key",
+          "type": "u8",
+          "semantics": "原始本地化键／类别由Items固定",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install",
+          "wire": {
+            "kind": "container",
+            "element": "u8",
+            "storage": "array",
+            "stride": 1,
+            "limit": 4096,
+            "host": "display_value_read",
+            "client": "display_value_install"
+          }
+        },
+        {
+          "name": "subtitle_key",
+          "type": "u8",
+          "semantics": "原始本地化键",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install",
+          "wire": {
+            "kind": "container",
+            "element": "u8",
+            "storage": "array",
+            "stride": 1,
+            "limit": 4096,
+            "host": "display_value_read",
+            "client": "display_value_install"
+          }
+        },
+        {
+          "name": "title",
+          "type": "u8",
+          "semantics": "实际UTF8后备文本",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install",
+          "wire": {
+            "kind": "container",
+            "element": "u8",
+            "storage": "array",
+            "stride": 1,
+            "limit": 4096,
+            "host": "display_value_read",
+            "client": "display_value_install"
+          }
+        },
+        {
+          "name": "subtitle",
+          "type": "u8",
+          "semantics": "实际UTF8后备文本",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install",
+          "wire": {
+            "kind": "container",
+            "element": "u8",
+            "storage": "array",
+            "stride": 1,
+            "limit": 4096,
+            "host": "display_value_read",
+            "client": "display_value_install"
+          }
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "Host显示需求纯值",
+          "sequence": "world",
+          "fields": [
+            "player",
+            "configuration",
+            "style",
+            "title_key",
+            "subtitle_key",
+            "title",
+            "subtitle"
+          ]
+        }
+      ],
+      "conversions": {
+        "display_value_read": "只从同窗已封存的主线程自有值读取；不在worker持有原生对象，不调用Lua／生产器补值；来源失败不发布",
+        "display_value_install": "完整world／事件资源与身份就绪后交具名Client适配器；不执行玩法Update，不写进度；缺来源不得补零"
+      },
+      "members": [],
+      "public_owners": [],
+      "validators": {},
+      "record_limit": 16400
+    },
+    {
+      "type": "FortuneLine",
+      "layout": 450,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "C/S主线程纯值，无原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "synthetic_fields": [
+        {
+          "name": "text",
+          "type": "u8",
+          "semantics": "独立长度UTF8，允许空行及竖线",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install",
+          "wire": {
+            "kind": "container",
+            "element": "u8",
+            "storage": "array",
+            "stride": 1,
+            "limit": 4096,
+            "host": "display_value_read",
+            "client": "display_value_install"
+          }
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "Host显示需求纯值",
+          "sequence": "world",
+          "fields": [
+            "text"
+          ]
+        }
+      ],
+      "conversions": {
+        "display_value_read": "只从同窗已封存的主线程自有值读取；不在worker持有原生对象，不调用Lua／生产器补值；来源失败不发布",
+        "display_value_install": "完整world／事件资源与身份就绪后交具名Client适配器；不执行玩法Update，不写进度；缺来源不得补零"
+      },
+      "members": [],
+      "public_owners": [],
+      "validators": {},
+      "record_limit": 4098
+    },
+    {
+      "type": "FortuneEvent",
+      "layout": 451,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "C/S主线程纯值，无原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "synthetic_fields": [
+        {
+          "name": "category",
+          "type": "u8",
+          "semantics": "Host正常选择类别，空表示无键自定义",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install",
+          "wire": {
+            "kind": "container",
+            "element": "u8",
+            "storage": "array",
+            "stride": 1,
+            "limit": 128,
+            "host": "display_value_read",
+            "client": "display_value_install"
+          }
+        },
+        {
+          "name": "index",
+          "type": "i32",
+          "semantics": "选中索引，-1表示无索引",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "lines",
+          "type": "FortuneLine",
+          "semantics": "实际有序文字后备，不在Client重抽",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install",
+          "wire": {
+            "kind": "container",
+            "element": "FortuneLine",
+            "storage": "aggregate",
+            "stride": 0,
+            "limit": 32,
+            "max_bytes": 131138,
+            "host": "display_value_read",
+            "client": "display_value_install"
+          }
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "Host显示需求纯值",
+          "sequence": "world",
+          "fields": [
+            "category",
+            "index",
+            "lines"
+          ]
+        }
+      ],
+      "conversions": {
+        "display_value_read": "只从同窗已封存的主线程自有值读取；不在worker持有原生对象，不调用Lua／生产器补值；来源失败不发布",
+        "display_value_install": "完整world／事件资源与身份就绪后交具名Client适配器；不执行玩法Update，不写进度；缺来源不得补零"
+      },
+      "members": [],
+      "public_owners": [],
+      "validators": {},
+      "record_limit": 131272
+    },
+    {
+      "type": "BossIntroEvent",
+      "layout": 452,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "C/S主线程纯值，无原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "synthetic_fields": [
+        {
+          "name": "boss_id1",
+          "type": "u32",
+          "semantics": "原生第一个参数",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "boss_id2",
+          "type": "u32",
+          "semantics": "原生第二个参数",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "room_index",
+          "type": "i32",
+          "semantics": "Host合法目标房间",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "dimension",
+          "type": "i32",
+          "semantics": "目标维度",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "transition",
+          "type": "u64",
+          "semantics": "转场关联序号",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "Host显示需求纯值",
+          "sequence": "world",
+          "fields": [
+            "boss_id1",
+            "boss_id2",
+            "room_index",
+            "dimension",
+            "transition"
+          ]
+        }
+      ],
+      "conversions": {
+        "display_value_read": "只从同窗已封存的主线程自有值读取；不在worker持有原生对象，不调用Lua／生产器补值；来源失败不发布",
+        "display_value_install": "完整world／事件资源与身份就绪后交具名Client适配器；不执行玩法Update，不写进度；缺来源不得补零"
+      },
+      "members": [],
+      "public_owners": [],
+      "validators": {},
+      "record_limit": 24
+    },
+    {
+      "type": "RoomTransitionEvent",
+      "layout": 453,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "C/S主线程纯值，无原生对象",
+        "rva": 0
+      },
+      "ranges": [],
+      "synthetic_fields": [
+        {
+          "name": "transition",
+          "type": "u64",
+          "semantics": "Host接受转场序号",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "requested_index",
+          "type": "i32",
+          "semantics": "Start已接受目标",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "direction",
+          "type": "i32",
+          "semantics": "Start方向",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "animation",
+          "type": "i32",
+          "semantics": "Start动画",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "player",
+          "type": "u16",
+          "semantics": "稳定Player关系",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "Entity",
+            "host": "display_value_read",
+            "client": "display_value_install"
+          }
+        },
+        {
+          "name": "dimension",
+          "type": "i32",
+          "semantics": "Start维度",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "final_room",
+          "type": "u64",
+          "semantics": "实际ChangeRoom完成后room代次",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "final_index",
+          "type": "i32",
+          "semantics": "最终GridIndex",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "final_dimension",
+          "type": "i32",
+          "semantics": "最终维度",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "completed",
+          "type": "u8",
+          "semantics": "真实ChangeRoom完成标记；同房动画明确完成",
+          "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "Host显示需求纯值",
+          "sequence": "world",
+          "fields": [
+            "transition",
+            "requested_index",
+            "direction",
+            "animation",
+            "player",
+            "dimension",
+            "final_room",
+            "final_index",
+            "final_dimension",
+            "completed"
+          ]
+        }
+      ],
+      "conversions": {
+        "display_value_read": "只从同窗已封存的主线程自有值读取；不在worker持有原生对象，不调用Lua／生产器补值；来源失败不发布",
+        "display_value_install": "完整world／事件资源与身份就绪后交具名Client适配器；不执行玩法Update，不写进度；缺来源不得补零"
+      },
+      "members": [],
+      "public_owners": [],
+      "validators": {},
+      "record_limit": 48
+    },
+    {
+      "type": "BossDisplayPose",
+      "layout": 455,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "C/S主线程纯值",
+        "rva": 0
+      },
+      "ranges": [],
+      "synthetic_fields": [
+        {
+          "name": "key",
+          "type": "i32",
+          "semantics": "肖像层键，-1为主versus",
+          "evidence": "J273 823D10／826430；RE-9",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "frame",
+          "type": "f32",
+          "semantics": "当前主动画帧",
+          "evidence": "J273 823D10／826430；RE-9",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "playing",
+          "type": "u8",
+          "semantics": "当前播放位",
+          "evidence": "J273 823D10／826430；RE-9",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "Boss演出恢复",
+          "sequence": "world",
+          "fields": [
+            "key",
+            "frame",
+            "playing"
+          ]
+        }
+      ],
+      "conversions": {
+        "display_value_read": "读取已接受的演出及当前原生姿态",
+        "display_value_install": "只恢复本地演出资源及当前姿态"
+      },
+      "members": [],
+      "public_owners": [],
+      "validators": {
+        "frame": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "playing": {
+          "kind": "boolean",
+          "scalar": "u8"
+        }
+      },
+      "record_limit": 16
+    },
+    {
+      "type": "BossDisplayState",
+      "layout": 454,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {
+        "name": "C/S主线程纯值",
+        "rva": 0
+      },
+      "ranges": [],
+      "synthetic_fields": [
+        {
+          "name": "generation",
+          "type": "u64",
+          "semantics": "本run演出代次，0为无演出",
+          "evidence": "J273 823D10／826430；RE-9",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "boss_id1",
+          "type": "u32",
+          "semantics": "Host已接受第一个Boss ID",
+          "evidence": "J273 823D10／826430；RE-9",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "boss_id2",
+          "type": "u32",
+          "semantics": "Host已接受第二个Boss ID",
+          "evidence": "J273 823D10／826430；RE-9",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "room_index",
+          "type": "i32",
+          "semantics": "演出的原生房间参数",
+          "evidence": "J273 823D10／826430；RE-9",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "dimension",
+          "type": "i32",
+          "semantics": "演出所在维度",
+          "evidence": "J273 823D10／826430；RE-9",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "poses",
+          "type": "BossDisplayPose",
+          "semantics": "主versus及原生extra map的当前姿态",
+          "evidence": "J273 823D10／826430；RE-9",
+          "host": "display_value_read",
+          "client": "display_value_install",
+          "wire": {
+            "kind": "container",
+            "element": "BossDisplayPose",
+            "storage": "aggregate",
+            "stride": 0,
+            "limit": 33,
+            "max_bytes": 512,
+            "host": "display_value_read",
+            "client": "display_value_install"
+          }
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "Boss演出恢复",
+          "sequence": "world",
+          "fields": [
+            "generation",
+            "boss_id1",
+            "boss_id2",
+            "room_index",
+            "dimension",
+            "poses"
+          ]
+        }
+      ],
+      "conversions": {
+        "display_value_read": "读取已接受的演出及当前原生姿态",
+        "display_value_install": "只恢复本地演出资源及当前姿态"
+      },
+      "members": [],
+      "public_owners": [],
+      "validators": {},
+      "record_limit": 512
+    }
+  ]
+}

@@ -1,3 +1,5 @@
+**2026-11-14 第 14 步**。统一 Hook 清单移除旧实体绘制／阴影／后绘、调色和 GridLight 覆写。Projectile 恢复 `+0x350`，paused 与 Grid 水面查询读取二进制安装值。Backdrop 构图和装饰生成隔离继续常驻，冷构图调用仍待接线。见[第 14 步实施记录](../design/binary-state/14-retire-old-path.md#2026-11-14-实施记录)。
+
 **2026-11-12 RE-10 静态完成**：[Manager 调用分类与音频调度](../design/binary-state/client-display-delegation/RE-10/README.md)覆盖 50 个业务 call site＋3 个栈保护点。音乐 VA `0x7D7DA0` 为无显式参数的 thiscall 音频更新；SDK 已将 VA `0x908340` 明确定义为 `SoundEffects::ClearVolumeModifier`，是条件性混音刷新，撤销下方审阅开题时的“疑为 SFX tick”。音乐不随相机 paused 跳过，SFX 当前乘数／dirty 刷新、输入泵复用及 FrameDelay=0 不能绕过旧截止的窄处理交第 8／10／13 步。仅文档，未改 hooks.json／机器索引／运行代码／测试。
 
 **2026-11-12 RE-7—RE-9 静态补充**：[注入来源](../design/binary-state/client-display-delegation/RE-7/README.md)登记天使占比 `VA 0x7EF590` 的 XMM0 返回 ABI 及混合 setter；[音频／文字／演出](../design/binary-state/client-display-delegation/RE-8/README.md)登记采集／回放入口和实际显示作用域；[原生转场](../design/binary-state/client-display-delegation/RE-9/README.md)定位 Start `VA 0x823990`（thiscall、五栈参数、retn 0x14），确认 Start／Update 需具名显示拆分。仅文档与静态取证，未安装新 Hook／改机器索引／运行测试，统一清单接线留后续实施。

@@ -36,8 +36,6 @@ struct Blob final {
   Codec codec=Codec::None;
   std::uint64_t sequence=0,encode_us=0,compression_us=0,encode_cpu_us=UINT64_MAX,compression_cpu_us=UINT64_MAX;
   WorldScope world{};
-  RangeId range_id{};
-  Sample sample;
 };
 using SharedBlob=std::shared_ptr<const Blob>;
 SharedBlob EncodeBlob(const Message &,bool zstd,Limits=WorldLimits());

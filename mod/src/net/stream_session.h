@@ -1,5 +1,5 @@
 #pragma once
-#include "replica/stream_capture.h"
+#include "replica/stream_config.h"
 #include "replica/stream_transport.h"
 #include <functional>
 #include "replica/stream_metrics.h"
@@ -102,100 +102,12 @@ public:
   EncodingCache &operator=(const EncodingCache &) = delete;
   void Stop() noexcept;
   stream::Metrics Statistics() const noexcept;
-  stream::SharedBlob Get(stream::Range, bool compressed, replica::Limits);
+  // 只复制封存二进制字节／数字封套；编码与zstd沿用同一后台worker，不在socket线程运行。
+  stream::SharedBlob Get(const stream::Message &,bool compressed,replica::Limits);
 
 private:
   struct State;
   std::shared_ptr<State> state_;
 };
 
-// Host产品发布owner：冷依赖可靠传输，真实Applied后才追最新动态；不等待其他Peer。
-class PublicationSender final {
-public:
-  enum class Phase {
-    WaitingWorld,
-    Preparing,
-    Baseline,
-    WaitingApplied,
-    Active,
-    Recovering,
-    Stopped
-  };
-  void Offer(std::shared_ptr<const stream::Publication> baseline,
-             std::shared_ptr<const stream::Publication> latest,
-             std::vector<std::shared_ptr<const stream::Publication>> bodies);
-  void Preparing(std::uint64_t now) noexcept {phase_=Phase::Preparing;prepare_started_=now;}
-  void Authorize(stream::Route, std::uint64_t now);
-  bool Applied(const stream::Message &,std::uint64_t now);
-  bool ContextReady(const stream::Message &, std::uint64_t now);
-  bool NativeProgress(const stream::Message &, std::uint64_t now);
-  void FailPublication(const char *reason);
-  void Stop() noexcept;
-  unsigned Pump(std::uint64_t now, std::uint64_t &transfer, EncodingCache &,
-                const stream::ReliableSender::Send &);
-  bool Acknowledge(const stream::Message &, std::uint64_t now);
-  void Cancel(std::uint64_t id) {
-    reliable_.Cancel(id);
-    FailPublication("remote_cancelled_transfer");
-  }
-  const stream::Metrics &Statistics() const noexcept {return metrics_;}
-  const stream::TransferStatistics &TransferStatus() const noexcept {return reliable_.Statistics();}
-  bool Stale() const noexcept {return stale_;}
-  void AuthorityPaused(bool value,std::uint64_t now) noexcept;
-  Phase State() const noexcept { return phase_; }
-  bool Initializing() const noexcept { return phase_ != Phase::Active; }
-  const std::shared_ptr<const stream::Publication> &Baseline() const noexcept { return baseline_; }
-  std::uint64_t NextWake(std::uint64_t now) const noexcept { return reliable_.NextWake(now); }
-  const std::string &Failure() const noexcept { return failure_; }
-
-private:
-  Phase phase_ = Phase::WaitingWorld;
-  stream::Metrics metrics_;
-  bool stale_=false,paused_=false;
-  std::uint64_t pause_started_=0,active_at_=0,applied_world_tick_=0;
-  std::map<stream::RangeId,std::uint64_t> convergence_since_;
-  stream::Route route_;
-  stream::ReliableSender reliable_;
-  // 在途普通目标保留其完整依赖集合，最新候选独立替换；不能只发送新Context而饿死旧目标。
-  std::shared_ptr<const stream::Publication> baseline_, latest_, dynamic_target_;
-  std::vector<std::shared_ptr<const stream::Publication>> bodies_;
-  std::vector<stream::Range> cold_;
-  std::size_t cold_cursor_ = 0;
-  std::map<stream::RangeId, std::uint64_t> queued_, applied_;
-  std::map<stream::Version, std::uint64_t> transfers_;
-  std::map<stream::Version, std::uint64_t> pending_context_;
-  std::map<stream::Version, std::uint64_t> context_since_;
-  std::uint64_t prepare_started_=0;
-  std::uint64_t started_ = 0, progress_ = 0, native_progress_ = 0;
-  // 同场景只暂缺新候选时继续在途事务，但不能无限期保留陈旧活动世界。
-  std::uint64_t missing_source_at_=0;
-  // 活动期结构事务绑定已完整发送的精确普通版本；进度不能无限延长绝对期限。
-  stream::Version native_target_{};
-  std::uint64_t native_started_=0,native_at_=0;
-  std::map<stream::RangeId, std::uint64_t> fully_sent_;
-  std::map<stream::RangeId, std::uint64_t> sent_at_;
-  memory::Lease metadata_;
-  std::map<stream::RangeId, std::deque<std::uint64_t>> sent_history_;
-  void Remember(const stream::Version &);
-  bool WasSent(const stream::Version &) const noexcept;
-  // 已发送事实只保留值元数据；远端确认不能引用当前最新Publication冒认旧版本。
-  struct SentFact {
-    std::vector<stream::Version> dependencies;
-    std::uint64_t native=0,retained=0,watermark=0;
-    stream::Sample sample;
-  };
-  std::map<stream::Version,SentFact> sent_facts_;
-  struct NativeFact {std::uint64_t attempt=0,instance=0,resource=0;auto operator<=>(const NativeFact &) const = default;};
-  std::map<stream::Version,NativeFact> confirmed_;
-  void Track(const stream::Range &);
-  void Encoded(const stream::Blob &);
-  struct Fast {
-    stream::SharedBlob blob;
-    unsigned part = 0;
-    std::uint64_t transfer = 0;
-  };
-  std::map<stream::RangeId, Fast> fast_;
-  stream::RangeId fast_cursor_{};
-  std::string failure_;
-};
 } // namespace cs::net::live

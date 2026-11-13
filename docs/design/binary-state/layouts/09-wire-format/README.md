@@ -2,9 +2,9 @@
 
 [返回布局总索引](../README.md) · [对应总计划步骤](../../9-wire-format.md)
 
-按布局编号排列；共享类型通过引用复用，不重复生成。未知字节与完整标志只描述布局事实，不表示采集、应用或验收已完成。
+按布局编号排列；共享类型通过引用复用，不重复生成。未知字节保留原生事实；需求覆盖只说明清单字段已生成计划，不表示采集、应用或验收已完成。
 
-| 类型 | 布局编号 | 原生字节 | 未知字节 | 完整 |
+| 类型 | 布局编号 | 原生字节 | 未知字节 | 需求覆盖 |
 |---|---|---|---|---|
 | [StateCommonHeader](StateCommonHeader.md) | 408 | 0 | 0 | 是 |
 | [StateFrameHeader](StateFrameHeader.md) | 409 | 0 | 0 | 是 |
@@ -29,6 +29,8 @@
 | [ResourceItemConfig](ResourceItemConfig.md) | 431 | 0 | 0 | 是 |
 | [ResourceEntityConfig](ResourceEntityConfig.md) | 432 | 0 | 0 | 是 |
 | [ResourceAudio](ResourceAudio.md) | 433 | 0 | 0 | 是 |
+| [StateEventQueueHeader](StateEventQueueHeader.md) | 446 | 0 | 0 | 是 |
+| [StateEventHeader](StateEventHeader.md) | 447 | 0 | 0 | 是 |
 
 [公共报文编号、枚举与预算](protocol-constants.md)。
 

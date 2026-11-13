@@ -1,6 +1,8 @@
 # TemporaryEffects
 
-由唯一布局源生成。布局编号 136；布局版本 71；原生大小 0x18；未知 2B；完整：否。
+由唯一布局源生成。布局编号 136；布局版本 75；原生大小 0x18；未知 2B；需求覆盖：完整。
+
+需求覆盖只表示清单字段已生成计划，不表示原生字节全部已知、Host/Client处理器已接通或第15步验收通过。旧成员映射与原生说明保留为参照，当前发送字段以下方状态表为准。
 
 版本39为Player P8提供外层布局：disabled＋完整vector同版本提交；CacheFlag mask／evaluate请求归Host，Player回指本地，原生未知2B及每外部元素4B未知分别保留。不调用Add/RemoveEffect、ClearEffects、EvaluateItems或更新／到期。
 

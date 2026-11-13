@@ -2,7 +2,7 @@
 #include "LuaCore.h"
 #include "game/common/bridge.h"
 #include "game/client/scene/client_lifetime.h"
-#include "game/client/resources/client_resources.h"
+#include "game/client/display/client_display_bridge.h"
 #include "runtime.h"
 #include <cstddef>
 #include <cstring>
@@ -12,6 +12,9 @@
 #include <windows.h>
 
 namespace cs::game {
+#ifdef ISAACCS_E2E
+bool ClientResourceInstallShaderBindings(void *) noexcept;
+#endif
 bool ReadMemory(const void *source,void *output,std::size_t size) noexcept;
 namespace {
 lua_State *guard_ready_state=nullptr;
@@ -64,6 +67,12 @@ bool ReleaseLuaRegistryImpl(void *pointer) noexcept {
 template <class T> bool Field(const void *base,std::size_t offset,T &value) noexcept {
   return base&&ReadMemory(static_cast<const unsigned char *>(base)+offset,&value,sizeof(value));
 }
+}
+bool ClientNativeCpuQueuesEmpty() noexcept {
+  if(!IsMain()||!__ptr_g_KAGE_Graphics_ImageManager)return false;
+  const auto &manager=*__ptr_g_KAGE_Graphics_ImageManager;
+  // ImageManager 真实普通和透明 raw 提交队列；不把此结果解释成 GPU idle。
+  return manager._frameImages.empty()&&manager._transparentBatches.empty();
 }
 bool ClientLuaRegistryReleaseRaw(void *owner) noexcept {return ReleaseLuaRegistryImpl(owner);}
 // J273 GLFW window 的 HDC/HGLRC 在 +0x234/+0x238；SDK 只公开 HWND。
@@ -285,7 +294,9 @@ int RunOwnMenuCallback(lua_State *L) {
 }
 // 官方 Lua 内部结构调用保持原链；Client ModCallback 仅菜单提示有精确白名单。
 int GuardedClientCallback(lua_State *L) {
-  if(ClientBusy()){
+  // Q6：具名显示推进、原生Render和surface捕获中的callback保留官方分派。
+  // 本项目Client Lua不注册玩法callback；持久入口仍由独立保护覆盖。
+  if(ClientBusy()&&!ClientNativeDisplayCallbacks()){
     if(!IsMain()||!g_LuaEngine||L!=g_LuaEngine->_state){
       ClientCallbackFault("client_callback_foreign_or_vm");return 0;
     }
@@ -352,7 +363,9 @@ void ClientGuardLuaBindings(bool classes_registered) noexcept {
   if(!IsMain()||!g_LuaEngine||!g_LuaEngine->_state)return;
   auto *L=g_LuaEngine->_state;
   guard_ready_state=nullptr;
-  if(classes_registered&&!ClientResourceInstallShaderBindings(L)){ClientCallbackFault("client_shader_binding_install");return;}
+#ifdef ISAACCS_E2E
+  if(classes_registered)ClientResourceInstallShaderBindings(L);
+#endif
   const int top=lua_gettop(L);
   if(!lua_checkstack(L,2))return;
   if(guard_sealed_state==L){

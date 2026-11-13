@@ -1,5 +1,6 @@
 #include "game/client/grid/client_grid_description.h"
 #include "state/nested.h"
+#include "state/client_description_memory.h"
 #include "core/replication_memory.h"
 #include <algorithm>
 #include <cmath>
@@ -16,7 +17,6 @@ struct GridDescriptionPlan final {
   std::array<std::uint16_t,kRoles> fields;
   std::array<std::uint32_t,4> descriptor_offsets;
 };
-struct GridFactoryType final { std::int32_t type; std::uint16_t layout; };
 #include "state_grid_view.inc"
 const GridDescriptionPlan *Plan(std::uint16_t layout) noexcept {
   const auto i=std::lower_bound(kGridDescriptionPlans.begin(),kGridDescriptionPlans.end(),layout,
@@ -24,9 +24,7 @@ const GridDescriptionPlan *Plan(std::uint16_t layout) noexcept {
   return i!=kGridDescriptionPlans.end()&&i->layout==layout?&*i:nullptr;
 }
 std::uint16_t FactoryLayout(std::int32_t type) noexcept {
-  const auto i=std::lower_bound(kGridFactoryTypes.begin(),kGridFactoryTypes.end(),type,
-    [](const GridFactoryType &p,std::int32_t n){return p.type<n;});
-  return i!=kGridFactoryTypes.end()&&i->type==type?i->layout:0;
+  return state::GridFactoryLayout(type);
 }
 [[noreturn]] void Fail(const char *reason){throw state::Gap("grid_description",reason);}
 template<class T> T Scalar(ClientGridBytes bytes,std::uint32_t offset=0) {
@@ -40,8 +38,9 @@ struct ClientGridShadowStorage final {
   ClientGridShadowIdentity identity;
   const GridDescriptionPlan *plan=nullptr;
   std::array<Slice,kRoles> slices{};
-  std::vector<std::uint8_t> bytes;
+  std::vector<std::uint8_t,state::ClientDescriptionAllocator<std::uint8_t>> bytes;
   memory::Lease charge;
+  explicit ClientGridShadowStorage(const std::shared_ptr<state::ClientStateMemory> &m):bytes(state::ClientDescriptionAllocator<std::uint8_t>(m)) {}
 };
 namespace {
 const Slice &SliceFor(const ClientGridShadowStorage &s,ClientGridFieldRole role) {
@@ -120,9 +119,10 @@ ClientPoseVector ClientGridDescription::RubbleAt(std::uint16_t index) const {
   return {Scalar<float>(b,n),Scalar<float>(b,n+4)};
 }
 const void *ClientGridDescription::StorageOwner() const noexcept {return storage_.get();}
-std::uint64_t ClientGridDescription::StorageBytes() const noexcept {return storage_->charge->Bytes();}
+std::uint64_t ClientGridDescription::StorageBytes() const noexcept {return sizeof(ClientGridShadowStorage)+32ull+storage_->bytes.capacity();}
+long ClientGridDescription::StorageReferences()const noexcept{return storage_.use_count();}
 
-ClientGridDescription ClientDescribeGrid(const ClientGridShadowRecordView &source,std::uint32_t byte_limit) {
+ClientGridDescription ClientDescribeGrid(const ClientGridShadowRecordView &source,std::uint32_t byte_limit,std::shared_ptr<state::ClientStateMemory> peer) {
   const auto &id=source.identity;const auto *plan=Plan(id.layout);const auto *layout=state::FindLayout(id.layout);
   if(id.layout_version!=state::LayoutVersion())Fail("layout_version");
   if(!plan||!layout||layout->base_prefix||layout->block_count>32)Fail("grid_layout");
@@ -141,9 +141,10 @@ ClientGridDescription ClientDescribeGrid(const ClientGridShadowRecordView &sourc
   }
   if((present&plan->required_blocks)!=plan->required_blocks)Fail("incomplete_shadow_record");
   // 描述一次性取得全部块的自有字节，之后只共享const owner，不保留输入指针或逐字段树。
-  auto charge=memory::Reserve(memory::Pool::Values,sizeof(ClientGridShadowStorage)+32ull+total,"grid_shadow_description");
-  auto storage=std::make_shared<ClientGridShadowStorage>();storage->charge=std::move(charge);storage->identity=id;storage->plan=plan;
-  storage->bytes.resize(total);storage->charge->Resize(sizeof(ClientGridShadowStorage)+32ull+storage->bytes.capacity());
+  auto charge=peer?memory::Lease{}:memory::Reserve(memory::Pool::Values,sizeof(ClientGridShadowStorage)+32ull+total,"grid_shadow_description");
+  auto storage=peer?std::allocate_shared<ClientGridShadowStorage>(state::ClientStateAllocator<ClientGridShadowStorage>(peer),peer):std::make_shared<ClientGridShadowStorage>(peer);
+  storage->charge=std::move(charge);storage->identity=id;storage->plan=plan;
+  storage->bytes.resize(total);if(storage->charge)storage->charge->Resize(sizeof(ClientGridShadowStorage)+32ull+storage->bytes.capacity());
   for(unsigned i=0;i<32;++i)if(source.blocks[i].present&&source.blocks[i].size)
     std::memcpy(storage->bytes.data()+offsets[i],source.blocks[i].data,source.blocks[i].size);
   for(std::size_t r=0;r<kRoles;++r){const auto index=plan->fields[r];if(index==UINT16_MAX)continue;

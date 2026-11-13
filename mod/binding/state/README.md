@@ -1,5 +1,13 @@
 # 原生二进制布局源
 
+**2026-11-13 当前版本74**：版本73已加入438—453的第二批状态／事件；74将MusicRequestState.mode限定为0—5，5表示Queue自然接续，不能当外部静音Play。音乐布尔和六位layer约束同源生成；来源、主线程事件范围／worker接管及未接通的正式运行链见[Host实施记录](../../../docs/design/binary-state/implementation-10-host-display-capture.md)。第15步仍唯一整体验收，未运行测试。
+
+**2026-11-12 版本72：按需收缩与D1—D8入源**：`demand.json` 是独立需求输入，不加入 `version.json.domains`。生成器先保留完整域源参照，再在内存中剥离未选wire；发送计划、正文编解码和校验器只包含需求字段，空块保留编号、空投影省略。原生字节账本、公开成员回映射与所有类型文档仍全量生成。`Layout.complete` 改为需求覆盖，不表示原生未知已清零或运行已完成。覆盖入口见[生成需求表](../../../docs/design/binary-state/layouts/demand-coverage.md)。Release／Win32产品DLL纯编译与链接通过，没有运行测试。
+
+需求清单有两表：`all` 的每项为 `{"type":"类型名","reason":"消费方或依据"}`，保留该展开类型（含继承）的既有wire；`fields` 的每项为 `{"type":"类型名","fields":{"投影前字段名":"消费方或依据"}}`，只保留列出的量。变体使用生成后的完整类型名单独登记。类型或字段错名、无wire字段、重复类型或A/B重叠、缺嵌套／动态槽候选、缺条件选择器均在构建时报告。未选择的新类型不会自动上线；不能通过专用旧表恢复其正文。
+
+D1—D8已登记Q8 Game／Room当前值、HUD可见性、两处raw诅咒、SpawnSeed、种子效果有界ID列表、Q11九个转场值、Q12 paused／终结分支和SFX当前乘数（新布局437）。Game相机偏移、effective_curses、Error谓词与旧最终显示结果不在发送清单中。Room显示子结构默认照旧，但明确退役的Backdrop binding／FX scene等结果companion不保留。`presentation_envelope`、`resource_protocol`、`hud_local`专用表暂用完整参照生成，供后续迁移前编译；原生采集／安装处理器、Q12分支计算、Seeds原生树和音频dirty实际接线仍待第8／10／13步。
+
 **2026-11-12 RE-5／RE-6 静态补注（仍为版本71）**：[已知 Render 写集](../../../docs/design/binary-state/client-display-delegation/RE-5/write-set.md)补入 Entity 屏幕坐标、Room LightGradient scale／坑纹理 dirty、Game resize／Render 反馈和 PlayerHUD 包围框的本地职责，并明确 Tear 暂存的是主 Sprite ColorMod。只改已有范围的语义／证据文字，不改变类别、块、wire、处理器或互通接受合同；没有生成、构建或测试。版本72的按需收缩及旧结果／相机偏移退役仍待实施，不把这些文字补注当成运行路径已迁移。
 
 生成布局文档按总计划步骤存放在 `docs/design/binary-state/layouts/02-base-types/` 至 `08-run-presentation/`；总索引与各步骤索引由生成器同时维护。目录号是计划步骤号，不是布局编号或版本号；变体随其所属域，共享类型不重复生成。第7步已登记的显示／资源结构仍随第7步归档。布局源中引用的 `layouts/EntitySaveState.md`、`layouts/GridEntityDesc.md` 旧证据路径保留跳转页。

@@ -262,7 +262,12 @@ void Publish(WorldJob &j) {
       "\nbinary_entity_bodies="+std::to_string(binary.bodies)+"\nbinary_entity_joint="+std::to_string(binary.joint)+
       "\nbinary_entity_gaps="+std::to_string(binary.gaps)+"\nbinary_entity_failure="+std::to_string(unsigned(binary.failure.reason))+
       "\nbinary_entity_layout="+std::to_string(binary.failure.layout)+"\nbinary_entity_field="+std::to_string(binary.failure.field)+
-      "\nbinary_entity_exchange_failed="+std::to_string(binary.exchange.failed)+"\n";}
+      "\nbinary_entity_exchange_failed="+std::to_string(binary.exchange.failed)+
+      "\nbinary_event_watermark="+std::to_string(binary.events.watermark)+"\nbinary_event_transferred="+std::to_string(binary.events.transferred)+
+      "\nbinary_event_pending="+std::to_string(binary.events.pending)+"\nbinary_event_bytes="+std::to_string(binary.events.bytes)+
+      "\nbinary_event_intentions="+std::to_string(binary.events.intentions)+"\nbinary_event_dropped="+std::to_string(binary.events.dropped)+
+      "\nbinary_event_incomplete="+std::to_string(binary.events.incomplete)+
+      "\nbinary_publication_revision="+std::to_string(binary.publication_revision)+"\nbinary_publication_failure="+std::string(binary.publication_failure.data())+"\n";}
 }
 }
 bool WorldCommandBusy() noexcept { return job&&job->consumer&&!job->consumer->closed.load(); }
@@ -291,7 +296,9 @@ void CheckpointWorldCommand(std::uint64_t request,std::uint32_t generation,const
 }
 void PumpWorldCommands() noexcept {
   if(!IsMain()) return;
+#ifdef ISAACCS_E2E
   game::EnsureObservationLuaBridge();
+#endif
   try {
     // 正式Host本身持有采集需求；不要求执行observation start或world_record start。
     const auto live_session=process_exit_pending?0:game::LiveCaptureSession();
@@ -345,28 +352,18 @@ std::string ObservationCommand(const std::string &action) {
   if(!job) return game::LiveCaptureSession()&&game::LiveCaptureSession()==live_failed_session?"ok=1\nobservation_state=Faulted\nlive_request_reason=live_capture_prepare_failed\n":"ok=1\nobservation_state=Off\n";
   auto &r=*job->recording;
   const bool ready=job->ready.load(std::memory_order_acquire);
-  std::string bodies="\nplayer_post_columns=local/use/shape/binding/last_native_update_tick/last_capture_tick/ordinary/odd/not_updated/actual_updates/qualified_samples/throttled/reason";
-  const auto pools=memory::ReplicationBudget()->Snapshot();for(unsigned i=0;i<pools.size();++i)bodies+="\nreplication_pool_"+std::to_string(i)+"="+std::to_string(pools[i].current)+"/"+std::to_string(pools[i].high_water)+"/"+std::to_string(pools[i].limit);
-  if(ready)for(unsigned slot=0;slot<r.body_status.size();++slot){const auto &b=r.body_status[slot];if(!b.local&&!b.not_updated)continue;
-    const auto row="\nplayer_post_"+std::to_string(slot)+"="+std::to_string(b.local)+"/"+std::to_string(b.use)+"/"+std::to_string(b.shape)+
-      "/"+std::to_string(b.binding)+"/"+std::to_string(b.last_native_update_tick)+"/"+std::to_string(b.last_capture_tick)+
-      "/"+std::to_string(b.ordinary)+"/"+std::to_string(b.odd)+"/"+std::to_string(b.not_updated)+"/"+std::to_string(b.actual_updates)+"/"+std::to_string(b.qualified_samples)+"/"+std::to_string(b.throttled)+"/"+b.reason;
-    if(bodies.size()+row.size()>56000){bodies+="\nplayer_post_status_budget=exceeded";break;}bodies+=row;
-  }
+  std::string pools_text;
+  const auto pools=memory::ReplicationBudget()->Snapshot();for(unsigned i=0;i<pools.size();++i)pools_text+="\nreplication_pool_"+std::to_string(i)+"="+std::to_string(pools[i].current)+"/"+std::to_string(pools[i].high_water)+"/"+std::to_string(pools[i].limit);
   return "ok=1\nobservation_state="+std::string(job->stopping?"Stopping":job->attached?"Active":"Preparing")+
     "\nobservation_epoch="+std::to_string(r.epoch)+"\nformal_consumer="+std::to_string(job->formal)+
     "\nrecording_consumer="+std::to_string(ready&&r.recorder_consumer)+"\nlive_consumer="+std::to_string(ready&&r.live_consumer)+
     "\nlive_request_reason="+std::string(ready?r.live_request_reason:"preparing")+
     "\nlive_delivered="+std::to_string(ready?r.live.Status().delivered:0)+"\nlive_owned_bytes="+std::to_string(ready?r.live.Status().bytes:0)+
     "\nlive_gap_reason="+std::string(ready?r.live.Status().reason:"preparing")+"\npublication_count="+std::to_string(ready?r.observation.Published():0)+
-    "\nstream_ready="+std::to_string(ready&&r.stream.Status().ready)+"\nstream_reason="+(ready?r.stream.Status().reason:std::string("preparing"))+
-    "\nstream_ordinary="+std::to_string(ready?r.stream.Status().ordinary:0)+"\nstream_world_sequence="+std::to_string(ready?r.stream.Status().world_sequence:0)+
-    "\nstream_bodies="+std::to_string(ready?r.stream.Status().bodies:0)+"\nstream_body_gaps="+std::to_string(ready?r.stream.Status().body_gaps:0)+
-    "\nstream_body_reason="+(ready?r.stream.Status().body_reason:std::string("preparing"))+bodies+
     "\nloss_sequence="+std::to_string(ready?r.observation.LossSequence():0)+"\nrecord_loss_sequence="+std::to_string(r.publications.LossSequence())+
     "\nlua_attempts="+std::to_string(ready?r.lua_attempts:0)+"\nlua_complete="+std::to_string(ready?r.lua_complete:0)+
     "\nlua_partial="+std::to_string(ready?r.lua_partial:0)+"\nentity_scope="+std::to_string(ready?r.latest_entity.context.scope:0)+
-    "\nrun_scope="+std::to_string(ready?r.latest_continuity[3].context.scope:0)+"\nrun_coverage="+(ready?world::observation::CoverageName(r.latest_continuity[3].result.coverage):"NotScheduled")+"\nrandom_scope="+std::to_string(ready?r.latest_continuity[4].context.scope:0)+"\nrandom_coverage="+(ready?world::observation::CoverageName(r.latest_continuity[4].result.coverage):"NotScheduled")+"\npresentation_scope="+std::to_string(ready?r.latest_continuity[5].context.scope:0)+"\npresentation_coverage="+(ready?world::observation::CoverageName(r.latest_continuity[5].result.coverage):"NotScheduled")+"\nmod_scope="+std::to_string(ready?r.latest_continuity[6].context.scope:0)+"\nmod_coverage="+(ready?world::observation::CoverageName(r.latest_continuity[6].result.coverage):"NotScheduled")+"\nexploration_scope="+std::to_string(ready?r.latest_continuity[0].context.scope:0)+"\nexploration_coverage="+(ready?world::observation::CoverageName(r.latest_continuity[0].result.coverage):"NotScheduled")+"\nroom_save_scope="+std::to_string(ready?r.latest_continuity[1].context.scope:0)+"\nroom_save_coverage="+(ready?world::observation::CoverageName(r.latest_continuity[1].result.coverage):"NotScheduled")+"\nplayer_scope="+std::to_string(ready?r.latest_continuity[2].context.scope:0)+"\nplayer_coverage="+(ready?world::observation::CoverageName(r.latest_continuity[2].result.coverage):"NotScheduled")+"\nroom_scope="+std::to_string(ready?r.latest_room.context.scope:0)+"\nroom_coverage="+(ready?world::observation::CoverageName(r.latest_room.result.coverage):"NotScheduled")+"\nlevel_scope="+std::to_string(ready?r.latest_level.context.scope:0)+"\nlevel_coverage="+(ready?world::observation::CoverageName(r.latest_level.result.coverage):"NotScheduled")+"\ngrid_scope="+std::to_string(ready?r.latest_grid.context.scope:0)+"\ngrid_coverage="+(ready?world::observation::CoverageName(r.latest_grid.result.coverage):"NotScheduled")+"\nentity_coverage="+(ready?world::observation::CoverageName(r.latest_entity.result.coverage):"NotScheduled")+"\n";
+    "\nrun_scope="+std::to_string(ready?r.latest_continuity[3].context.scope:0)+"\nrun_coverage="+(ready?world::observation::CoverageName(r.latest_continuity[3].result.coverage):"NotScheduled")+"\nrandom_scope="+std::to_string(ready?r.latest_continuity[4].context.scope:0)+"\nrandom_coverage="+(ready?world::observation::CoverageName(r.latest_continuity[4].result.coverage):"NotScheduled")+"\npresentation_scope="+std::to_string(ready?r.latest_continuity[5].context.scope:0)+"\npresentation_coverage="+(ready?world::observation::CoverageName(r.latest_continuity[5].result.coverage):"NotScheduled")+"\nmod_scope="+std::to_string(ready?r.latest_continuity[6].context.scope:0)+"\nmod_coverage="+(ready?world::observation::CoverageName(r.latest_continuity[6].result.coverage):"NotScheduled")+"\nexploration_scope="+std::to_string(ready?r.latest_continuity[0].context.scope:0)+"\nexploration_coverage="+(ready?world::observation::CoverageName(r.latest_continuity[0].result.coverage):"NotScheduled")+"\nroom_save_scope="+std::to_string(ready?r.latest_continuity[1].context.scope:0)+"\nroom_save_coverage="+(ready?world::observation::CoverageName(r.latest_continuity[1].result.coverage):"NotScheduled")+"\nplayer_scope="+std::to_string(ready?r.latest_continuity[2].context.scope:0)+"\nplayer_coverage="+(ready?world::observation::CoverageName(r.latest_continuity[2].result.coverage):"NotScheduled")+"\nroom_scope="+std::to_string(ready?r.latest_room.context.scope:0)+"\nroom_coverage="+(ready?world::observation::CoverageName(r.latest_room.result.coverage):"NotScheduled")+"\nlevel_scope="+std::to_string(ready?r.latest_level.context.scope:0)+"\nlevel_coverage="+(ready?world::observation::CoverageName(r.latest_level.result.coverage):"NotScheduled")+"\ngrid_scope="+std::to_string(ready?r.latest_grid.context.scope:0)+"\ngrid_coverage="+(ready?world::observation::CoverageName(r.latest_grid.result.coverage):"NotScheduled")+"\nentity_coverage="+(ready?world::observation::CoverageName(r.latest_entity.result.coverage):"NotScheduled")+pools_text+"\n";
 }
 bool WorldProcessExitPending() noexcept { return process_exit_pending; }
 bool WorldProcessExitDecision() noexcept {

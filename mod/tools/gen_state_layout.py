@@ -1,7 +1,7 @@
 """从唯一 JSON 布局源生成二进制复制、解码、回映射和单行布局表。
 
 这是构建生成器：拒绝不成立的声明，不读取游戏，不执行测试，不计算哈希。
-已明确的未知区可生成，但 complete 始终为 false；后续步骤不能把草稿当完整布局。
+原生未知区保留参照；complete 按需求清单覆盖判定，不表示运行接线或验收完成。
 """
 import argparse
 import copy
@@ -42,6 +42,8 @@ DOC_DOMAIN_STEPS = {
     'room.json': '07-room-level', 'level.json': '07-room-level',
     'run.json': '08-run-presentation', 'presentation.json': '08-run-presentation',
     'hud-local.json': '08-run-presentation',
+    'display.json': '08-run-presentation',
+    'overlay-display.json': '08-run-presentation',
     'random.json': '08-run-presentation',
     'wire.json': '09-wire-format',
 }
@@ -206,6 +208,66 @@ class Compiler:
         self.expand_stack = set()
         self.plan_stack = set()
         self.ids = set()
+        # 原始计划用于字节参照、成员映射及尚未退役的专用表；发送计划另按需求收缩。
+        self.reference_plans = None
+        self.demand_selected = None
+
+    def apply_demand(self):
+        """只在内存中收缩 wire；清单使用展开后的类型名和投影前字段名，不改写域源。"""
+        demand = read_json(self.source / 'demand.json')
+        require(isinstance(demand, dict) and set(demand) == {'format', 'all', 'fields'} and
+                demand['format'] == 'isaac.cs.binary-state-demand', 'demand', '需求清单格式不匹配')
+        selected, reasons = {}, {}
+        for mode in ('all', 'fields'):
+            require(isinstance(demand[mode], list), 'demand.' + mode, '需求表必须是数组')
+            for row in demand[mode]:
+                where = 'demand.' + mode
+                require(isinstance(row, dict) and set(row) ==
+                        ({'type', 'reason'} if mode == 'all' else {'type', 'fields'}), where, '需求项属性不匹配')
+                name = row['type']
+                require(isinstance(name, str) and name in self.expanded, where, '需求引用不存在的类型: ' + str(name))
+                require(name not in selected, name, '需求类型重复，不能混用整类型与字段选择')
+                # 既有视图可能仅留下零字节Sprite投影；它们没有发送量，不计入需求覆盖。
+                available = {f['name'].split('#', 1)[0] for f in self.plans[name]['fields'] if f['max_size']}
+                if mode == 'all':
+                    require(nonempty(row['reason']) and available, name, '整类型需求须有消费依据及 wire 字段')
+                    chosen = {key: row['reason'] for key in sorted(available)}
+                else:
+                    chosen = row['fields']
+                    require(isinstance(chosen, dict) and chosen and
+                            all(nonempty(key) and nonempty(reason) for key, reason in chosen.items()), name, '字段需求须列出字段及消费依据')
+                    declared = {r['name'] for r in self.expanded[name]['ranges'] +
+                                self.expanded[name]['synthetic_fields'] + self.expanded[name]['companions']}
+                    for key in chosen:
+                        require(key in declared, name + '.' + key, '需求引用不存在的字段（使用投影前名称）')
+                        require(key in available, name + '.' + key, '需求引用没有 wire 的字段')
+                selected[name], reasons[name] = set(chosen), chosen
+        self.demand_selected, self.demand_reasons = selected, reasons
+        self.reference_plans = self.plans
+        self.expanded = copy.deepcopy(self.expanded)
+        for name, entry in self.expanded.items():
+            keep = selected.get(name, set())
+            for item in entry['ranges']:
+                if item['name'] not in keep:
+                    item.pop('wire', None)
+            entry['synthetic_fields'] = [r for r in entry['synthetic_fields'] if r['name'] in keep]
+            entry['companions'] = [r for r in entry['companions'] if r['name'] in keep]
+            entry['validators'] = {k: v for k, v in entry['validators'].items() if k.split('#', 1)[0] in keep}
+            for block in entry['blocks']:
+                block['fields'] = [k for k in block['fields'] if k.split('#', 1)[0] in keep]
+                if not block['fields']:
+                    block['reserved'] = True
+            entry['count_groups'] = [dict(g, fields=[k for k in g['fields'] if k in keep])
+                                     for g in entry['count_groups'] if any(k in keep for k in g['fields'])]
+            if not keep:
+                entry.pop('body_rule', None)
+        # 原生字节展开缓存来自未收缩源，保留内嵌未知字节和原有成员映射。
+        self.plans = {}
+        for name in self.expanded:
+            self.plan(name)
+        for name, keep in selected.items():
+            emitted = {f['name'].split('#', 1)[0] for f in self.plans[name]['fields']}
+            require(keep == emitted, name, '需求字段未生成发送计划: ' + ', '.join(sorted(keep - emitted)))
 
     def expand(self, name):
         if name in self.expanded:
@@ -528,6 +590,8 @@ class Compiler:
                 require(expected <= actual <= allowed, name + '.' + key,
                         f'子块投影不完整：元素 {child_type}，缺少 {sorted(expected - actual)}，非法 {sorted(actual - allowed)}')
                 for block_id in wire['projections']:
+                    if self.demand_selected is not None and block_id not in expected:
+                        continue  # 收缩后的空子块不产生投影，父块号及剩余投影次序保持不变。
                     virtual = copy.deepcopy(item)
                     virtual['name'] = f'{key}#{block_id}'
                     require(virtual['name'] not in ranges and virtual['name'] not in projected, name, '子块投影名称冲突')
@@ -545,6 +609,10 @@ class Compiler:
             ids.add(number)
             require(block.get('sequence') in {'world', 'body', 'world-or-player-body'} and nonempty(block.get('name')), name, '块缺少序列或语义名称')
             low, high, dynamic = 0, 0, False
+            if self.demand_selected is not None:
+                block['fields'] = [key for key in block['fields'] if key in projected]
+                if not block['fields']:
+                    block['reserved'] = True
             for key in block['fields']:
                 where = name + '.' + key
                 require(key in projected and key not in seen, where, '块字段不存在、重复或不产生状态')
@@ -573,6 +641,8 @@ class Compiler:
                 elif kind == 'choice':
                     choices = [self.plan(child) for child in wire['choices']]
                     require(all(len(p['blocks']) == 1 for p in choices), where, '动态槽view必须只有一个值块')
+                    if self.demand_selected is not None:
+                        require(all(p['max'] for p in choices), where, '需求缺少动态槽的候选类型字段')
                     minimum, maximum = 1, 1 + wire['limit'] * (2 + max(p['max'] for p in choices))
                 else:
                     element = wire['element']
@@ -592,6 +662,8 @@ class Compiler:
                 if 'when' in wire:
                     require(kind != 'copy', where, '条件字段须经具名处理器，不能无条件合并复制')
                     minimum = 0
+                if self.demand_selected is not None and nested:
+                    require(nested['max'] > 0, where, '需求缺少嵌套类型的字段: ' + nested['entry']['type'])
                 require(minimum <= maximum, where, '字段编码预算小于格式下界')
                 offset = DYNAMIC if dynamic else low
                 field = dict(layout=entry['layout'], index=len(fields), block=number,
@@ -626,7 +698,7 @@ class Compiler:
                                player_body=block['sequence'] == 'world-or-player-body', min=low, max=high))
         require(ids == set(range(len(ids))), name, '块号必须从 0 连续编号，预留块需显式声明')
         require(seen == set(projected), name, '有状态字段或嵌套子块未归入块')
-        if entry.get('pure_value'):
+        if entry.get('pure_value') and (self.demand_selected is None or fields):
             require(len(blocks) == 1 and all(f['operation'] == 'Copy' and f['wire_offset'] == f['native_offset'] for f in fields)
                     and sum(f['native_size'] for f in fields) == entry['native_size'], name, '纯值类型必须逐成员按原生顺序内联且没有未复制字节')
         known = {f['name'] for f in fields}
@@ -642,7 +714,7 @@ class Compiler:
             require(re.fullmatch(r'[A-Za-z_][A-Za-z_0-9]*', key), name, '非法上下文名称')
             require(all(nonempty(context.get(prop)) for prop in ('type', 'semantics', 'evidence')), name + '.' + key, '上下文缺少类型、语义或证据')
         context_names = {'@' + key for key in entry['contexts']}
-        for member in entry['members']:
+        for member in entry['members'] if self.demand_selected is None else []:
             require(nonempty(member.get('id')) and nonempty(member.get('reason')), name, '回映射缺少成员名或依据')
             require(member.get('disposition') in {'field', 'derived', 'authority', 'not_applicable'}, member['id'], '非法回映射处置')
             mapped = member.get('fields', [])
@@ -697,6 +769,9 @@ class Compiler:
         native_ranges = self.native_ranges(name)
         unknown = sum(r['size'] for r in native_ranges if r['category'] == '未知')
         complete = entry.get('extent', 'object') in {'object', 'protocol'} and not unknown and all(r['status'] == '已核' for r in entry['ranges'] + entry['companions']) and all(self.plans[f['type']]['complete'] for f in fields if f['nested_layout'])
+        if self.demand_selected is not None:
+            # 完整性只说明清单需求已出计划；原生 UNKNOWN、运行来源及安装进度另行报告。
+            complete = all(self.plans[f['type']]['complete'] for f in fields if f['nested_layout'])
         minimum, maximum = sum(b['min'] for b in blocks), sum(b['max'] for b in blocks)
         if 'record_limit' in entry:
             require(minimum <= entry['record_limit'] < DYNAMIC, name, '记录预算小于布局下界或溢出')
@@ -865,6 +940,7 @@ class Compiler:
                         name, '显示依赖类型不存在或自依赖: ' + dependency)
             require('record_limit' in plan['entry'], name, '显示结果必须声明总编码预算')
         self.catalogs()
+        self.apply_demand()
         return sorted(self.plans.values(), key=lambda p: p['entry']['layout'])
 
 
@@ -932,10 +1008,12 @@ def emit_grid_description(compiler, plans, out):
     by_name = {p['entry']['type']: p['entry']['layout'] for p in selected}
     kinds = sorted((g for g in world['grid_types'] if g['rtti']), key=lambda g: g['value']) if selected else []
     require(all('GridEntity' + g['rtti'] in by_name for g in kinds), 'GridFactory', '工厂真实类没有描述视图')
-    body.append(array('GridFactoryType', 'kGridFactoryTypes', len(kinds)))
+    factory = ['// 工厂type与正式Grid布局的同源数字关系，供描述与完整候选共用。\n',
+               array('GridFactoryType', 'kGridFactoryTypes', len(kinds))]
     for kind in kinds:
-        body.append(f'  {{{kind["value"]}, {by_name["GridEntity" + kind["rtti"]]}}},\n')
-    body.append('}};\n')
+        factory.append(f'  {{{kind["value"]}, {by_name["GridEntity" + kind["rtti"]]}}},\n')
+    factory.append('}};\n')
+    write(out / 'state_grid_factory.inc', ''.join(factory))
     write(out / 'state_grid_view.inc', ''.join(body))
 
 
@@ -954,7 +1032,12 @@ def emit_room_description(compiler, plans, out):
     by_name = {p['entry']['type']: p for p in plans}
     selected = [by_name[name] for name, _, _ in groups if name in by_name]
     require(not selected or len(selected) == len(groups), 'RoomDescription', 'Room／Level描述所需正式根必须一起登记')
-    role_count = sum(len(fields) for _, _, fields in groups)
+    # 已发布角色编号不移动；版本72新增需求追加在尾部，退役角色保持空索引。
+    extra_roles = [('LevelGamePrefix', 'raw_curses'), ('RoomDescriptor', 'spawn_seed')]
+    extra_roles += [('Room', name) for name in ['water_start', 'water_multiplier_start', 'water_target',
+                   'water_multiplier_target', 'water_lerp_duration_countdown', 'shockwave_a', 'shockwave_b']]
+    old_role_count = sum(len(fields) for _, _, fields in groups)
+    role_count = old_role_count + len(extra_roles)
     body = ['// 与正式布局同源生成；不得在描述层手写布局号、线偏移或图标帧界。\n',
             f'constexpr std::size_t kWorldDescriptionRoles = {role_count};\n',
             f'constexpr std::size_t kWorldDescriptionMaxFields = {max((len(p["fields"]) for p in selected), default=1)};\n',
@@ -964,11 +1047,17 @@ def emit_room_description(compiler, plans, out):
         if name in by_name:
             plan = by_name[name]
             fields = {f['name']: f for f in plan['fields']}
-            require(set(fields) == set(roles) and all(f['wire_offset'] != DYNAMIC for f in fields.values()),
-                    name, '描述角色未覆盖全部字段或根字段不再有固定起点，须同步更新描述视图')
+            # 旧描述接口保留到第13/14步接线、退役；缺席角色用空索引，新增Q8等字段由新安装owner承接。
+            require(all(f['wire_offset'] != DYNAMIC for f in fields.values()),
+                    name, '根字段不再有固定起点，须同步更新描述视图')
             ids = [65535] * role_count
             for i, role in enumerate(roles):
-                ids[start + i] = fields[role]['index']
+                if role in fields:
+                    ids[start + i] = fields[role]['index']
+            for i, (owner, role) in enumerate(extra_roles):
+                if name == owner:
+                    require(role in fields, name, '现行描述必需字段缺失: ' + role)
+                    ids[old_role_count + i] = fields[role]['index']
             mask = sum(1 << b['id'] for b in plan['blocks'] if b['max'])
             body.append(f'  {{ClientWorldDescriptionKind::{kind}, {plan["entry"]["layout"]}, {mask}u, '
                         + '{' + ','.join(map(str, ids)) + '}},\n')
@@ -1009,6 +1098,72 @@ def emit_room_description(compiler, plans, out):
     body.append(f'constexpr std::array<std::uint16_t,{len(grids)}> kWorldGridLayouts = '
                 + '{' + ','.join(map(str, grids)) + '};\n')
     write(out / 'state_room_view.inc', ''.join(body))
+
+
+def emit_display_install(compiler, plans, out):
+    """显示安装只登记已核纯值和专属处理器；不把通用Copy表当作任意原生写入许可。"""
+    by_name = {p['entry']['type']: p for p in plans}
+    groups = [
+        ('GameRun', 'Game', ['darkness', 'darkness_scale', 'current_color', 'lightning', 'dizzy',
+          'challenge', 'difficulty', 'shake_countdown', 'bloom_countdown', 'bloom_duration', 'bloom_strength',
+          'hallucination_countdown', 'hallucination_duration', 'retrovision_countdown', 'retrovision_duration',
+          'secondary_fade_alpha', 'primary_fade_alpha', 'color_lerp_enabled', 'hud_visible',
+          'transition_mode', 'transition_counter', 'transition_duration', 'transition_progress',
+          'transition_direction', 'transition_room_index', 'transition_dimension', 'transition_animation',
+          'transition_boss_marker', 'temporary_curses']),
+        ('LevelGamePrefix', 'Game', ['stage', 'stage_type', 'raw_curses']),
+        ('Room', 'Room', ['frame_baseline', 'greed_wave_timer', 'floor_color', 'wall_color', 'water_amount',
+          'lava_intensity', 'render_scroll', 'water_start', 'water_multiplier_start', 'water_target',
+          'water_multiplier_target', 'water_lerp_duration_countdown']),
+        ('RoomDescriptor', 'Descriptor', ['spawn_seed'])]
+    rows = []
+    for name, root, names in groups:
+        plan = by_name[name]
+        fields = {f['name']: f for f in plan['fields']}
+        for key in names:
+            require(key in fields, name, '显示安装字段缺失: ' + key)
+            f = fields[key]
+            current_seed = name == 'RoomDescriptor' and key == 'spawn_seed' and f['operation'] == 'Convert' and f['host'] == 'room_descriptor_spawn_seed_read' and f['min_size'] == 0 and f['max_size'] == f['native_size'] == 4
+            require((f['operation'] == 'Copy' and f['min_size'] == f['max_size'] == f['native_size']) or current_seed, name+'.'+key,
+                    '纯值安装不再是等宽copy')
+            rows.append((root, plan['entry']['layout'], f['index'], f['native_offset'], f['native_size']))
+    body = ['// 只含可信布局的数字安装计划；网络不能提供偏移或原生函数。\n',
+            array('DisplayCopyPlan', 'kDisplayCopies', len(rows))]
+    for root, layout, field, offset, size in rows:
+        body.append(f'  {{DisplayRoot::{root}, {layout}, {field}, {offset}u, {size}u}},\n')
+    body.append('}};\n')
+    branch_names = {'normal': 'Normal', 'console_hold': 'ConsoleHold', 'pause_countdown': 'PauseCountdown',
+                    'game_over': 'GameOver', 'leaderboard': 'Leaderboard', 'stage_transition': 'StageTransition',
+                    'room_transition': 'RoomTransition', 'active_overlay': 'ActiveOverlay', 'generic_prompt': 'GenericPrompt',
+                    'unknown_ui_byte_24ecc': 'UnknownUiByte', 'secondary_fade': 'SecondaryFade',
+                    'pause_screen': 'PauseScreen', 'unknown_ui_word_24444': 'UnknownUiWord'}
+    constants = {c['name']: c for c in compiler.protocol_constants if c['domain'] == 'display_branch'}
+    require(len(constants) == len(branch_names), 'display_branch', '终结分支枚举须同步更新本地调度表')
+    require(constants.keys() == branch_names.keys(), 'display_branch', '终结分支名称须逐项对应本地调度表')
+    for key, name in branch_names.items():
+        constant = constants[key]
+        body.append(f'static_assert(std::uint8_t(ClientDisplayBranch::{name}) == {constant["value"]});\n')
+    for name in ['GameRun', 'RunSeeds', 'RunSeedEffectNode', 'Room', 'RoomShockwave', 'RoomHellBackdrop', 'SFXVolumeState']:
+        plan = by_name[name]
+        body.append(f'constexpr std::uint16_t kDisplay{name} = {plan["entry"]["layout"]};\n')
+        for f in plan['fields']:
+            body.append(f'constexpr std::uint16_t kDisplay{name}_{f["name"].replace("#", "_")} = {f["index"]};\n')
+    write(out / 'state_display_install.inc', ''.join(body))
+
+
+def emit_host_fields(plans, out):
+    """Host字段分派使用收缩后的数字索引；清单删字段不会留下旧手写序号。"""
+    body = ['// 需求清单收缩后的Host布局／字段索引，同源生成。\nnamespace host_field {\n']
+    for p in plans:
+        if not p['fields']:
+            continue
+        name = p['entry']['type']
+        body.append(f'namespace {name} {{ constexpr std::uint16_t kLayout={p["entry"]["layout"]};\n')
+        for f in p['fields']:
+            body.append(f'constexpr std::uint16_t {f["name"].replace("#", "_")}={f["index"]};\n')
+        body.append('}\n')
+    body.append('}\n')
+    write(out / 'state_host_fields.inc', ''.join(body))
 
 
 def emit_body_codec(compiler, plans, out, docs):
@@ -1123,7 +1278,8 @@ def emit_body_codec(compiler, plans, out, docs):
     disabled = [p for p in plans if not p['entry'].get('body_enabled', True)]
     body += [array('std::uint16_t', 'kBodyDisabledLayouts', len(disabled)),
              ','.join(str(p['entry']['layout']) for p in disabled) + '\n', '}};\n']
-    text_limits = {f['limit'] for p in plans for f in p['fields']
+    # 文字正文已退出需求，旧接口常量仍随参照源生成，直到事件队列替换它。
+    text_limits = {f['limit'] for p in compiler.reference_plans.values() for f in p['fields']
                    if f['source']['wire'].get('value_rule') == 'display-utf8'}
     require(len(text_limits) == 1, 'display-utf8', '显示文字须共用唯一字节预算')
     body.append(f'constexpr std::size_t kBodyDisplayTextBytes = {text_limits.pop()};\n')
@@ -1448,12 +1604,15 @@ def emit(compiler, plans, out, docs):
     header = '// 由 gen_state_layout.py 生成；只修改 mod/binding/state/*.json。\n'
     emit_grid_description(compiler, plans, out)
     emit_room_description(compiler, plans, out)
+    emit_display_install(compiler, plans, out)
+    emit_host_fields(plans, out)
     emit_body_codec(compiler, plans, out, docs)
-    emit_presentation_envelope(compiler, plans, out, docs)
-    emit_resource_protocol(compiler, plans, out, docs)
+    reference = sorted(compiler.reference_plans.values(), key=lambda p: p['entry']['layout'])
+
+    emit_resource_protocol(compiler, reference, out, docs)
     emit_state_protocol(compiler, plans, out, docs)
     emit_state_budget(compiler, plans, out, docs)
-    emit_hud_local(compiler, plans, out)
+    emit_demand(compiler, plans, docs)
     count_fields = sum(len(p['fields']) for p in plans)
     wire = [header, f"constexpr std::uint16_t kStateLayoutVersion ={integer(compiler.version['version'])};\n", array('Layout', 'kStateLayouts', len(plans))]
     capture = [header, array('CopyRange', 'kStateCopyRanges', sum(len(p['copies']) for p in plans))]
@@ -1481,7 +1640,8 @@ def emit(compiler, plans, out, docs):
         for m in e['members']:
             members.append(f'  {{{lid}, {quote(m["id"])}, {quote(m["disposition"])}, {quote(",".join(m.get("fields", [])))}, {quote(m["reason"])}}},\n')
         native_cells = [f'0x{r["offset"]:X} {r["type"]} {r["name"]}【{r["category"]}】{r["semantics"]}（{r["size"]}B；{r["status"]}）' for r in p['native_ranges']]
-        body = f'# {e["type"]}\n\n由唯一布局源生成。布局编号 {lid}；布局版本 {integer(compiler.version["version"])}；原生大小 0x{e["native_size"]:X}；未知 {p["unknown"]}B；完整：{"是" if p["complete"] else "否"}。\n\n'
+        body = f'# {e["type"]}\n\n由唯一布局源生成。布局编号 {lid}；布局版本 {integer(compiler.version["version"])}；原生大小 0x{e["native_size"]:X}；未知 {p["unknown"]}B；需求覆盖：{"完整" if p["complete"] else "未完成"}。\n\n'
+        body += '需求覆盖只表示清单字段已生成计划，不表示原生字节全部已知、Host/Client处理器已接通或第15步验收通过。旧成员映射与原生说明保留为参照，当前发送字段以下方状态表为准。\n\n'
         if prefix:
             body += '**范围仅为已核前缀，不是动态对象分配大小；具体对象仍需完整布局。**\n\n'
         if e.get('notes'):
@@ -1672,8 +1832,8 @@ def emit(compiler, plans, out, docs):
         selected = [p for p in plans if compiler.doc_steps[p['entry']['type']] == step]
         index += f'| [{title}]({step}/README.md) | {len(selected)} | {catalog_counts[step]} |\n'
         body = f'# {title}：生成布局\n\n[返回布局总索引](../README.md) · [对应总计划步骤](../../{plan_file})\n\n'
-        body += '按布局编号排列；共享类型通过引用复用，不重复生成。未知字节与完整标志只描述布局事实，不表示采集、应用或验收已完成。\n\n'
-        body += '| 类型 | 布局编号 | 原生字节 | 未知字节 | 完整 |\n|---|---|---|---|---|\n'
+        body += '按布局编号排列；共享类型通过引用复用，不重复生成。未知字节保留原生事实；需求覆盖只说明清单字段已生成计划，不表示采集、应用或验收已完成。\n\n'
+        body += '| 类型 | 布局编号 | 原生字节 | 未知字节 | 需求覆盖 |\n|---|---|---|---|---|\n'
         body += ''.join(f'| [{p["entry"]["type"]}]({p["entry"]["type"]}.md) | {p["entry"]["layout"]} | {p["entry"]["native_size"]} | {p["unknown"]} | {"是" if p["complete"] else "否"} |\n' for p in selected)
         step_indexes[step] = body
     # 汇总表和C++逐行表共用正式布局源；保留重复ID的公开名及原始签名以便人工阅读。
@@ -1716,6 +1876,7 @@ def emit(compiler, plans, out, docs):
     for step, body in step_indexes.items():
         write(docs / step / 'README.md', body)
     index += '\n旧证据路径仅保留 [EntitySaveState](EntitySaveState.md) 和 [GridEntityDesc](GridEntityDesc.md) 两个跳转页，正式表见对应步骤目录。\n'
+    index += '\n[需求清单覆盖与收缩统计](demand-coverage.md)；UNKNOWN仅作原生字节参照，不阻塞需求覆盖。\n'
     for name, step in DOC_LEGACY_PATHS.items():
         write(docs / (name + '.md'), f'# {name}：旧证据路径\n\n正式布局已归入 [{name}]({step}/{name}.md)。\n\n本页仅保留布局源中既有证据路径；原生字节归属、状态布局及未知项以正式表为准。\n')
     for old_name, name in DOC_RENAMED_TYPES.items():
@@ -1723,6 +1884,25 @@ def emit(compiler, plans, out, docs):
             step = compiler.doc_steps[name]
             write(docs / step / (old_name + '.md'), f'# {old_name}：旧布局名\n\n版本61起布局374收窄为 [{name}]({name}.md)，仅承接独立Boss versus；普通切房surface结果已取消。原版本定义见提交历史，不保留两套当前必发表达。\n')
     write(docs / 'README.md', index)
+
+
+def emit_demand(compiler, plans, docs):
+    """需求覆盖单独列出消费依据；不把历史目录全量回映射当作必须发送的要求。"""
+    before = sum(len(p['fields']) for p in compiler.reference_plans.values())
+    after = sum(len(p['fields']) for p in plans)
+    body = f'# 需求清单覆盖\n\n布局版本 {compiler.version["version"]}；唯一输入为 `mod/binding/state/demand.json`。\n\n'
+    body += f'域源参照含 {before} 个展开字段；需求计划保留 {after} 个。未列入的 wire 仅在生成内存中剥离，原生字节与成员映射保留全量参照。\n\n'
+    body += '整类型选择包含该展开类型的继承字段；按字段选择使用投影前名称。空块保留原编号并视为 reserved；空子块投影省略。resource_protocol 保留正式资源的编解码表；旧 presentation_envelope、hud_local 专用表已退役。\n\n'
+    body += '| 类型／布局 | 需求字段 | 生成索引 | 消费方或依据 |\n|---|---|---|---|\n'
+    for p in plans:
+        name = p['entry']['type']
+        for key, reason in compiler.demand_reasons.get(name, {}).items():
+            fields = [f for f in p['fields'] if f['name'].split('#', 1)[0] == key]
+            cells = [f'[{name} ({p["entry"]["layout"]})]({doc_path(compiler, name)})', key,
+                     ', '.join(f'{f["index"]}（块{f["block"]}）' for f in fields), reason]
+            body += '| ' + ' | '.join(v.replace('|', '\\|').replace('\n', ' ') for v in cells) + ' |\n'
+    body += '\n本表只报告构建期需求覆盖；运行采集、原生安装、显示与性能统一留到第15步验收。\n'
+    write(docs / 'demand-coverage.md', body)
 
 
 def catalog_doc_step(catalog, domain):

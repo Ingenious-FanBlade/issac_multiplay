@@ -55,40 +55,4 @@ int ClientMapStateCaptureLua(void *state){
     Integer(L,"width",config._i1);Integer(L,"height",config._i2);Integer(L,"icons",config._minimapIconNum);lua_rawseti(L,-2,i+1);}lua_setfield(L,-2,"configs");
   lua_createtable(L,2,0);for(unsigned i=0;i<2;++i){lua_pushinteger(L,unsigned(g_Game->_gameStateFlags>>(32*i)));lua_rawseti(L,-2,i+1);}lua_setfield(L,-2,"game_flags");return 1;
 }
-bool ClientCameraApply(void *pointer,const ClientCameraState &state) noexcept {
-  if(!IsMain()||!pointer)return false;auto &camera=*static_cast<Camera *>(pointer);
-  // 只安装已研究的数值区，保留构造器的 Room 指针与六个 ring 分配/容量。
-  for(unsigned i=0;i<5;++i){const auto &v=state.vectors[i];if(!std::isfinite(v.x)||!std::isfinite(v.y))return false;}
-  if(!std::isfinite(state.focus_tail.x)||!std::isfinite(state.focus_tail.y)||!std::isfinite(state.smoothing))return false;
-  auto *focus=Read<Vector *>(&camera,0x50);if(!focus||Read<int>(&camera,0x54)!=120)return false;
-  for(unsigned i=0;i<5;++i)Write(&camera,camera_offsets[i],Vector(state.vectors[i].x,state.vectors[i].y));
-  const int head=0,count=state.focus_present?1:0;Write(&camera,0x58,count);Write(&camera,0x5c,head);if(count)focus[0]=Vector(state.focus_tail.x,state.focus_tail.y);
-  camera._shouldOverride=state.overridden;Write(&camera,0x90,state.smoothing);return true;
 }
-bool ClientMinimapBuild(void *pointer,const std::vector<ClientMapDescriptor> &source,const ClientMapState &state,unsigned effective_curses) noexcept {
-  if(!IsMain()||!g_Game||pointer!=g_Game||source.size()>526||!ClientPersistenceBlocked())return false;auto &game=*g_Game;
-  // April's Fool 的原生地图 Refresh 会随机选当前标记；没有已裁决映射时显式保留该具体依赖。
-  if(game._challenge==32)return false;
-  // 缓冲先于借用 owner 存活，退出时先还原原生 header，再释放本方投影内存。
-  std::vector<std::vector<MapSavedProjection>> values;
-  struct Borrow final {
-    Game &game;std::uint64_t flags;unsigned curses,temporary;std::vector<std::pair<RoomDescriptor *,VectorHeader>> old;
-    ~Borrow(){for(auto &item:old)std::memcpy(&item.first->SavedEntities,&item.second,12);game._gameStateFlags=flags;game._curses=curses;Write(&game,0x25ac8,temporary);}
-  } borrow{game,game._gameStateFlags,game._curses,Read<unsigned>(&game,0x25ac8),{}};
-  try{
-    values.resize(source.size());borrow.old.reserve(source.size());unsigned total=0;
-    for(unsigned i=0;i<source.size();++i){auto *d=Descriptor(game,source[i]);if(!d||source[i].icons.size()>4096||(total+=unsigned(source[i].icons.size()))>65536)return false;
-      for(const auto &s:source[i].icons){MapSavedProjection item;item.type=s.type;item.variant=s.variant;item.subtype=s.subtype;item.storage3=s.storage3;item.x=s.position.x;item.y=s.position.y;values[i].push_back(item);}}
-    for(unsigned i=0;i<source.size();++i){auto *d=Descriptor(game,source[i]);VectorHeader previous;std::memcpy(&previous,&d->SavedEntities,12);borrow.old.push_back({d,previous});
-      auto &v=values[i];VectorHeader next{v.empty()?nullptr:v.data(),v.empty()?nullptr:v.data()+v.size(),v.empty()?nullptr:v.data()+v.size()};std::memcpy(&d->SavedEntities,&next,12);}
-    game._gameStateFlags=std::uint64_t(state.game_flags[0])|(std::uint64_t(state.game_flags[1])<<32);
-    game._curses=effective_curses;Write(&game,0x25ac8,0u);
-    for(unsigned i=0;i<2;++i){auto &c=game._minimap._config[i];const auto &s=state.configs[i];
-      c._vec1=Vector(s.anchor.x,s.anchor.y);c._borderPadding=Vector(s.padding.x,s.padding.y);c._posOffsetX=s.offset;c._borderScale=s.border_scale;
-      c._i1=s.width;c._i2=s.height;c._minimapIconNum=s.icons;c._size1=Vector(s.size1.x,s.size1.y);c._size2=Vector(s.size2.x,s.size2.y);c._alpha=s.alpha;}
-    // 已主审 965D60/9635B0：仅来源 descriptor/保存图标与原生 ANM/FBO 缓存；不调用 Game/Room Update。
-    // 外层 presentation RenderState 负责完整 target/shader/depth 恢复。
-    game._minimap.Refresh();return true;
-  }catch(...){return false;}
-}
-} // namespace cs::game

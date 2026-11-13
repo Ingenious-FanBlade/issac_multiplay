@@ -1,6 +1,7 @@
 #pragma once
 #include "state/body_codec.h"
 #include "state/wire_scope.h"
+#include "state/resource_local.h"
 
 namespace cs::state {
 // table与kind是不同编号空间。FFFF仅用于状态字段Null，不构成真实资源表项。
@@ -30,6 +31,8 @@ struct ResourceCodecScratch { BodyCodecScratch body; };
 // Client表owner复用资源唯一源的容量，不按旧目录或独立常量猜测图／内容上限。
 struct ResourceProtocolBounds {std::uint32_t entries=0,edges=0,directory_bytes=0,dependency_depth=0;};
 ResourceProtocolBounds StateResourceBounds() noexcept;
+// 后台在资源工作入队前解出最终本地准备输入；返回文本由调用者的原快照延寿。
+ResourceLocalDescription DescribeResourceLocal(const ResourceEntryView &,ResourceCodecScratch &);
 // 编码输入和输出不得重叠；失败区域不可发布。没有媒体blob或任意函数分派入口。
 ResourceEntryView DecodeResourceEntryPrefix(std::span<const std::byte>,ResourceCodecScratch &,ResourceCodecLimits={});
 std::span<const std::byte> EncodeResourceEntryInto(const ResourceEntryView &,std::span<std::byte>,ResourceCodecScratch &,ResourceCodecLimits={});
@@ -45,6 +48,8 @@ struct ResourceDirectoryView {
   std::span<const ResourceEntryView> entries, update;
 };
 const ResourceEntryView *FindResource(const ResourceDirectoryView &,ResourceKey) noexcept;
+// 供内嵌显示定义沿用正式资源目录的VFS路径合同。
+bool StateImagePathValid(std::span<const std::byte> encoded) noexcept;
 ResourceDirectoryView MergeResourceTableInto(const ResourceDirectoryView &,const ResourceTableView &,
     std::span<ResourceEntryView> storage,ResourceCodecScratch &,ResourceCodecLimits={});
 

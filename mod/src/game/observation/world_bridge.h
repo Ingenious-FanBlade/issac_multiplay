@@ -12,8 +12,6 @@
 #include "game/observation/sources/global_random.h"
 #include "game/observation/sources/random_sources.h"
 #include "world/common/live_consumer.h"
-#include "replica/stream_capture_worker.h"
-#include "replica/stream_config.h"
 
 namespace cs::game {
 class BinaryEntities;
@@ -31,20 +29,8 @@ struct WorldCapture final {
   std::unique_ptr<world::Collector> collector;
   world::observation::Service observation;
   world::observation::LiveConsumer live;
-  replica::stream::CaptureWorker stream;
-  replica::stream::RuntimeConfig stream_config;
-  // 候选只跨同一Manager的prepare→clock提交，正常收束后再次逐槽复核。
-  struct PendingBody final {world::PlayerPostWitness witness;capture::Source source;std::uint64_t invalidation=0;};
-  std::array<PendingBody,world::kControlAnchorCapacity> pending_bodies{};
-  std::uint64_t pending_body_bytes=0;
-  // 槽仅作当前绑定的本地索引；对外诊断同时给local/use/shape/binding，不将槽充当网络身份。
-  struct BodyStatus final {
-    std::uint64_t local=0,use=0,shape=0,binding=0,last_native_update_tick=0,last_capture_tick=0,ordinary=0,odd=0,not_updated=0,actual_updates=0,qualified_samples=0,throttled=0;
-    const char *reason="player_post_never_updated";
-  };
-  std::array<BodyStatus,world::kControlAnchorCapacity> body_status{};
-  std::uint64_t stream_invalidation=0;
-  // 资源代次只作为纯值身份；只读getter临时副本继承来源资源代次，不冒充世界owner。
+#ifdef ISAACCS_E2E
+  // E2E 对照资源代次只作为纯值身份；只读getter临时副本继承来源资源代次，不冒充世界owner。
   struct StreamResourceIdentity final {
     std::uint64_t generation=0;bool observed=false,temporary=false;
     // Lua按值返回的ANM保留真实copy来源；嵌套Reset完成后才能确认该别名。
@@ -52,8 +38,8 @@ struct WorldCapture final {
   };
   std::map<std::uint32_t,StreamResourceIdentity> stream_resources;
   std::uint64_t next_stream_resource=0;
-  std::uint64_t stream_resource_mutation=0,stream_read_resource_mutation=0;
   unsigned stream_resource_depth=0;
+#endif
   world::observation::PublicationQueue publications{ledger};
   std::uint64_t session_key=0,epoch=0;
   std::array<std::uint64_t,13> pending_scopes{};
@@ -108,7 +94,6 @@ struct WorldCapture final {
   void ConnectSources() noexcept;
   void SetConsumers(bool formal,bool recorder) noexcept;
   world::observation::RequestResult SetLiveConsumer(bool active) noexcept;
-  world::observation::RequestResult UpdateLiveCapturePlan(world::observation::CapturePlan plan) noexcept;
 };
 // 旧 C++ 桥名字只作源码适配；实际身份寿命属于采集服务，不再属于录制器。
 using WorldRecording=WorldCapture;
@@ -123,12 +108,7 @@ void StopWorldRecording() noexcept;
 std::shared_ptr<WorldRecording> CurrentWorldRecording() noexcept;
 bool WorldCaptureActive() noexcept;
 // 仅主线程取共享自有值；后台持有返回值不延长任何游戏对象/Lua借用。
-std::shared_ptr<const world::observation::LiveBatch> CurrentLiveCapture() noexcept;
 std::array<std::uint64_t,4> CurrentLiveSource() noexcept;
-std::shared_ptr<const replica::stream::Publication> CurrentLiveWorld() noexcept;
-std::shared_ptr<const replica::stream::Publication> CurrentLiveBaseline() noexcept;
-bool RequestLiveBaseline() noexcept;
-std::vector<std::shared_ptr<const replica::stream::Publication>> CurrentLiveBodies();
 void WorldFrameBegin(std::uint64_t loop) noexcept;
 void WorldPreparePostState(bool normal) noexcept;
 core::TickPostState WorldPostState(std::uint64_t tick) noexcept;

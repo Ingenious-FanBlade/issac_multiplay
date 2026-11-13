@@ -312,7 +312,7 @@ private:
         // 固定关系数组逐引用观察闭包，保留字段路径；每个节点仍恰好一个u16。
         for(std::uint16_t component=0;component<plan.components;++component)
           scratch_.observer->Node({std::span(node_path_).first(depth_+1),0,operation,plan.table,
-            value.subspan(std::size_t(i)*stride+std::size_t(component)*2,2)});
+            value.subspan(std::size_t(i)*stride+std::size_t(component)*2,2),component});
         continue;
       }
       scratch_.observer->Node({std::span(node_path_).first(depth_+1),0,operation,plan.table,
@@ -441,6 +441,21 @@ private:
     if (scratch_.root_field_count>=scratch_.root_fields.size()) throw BodyScratchError(BodyScratchRegion::RootFields,scratch_.root_field_count+1,std::uint32_t(scratch_.root_fields.size()));
     scratch_.root_fields[scratch_.root_field_count++]={field.index,field.block,present,bytes};
   }
+  // 观察器只看已校验的本地边界；字段尾回调仍不授权任何原生副作用。
+  void ObserveField(const Field &field,const BodyFieldPlan &plan,bool present,std::span<const std::byte> bytes) {
+    if(!scratch_.observer)return;
+    if(depth_>=node_path_.size())Fail(field,"field_node_depth_budget");
+    node_path_[depth_]={field.layout,field.index,kNullIndex,0};
+    BodyFieldNodeView value{std::span(node_path_).first(depth_+1),bytes,present?1u:0u,0,present,present};
+    if(present&&field.operation==Operation::Container)
+      value.elements=field.fixed_count?field.fixed_count:std::uint32_t(Bits(bytes.first(field.count_bytes)));
+    if(present&&field.operation==Operation::Choice){value.slot_mask=std::uint32_t(Bits(bytes.first(1)));value.elements=std::popcount(value.slot_mask);}
+    if(present&&plan.storage==BodyStorage::SharedOwner){
+      const auto known=PriorPresence(field,plan);if(!known)throw BodyDependencyError(BodyDependency::SharedPresence,field.layout,field.index);
+      value.payload_present=*known;value.elements=*known?1u:0u;
+    }
+    scratch_.observer->Field(value);
+  }
   // 同一递归实例独占selector缓存；块号、条件和长度均由可信计划决定，失败不交付视图。
   void Walk(const Layout &layout,std::uint32_t mask,BodyStream stream,BodyView *root) {
     Visit();
@@ -457,6 +472,7 @@ private:
         const auto &plan=kBodyFieldPlans[layout.first_field+i];
         if (!Condition(field,plan,values)) {
           if (root) RootField(field,false,{});
+          ObserveField(field,plan,false,{});
           continue;
         }
         const auto field_begin=position_;
@@ -478,6 +494,7 @@ private:
         if (size<field.min_size || size>field.max_size) Fail(field,"field_byte_budget");
         values[i]={Bytes().subspan(field_begin,size),true};
         if (root) RootField(field,true,values[i].bytes);
+        ObserveField(field,plan,true,values[i].bytes);
       }
       const auto size=position_-block_begin;
       if (size<b.min_size || size>b.max_size) Fail("block_byte_budget");

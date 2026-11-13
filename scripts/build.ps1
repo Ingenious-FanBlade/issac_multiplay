@@ -41,24 +41,15 @@ Copy-Item -LiteralPath (Join-Path (Join-Path $repoRoot $buildTree) 'generated/ho
 Copy-Item -LiteralPath (Join-Path (Join-Path $repoRoot $buildTree) 'generated/hook-manifest.md') -Destination (Join-Path $buildOutput 'hook-manifest.md')
 # tx-04-08：布局清单（字段偏移/来源/RTTI/常量）与 Hook 清单一同落到产物目录。
 Copy-Item -LiteralPath (Join-Path (Join-Path $repoRoot $buildTree) 'generated/world-layout.json') -Destination (Join-Path $buildOutput 'world-layout.json')
-Copy-Item -LiteralPath (Join-Path (Join-Path $repoRoot $buildTree) 'generated/replication-catalog.json') -Destination (Join-Path $buildOutput 'replication-catalog.json')
-Copy-Item -LiteralPath (Join-Path (Join-Path $repoRoot $buildTree) 'generated/room-grid-application.json') -Destination (Join-Path $buildOutput 'room-grid-application.json')
-Copy-Item -LiteralPath (Join-Path (Join-Path $repoRoot $buildTree) 'generated/entity-application.json') -Destination (Join-Path $buildOutput 'entity-application.json')
-# Player目录与嵌入DLL来自同一构建树；E2E生成物不能覆盖正式发布目录。
-Copy-Item -LiteralPath (Join-Path (Join-Path $repoRoot $buildTree) 'generated/player-application.json') -Destination (Join-Path $buildOutput 'player-application.json')
-# 实时逐成员目录与嵌入DLL同源，构建本身仍不运行codec或游戏测试。
-Copy-Item -LiteralPath (Join-Path (Join-Path $repoRoot $buildTree) 'generated/stream-catalog.json') -Destination (Join-Path $buildOutput 'stream-catalog.json')
 # 必需许可证跟随静态zstd发布；不需要另装zstd.dll。
 Copy-Item -LiteralPath (Join-Path $repoRoot 'mod/third_party/zstd/LICENSE') -Destination (Join-Path $buildOutput 'zstd-LICENSE.txt')
 if($E2E){
     $fixtureOutput=Join-Path $buildOutput 'isaac-cs-test'
     Copy-BuildTree (Join-Path $repoRoot 'tests/e2e-mods/isaac-cs-test') $fixtureOutput
+    # 只在 E2E 包加载原版内容的 Lua 对照。
+    Copy-BuildTree (Join-Path $repoRoot 'mod/observation/isaac-cs-observation') (Join-Path $buildOutput 'isaac-cs-observation')
 }
 
-# 正式观察 Lua 作为产品资源单独打包，测试夹具与 Rust 不混入模组目录。
-$observationOutput=Join-Path $buildOutput 'isaac-cs-observation'
-Copy-BuildTree (Join-Path $repoRoot 'mod/observation/isaac-cs-observation') $observationOutput
-Copy-Item -LiteralPath (Join-Path (Join-Path $repoRoot $buildTree) 'generated/stream_policy.lua') -Destination (Join-Path $observationOutput 'domains/common/stream_policy.lua') -Force
 $completedFiles=@()
 foreach($file in Get-ChildItem -LiteralPath $buildOutput -File){$completedFiles+=@{name=$file.Name;bytes=$file.Length;modified_utc=$file.LastWriteTimeUtc.ToString('o')}}
 @{format='isaac.cs.build.complete';version=1;flavor=if($E2E){'e2e'}else{'product'};files=$completedFiles;completed_utc=[DateTime]::UtcNow.ToString('o')} | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $buildReceipt -Encoding utf8

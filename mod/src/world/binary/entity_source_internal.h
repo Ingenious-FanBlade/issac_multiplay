@@ -14,13 +14,12 @@ enum class EntityRead : std::uint8_t {
   Membership,Roster,Group,Role,Control,DrawPresent,Vector,String,Fixed,Layers,LayerFrames,NullFrames,
   Deque,Rope,Trail,Ghost,Shared,Plus,Spoofs,Tree,Blocked,Innate,Weapon,DrawNode,DrawSprite,TrinketPresence,
   GridWater,Glitch,RockPose,RockPosition,RockRubble,RockAnimation,FireEmbers,DoorAlpha,DoorLight,Inline,
-  Scene,RoomConfig,Run,Presentation
+  Scene,RoomConfig,Run,Presentation,Display
 };
 enum class NativeSequence : std::uint32_t { Contiguous, Owned, Addresses, Weapon };
 EntityRead GridRecipe(std::string_view) noexcept;
 EntityRead SceneRecipe(std::string_view) noexcept;
 EntityRead RunRecipe(std::string_view) noexcept;
-EntityRead PresentationRecipe(const Field &) noexcept;
 // 仅保存读取过的具名小头和字段，close按原地址复读；未知负载不进入证言。
 struct NativeReadWitness {std::uint32_t address=0;std::uint8_t size=0;std::array<std::byte,32> bytes{};};
 struct NativeWeaponSlot {std::uint32_t address=0,extent=0;std::uint16_t layout=0;};
@@ -30,13 +29,6 @@ const NativeWeaponContract *WeaponContract(std::uint32_t type) noexcept;
 struct NativeTopology {CaptureSubject subject;std::uint32_t revision=0,ordinary=0,size=0;};
 struct NativeSpriteDependency {std::uint32_t address=0;std::uint64_t local=0,use=0;std::uint16_t space=0;};
 struct NativeConfigOwner {std::uint32_t address=0;std::uint64_t run=0,owner=0;};
-// 当前Room根的一次纯值光照投影；颜色保持真实空间标签，不保存原生地址或渲染器句柄。
-struct NativeLighting {
-  std::array<std::uint32_t,5> shadow{},tint{};
-  float alpha=0,lightning=0;
-  std::uint8_t mask=0,special=0;
-};
-struct NativeSurface {std::uint32_t image=0;std::uint64_t resource=0;};
 struct NativeHistoryGlyph {std::int32_t visual=0;CaptureLink image{CapturedReferenceKind::Null,0};};
 
 struct EntitySource::Impl {
@@ -65,15 +57,6 @@ struct EntitySource::Impl {
   std::uint16_t root_layout=0;
   std::uint32_t scene_scan_remaining=262144;
   bool map_ready=false;
-  bool lighting_ready=false;
-  NativeLighting lighting;
-  std::vector<NativeSurfaceOperation> surface_operations;
-  std::array<NativeSurface,4> surfaces{};
-  std::uint32_t production_owner=0,production_descriptor=0,production_depth=0,surface_used=0,surface_target=0;
-  std::array<std::uint32_t,4> surface_geometry{};
-  NativeSurfaceOperation pending_surface;
-  std::uint32_t pending_vertices=0,pending_stride=0,pending_native_image=0;
-  bool production_read=false,production_valid=false,surface_valid=false,surface_dirty=false,pending_image=false;
   std::uint16_t map_mask=0;
   std::array<std::uint8_t,16> map_frames{};
   bool active=false;
@@ -111,24 +94,15 @@ struct EntitySource::Impl {
   bool SceneLeaf(const CaptureFieldAccess &,CaptureValueWriter &,CaptureDiagnostic &) noexcept;
   bool SceneOpen(const CaptureFieldAccess &,CaptureTraversalSource &,CaptureDiagnostic &) noexcept;
   bool RunLeaf(const CaptureFieldAccess &,CaptureValueWriter &,CaptureDiagnostic &) noexcept;
-  bool PresentationLeaf(const CaptureFieldAccess &,CaptureValueWriter &,CaptureDiagnostic &) noexcept;
-  bool PresentationOpen(const CaptureFieldAccess &,CaptureTraversalSource &,CaptureDiagnostic &) noexcept;
-  bool HudIcon(const CaptureFieldAccess &,std::uint8_t &,CaptureDiagnostic &) noexcept;
-  bool HistoryGlyphs(const CaptureFieldAccess &,CaptureTraversalSource &,CaptureDiagnostic &) noexcept;
+  bool RunOpen(const CaptureFieldAccess &,CaptureTraversalSource &,CaptureDiagnostic &) noexcept;
+  const DisplayFieldValue *DisplayValue(const CaptureFieldAccess &,CaptureDiagnostic &) noexcept;
+  bool DisplayLeaf(const CaptureFieldAccess &,CaptureValueWriter &,CaptureDiagnostic &) noexcept;
+  bool DisplayOpen(const CaptureFieldAccess &,CaptureTraversalSource &,CaptureDiagnostic &) noexcept;
+  bool DisplayElement(const CaptureFieldAccess &,const CaptureTraversalSource &,std::uint16_t,CaptureRoot &,CaptureDiagnostic &) noexcept;
   bool SavedMapIcons(std::uint32_t,std::uint16_t &,std::array<std::uint8_t,16> &,CaptureDiagnostic &) noexcept;
-  bool WaterShader(std::array<std::uint32_t,8> &,CaptureDiagnostic &) noexcept;
   bool NamedAnimation(std::uint32_t,std::string_view,std::uint32_t &,CaptureDiagnostic &) noexcept;
   bool WaveSpriteMask(std::uint32_t &,CaptureDiagnostic &) noexcept;
-  bool Lighting(CaptureDiagnostic &) noexcept;
-  bool QualifiedPlayer(std::uint32_t,CaptureDiagnostic &) noexcept;
-  bool LightingCollectible(std::uint32_t,std::int32_t,bool &,CaptureDiagnostic &,unsigned depth=0,bool spoof=true) noexcept;
-  bool NativeCounter(std::uint32_t,std::int32_t,std::int32_t &,CaptureDiagnostic &) noexcept;
   bool ImageGeometry(std::uint32_t,std::array<std::uint32_t,4> &,CaptureDiagnostic &) noexcept;
-  bool ProgramImage(std::uint32_t,CaptureLink &,CaptureDiagnostic &) noexcept;
-  bool FlushSurface(CaptureDiagnostic &) noexcept;
-  bool SealSurface(CaptureDiagnostic &) noexcept;
-  bool BackdropBindings(std::array<std::array<std::uint32_t,2>,7> &,std::uint32_t &,CaptureDiagnostic &) noexcept;
-  bool Wave(unsigned,std::array<float,4> &,bool &,CaptureDiagnostic &) noexcept;
   std::uint32_t FindTopology(CaptureSubject) const noexcept;
 };
 inline std::uint32_t NativeAddress(std::span<std::byte> b) noexcept {return std::uint32_t(reinterpret_cast<std::uintptr_t>(b.data()));}

@@ -70,9 +70,9 @@ struct Worker::State {
   live::EncodingCache *encoding_cache=nullptr;
   Latest<live::Publication> publications;
   std::shared_ptr<const live::Publication> current_publication;
-  std::atomic<bool> baseline_requested{false};
   std::atomic<std::uint64_t> uplink_wire{0},uplink_blocks{0};
   std::atomic<unsigned> publication_phase{0};
+  std::array<std::atomic<std::uint64_t>,6> binary_progress{};
   std::atomic<bool> stream_stale{false};
   replica::stream::MetricsMailbox stream_metrics,encoder_metrics;
   std::uint64_t metrics_at=0;
@@ -530,12 +530,13 @@ struct Worker::State {
         SendGame(game_peer->Progress(heartbeat),now);
         game_peer->Pump(now,*encoding_cache,[&](auto bytes){Packet packet{};packet.size=bytes.size();std::copy(bytes.begin(),bytes.end(),packet.bytes.begin());if(SendPacket(packet,now))return replica::stream::SendResult::Sent;return terminal.load(std::memory_order_acquire)==TerminalReason::InternalFailure?replica::stream::SendResult::Failed:replica::stream::SendResult::WouldBlock;});
         publication_phase.store(game_peer->PublicationPhase(),std::memory_order_relaxed);
+        const auto binary=game_peer->StateProgress();const std::array<std::uint64_t,6> progress{binary.world,binary.body,binary.events,binary.dropped_capacity,binary.dropped_expired,binary.unmatched_acks};
+        for(unsigned i=0;i<progress.size();++i)binary_progress[i].store(progress[i],std::memory_order_relaxed);
         stream_stale.store(game_peer->Stale());
         if(now>=metrics_at){stream_metrics.Publish(game_peer->Metrics());encoder_metrics.Publish(encoding_cache->Statistics());metrics_at=now+50;}
         if(stream_status_mutex.try_lock()){stream_transfer=game_peer->TransferStatus();stream_limits=game_peer->EffectiveLimits();stream_fast_limits=game_peer->EffectiveFastLimits();stream_status_mutex.unlock();}
         const auto &stats=game_peer->OperationStatistics();const std::array<std::uint64_t,4> counters{stats.retransmissions,stats.cancellations,stats.completed,stats.failed};for(unsigned i=0;i<4;++i)operation_statistics[i].store(counters[i],std::memory_order_relaxed);
         if(!game_peer->FirstFailure().empty())ReplicationFailure(game_peer->FirstFailure().c_str());
-        if(game_peer->RequestBaseline())baseline_requested.store(true,std::memory_order_release);
       } catch(const std::exception &error){ReplicationFailure(error.what());Finish(ByeReason::InternalFailure,Error::Payload);}
       catch (...) {ReplicationFailure("live_network_exception");Finish(ByeReason::InternalFailure,Error::Payload);}
       return;
@@ -612,12 +613,12 @@ struct Worker::State {
            terminal.load(std::memory_order_acquire) == TerminalReason::None) {
       const auto now = GetTickCount64();
       if(auto update=publications.Take())current_publication=std::move(update);
+      bool binary_transferred=true;
       for (unsigned offset = 0; offset < peers.size()-1; ++offset) {
         const unsigned i=1+(round_robin+offset)%(peers.size()-1);
         auto &p = *peers[i];
-        if(p.baseline_requested.exchange(false,std::memory_order_acq_rel))baseline_requested.store(true,std::memory_order_release);
         if (p.terminal.load(std::memory_order_acquire) != TerminalReason::None){if(now-p.terminal_at_ms.load(std::memory_order_relaxed)<2000)p.ServiceGameEnd(now);continue;}
-        if(p.game_peer&&current_publication){try{p.game_peer->Offer(*current_publication,now);}catch(...){p.Finish(ByeReason::InternalFailure,Error::Payload);}}
+        if(p.game_peer&&current_publication){try{binary_transferred=p.game_peer->Offer(*current_publication,now)&&binary_transferred;}catch(...){binary_transferred=false;p.Finish(ByeReason::InternalFailure,Error::Payload);}}
         const auto requested = p.stop.load(std::memory_order_acquire);
         const bool timed_out = p.game_peer ? p.game_peer->LastReceive() && now-p.game_peer->LastReceive()>=config.peer_timeout_ms : p.endpoint.TimedOut(now);
         if (requested || timed_out) {
@@ -639,6 +640,9 @@ struct Worker::State {
                                   std::memory_order_release);
         }
       }
+      // 当前全部存活游戏Peer均已复制，才归还ordinary采集票据；工具Peer不消费世界事件。
+      if(binary_transferred&&current_publication&&current_publication->binary_ordinary)
+        current_publication->binary_ordinary->events_transferred.store(1,std::memory_order_release);
       round_robin=(round_robin+1)%(peers.size()-1);
       fd_set reads;
       FD_ZERO(&reads);
@@ -841,9 +845,8 @@ bool Worker::QueueAck(const protocol::Ack &ack) noexcept {
 }
 bool Worker::PublishWorld(std::shared_ptr<const live::Publication> publication) noexcept {
   if(!state_||state_->stop.load(std::memory_order_acquire))return false;
-  try{if(!publication)publication=std::make_shared<const live::Publication>();state_->publications.Put(std::move(publication));return true;}catch(...){state_->baseline_requested.store(true,std::memory_order_release);return false;}
+  try{if(!publication)publication=std::make_shared<const live::Publication>();state_->publications.Put(std::move(publication));return true;}catch(...){return false;}
 }
-bool Worker::NeedsBaseline() noexcept {return state_&&state_->baseline_requested.exchange(false,std::memory_order_acq_rel);}
 bool Worker::TryReceive(ReceivedInput &input, unsigned ordinal) noexcept {
   if (!state_ || !ordinal || ordinal >= core::kMaximumParticipants)
     return false;
@@ -910,6 +913,8 @@ WorkerStatus Worker::Status(unsigned ordinal) const noexcept {
   {std::lock_guard lock(s.stream_status_mutex);result.stream_transfer=s.stream_transfer;result.stream_limits=s.stream_limits;result.stream_fast_limits=s.stream_fast_limits;}
   result.uplink_packets=s.uplink_packets.load();result.uplink_payload_bytes=s.uplink_payload.load();result.uplink_bundle_messages=s.uplink_messages.load();
   result.publication_phase=s.publication_phase.load(std::memory_order_relaxed);
+  result.binary_world_ack=s.binary_progress[0].load();result.binary_body_ack=s.binary_progress[1].load();result.binary_event_ack=s.binary_progress[2].load();
+  result.binary_event_dropped_capacity=s.binary_progress[3].load();result.binary_event_dropped_expired=s.binary_progress[4].load();result.binary_unmatched_acks=s.binary_progress[5].load();
   result.operation_retransmissions=s.operation_statistics[0].load(std::memory_order_relaxed);result.operation_cancellations=s.operation_statistics[1].load(std::memory_order_relaxed);result.operation_completed=s.operation_statistics[2].load(std::memory_order_relaxed);result.operation_failed=s.operation_statistics[3].load(std::memory_order_relaxed);
   if(s.have_replication_failure.load(std::memory_order_acquire))result.replication_first_failure=s.replication_first_failure;
   result.uplink_wire_bytes=s.uplink_wire.load(std::memory_order_relaxed);result.uplink_budget_blocks=s.uplink_blocks.load(std::memory_order_relaxed);for(unsigned i=0;i<4;++i){result.uplink_lane_bytes[i]=s.uplink_lanes[i].load(std::memory_order_relaxed);result.uplink_lane_packets[i]=s.uplink_lane_packets[i].load();}

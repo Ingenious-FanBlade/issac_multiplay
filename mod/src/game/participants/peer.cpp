@@ -4,6 +4,7 @@
 #include "game/authority/state.h"
 #include "game/authority/tick.h"
 #include "game/observation/world_bridge.h"
+#include "game/observation/binary_entities.h"
 #include "net/live.h"
 #include "replica/stream_e2e.h"
 #include "runtime.h"
@@ -223,11 +224,15 @@ void PublishPeer(SessionRuntime &r) noexcept {
     return;
   // 世界发布失败只撤复制来源；输入scheduler与Authority提交不等待编码或网络。
   try {
-    if(r.network.NeedsBaseline())RequestLiveBaseline();
     auto publication=std::make_shared<net::live::Publication>();
     publication->source=CurrentLiveSource();
-    publication->baseline=CurrentLiveBaseline();publication->latest=CurrentLiveWorld();
-    publication->bodies=CurrentLiveBodies();r.network.PublishWorld(std::move(publication));
+    if(const auto capture=CurrentWorldRecording();capture&&capture->binary_entities){
+      publication->binary=capture->binary_entities->Publication();publication->binary_ordinary=capture->binary_entities->OrdinaryPublication();
+      const auto current=[&](const state::HostStateSnapshotRef &value){return value&&value->witness.scope.session==publication->source[0]&&value->witness.generation==publication->source[1]&&
+        value->witness.scope.run==publication->source[2]&&value->witness.scope.room==publication->source[3];};
+      if(!current(publication->binary))publication->binary.reset();if(!current(publication->binary_ordinary))publication->binary_ordinary.reset();
+    }
+    r.network.PublishWorld(std::move(publication));
   }catch(...){r.network.PublishWorld({});}
   std::uint32_t roster = 0;
   for (unsigned i = 0; i < core::kMaximumParticipants; ++i)

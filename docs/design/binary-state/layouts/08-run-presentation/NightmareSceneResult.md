@@ -1,6 +1,8 @@
 # NightmareSceneResult
 
-由唯一布局源生成。布局编号 375；布局版本 71；原生大小 0x0；未知 0B；完整：否。
+由唯一布局源生成。布局编号 375；布局版本 75；原生大小 0x0；未知 0B；需求覆盖：完整。
+
+需求覆盖只表示清单字段已生成计划，不表示原生字节全部已知、Host/Client处理器已接通或第15步验收通过。旧成员映射与原生说明保留为参照，当前发送字段以下方状态表为准。
 
 具名显示结果合同（接线声明，不表示运行实现）：
 
@@ -14,12 +16,12 @@
 | 纯C/S协议记录：没有原生对象字节，不得向游戏地址加偏移 |
 |---|
 
-状态二进制布局（总计 1—5066755B，不含第 9 步记录头）：
+状态二进制布局（总计 0—0B，不含第 9 步记录头）：
 
-块 0：NightmareSceneResult具名当前结果（world，1—5066755B）：
+块 0：NightmareSceneResult具名当前结果（world，0—0B）：
 
-| +0x0 u8（C/S自有元数据，无原生偏移） present：Host已确认该共享显示实例有效；0不读旧payload，来源未闭合不是0。 | +0x1 u16 count + count×PresentationSpriteContribution（上限512）（C/S自有元数据，无原生偏移）（仅nightmare_scene_result_present_present__1(present)成立时存在） sprites：正常有序最终Sprite贡献；逐layer／track／分支完整。 | 顺序变长偏移 u16 count + count×PresentationImageContribution（上限4096）（C/S自有元数据，无原生偏移）（仅nightmare_scene_result_present_present__1(present)成立时存在） images：正常有序图像／遮罩／道具贡献及实际内容。 |
-|---|---|---|
+| 无发送字节：显式预留块 |
+|---|
 
 证据：
 

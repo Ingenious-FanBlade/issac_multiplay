@@ -1,6 +1,8 @@
 #pragma once
 #include "net/worker.h"
 #include "net/stream_session.h"
+#include "state/host_publish.h"
+#include "state/client_receive.h"
 #include <memory>
 
 namespace cs::net::live {
@@ -20,7 +22,6 @@ struct Event final {
     Progress,
     TickProgress,
     InputAck,
-    World,
     Control,
     Stopped,
     Failed
@@ -48,61 +49,53 @@ struct Publication final {
   // 采集会话/epoch/run/room是主线程核对的连续性键，不含原生地址。
   // 同一键下暂缺新候选不等于撤销已交付网络的历史目标；全零表示明确退休。
   std::array<std::uint64_t,4> source{};
-  std::shared_ptr<const stream::Publication> baseline, latest;
-  std::vector<std::shared_ptr<const stream::Publication>> bodies;
+  state::HostStateSnapshotRef binary,binary_ordinary;
 };
 class HostPeer final {
 public:
   HostPeer(std::uint64_t session, unsigned ordinal, stream::RuntimeConfig config={});
+  ~HostPeer();
   bool Receive(std::span<const std::uint8_t>, std::uint64_t, ReceivedInput &, const HostIdentity &);
   Packets Reply();
   Packets Progress(const protocol::Ack &);
   Packets Bye(const char *);
   Packets Reject(const char *);
-  void Offer(const Publication &, std::uint64_t now);
+  bool Offer(const Publication &, std::uint64_t now);
   unsigned Pump(std::uint64_t now, EncodingCache &, const stream::ReliableSender::Send &);
   std::uint64_t NextWake(std::uint64_t now) const noexcept;
-  const stream::Metrics &Metrics() const noexcept {return publication_.Statistics();}
-  const stream::TransferStatistics &TransferStatus() const noexcept {return publication_.TransferStatus();}
+  const stream::Metrics &Metrics() const noexcept {return metrics_;}
+  const stream::TransferStatistics &TransferStatus() const noexcept;
   replica::Limits EffectiveLimits() const noexcept {return route_.world_limits;}
   replica::Limits EffectiveFastLimits() const noexcept {return route_.fast_limits;}
-  bool Stale() const noexcept {return publication_.Stale();}
-  bool Initializing() const noexcept { return publication_.Initializing(); }
+  bool Stale() const noexcept;
+  bool Initializing() const noexcept;
   bool OwnsPacket(std::span<const std::uint8_t>) const noexcept;
   bool NetworkSettled() const noexcept { return operations_.Settled(); }
-  unsigned PublicationPhase() const noexcept { return unsigned(publication_.State()); }
+  unsigned PublicationPhase() const noexcept;
+  struct BinaryProgress {std::uint32_t world=0,body=0;std::uint64_t events=0,dropped_capacity=0,dropped_expired=0,unmatched_acks=0;};
+  BinaryProgress StateProgress() const noexcept;
   const Operations::Statistics &OperationStatistics() const noexcept {
     return operations_.Status();
   }
-  const std::string &FirstFailure() const noexcept {
-    if(!first_failure_.empty())return first_failure_;
-    return operations_.Failure().empty() ? publication_.Failure() : operations_.Failure();
-  }
-  bool RequestBaseline() noexcept {
-    const auto value = resync_;
-    resync_ = false;
-    return value;
-  }
+  const std::string &FirstFailure() const noexcept {return operations_.Failure();}
   bool Established() const noexcept { return established_; }
   bool Stopped() const noexcept { return stopped_; }
   std::uint64_t LastReceive() const noexcept { return last_receive_; }
   std::uint64_t Nonce() const noexcept { return nonce_; }
 
 private:
+  // 保留现有状态输出的数字顺序。
+  enum class PublicationPhaseValue { WaitingWorld, Preparing, Baseline, WaitingApplied, Active, Recovering, Stopped };
+  stream::Metrics metrics_;
+  struct Binary;std::unique_ptr<Binary> binary_;
   stream::Reassembler assembler_{Limits()};
   stream::Route route_;
   replica::Scope scope_{};
   Operations operations_;
-  PublicationSender publication_;
   std::array<std::uint64_t,4> source_{};
   unsigned ordinal_;
   stream::RuntimeConfig config_;
-  unsigned native_failures_=0;
-  std::uint64_t recovery_started_=0;
-  bool recovering_=false;
-  std::string first_failure_;
-  void RequestRecovery(const char *,std::uint64_t,bool native=false);
-  bool established_ = false, stopped_ = false, reply_ = false, resync_ = false, ending_ = false;
+  bool established_ = false, stopped_ = false, reply_ = false, ending_ = false;
   std::uint64_t nonce_ = 0, server_nonce_ = 0, transfer_ = 0, control_ = 0, roster_ = 0,
                 timing_ = 0, last_receive_ = 0, client_control_ = 0, roster_at_ = 0, timing_at_ = 0,
                 echo_client_ms_ = 0, echo_server_ms_ = 0, prepare_sequence_ = 0,prepare_generation_=0;
@@ -123,11 +116,12 @@ public:
   ~Client();
   Client(const Client &) = delete;
   Client &operator=(const Client &) = delete;
-  const char *Start(const std::string &, std::uint16_t, std::uint32_t, stream::RuntimeConfig config={}) noexcept;
+  const char *Start(const std::string &, std::uint16_t, std::uint32_t, stream::RuntimeConfig config={},
+      std::shared_ptr<const state::ClientStatePreparation> binary={},
+      std::shared_ptr<state::ClientStateMemory> binary_memory={}) noexcept;
   bool Send(const Intent &) noexcept;
   void RevokeInput() noexcept;
   // 停止旧世界接纳并撤输入；恢复请求须等主线程真实安全退休后另外排入。
-  bool SuspendWorld() noexcept;
   stream::Metrics Metrics() const noexcept;
   stream::Metrics TransmitMetrics() const noexcept;
   stream::TransferStatistics TransferStatus() const noexcept;
@@ -135,8 +129,13 @@ public:
   replica::Limits EffectiveFastLimits() const noexcept;
   bool Poll(Event &) noexcept;
   bool PollWorld(Event &) noexcept;
+  // 二进制邮箱与旧Range完全分开；主线程只消费不可变批次／资源工作并回报原票据。
+  bool PollBinary(state::ClientStateApplyBatchRef &) noexcept;
+  bool PollBinaryResource(state::ClientStateResourceJob &) noexcept;
+  bool CompleteBinary(const state::ClientStateApplyCompletion &) noexcept;
+  bool CompleteBinaryResource(const state::ClientResourcePreparationTicket &,state::ClientResourceState) noexcept;
+  bool RecoverBinary(const state::StateRoute &,state::StateResyncReason) noexcept;
   // 主线程完成准备/原生操作后才发布结果；接收线程从不自行生成AppliedAck。
-  bool SendControl(std::shared_ptr<const stream::Message>) noexcept;
   bool Prepare(const Event &) noexcept;
   bool Complete(const Event &, OperationStage, const char *reason) noexcept;
   void Stop() noexcept;
