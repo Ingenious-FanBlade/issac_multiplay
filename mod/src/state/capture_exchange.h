@@ -20,7 +20,7 @@ struct CaptureExchangeConfig {
   CaptureCapacity ordinary_capacity;
 };
 struct CaptureExchangeStats {
-  std::uint32_t published=0,replaced=0,revoked=0,joint_requests=0;
+  std::uint32_t published=0,replaced=0,revoked=0;
   bool failed=false;
   CaptureFailure failure=CaptureFailure::None;
 };
@@ -62,6 +62,7 @@ public:
     bool Current() const noexcept;
     void Reset() noexcept;
     std::uint32_t ColdRequest() const noexcept {return key_.cold_request;}
+    std::uint64_t QueuedMicros() const noexcept;
   private:
     friend class CaptureExchange;
     ReadTicket(std::shared_ptr<State>,Key) noexcept;
@@ -80,7 +81,7 @@ public:
   WriteTicket Acquire(CaptureLane,CaptureWitness,CaptureSubject,CaptureFailure &failure) noexcept;
   // 控制FIFO先消费；有未取控制时Take不交付候选。错误／溢出撤销全部发布资格。
   bool PopControl(CaptureControl &) noexcept;
-  ReadTicket Take() noexcept;
+  ReadTicket Take(std::uint64_t available_ordinary=0) noexcept;
   CaptureExchangeStats Statistics() const noexcept;
   bool Drained() const noexcept;
   std::uint64_t RetainedBytes() const noexcept;

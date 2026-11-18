@@ -1,5 +1,9 @@
 #include "world/binary/entity_source_internal.h"
+#include "core/capture_cost.h"
+#include "state_host_fields.inc"
+#include <cstdio>
 #include <limits>
+#include <tuple>
 
 namespace cs::world::binary {
 namespace {
@@ -60,10 +64,11 @@ std::uint32_t Word(std::span<const std::byte> bytes,std::size_t at) noexcept {
 // 冷读取PE静态元数据；不扫描对象、不校验哈希，虚表只绑定已登记的真实TD。
 std::vector<CaptureVtableBinding> ReadVtables(MemoryReader memory,std::span<const std::uint8_t> supported) {
   if(!memory.copy || !memory.image_base || memory.image_size<4096)throw std::invalid_argument("entity_capture_image");
+  const auto copy_image=memory.copy_image?memory.copy_image:memory.copy;
   auto temp=memory::Reserve(memory::Pool::Workspace,memory.image_size,"entity_capture_rtti_image");
   std::vector<std::byte> image(memory.image_size);
   // PE映像可能含不可读空洞，只复制头和各已映射可读节，而非跨整幅映像盲读。
-  if(!memory.copy(memory.image_base,image.data(),4096))throw std::runtime_error("entity_capture_pe_header");
+  if(!copy_image(memory.image_base,image.data(),4096))throw std::runtime_error("entity_capture_pe_header");
   const auto nt=Word(image,0x3c);
   if(nt>3500 || Word(image,nt)!=0x4550)throw std::runtime_error("entity_capture_pe_header");
   const auto sections=std::to_integer<unsigned>(image[nt+6])|(std::to_integer<unsigned>(image[nt+7])<<8);
@@ -71,8 +76,9 @@ std::vector<CaptureVtableBinding> ReadVtables(MemoryReader memory,std::span<cons
   const auto first=nt+24+optional;
   if(!sections || sections>32 || first+sections*40>4096)throw std::runtime_error("entity_capture_pe_sections");
   for(unsigned i=0;i<sections;++i){const auto at=first+i*40,rva=Word(image,at+12),size=Word(image,at+8),flags=Word(image,at+36);
-    if(!(flags&0x40000000) || !size)continue;
-    if(rva>image.size() || size>image.size()-rva || !memory.copy(memory.image_base+rva,image.data()+rva,size))
+    // 可丢弃的重定位节可能已由 Windows 回收，RTTI 不在这些节里。
+    if(!(flags&0x40000000) || (flags&0x02000000) || !size)continue;
+    if(rva>image.size() || size>image.size()-rva || !copy_image(memory.image_base+rva,image.data()+rva,size))
       throw std::runtime_error("entity_capture_pe_section_read");
   }
   const auto inside=[&](std::uint32_t p,std::size_t n){return p>=memory.image_base && n<=image.size() && p-memory.image_base<=image.size()-n;};
@@ -101,18 +107,20 @@ std::vector<CaptureVtableBinding> ReadVtables(MemoryReader memory,std::span<cons
 // 冷准备构造全部绑定、arena、资源目录与拓扑保留区，逐帧不调用账本。
 EntitySource::Impl::Impl(MemoryReader m,std::thread::id t,EntityServices s,EntitySourceCapacity c)
     :memory(m),thread(t),services(s),capacity(c) {
-  if(t==std::thread::id{} || !s.current || !s.reference || !c.scratch_bytes || !c.witnesses || !c.resources ||
+  if(t==std::thread::id{} || !s.current || !s.reference || !s.reads || !c.scratch_bytes || !c.witnesses || !c.resources ||
      c.resources>65535 || !c.resource_bytes || !c.animation_layers || !c.topology_bodies || c.topology_bodies>256 || !c.topology_bytes_per_body)
     throw std::invalid_argument("entity_capture_source_capacity");
   const auto retained=sizeof(*this)+512+Fields().size()*sizeof(EntityRead)+c.scratch_bytes+
-    std::uint64_t(c.witnesses)*sizeof(NativeReadWitness)+std::uint64_t(c.resources)*(sizeof(NativeResource)+sizeof(NativeConfigOwner))+c.resource_bytes+
-    std::uint64_t(c.animation_layers)*sizeof(NativeAnimationLayer)+std::uint64_t(c.topology_bodies)*(sizeof(NativeTopology)+c.topology_bytes_per_body)+65536u*sizeof(NativeSpriteDependency);
+    std::uint64_t(c.witnesses)*(sizeof(NativeReadWitness)+sizeof(std::uint32_t))+std::uint64_t(c.resources)*(sizeof(NativeResource)+sizeof(NativeConfigOwner)+sizeof(std::uint32_t))+c.resource_bytes+
+    std::uint64_t(c.animation_layers)*sizeof(NativeAnimationLayer)+std::uint64_t(c.topology_bodies)*(sizeof(PlayerTopologyRevision)+c.topology_bytes_per_body)+
+    65536u*sizeof(NativeSpriteDependency)+4096u*sizeof(NativeResourceMemo);
   memory_charge=memory::Reserve(memory::Pool::Values,retained,"entity_capture_native_sources");
   reads.resize(Fields().size());scratch.resize(c.scratch_bytes);witnesses.resize(c.witnesses);resources.resize(c.resources);
   resource_bytes.resize(c.resource_bytes);animation_layers.resize(c.animation_layers);topologies.resize(c.topology_bodies);
   topology_bytes.resize(std::size_t(c.topology_bodies)*c.topology_bytes_per_body);
   sprite_dependencies.resize(65536);
   config_owners.resize(c.resources);
+  witness_order.resize(c.witnesses);resource_order.resize(c.resources);resource_memos.resize(4096);
   std::vector<std::uint8_t> supported(65536);
   for(unsigned id=437;id<=453;++id)supported[id]=1;
   for(const auto &layout:Layouts())if((layout.id>=310 && layout.id<=383) || (layout.id>=422 && layout.id<=424) || layout.id==435 || layout.id==436)supported[layout.id]=1;
@@ -141,48 +149,118 @@ EntitySource::Impl::Impl(MemoryReader m,std::thread::id t,EntityServices s,Entit
       traversals.push_back({name,f.operation,
         [](const CaptureFieldAccess &a,CaptureTraversalSource &v,CaptureDiagnostic &d) noexcept {return static_cast<Impl *>(a.window.context)->Open(a,v,d);},
         [](const CaptureFieldAccess &a,const CaptureTraversalSource &v,std::uint16_t i,CaptureRoot &r,CaptureDiagnostic &d) noexcept {return static_cast<Impl *>(a.window.context)->Element(a,v,i,r,d);},
-        [](const CaptureFieldAccess &a,const CaptureTraversalSource &v,CaptureDiagnostic &d) noexcept {return static_cast<Impl *>(a.window.context)->Close(a,v,d);}});
+        // 路径游标只来自本根自有值或 Track/Value，后两者保留读段和访问异常保护。
+        [](const CaptureFieldAccess &a,const CaptureTraversalSource &v,CaptureDiagnostic &d) noexcept {return static_cast<Impl *>(a.window.context)->Close(a,v,d);},true});
   }
   const auto qualified=[](const CaptureFieldAccess &a) noexcept {auto &self=*static_cast<Impl *>(a.window.context);
-    return self.Current(a.window.witness,a.root) && self.facts.ready;};
+    return self.facts.ready;};
   const auto player=[](const CaptureFieldAccess &a) noexcept {auto &self=*static_cast<Impl *>(a.window.context);
-    return self.Current(a.window.witness,a.root) && self.facts.ready && self.facts.player_ready;};
+    return self.facts.ready && self.facts.player_ready;};
   const auto text=[](const CaptureFieldAccess &a) noexcept {auto &self=*static_cast<Impl *>(a.window.context);
-    return self.Current(a.window.witness,a.root) && self.facts.ready && self.facts.text_ready;};
-  const auto incubus=[](const CaptureFieldAccess &a) noexcept {auto &self=*static_cast<Impl *>(a.window.context);std::int32_t value=0;CaptureDiagnostic d;
-    return self.Current(a.window.witness,a.root) && self.facts.ready && self.Incubus(a.root.address,value,d);};
-  // 名字只在准备期消解；各资格回调本身不读取Lua、Recorder或其他身体证言。
+    return self.facts.ready && self.facts.text_ready;};
+  // 执行器先核当前窗口，再按根复用这些已固定的资格。Incubus 的武器证言仍由具名叶读取并复核。
   const CaptureQualificationBinding qualifications[]={
-    {"entity-current-window",qualified},{"current_body_field_witness_same_use_and_binding",player},
-    {"player-equipment-current-window",player},{"text-current-use-writer",text},
-    {"entity-current-window-and-stable-incubus-weapon",incubus},
-    {"grid-current-window",qualified},{"qualified-main-thread-stable-world-owner-and-current-use",qualified},
-    {"qualified-current-use-and-immutable-resource-epoch",qualified},
-    {"active-run-stable-seeds-owner",qualified},
-    {"host-final-score-cache-same-world",[](const CaptureFieldAccess &a) noexcept {auto &s=*static_cast<Impl *>(a.window.context);return s.facts.score_ready&&s.Current(a.window.witness,a.root);}}};
+    {"entity-current-window",qualified,true},{"current_body_field_witness_same_use_and_binding",player,true},
+    {"player-equipment-current-window",player,true},{"text-current-use-writer",text,true},
+    {"entity-current-window-and-stable-incubus-weapon",qualified,true},
+    {"grid-current-window",qualified,true},{"qualified-main-thread-stable-world-owner-and-current-use",qualified,true},
+    {"qualified-current-use-and-immutable-resource-epoch",qualified,true},
+    {"active-run-stable-seeds-owner",qualified,true}};
   plan=std::make_unique<CapturePlan>(qualifications,leaves,vtables);
   executor=std::make_unique<CaptureExecutor>(*plan,traversals,t,CaptureExecutorCapacity{},CaptureExecutionContext{this,
     [](void *p,const CaptureWitness &w,std::uint8_t table,CaptureLink link,CodecItemConfig &out) noexcept {
       auto &self=*static_cast<Impl *>(p);if(!self.active || self.window.witness!=w || table!=3 || !link.handle || link.handle>self.resource_used)return false;
       const auto &r=self.resources[std::size_t(link.handle-1)];if(r.table!=3 || r.kind!=7)return false;
-      out={r.values[0],r.values[1],std::bit_cast<std::int32_t>(r.values[2])};return true;}});
-  memory_charge->Resize(retained+vtables.capacity()*sizeof(CaptureVtableBinding));
+      out={r.values[0],r.values[1],std::bit_cast<std::int32_t>(r.values[2])};return true;},capture::CaptureExecutionCounts});
+  memory_charge->Resize(sizeof(*this)+512+reads.capacity()*sizeof(EntityRead)+scratch.capacity()+
+    witnesses.capacity()*sizeof(NativeReadWitness)+witness_order.capacity()*sizeof(std::uint32_t)+
+    resources.capacity()*sizeof(NativeResource)+resource_order.capacity()*sizeof(std::uint32_t)+resource_bytes.capacity()+
+    config_owners.capacity()*sizeof(NativeConfigOwner)+animation_layers.capacity()*sizeof(NativeAnimationLayer)+
+    topologies.capacity()*sizeof(PlayerTopologyRevision)+topology_bytes.capacity()+sprite_dependencies.capacity()*sizeof(NativeSpriteDependency)+
+    resource_memos.capacity()*sizeof(NativeResourceMemo)+vtables.capacity()*sizeof(CaptureVtableBinding));
+}
+bool EntitySource::Impl::ReadScopeCurrent() noexcept {
+  if(!active)return false;
+  const auto serial=services.reads->Serial();
+  return serial&&(!player.read_serial||player.read_serial==serial)&&std::this_thread::get_id()==thread;
 }
 bool EntitySource::Impl::Current(const CaptureWitness &w,const CaptureRoot &root) noexcept {
-  return active && std::this_thread::get_id()==thread && w==window.witness && root.subject==facts.subject && services.current(services.owner,w,facts);
+  // Copy/Read 直接借用当前窗口的同一份证言，无需逐成员比较自身；外部证言仍完整比较。
+  // 读段序号、线程、根身份及当前来源检查照常执行。
+  return ReadScopeCurrent()&&
+    (&w==&window.witness||w==window.witness)&&root.subject==facts.subject&&
+    (root_qualified||services.current(services.owner,w,facts));
 }
 // 任何地址都只在已核主线程root窗口内借用，所有乘加先用u64检查。
 bool EntitySource::Impl::Read(std::uint64_t address,std::span<std::byte> out,CaptureDiagnostic &d) noexcept {
-  const CaptureRoot root{facts.subject,facts.address,0,0};
-  if(!Current(window.witness,root))return FailCapture(d,CaptureFailure::InvalidWindow,root);
-  if(!address || address>UINT32_MAX || out.size()>(std::uint64_t{1}<<32)-address)return FailCapture(d,CaptureFailure::AddressRange,root);
-  if(!memory.copy || !memory.copy(std::uint32_t(address),out.data(),out.size()))return FailCapture(d,CaptureFailure::ReadFailed,root);
-  return Current(window.witness,root) || FailCapture(d,CaptureFailure::InvalidWindow,root);
+  // 私有Read只消费本owner的facts和window，不必先复制整份subject再与自身比较。
+  // 读段、线程和局部撤销在每次复制前检查；同步根在复读证言后核对外部写水位。
+  if(!ReadScopeCurrent()||(!root_qualified&&!services.current(services.owner,window.witness,facts)))
+    return FailCapture(d,CaptureFailure::InvalidWindow,{facts.subject,facts.address});
+  if(!address || address>UINT32_MAX || out.size()>(std::uint64_t{1}<<32)-address)
+    return FailCapture(d,CaptureFailure::AddressRange,{facts.subject,facts.address});
+  if(!CopyInput(std::uint32_t(address),out))
+    return FailCapture(d,CaptureFailure::ReadFailed,{facts.subject,facts.address});
+  return true;
 }
-bool EntitySource::Impl::Track(std::uint64_t address,std::span<std::byte> out,CaptureDiagnostic &d) noexcept {
-  if(out.size()>32 || witness_used==witnesses.size())return FailCapture(d,CaptureFailure::ValueBudget,{facts.subject});
-  if(!Read(address,out,d))return false;auto &w=witnesses[witness_used++];w.address=std::uint32_t(address);w.size=std::uint8_t(out.size());
-  std::copy(out.begin(),out.end(),w.bytes.begin());return true;
+bool EntitySource::Impl::Track(std::uint64_t address,std::span<std::byte> out,CaptureDiagnostic &d,NativeEvidenceSource source) noexcept {
+  if(out.empty())return true;
+  if(out.size()>32||address>UINT32_MAX)return FailCapture(d,CaptureFailure::AddressRange,{facts.subject});
+  const auto key=std::tuple(source.owner,address,out.size(),source.use);
+  const auto end=witness_order.begin()+witness_used;
+  const auto at=std::lower_bound(witness_order.begin(),end,key,[&](auto i,auto k){
+    const auto &w=witnesses[i];return std::tuple(w.owner,std::uint64_t(w.address),std::size_t(w.size),w.use)<k;});
+  if(at!=end){const auto &w=witnesses[*at];if(w.owner==source.owner&&w.address==address&&w.size==out.size()&&w.use==source.use){
+    std::copy_n(w.bytes.begin(),w.size,out.begin());return true;}}
+  // Read只执行当前读段检查和受保护复制，不插入或删除证言，复用本次未命中的位置。
+  const auto position=std::uint32_t(at-witness_order.begin());
+  return Read(address,out,d)&&InsertWitness(position,address,out,d,source);
+}
+// 一个根证言表的键包括子 owner、地址、宽度和用途；World／Body 合并时保留首次诊断位置。
+bool EntitySource::Impl::Remember(std::uint64_t address,std::span<const std::byte> bytes,CaptureDiagnostic &d,NativeEvidenceSource source) noexcept {
+  if(bytes.empty())return true;
+  const auto key=std::tuple(source.owner,address,bytes.size(),source.use);const auto end=witness_order.begin()+witness_used;
+  const auto at=std::lower_bound(witness_order.begin(),end,key,[&](auto i,auto k){
+    const auto &w=witnesses[i];return std::tuple(w.owner,std::uint64_t(w.address),std::size_t(w.size),w.use)<k;});
+  if(at!=end){const auto &w=witnesses[*at];if(w.owner==source.owner&&w.address==address&&w.size==bytes.size()&&w.use==source.use)
+    return std::equal(bytes.begin(),bytes.end(),w.bytes.begin())||FailCapture(d,CaptureFailure::SourceChanged,{facts.subject});}
+  return InsertWitness(std::uint32_t(at-witness_order.begin()),address,bytes,d,source);
+}
+bool EntitySource::Impl::InsertWitness(std::uint32_t position,std::uint64_t address,std::span<const std::byte> bytes,
+    CaptureDiagnostic &d,NativeEvidenceSource source) noexcept {
+  if(!address||address>UINT32_MAX||bytes.size()>32||witness_used==witnesses.size()||position>witness_used)
+    return FailCapture(d,CaptureFailure::ValueBudget,{facts.subject});
+  const auto at=witness_order.begin()+position,end=witness_order.begin()+witness_used;
+  std::move_backward(at,end,end+1);*at=witness_used;
+  auto &mark=witnesses[witness_used++];mark.address=std::uint32_t(address);mark.size=std::uint8_t(bytes.size());
+  mark.owner=source.owner;mark.use=source.use;
+  mark.layout=evidence_layout;mark.field=evidence_field;
+  std::copy(bytes.begin(),bytes.end(),mark.bytes.begin());++stats.witnesses;return true;
+}
+// 完成证言复读或精确复用后，一次核当前根身份与整段外部资源写水位。
+bool EntitySource::Impl::ReviewRoot() noexcept {
+  const auto check=services.review?services.review:services.current;
+  return ReadScopeCurrent()&&check(services.owner,window.witness,facts)&&services.reads->ReviewRoot();
+}
+bool EntitySource::Impl::Verify(const CaptureRoot &root,CaptureDiagnostic &d) noexcept {
+  capture::Cost review(capture::CostPart::Review);
+  if(player.shared_streams)++stats.shared_player_reviews;
+  const auto check=services.review?services.review:services.current;
+  // 完整根在入口已确认读取资格；独立来源仍在复读前先核自身窗口。
+  if((!root_qualified||window.witness.phase==CapturePhase::Production)&&!check(services.owner,window.witness,facts))
+    return FailCapture(d,CaptureFailure::InvalidWindow,root);
+  std::array<std::byte,32> after{};
+  for(std::uint32_t i=0;i<witness_used;++i){
+    const auto &mark=witnesses[i];
+    ++stats.rechecks;
+    if(!Read(mark.address,std::span(after).first(mark.size),d)||!std::equal(after.begin(),after.begin()+mark.size,mark.bytes.begin())){
+      FailCapture(d,CaptureFailure::SourceChanged,root,mark.field);
+      if(mark.layout)d.layout=mark.layout;
+      if(d.field==kNullIndex)d.field=mark.field;
+      return false;
+    }
+  }
+  return ReviewRoot()||FailCapture(d,CaptureFailure::InvalidWindow,root);
 }
 std::span<std::byte> EntitySource::Impl::Allocate(std::uint64_t size,unsigned align,CaptureDiagnostic &d) noexcept {
   const auto first=(std::uint64_t(scratch_used)+align-1)&~std::uint64_t(align-1);
@@ -190,59 +268,176 @@ std::span<std::byte> EntitySource::Impl::Allocate(std::uint64_t size,unsigned al
   scratch_used=std::uint32_t(first+size);return std::span(scratch).subspan(std::size_t(first),std::size_t(size));
 }
 // MSVC Release string先核宽长度和SSO，再读有效前缀；没有逐帧std::string构造。
-bool EntitySource::Impl::StringAt(std::uint32_t address,std::span<std::byte> out,std::uint32_t &size,CaptureDiagnostic &d,bool track) noexcept {
+bool EntitySource::Impl::StringAt(std::uint32_t address,std::span<std::byte> out,std::uint32_t &size,CaptureDiagnostic &d,bool track,
+    NativeEvidenceSource source) noexcept {
   std::array<std::uint32_t,2> header{},after{};
-  if(!(track?Tracked(std::uint64_t(address)+16,header,d):Value(std::uint64_t(address)+16,header,d)))return false;
+  if(!(track?Tracked(std::uint64_t(address)+16,header,d,source):Value(std::uint64_t(address)+16,header,d)))return false;
   size=header[0];const auto reserved=header[1];std::uint32_t data=address;
   if(size>out.size() || size>reserved || (reserved<16?reserved!=15:reserved==UINT32_MAX))return FailCapture(d,CaptureFailure::InvalidValue,{facts.subject});
-  if(reserved>=16 && (!(track?Tracked(address,data,d):Value(address,data,d)) || !data))return FailCapture(d,CaptureFailure::InvalidValue,{facts.subject});
+  if(reserved>=16 && (!(track?Tracked(address,data,d,source):Value(address,data,d)) || !data))return FailCapture(d,CaptureFailure::InvalidValue,{facts.subject});
   // 只读有效字节，不碰SSO未使用槽或堆容量尾部。
   if(size && !Read(data,out.first(size),d))return false;
-  if(!Value(std::uint64_t(address)+16,after,d) || after!=header)return FailCapture(d,CaptureFailure::SourceChanged,{facts.subject});return true;
+  if(track&&source.use==NativeEvidenceUse::FileName){
+    for(std::uint32_t i=0;i<size;){const auto count=std::min(32u,size-i);
+      if(!Remember(std::uint64_t(data)+i,out.subspan(i,count),d,source))return false;
+      i+=count;
+    }
+  }
+  if(!track&&(!Value(std::uint64_t(address)+16,after,d)||after!=header))return FailCapture(d,CaptureFailure::SourceChanged,{facts.subject});
+  return true;
 }
-bool EntitySource::Impl::CStringAt(std::uint32_t address,std::uint32_t limit,std::span<std::byte> out,std::uint32_t &size,CaptureDiagnostic &d,bool track) noexcept {
+bool EntitySource::Impl::CStringAt(std::uint32_t address,std::uint32_t limit,std::span<std::byte> out,std::uint32_t &size,CaptureDiagnostic &d,bool track,std::uint32_t extent) noexcept {
   if(limit>out.size())return FailCapture(d,CaptureFailure::ValueBudget,{facts.subject});
-  for(size=0;size<limit;++size){if(!Read(std::uint64_t(address)+size,out.subspan(size,1),d))return false;if(out[size]!=std::byte{})continue;
+  if(extent)limit=std::min(limit,extent);
+  for(size=0;size<limit;){
+    if(!Current(window.witness,{facts.subject,facts.address}))return FailCapture(d,CaptureFailure::InvalidWindow,{facts.subject});
+    std::size_t copied=0;const auto block=out.subspan(size,extent?limit-size:1u);
+    if(!services.reads->StringBlock(std::uint64_t(address)+size,block,copied))return FailCapture(d,CaptureFailure::ReadFailed,{facts.subject});
+    const auto zero=std::find(block.begin(),block.begin()+copied,std::byte{});
+    if(input_recorder){
+      const auto consumed=std::size_t(zero-block.begin())+unsigned(zero!=block.begin()+copied);
+      RecordInput(std::uint32_t(std::uint64_t(address)+size),block.first(consumed));
+    }
+    size+=std::uint32_t(zero-block.begin());
+    if(zero==block.begin()+copied)continue;
     std::array<std::byte,32> check{};
-    for(std::uint32_t i=0;i<=size;){const auto n=std::min(32u,size+1-i);auto block=std::span(check).first(n);
-      if(!(track?Track(std::uint64_t(address)+i,block,d):Read(std::uint64_t(address)+i,block,d)) ||
-         !std::equal(block.begin(),block.end(),out.begin()+i))return FailCapture(d,CaptureFailure::SourceChanged,{facts.subject});i+=n;}
+    for(std::uint32_t i=0;i<=size;){const auto n=std::min(32u,size+1-i);auto verified=std::span(check).first(n);
+      if(track){if(!Remember(std::uint64_t(address)+i,out.subspan(i,n),d))return false;}
+      else if(!Read(std::uint64_t(address)+i,verified,d)||!std::equal(verified.begin(),verified.end(),out.begin()+i))
+        return FailCapture(d,CaptureFailure::SourceChanged,{facts.subject});
+      i+=n;}
     return true;}
   return FailCapture(d,CaptureFailure::InvalidValue,{facts.subject});
 }
 EntitySource::EntitySource(MemoryReader m,std::thread::id t,EntityServices s,EntitySourceCapacity c):impl_(std::make_unique<Impl>(m,t,s,c)) {}
 EntitySource::~EntitySource()=default;
 // 每根同步执行独立暂存；资源只追加，失败根不会把未齐备的记录交后台。
-bool EntitySource::Capture(const CaptureWitness &w,EntityFacts f,BodyStream stream,CaptureValueWriter &writer,CaptureDiagnostic &d,bool joint) noexcept {
-  auto &s=*impl_;if(s.active || std::this_thread::get_id()!=s.thread){FailCapture(d,s.active?CaptureFailure::Reentrant:CaptureFailure::WrongThread,{f.subject,f.address});return writer.Fail(d);}
+bool EntitySource::Capture(const CaptureWitness &w,EntityFacts f,BodyStream stream,CaptureValueWriter &writer,CaptureDiagnostic &d,bool reliable,
+    std::uint64_t candidate_topology,std::uint16_t *resolved_layout) noexcept {
+  return CaptureRootValues(w,f,stream,writer,d,reliable,candidate_topology,false,resolved_layout);
+}
+bool EntitySource::CaptureOrdinary(const CaptureWitness &w,EntityFacts f,CaptureValueWriter &writer,CaptureDiagnostic &d,std::uint16_t &resolved_layout,std::uint64_t reusable_base) noexcept {
+  if(w.phase!=CapturePhase::Ordinary){FailCapture(d,CaptureFailure::InvalidWindow,{f.subject,f.address});return writer.Fail(d);}
+  return CaptureRootValues(w,f,BodyStream::World,writer,d,true,0,true,&resolved_layout,reusable_base);
+}
+// 一个同步调用持有结构 arena 和证言表。两套选块的执行状态各自重置，原生来源保留至联合复核完成。
+bool EntitySource::CaptureRootValues(const CaptureWitness &w,EntityFacts f,BodyStream stream,CaptureValueWriter &writer,
+    CaptureDiagnostic &d,bool reliable,std::uint64_t candidate_topology,bool pair_player,std::uint16_t *resolved_layout,std::uint64_t reusable_base) noexcept {
+  auto &s=*impl_;
+  if(std::this_thread::get_id()!=s.thread){FailCapture(d,CaptureFailure::WrongThread,{f.subject,f.address});return writer.Fail(d);}
+  if(s.active){s.services.reads->Revoke();FailCapture(d,CaptureFailure::Reentrant,{f.subject,f.address});return writer.Fail(d);}
+  const bool defer_resource=w.phase==CapturePhase::Ordinary||w.phase==CapturePhase::PlayerPost;
+  CaptureReadSession::RootRead root_read(*s.services.reads,defer_resource);
   s.facts=f;s.scratch_used=s.witness_used=0;s.topology_revision=0;s.map_ready=false;s.active=true;
-  struct End {bool &active;~End(){active=false;}} end{s.active};
+  // 根尾资格通过前，新资源只属于当前根。回卷不触及任何已封存的目录前缀。
+  struct End {
+    EntitySource &owner;
+    Impl &source;
+    std::uint32_t resources,bytes,layers,config_owners;
+    bool deferred,accepted=false;
+    ~End(){
+      if(deferred&&!accepted){
+        source.config_owner_used=config_owners;
+        if(resources!=source.resource_used){
+          const auto first=source.resource_order.begin();
+          std::remove_if(first,first+source.resource_used,[this](auto i){return i>=resources;});
+          source.resource_used=resources;
+          source.resource_bytes_used=bytes;
+          source.layer_used=layers;
+          source.memo_used=0;
+          owner.InvalidateReuse();
+        }
+      }
+      source.player.ready=false;source.player.shared_streams=false;source.player.costumes={};source.player.read_serial=0;
+      source.active=false;source.root_qualified=false;source.root_input=nullptr;
+      source.evidence_layout=0;source.evidence_field=kNullIndex;
+    }
+  } end{*this,s,s.resource_used,s.resource_bytes_used,s.layer_used,s.config_owner_used,defer_resource};
   s.window={s.thread,w,&s,
     [](void *p,const CaptureWitness &v,const CaptureRoot &r) noexcept {return static_cast<Impl *>(p)->Current(v,r);},
-    [](void *p,std::uint32_t address,std::span<std::byte> out) noexcept {auto &self=*static_cast<Impl *>(p);CaptureDiagnostic ignored;return self.Read(address,out,ignored);}};
+    // CaptureWindow::Copy 核当前根与范围，页权限和 SEH 由读段保护。
+    [](void *p,std::uint32_t address,std::span<std::byte> out) noexcept {
+      return static_cast<Impl *>(p)->CopyInput(address,out);},true};
   CaptureRoot root{f.subject,f.address,UINT32_MAX-f.address,f.layout};
-  if(!f.ready || !s.window.Check(root,d) || (!f.layout && !s.plan->Identify(s.window,root,d)))return writer.Fail(d);
-  root.extent=FindLayout(root.layout)->native_size;
+  if(!f.ready){FailCapture(d,CaptureFailure::MissingQualification,root);return writer.Fail(d);}
+  if(!s.window.Check(root,d))return writer.Fail(d);
+  s.root_qualified=true;
+  const auto *declared=FindLayout(f.layout);
+  std::uint32_t vtable=0;
+  if((!declared||declared->rtti_rva)&&!s.plan->Identify(s.window,root,d,&vtable))return writer.Fail(d);
+  const auto *layout=FindLayout(root.layout);
+  if(!layout){FailCapture(d,CaptureFailure::UnknownLayout,root);return writer.Fail(d);}
+  if(resolved_layout)*resolved_layout=root.layout;
+  root.extent=layout->native_size;
   if(!root.address || root.extent>(std::uint64_t{1}<<32)-root.address){FailCapture(d,CaptureFailure::AddressRange,root);return writer.Fail(d);}
   s.root_layout=root.layout;
+  const bool shared_streams=pair_player&&root.layout==197;
   if(root.layout==197){
-    if(!s.PrepareTopology(d))return writer.Fail(d);
+    if(!f.player_ready){FailCapture(d,CaptureFailure::MissingQualification,root);return writer.Fail(d);}
+    s.player.shared_streams=shared_streams;s.evidence_layout=root.layout;
+    // 识别时读取的 vptr 直接登记为证言，最终复核只读一次，不再走 RTTI 分派。
+    if(!vtable||!s.Remember(root.address,std::as_bytes(std::span(&vtable,1)),d,{root.address,NativeEvidenceUse::PlayerVtable})||
+       !s.PrepareTopology(d)){
+      if(d.reason==CaptureFailure::None)FailCapture(d,CaptureFailure::MissingQualification,root);
+      if(!d.layout)d.layout=root.layout;
+      return writer.Fail(d);
+    }
+    if(shared_streams)++s.stats.shared_player_prepared;
     s.facts.subject.topology=s.topology_revision;root.subject=s.facts.subject;
-    const auto index=s.FindTopology(f.subject);
-    if(stream==BodyStream::Body && !joint && (index==UINT32_MAX || s.topologies[index].ordinary!=s.topology_revision)){
-      FailCapture(d,CaptureFailure::NeedsOrdinaryJoint,root);return writer.Fail(d);}
+    const bool matching_candidate=w.phase==CapturePhase::PlayerPost&&w.required_revision&&candidate_topology==s.topology_revision;
+    if(stream==BodyStream::Body&&!reliable&&!matching_candidate){
+      const auto index=s.FindTopology(f.subject);
+      if(index==UINT32_MAX||s.topologies[index].ordinary!=s.topology_revision){
+        FailCapture(d,CaptureFailure::SourceChanged,root);return writer.Fail(d);
+      }
+    }
   }
-  // 非附属Effect不能带不明payload；不把未登记的实际owner吞成空。
+  // 非附属 Effect 拒绝实际未知对象。空别名可保留控制块，但没有可读 payload。
   auto *base=FindLayout(root.layout);while(base && base->id!=101)base=FindLayout(base->parent);
   if(base && root.layout!=104 && root.layout!=105 && root.layout!=106){std::array<std::uint32_t,2> holder{};
     if(!s.Value(std::uint64_t(f.address)+0x4b4,holder,d))return writer.Fail(d);
-    if(holder[0] || holder[1]){FailCapture(d,CaptureFailure::UnknownLayout,root);return writer.Fail(d);}}
-  if(!s.executor->Execute(s.window,root,stream,writer,d,CaptureExecutionLimits{joint?32u<<20:65536u,262144,32,joint}))return false;
-  std::array<std::byte,32> after{};
-  for(std::uint32_t i=0;i<s.witness_used;++i){const auto &mark=s.witnesses[i];
-    if(!s.Read(mark.address,std::span(after).first(mark.size),d) || !std::equal(after.begin(),after.begin()+mark.size,mark.bytes.begin())){
-      FailCapture(d,CaptureFailure::SourceChanged,root);return writer.Fail(d);}}
-  return true;
+    if(holder[0]){
+      // 失败记录只保留变体和共享引用的存在状态，供实机定位。
+      std::array<std::uint32_t,2> variant{};
+      if(!s.Value(std::uint64_t(f.address)+0x2c,variant,d))return writer.Fail(d);
+      std::snprintf(d.detail.data(),d.detail.size(),"effect variant=%u subtype=%u object=%u owner=%u",
+        variant[0],variant[1],unsigned(holder[0]!=0),unsigned(holder[1]!=0));
+      FailCapture(d,CaptureFailure::UnknownLayout,root);return writer.Fail(d);}}
+  NativeRootReuse *reuse=nullptr;
+  if(pair_player&&root.layout==host_field::EntityTear::kLayout&&!s.root_reuse.empty()){
+    auto &slot=s.root_reuse[root.subject.local%s.root_reuse.size()];
+    // 同一房间的存活根保有其槽；溢出的根正常采集，避免彼此覆盖上一帧证据。
+    if(!slot.revision||slot.epoch!=s.reuse_epoch||slot.scope!=w.scope||
+       (slot.subject.local==root.subject.local&&slot.subject.space==root.subject.space))
+      reuse=&slot;
+    if(reuse&&reusable_base&&reuse->revision==reusable_base&&reuse->epoch==s.reuse_epoch&&reuse->scope==w.scope&&
+       reuse->subject==root.subject&&reuse->address==root.address&&reuse->layout==root.layout&&s.MatchesRoot(*reuse,root)){
+      if(!writer.ReuseRoot(root.subject,root.layout,reusable_base))return false;
+      reuse->revision=w.revision;++s.stats.unchanged_roots;
+      end.accepted=true;
+      return true;
+    }
+    // 命中前使用上一份证明。新证明只在正式采集并通过根尾复核后才可借用。
+    if(reuse){
+      reuse->revision=0;reuse->reference_count=0;
+      reuse->input.evidence={0,0,true};
+      s.root_input=reuse;
+    }
+  }
+  std::optional<NativeInputRecorder> record;
+  if(reuse)record.emplace(s.input_recorder,reuse->input);
+  capture::Cost execution(capture::CostPart::FieldExecution);
+  const bool complete=s.executor->ExecuteBound(s.window,root,stream,writer,d,CaptureExecutionLimits{reliable?32u<<20:65536u,262144,32,reliable},
+    [](void *context,const CaptureRoot &r,CaptureDiagnostic &out) noexcept {return static_cast<Impl *>(context)->Verify(r,out);},shared_streams);
+  if(reuse&&complete){
+    if(reuse->input.evidence.valid&&reuse->input.evidence.count){
+      reuse->subject=root.subject;reuse->scope=w.scope;reuse->epoch=s.reuse_epoch;
+      reuse->revision=w.revision;reuse->address=root.address;reuse->layout=root.layout;
+    }else ++s.stats.unchanged_unavailable;
+  }
+  if(shared_streams&&complete){s.stats.shared_player_consumed+=2;++s.stats.topology_hits;}
+  end.accepted=complete;
+  return complete;
 }
 std::uint32_t EntitySource::Impl::FindTopology(CaptureSubject subject) const noexcept {
   for(std::uint32_t i=0;i<topology_used;++i)if(topologies[i].subject.space==subject.space && topologies[i].subject.local==subject.local &&
@@ -250,9 +445,26 @@ std::uint32_t EntitySource::Impl::FindTopology(CaptureSubject subject) const noe
 }
 void EntitySource::OrdinaryCommitted(CaptureSubject subject) noexcept {auto &s=*impl_;if(std::this_thread::get_id()!=s.thread)return;
   const auto i=s.FindTopology(subject);if(i!=UINT32_MAX && s.topologies[i].subject==subject)s.topologies[i].ordinary=s.topologies[i].revision;}
-void EntitySource::Invalidate() noexcept {auto &s=*impl_;if(std::this_thread::get_id()!=s.thread)return;for(std::uint32_t i=0;i<s.topology_used;++i)s.topologies[i].ordinary=0;}
+void EntitySource::InvalidateReuse() noexcept {
+  auto &s=*impl_;if(std::this_thread::get_id()!=s.thread)return;
+  if(++s.reuse_epoch==0){
+    for(auto &entry:s.root_reuse)entry.epoch=0;
+    for(auto &entry:s.resource_reuse)entry.epoch=0;
+    s.reuse_epoch=1;
+  }
+}
+void EntitySource::Invalidate() noexcept {auto &s=*impl_;if(std::this_thread::get_id()!=s.thread)return;
+  InvalidateReuse();
+  if(s.active)s.services.reads->Revoke();
+  for(std::uint32_t i=0;i<s.topology_used;++i)s.topologies[i].ordinary=0;}
 // 物理退休才回收拓扑槽，普通绑定撤销仍保留该身体的结构版本。
 void EntitySource::Retire(CaptureSubject subject) noexcept {auto &s=*impl_;if(std::this_thread::get_id()!=s.thread)return;
+  if(s.active&&s.facts.subject.space==subject.space&&s.facts.subject.local==subject.local&&s.facts.subject.use==subject.use)
+    s.services.reads->Revoke();
+  if(!s.root_reuse.empty()){
+    auto &entry=s.root_reuse[subject.local%s.root_reuse.size()];
+    if(entry.subject.space==subject.space&&entry.subject.local==subject.local&&entry.subject.use==subject.use)entry.revision=0;
+  }
   const auto i=s.FindTopology(subject);if(i!=UINT32_MAX)s.topologies[i]={};
   const auto end=s.sprite_dependencies.begin()+s.sprite_dependency_used;
   s.sprite_dependency_used=std::uint32_t(std::remove_if(s.sprite_dependencies.begin(),end,[subject](const auto &entry){
@@ -263,10 +475,12 @@ NativeResourceView EntitySource::PublishedResources(CaptureCatalogStamp stamp) c
   if(stamp.resources>s.resources.size() || stamp.resource_bytes>s.resource_bytes.size() || stamp.resource_layers>s.animation_layers.size())return {};
   return {std::span(s.resources).first(stamp.resources),std::span(s.resource_bytes).first(stamp.resource_bytes),std::span(s.animation_layers).first(stamp.resource_layers)};}
 std::uint32_t EntitySource::Topology(CaptureSubject subject) const noexcept {const auto &s=*impl_;const auto i=s.FindTopology(subject);return i==UINT32_MAX?0:s.topologies[i].revision;}
-bool EntitySource::UsesSprite(std::uint32_t address) const noexcept {const auto &s=*impl_;
+bool EntitySource::UsesSprite(std::uint32_t address,std::uint32_t &owner,CaptureSubject &subject) const noexcept {const auto &s=*impl_;
   const auto end=s.sprite_dependencies.begin()+s.sprite_dependency_used;
   const auto at=std::lower_bound(s.sprite_dependencies.begin(),end,address,[](const auto &entry,std::uint32_t p){return entry.address<p;});
-  return at!=end && at->address==address;}
+  if(at==end||at->address!=address)return false;
+  owner=at->owner;subject={at->space,at->local,at->use};return true;}
 std::uint64_t EntitySource::RetainedBytes() const noexcept {const auto &s=*impl_;
-  return s.memory_charge->Bytes()+s.plan->RetainedBytes()+s.executor->RetainedBytes();}
+  return s.memory_charge->Bytes()+s.plan->RetainedBytes()+s.executor->RetainedBytes()+(s.reuse_charge?s.reuse_charge->Bytes():0);}
+NativeSourceStats EntitySource::Statistics() const noexcept {return impl_->stats;}
 }

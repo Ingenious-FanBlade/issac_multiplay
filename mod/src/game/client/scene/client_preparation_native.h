@@ -1,6 +1,7 @@
 #pragma once
 #include "state/resource_local.h"
 #include "game/client/scene/client_native_roots.h"
+#include <array>
 #include <cstddef>
 
 namespace cs::game {
@@ -11,6 +12,7 @@ enum class ClientPreparationStatus:unsigned {Waiting,Ready,Missing,Failed};
 struct ClientPreparationResult {
   ClientPreparationStatus status=ClientPreparationStatus::Waiting;
   const char *reason="binary_preparation_waiting";
+  // 字段暂存走完当前配额后才置位；原生调用因 CPU 借用等待时不续做。
 };
 struct ClientPreparationAllocator {
   void *context=nullptr;
@@ -47,7 +49,8 @@ struct ClientStagedObjectInput {
   std::uint32_t native_size=0,type=0,variant=0,subtype=0,seed=0,index=0,category=0;
   void *borrowed=nullptr; // 仅主线程真实 owner 解析的现有承载，不进入网络／纯值安装计划。
 };
-ClientPreparationResult ClientStagedObjectsCapacity(const ClientNativeRoots &,const ClientStagedObjectInput *,std::size_t) noexcept;
+// 预先核对将使用的池类别与官方通知入口。容量在实际退休后逐对象分配。
+ClientPreparationResult ClientStagedPoolNotificationsCurrent(const ClientNativeRoots &,const ClientStagedObjectInput *,std::size_t) noexcept;
 ClientStagedObject *ClientStagedObjectCreate(ClientPreparationAllocator) noexcept;
 // 新对象仅取得构造承载；不执行玩法 Init，不写 roster／EntityList／Grid 数组。
 ClientPreparationResult ClientStagedObjectConstruct(ClientStagedObject *,const ClientNativeRoots &,const ClientStagedObjectInput &) noexcept;
@@ -55,5 +58,10 @@ bool ClientStagedObjectCurrent(const ClientStagedObject *,const ClientNativeRoot
 bool ClientStagedObjectRelease(ClientStagedObject *&) noexcept;
 void *ClientStagedObjectBorrow(ClientStagedObject *) noexcept;
 // 安装后的租约仍持有同一构造承载；不再用“未Init”的exists/valid条件判定其地址。
+// 活对象的写入见证包含池中的有效位和完整原生形态。
+void *ClientStagedObjectLiveAddress(const ClientStagedObject *) noexcept;
 void *ClientStagedObjectOwnedAddress(const ClientStagedObject *) noexcept;
+// Morph 已核对地址和形态；只更新实际池槽 owner 的活对象见证。
+bool ClientStagedObjectAdoptShape(ClientStagedObject *,void *,unsigned type,unsigned variant,
+    unsigned subtype,unsigned seed) noexcept;
 } // namespace cs::game

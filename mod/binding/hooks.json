@@ -86,6 +86,10 @@
     ["native_global_random","world","CsStatic","GlobalRandom","unsigned int","","","0x2EB4B0","None",true,"cdecl",true,-10000,true],
     ["client_entity_retire_sound","client","CsSoundEffects","EntityRetireStop","void","int sound","sound","0x508140","None",false,"",true,-20000,true],
     ["client_entity_local_sound","client","CsSoundEffects","ClientLocalPlay","void","int id, float volume, int delay, bool loop, float pitch, float pan","id, volume, delay, loop, pitch, pan","0x507C60","None",false,"",true,-20000,true],
+    ["client_morph_pickup_init","client","CsEntity","MorphPickupInit","void","unsigned type, int variant, int subtype, unsigned seed","type, variant, subtype, seed","0x2DD7C0","None",false,"",true,-20000,true],
+    ["client_morph_pickup_modifiers","client","CsRoom","MorphPickupModifiers","bool","int *type, int *variant, int *subtype","type, variant, subtype","0x27560","None",false,"",true,-20000,true],
+    ["client_morph_pickup_alternates","client","CsEntity","MorphPickupAlternates","void","int variant","variant","0x2DED90","None",false,"",true,-20000,true],
+    ["client_morph_npc_effects","client","CsStatic","MorphNpcEffects","void","void *entity, unsigned argument","entity, argument","0x303350","None",true,"stdcall",true,-20000,true],
     ["native_global_seed","world","CsMtSeed","ApplySeed","int","","","0x2EB470","None",false,"",true,-10000,true],
     ["actual_pickup_loot","world","Entity_Pickup","GetLootList","LootList","bool advance, Entity_Player* player","advance, player","0x2D8700","None",false,"",false,-10000,true],
     ["actual_fireplace_loot","world","Entity_NPC","fireplace_get_loot","LootList","bool advance","advance","0x2CD630","None",false,"",false,-10000,true],
@@ -273,6 +277,34 @@
       "reach": "vtable slot 1 的具体实现；派生类槽位各自指向不同函数，本入口不覆盖派生 Init。",
       "required": true,
       "evidence": "ST1 §2/§3：Entity.zhl:259，ret 10h；ST5 §1 显示七类 slot 1 均不同。"
+    },
+    {
+      "id": "world_effect_init",
+      "observation": "EffectInit",
+      "group": "world",
+      "class": "CsEntity",
+      "method": "ObserveEffectInit",
+      "definition": "IsaacCS::ObserveEffectInit",
+      "own": true,
+      "static": false,
+      "conv": "thiscall",
+      "rva": "0x1CD070",
+      "pattern": "55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 00 00 00 00 50 81 EC 60 01 00 00",
+      "priority": -10000,
+      "args": [
+        {"type": "unsigned int", "name": "type", "abi": "stack:1"},
+        {"type": "unsigned int", "name": "variant", "abi": "stack:1"},
+        {"type": "unsigned int", "name": "subtype", "abi": "stack:1"},
+        {"type": "unsigned int", "name": "initSeed", "abi": "stack:1"}
+      ],
+      "return": "void",
+      "return_abi": "",
+      "sdk": null,
+      "entry_bytes": "55 8B EC 6A FF 68 5C D5 A8 00 64 A1 00 00 00 00 50 81 EC 60 01 00 00",
+      "completion": "同一 Factory use 的派生 Effect Init 正常返回；当前房间 EntityList 正常发布后才授予当前读取资格。",
+      "reach": "J273 Effect vtable slot 1；直接工厂生成路线也调用此虚入口。",
+      "required": true,
+      "evidence": "J273 vtable 0xB14D00，Init 0x5CD070，0x5CD0C9 调基类，0x5D13BE ret 10h。内联生成如 0x6B0993 Factory、0x6B0A35 虚 Init、0x6B0A5B Publish。"
     },
     {
       "id": "world_publish",
@@ -1172,6 +1204,12 @@
       "kind": "jump",
       "size": 7
     }
+  ],
+  "client_display_memory_imports": [
+    {"id":"client_display_malloc","source":0,"module":"api-ms-win-crt-heap-l1-1-0.dll","symbol":"malloc","abi":"cdecl-pointer-size","iat_rva":"0x6aa590","owner":"executable"},
+    {"id":"client_display_calloc","source":1,"module":"api-ms-win-crt-heap-l1-1-0.dll","symbol":"calloc","abi":"cdecl-pointer-size-size","iat_rva":"0x6aa594","owner":"executable"},
+    {"id":"client_display_realloc","source":2,"module":"api-ms-win-crt-heap-l1-1-0.dll","symbol":"realloc","abi":"cdecl-pointer-pointer-size","iat_rva":"0x6aa588","owner":"executable"},
+    {"id":"client_display_free","source":3,"module":"api-ms-win-crt-heap-l1-1-0.dll","symbol":"free","abi":"cdecl-void-pointer","iat_rva":"0x6aa58c","owner":"executable"}
   ],
   "runtime_random_hooks": [
     {

@@ -37,7 +37,8 @@ add_library(isaac_cs_world STATIC src/world/model.cpp src/world/identity.cpp
   src/world/common/contracts.cpp src/world/common/service.cpp src/world/common/publication.cpp src/world/common/live_consumer.cpp
   src/world/common/native_source.cpp src/world/common/membership.cpp src/world/compatibility/min_read_v1.cpp src/world/compatibility/encode.cpp
   src/world/domains/entity/collect.cpp src/world/domains/grid/collect.cpp
-  src/world/binary/entity_source.cpp src/world/binary/entity_containers.cpp src/world/binary/entity_resources.cpp src/world/binary/resource_export.cpp
+  src/world/common/frame_read_regions.cpp
+  src/world/binary/read_session.cpp src/world/binary/entity_source.cpp src/world/binary/entity_source_reuse.cpp src/world/binary/entity_containers.cpp src/world/binary/entity_resources.cpp src/world/binary/resource_export.cpp
   src/world/binary/entity_player.cpp src/world/binary/grid_source.cpp src/world/binary/scene_source.cpp src/world/binary/scene_map.cpp src/world/binary/run_source.cpp src/world/binary/display_source.cpp src/world/binary/presentation_source.cpp src/world/binary/hud_probability.cpp)
 target_include_directories(isaac_cs_world PUBLIC src)
 target_compile_features(isaac_cs_world PUBLIC cxx_std_20)
@@ -49,12 +50,12 @@ set(GENERATED "${CMAKE_CURRENT_BINARY_DIR}/generated")
 # 第 10—14 步再接入正式同步并退役旧路径，这里不改变运行中的采集与协议。
 file(GLOB STATE_LAYOUT_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/binding/state/*.json")
 add_custom_command(OUTPUT "${GENERATED}/state_capture.inc" "${GENERATED}/state_wire.inc"
-  "${GENERATED}/state_client.inc" "${GENERATED}/state_members.inc" "${GENERATED}/state_grid_view.inc"
+  "${GENERATED}/state_client.inc" "${GENERATED}/state_members.inc" "${GENERATED}/state_grid_view.inc" "${GENERATED}/state_flat.inc"
   "${GENERATED}/state_room_view.inc" "${GENERATED}/state_body_codec.inc" "${GENERATED}/state_resource_protocol.inc" "${GENERATED}/state_protocol.inc" "${GENERATED}/state_budget.inc"
     "${GENERATED}/state_display_install.inc" "${GENERATED}/state_host_fields.inc" "${GENERATED}/state_grid_factory.inc"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_state_layout.py"
     --out "${GENERATED}" --docs "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/binary-state/layouts"
-  DEPENDS tools/gen_state_layout.py ${STATE_LAYOUT_SOURCES} binding/world_layout.json
+  DEPENDS tools/gen_state_layout.py tools/gen_flat_layout.py ${STATE_LAYOUT_SOURCES} binding/world_layout.json
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-19/entity-application.json"
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-20/player-application.json"
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/observation-expansion/grid-catalog.json"
@@ -63,7 +64,7 @@ add_custom_command(OUTPUT "${GENERATED}/state_capture.inc" "${GENERATED}/state_w
 add_library(isaac_cs_state STATIC src/state/layout.cpp src/state/nested.cpp src/state/owned_payload.cpp src/state/entity_extension.cpp src/state/entity_counters.cpp src/state/npc_presentation.cpp src/state/body_codec.cpp src/state/resource_protocol.cpp src/state/wire_protocol.cpp src/state/acceptance.cpp src/state/budget.cpp
   src/state/capture.cpp src/state/capture_values.cpp src/state/capture_exchange.cpp src/state/capture_executor.cpp src/state/production_cache.cpp src/state/events.cpp src/state/host_publish.cpp
   src/state/client_memory.cpp src/state/client_tables.cpp src/state/client_shadow.cpp src/state/client_events.cpp src/state/client_receive.cpp src/state/client_validation.cpp src/state/client_plan.cpp src/state/client_apply.cpp
-  "${GENERATED}/state_capture.inc" "${GENERATED}/state_wire.inc"
+  "${GENERATED}/state_capture.inc" "${GENERATED}/state_wire.inc" "${GENERATED}/state_flat.inc"
   "${GENERATED}/state_client.inc" "${GENERATED}/state_members.inc" "${GENERATED}/state_body_codec.inc" "${GENERATED}/state_resource_protocol.inc" "${GENERATED}/state_protocol.inc" "${GENERATED}/state_budget.inc")
 target_include_directories(isaac_cs_state PUBLIC src PRIVATE "${GENERATED}")
 target_include_directories(isaac_cs_world PRIVATE "${GENERATED}")
@@ -132,6 +133,8 @@ target_link_libraries(isaac_cs_net PUBLIC isaac_cs_replica)
 option(ISAACCS_BUILD_E2E_TOOLS "Build explicitly requested E2E tools outside product install tree" OFF)
 if(ISAACCS_BUILD_E2E_TOOLS)
   target_compile_definitions(isaac_cs_replica PUBLIC ISAACCS_E2E=1)
+  # Client 的 M0 聚合在状态库及调用方共同编译，保持诊断账户布局一致。
+  target_compile_definitions(isaac_cs_state PUBLIC ISAACCS_E2E=1)
   # 旧目录只服务离线对照工具，正式网络与原生场景均不消费。
   target_sources(isaac_cs_replica PRIVATE src/replica/stream_e2e.cpp src/replica/codec.cpp
     src/replica/stream_source_value.cpp src/replica/projection_graph.cpp
@@ -152,7 +155,7 @@ else()
 set(ISAACCS_BUILD_OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/../out/repentogon")
 endif()
 add_custom_command(OUTPUT "${GENERATED}/hooks_generated.cpp" "${GENERATED}/binding_v1_9_7_12.inc" "${GENERATED}/hook-manifest.json" "${GENERATED}/permanent_patches.inc" "${GENERATED}/host_patches.inc" "${GENERATED}/hook_capacity.h" "${GENERATED}/world_layout.inc" "${GENERATED}/world-layout.json"
-  BYPRODUCTS "${GENERATED}/exit_patch.inc" "${GENERATED}/shutdown_patch.inc" "${GENERATED}/backdrop_patch.inc" "${GENERATED}/display_patch.inc" "${GENERATED}/random_runtime.inc" "${GENERATED}/hook-manifest.md"
+  BYPRODUCTS "${GENERATED}/exit_patch.inc" "${GENERATED}/shutdown_patch.inc" "${GENERATED}/backdrop_patch.inc" "${GENERATED}/display_patch.inc" "${GENERATED}/random_runtime.inc" "${GENERATED}/client_display_memory_imports.inc" "${GENERATED}/hook-manifest.md"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_binding.py" --out "${GENERATED}"
   DEPENDS tools/gen_binding.py binding/hooks.json binding/world_layout.json binding/v1_9_7_12-static.json ../docs/hooks/repentogon-binding.json VERBATIM)
 # game 按职责分目录；保持既有源码登记顺序、目标和编译条件，只迁移路径。
@@ -174,6 +177,7 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
   src/game/input/input_lease.cpp src/game/authority/persistence.cpp
   src/game/client/session/client.cpp src/game/client/scene/client_scene.cpp
   src/game/client/display/client_display_native.cpp
+  src/game/client/display/client_display_memory.cpp
   src/game/client/scene/client_preparation_native.cpp
   src/game/client/scene/client_preparation.cpp
   src/game/client/scene/client_field_staging.cpp src/game/client/scene/client_field_staging_native.cpp
@@ -254,6 +258,11 @@ target_compile_definitions(zhlIsaacCS PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX _CRT_
 target_compile_options(zhlIsaacCS PRIVATE /EHs /W4 /Zi /utf-8 /wd4251 /wd4996)
 target_link_libraries(zhlIsaacCS PRIVATE isaac_cs_core isaac_cs_net isaac_cs_world isaac_cs_replica isaac_cs_grid_description isaac_cs_room_description "${REPENTOGON_ROOT}/build/Release/libzhl.lib" "${REPENTOGON_ROOT}/build/Release/Lua5.3.3r.lib" ws2_32 bcrypt opengl32)
 target_link_options(zhlIsaacCS PRIVATE /DEBUG)
+# 热路径跨采集／布局／写入多个静态库，Release允许链接期内联和常量传播。
+# 仅优化本工程对象，保留原有检查与异常语义；外部官方SDK仍按其原ABI链接。
+set_property(TARGET isaac_cs_core isaac_cs_net isaac_cs_world isaac_cs_state
+  isaac_cs_grid_description isaac_cs_room_description isaac_cs_replica
+  isaac_cs_zstd zhlIsaacCS PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
 # 只编译官方头的布局声明；其全局配置初始化不属于本DLL，不能链接或执行。
 add_library(isaac_cs_player_sdk_abi OBJECT src/game/client/player/client_player_sdk_abi.cpp)
 target_include_directories(isaac_cs_player_sdk_abi PRIVATE $<TARGET_PROPERTY:zhlIsaacCS,INCLUDE_DIRECTORIES>)

@@ -9,6 +9,9 @@ namespace {
 static_assert(kStateBudgetPolicy.pool_value_bytes==memory::kReplicationPoolCeilings[0] &&
     kStateBudgetPolicy.pool_wire_bytes==memory::kReplicationPoolCeilings[1] &&
     kStateBudgetPolicy.pool_workspace_bytes==memory::kReplicationPoolCeilings[2]);
+// 收到的差分基线至少覆盖一整流的在途窗口。
+static_assert(kStateBudgetPolicy.decode_snapshots>=kStateBudgetPolicy.world_send_window);
+static_assert(kStateBudgetPolicy.native_object_failure_limit&&kStateBudgetPolicy.pool_object_missing_limit);
 [[noreturn]] void Fail(const char *reason) { throw Gap("state_budget",reason); }
 std::uint64_t Add(std::uint64_t a,std::uint64_t b) { if (b>UINT64_MAX-a) Fail("size_overflow");return a+b; }
 std::uint64_t Multiply(std::uint64_t a,std::uint64_t b) { if (a && b>UINT64_MAX/a) Fail("size_overflow");return a*b; }
@@ -75,14 +78,17 @@ bool StatePendingCandidates::Offer(const StateTarget &target,std::uint64_t now) 
   targets_[slot]=target;observed_[slot]=now;return true;
 }
 std::optional<StateTarget> StatePendingCandidates::At(unsigned slot) const { if (slot>1) Fail("pending_slot");return targets_[slot]; }
+void StatePendingCandidates::UseDecodedBytes(unsigned slot,std::span<const std::byte> bytes) noexcept {
+  targets_[slot]->encoded=bytes;
+  targets_[slot]->decoded=true;
+}
 void StatePendingCandidates::Remove(unsigned slot) noexcept { if (slot<2) targets_[slot].reset(); }
 void StatePendingCandidates::Clear() noexcept { for (auto &target:targets_) target.reset(); }
 std::uint8_t StatePendingCandidates::Expire(std::uint64_t now) {
   std::uint8_t mask=0;
   for (unsigned i=0;i<2;++i) if (targets_[i]) {
     if (now<observed_[i]) Fail("pending_clock_regressed");observed_[i]=now;
-    const auto limit=!targets_[i]->sections[0].base_version?kStateBudgetPolicy.baseline_wait_ms:
-        i?kStateBudgetPolicy.joint_wait_ms:kStateBudgetPolicy.world_wait_ms;
+    const auto limit=i==0?kStateBudgetPolicy.world_wait_ms:kStateBudgetPolicy.baseline_wait_ms;
     if (now-started_[i]>=limit) {mask|=StateTargetStreams(*targets_[i]);targets_[i].reset();}
   }
   return mask;
@@ -98,7 +104,9 @@ StateEpisodeStatus StateTransferEpisode::Status(std::uint64_t now) const noexcep
   const auto &p=kStateBudgetPolicy;
   if (now-started_>=p.prepare_total_ms) return StateEpisodeStatus::TotalDeadline;
   if (!received_ && now-started_>=p.prepare_send_ms) return StateEpisodeStatus::SendDeadline;
-  if (now-progress_>=p.progress_ms) return StateEpisodeStatus::NoProgress;
+  // 传输完成前按分片进展计时。完整基线收齐后原生安装没有中间网络回执，
+  // 继续使用从同一起点计算的 prepare_total_ms 等待 AppliedAck。
+  if (!received_ && now-progress_>=p.progress_ms) return StateEpisodeStatus::NoProgress;
   if (charged_>p.prepare_wire_bytes) return StateEpisodeStatus::ByteLimit;
   return StateEpisodeStatus::Active;
 }

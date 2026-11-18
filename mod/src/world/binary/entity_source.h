@@ -3,6 +3,7 @@
 #include "world/collector.h"
 #include "state/display_contract.h"
 #include "world/binary/display_values.h"
+#include "world/binary/read_session.h"
 #include <memory>
 
 namespace cs::world::binary {
@@ -10,12 +11,15 @@ namespace cs::world::binary {
 struct NativeScene {
   std::uint32_t game=0,room=0,current_descriptor=0,ordinary_count=0,dimension=0,extent=0;
   std::array<std::uint32_t,456> grids{};
+  std::array<std::int32_t,8> door_indices{};
   std::array<std::uint32_t,527> descriptors{};
   std::array<std::uint16_t,507> occupancy{};
   std::array<std::uint16_t,527> descriptor_order{};
   std::array<std::uint64_t,456> grid_handles{};
   std::uint32_t descriptor_count=0,effective_curses=0;
   std::array<bool,80> seed_effects{};
+  std::array<std::uint32_t,80> seed_effect_ids{};
+  std::uint32_t seed_effect_count=0;
   bool greed=false;
 };
 // 音频只保存正常Host已选资源及Options前参数；没有后端handle或硬件游标。
@@ -37,8 +41,9 @@ struct EntityFacts {
   std::uint64_t group=0,participant=0,control_session=0,binding_revision=0;
   const NativeScene *scene=nullptr;
   std::uint16_t layout=0,source_slot=state::kNullIndex;
+  // 本次 ordinary 单根失败后的沿用状态；物理成员身份仍由原生列表确认。
+  state::CaptureFailure capture_failure=state::CaptureFailure::None;
   std::uint32_t grid_index=UINT32_MAX;
-  bool score_ready=false;
   std::uint32_t manager=0;
   // Q12由同一ordinary后态读取，未准备时拒绝合成字段，不回落normal。
   bool display_ready=false,host_paused=false;
@@ -53,6 +58,10 @@ struct EntityServices {
   // 伴随玩家的只读投影也必须满足同窗完整初始化资格，不凭可读地址访问Player专用字段。
   bool (*player_current)(void *,std::uint32_t) noexcept=nullptr;
   bool (*entity_current)(void *,std::uint32_t) noexcept=nullptr;
+  CaptureReadSession *reads=nullptr;
+  bool (*review)(void *,const state::CaptureWitness &,const EntityFacts &) noexcept=nullptr;
+  // 只查询当前成员，不新增引用、不补录旧地址。
+  bool (*reference_identity)(void *,std::uint32_t,state::CaptureSubject &) noexcept=nullptr;
 };
 // 资源描述只含已选本地内容、有限数字与自有依赖handle；既不是地址也不是GPU ready。
 struct NativeResource {
@@ -60,8 +69,6 @@ struct NativeResource {
   // 仅自有配置owner的身份；相同内容不推导两个配置对象连续／相同，地址不进入目录。
   std::uint64_t source_owner=0;
   std::uint8_t table=255,kind=255;
-  // false表示只有真实本地路径，文件几何仍待资源owner准备；禁止补零后宣称typed payload完整。
-  bool metadata_known=true;
   std::array<std::uint64_t,3> links{};
   std::array<std::uint32_t,8> values{};
   std::uint32_t text=0,text_bytes=0,extra=0,extra_count=0;
@@ -91,6 +98,14 @@ struct EntitySourceCapacity {
   // 官方静态旁表由SDK桥在冷准备期按已核模块／机器关系绑定，0保持具名缺源。
   std::uint32_t grid_plus=0,grid_plus_vtable=0;
 };
+// 当前主线程采集实例的累计工作量，只在状态查询中读取。
+struct NativeSourceStats {
+  std::uint64_t topology_builds=0,topology_hits=0,witnesses=0,rechecks=0;
+  std::uint64_t shared_player_prepared=0,shared_player_consumed=0,shared_player_reviews=0;
+  std::array<std::uint64_t,7> resource_parses{},resource_hits{},resource_frame_hits{};
+  std::uint64_t unchanged_checks=0,unchanged_roots=0,unchanged_unavailable=0;
+  std::uint32_t unchanged_slots=0,resource_frame_slots=0;
+};
 class EntitySource final {
 public:
   struct Impl;
@@ -99,9 +114,14 @@ public:
   EntitySource(const EntitySource &)=delete;
   EntitySource &operator=(const EntitySource &)=delete;
   bool Capture(const state::CaptureWitness &,EntityFacts,state::BodyStream,state::CaptureValueWriter &,
-               state::CaptureDiagnostic &,bool ordinary_joint=false) noexcept;
+               state::CaptureDiagnostic &,bool reliable=false,std::uint64_t candidate_topology=0,std::uint16_t *resolved_layout=nullptr) noexcept;
+  // Player 的 World／Body 共用来源；任一投影失败便回卷同一根。
+  bool CaptureOrdinary(const state::CaptureWitness &,EntityFacts,state::CaptureValueWriter &,
+                       state::CaptureDiagnostic &,std::uint16_t &resolved_layout,std::uint64_t reusable_base=0) noexcept;
   // 仅实际ordinary外层成功提交后确认P6；尚无同拓扑ordinary时不能产生fast body。
   void OrdinaryCommitted(state::CaptureSubject) noexcept;
+  // 外部资源写水位推进后，丢弃前一读段留下的跨帧精确证明。
+  void InvalidateReuse() noexcept;
   void Invalidate() noexcept;
   void Retire(state::CaptureSubject) noexcept;
   // 只在owner线程借用；第11步必须复制成不可变资源快照后才能交后台。
@@ -109,7 +129,7 @@ public:
   // 只供持有有效consumer票据的worker借用其stamp前缀；这些预分配区只追加且从不覆盖旧项。
   NativeResourceView PublishedResources(state::CaptureCatalogStamp) const noexcept;
   std::uint32_t Topology(state::CaptureSubject) const noexcept;
-  bool UsesSprite(std::uint32_t address) const noexcept;
+  bool UsesSprite(std::uint32_t address,std::uint32_t &owner,state::CaptureSubject &subject) const noexcept;
   // 纯值种子／有效curse投影和结构读取在同一ordinary窗口完成，供Room／Level复用。
   bool ReadSceneContext(const state::CaptureWitness &,EntityFacts,NativeScene &,state::CaptureDiagnostic &) noexcept;
   // Wiki总出现率之外的楼层资格；概率本身由已授权C++查询接口提供。
@@ -119,8 +139,13 @@ public:
   bool DisplayItemResource(const state::CaptureWitness &,EntityFacts,std::uint32_t config,state::CaptureLink &,state::CaptureDiagnostic &) noexcept;
   bool DisplayProceduralAtlas(const state::CaptureWitness &,EntityFacts,std::uint32_t,state::CaptureLink &,state::CaptureDiagnostic &) noexcept;
   bool DisplayAudioPathResource(const state::CaptureWitness &,EntityFacts,std::span<const std::byte>,state::CaptureLink &,state::CaptureDiagnostic &) noexcept;
+  // 冷准备可用余额内启用可选缓存，额度不足仍走完整采集。
+  void ReserveReuse(std::uint64_t bytes) noexcept;
   std::uint64_t RetainedBytes() const noexcept;
+  NativeSourceStats Statistics() const noexcept;
 private:
+  bool CaptureRootValues(const state::CaptureWitness &,EntityFacts,state::BodyStream,state::CaptureValueWriter &,
+                         state::CaptureDiagnostic &,bool reliable,std::uint64_t candidate_topology,bool pair_player,std::uint16_t *resolved_layout,std::uint64_t reusable_base=0) noexcept;
   std::unique_ptr<Impl> impl_;
 };
 }

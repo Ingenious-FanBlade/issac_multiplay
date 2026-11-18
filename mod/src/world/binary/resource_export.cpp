@@ -22,17 +22,10 @@ std::vector<state::HostStateResource> ExportStateResources(NativeResourceView vi
   const auto reference=[&](std::uint64_t handle,std::uint8_t table){if(!handle)return kNullIndex;const auto i=keys.find(handle);if(i==keys.end()||i->second.table!=table)Fail("dependency_missing");return i->second.index;};
   std::array<std::byte,65536> check{};std::array<ProjectionFact,256> facts{};std::array<BodyFieldView,32> fields{};
   ResourceCodecScratch scratch{{facts,0,fields}};
-  for(std::size_t i=result.size();i<view.entries.size();++i){const auto &r=view.entries[i];auto values=r.values;
-    if(!r.metadata_known){
-      // 路径自身不提供几何；只接受目录中真实Image owner已观察的同文件元数据。
-      const auto text=Text(view,r);const NativeResource *known=nullptr;
-      for(const auto &candidate:view.entries)if(candidate.table==r.table&&candidate.kind==r.kind&&candidate.metadata_known&&
-        Text(view,candidate).size()==text.size()&&std::equal(text.begin(),text.end(),Text(view,candidate).begin())){known=&candidate;break;}
-      if(!known)Fail("image_geometry_pending");values=known->values;
-    }
+  for(std::size_t i=result.size();i<view.entries.size();++i){const auto &r=view.entries[i];const auto &values=r.values;
     std::vector<std::byte> bytes;bytes.reserve(8192);
     switch(r.kind){
-    case 0:String(bytes,Text(view,r));break;
+    case 0:case state::kResourceImagePathKind:String(bytes,Text(view,r));break;
     case 1:String(bytes,Text(view,r));for(unsigned n=0;n<4;++n){if(values[n]>65535)Fail("image_geometry_range");Put(bytes,values[n],2);}break;
     case 2:Put(bytes,values[0],1);break;
     case 3:for(unsigned n=0;n<3;++n)Put(bytes,values[n],4);for(unsigned n=3;n<6;++n)Put(bytes,values[n],1);break;

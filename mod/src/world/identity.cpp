@@ -240,6 +240,8 @@ IdentityTable::AnchorPlayer(std::uint32_t ordinal, std::uint32_t address) noexce
     return result;
   }
   // 解绑：清 ordinal 并撤销当前 Player 读取依据；不去重同址复用证据。
+  if (!result.previous)
+    return result;
   for (std::uint32_t i = 0; i < used_; ++i) {
     auto &identity = identities_[i];
     if (identity.address != result.previous)
@@ -298,6 +300,8 @@ bool IdentityTable::Acquire(Identity &id, Observation kind, bool physical,
   id.lifecycle = static_cast<std::uint32_t>(Lifecycle::Acquired);
   id.readiness = static_cast<std::uint32_t>(Readiness::NoObservedInit);
   id.current_public_ready = false;
+  id.native_shape_known = false;
+  id.direct_effect_init_returned = false;
   id.birth = 0;
   id.born = false;
   id.revision = 0;

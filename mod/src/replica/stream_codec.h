@@ -4,13 +4,15 @@
 namespace cs::state {struct HostStateBytes;}
 
 namespace cs::replica::stream {
-enum class Kind : unsigned { Hello=1, Welcome, Ready, ScenePrepare, ScenePrepared, ReceiveAck=7, ContextReady, AppliedAck, Resync, Cancel, Stop, Error, Roster, TickProgress, InputAck, Input, Disconnect, OperationAck, Retire, StateFrame, StateMembers, StateResources };
+enum class Kind : unsigned { Hello=1, Welcome, Ready, ScenePrepare, ScenePrepared, ReceiveAck=7, AppliedAck=9, Resync, Cancel, Stop, Error, Roster, TickProgress, InputAck, Input, Disconnect, OperationAck, Retire, StateFrame, StateResources=23 };
 enum class Lane : unsigned { Control=1, Baseline, Context, WorldDynamic, PlayerFast, Input };
 enum class Direction { ToAuthority, ToClient };
 enum class State { Handshake, Waiting, Preparing, Active, Retiring, Stopped };
 enum class Codec : unsigned { None, Zstd };
 // 可选能力独立于原zstd-v1；旧Peer的可靠压缩支持不自动允许world/body压缩。
 inline constexpr const char *kWorldBodyZstdCapability="world-body-zstd-v1";
+// 同布局的旧接收端要等 Resources 才会回报；只有双方声明后才可省略该消息。
+inline constexpr const char *kStateTableDeltaCapability="state-table-delta-v1";
 // 封套按连接/路由持有；范围正文中的WorldScope仍然可在全部Peer间共享。
 struct Message final {
   memory::Lease memory;

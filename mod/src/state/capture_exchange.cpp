@@ -1,10 +1,14 @@
 #include "state/capture_exchange.h"
+#include <chrono>
 #include "state/budget.h"
 #include <atomic>
 #include <utility>
 
 namespace cs::state {
 namespace {
+std::uint64_t CaptureClock() noexcept {
+  return std::uint64_t(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch()).count());
+}
 constexpr std::uint32_t Empty=UINT32_MAX;
 enum SlotState : std::uint32_t {Free,Writing,Ready,Reading};
 static_assert(std::atomic<std::uint32_t>::is_always_lock_free);
@@ -15,6 +19,7 @@ struct CaptureExchange::State {
     std::atomic<std::uint32_t> state{Free},serial{0};
     Key key;
     std::uint32_t order=0;
+    std::uint64_t queued_us=0;
     CapturePacket packet;
   };
   // State租约先建最后释放；每个CaptureBuffer另外为自身实际capacity记账，引用不重复收费。
@@ -29,17 +34,15 @@ struct CaptureExchange::State {
   std::array<CaptureSubject,256> body_keys{}; // 只有producer读写，不随consumer读取而退休身体。
   std::array<CaptureControl,257> controls{};
   std::atomic<std::uint32_t> head{0},tail{0};
-  std::atomic<std::uint32_t> published{0},replaced{0},revoked{0},joint{0},reading{0};
+  std::atomic<std::uint32_t> published{0},replaced{0},revoked{0},reading{0};
   std::uint32_t serial=0,order=0,cold_enqueued=0; // 单producer独占，停止后也不回绕复用。
-  std::uint32_t next_lane=0; // 单consumer独占；ordinary与各身体轮转，避免持续ordinary饿死body。
+  std::uint32_t next_lane=0; // 单consumer独占；ordinary与各身体轮转。
   State(CaptureExchangeConfig cfg,std::thread::id p,std::thread::id c):config(cfg),producer(p),consumer(c) {
     if(cfg.buffers<4 || cfg.buffers>260 || !cfg.body_lanes || cfg.body_lanes>256 || p==std::thread::id{} ||
        c==std::thread::id{} || p==c || (cfg.ordinary_buffers && (cfg.ordinary_buffers<3 || cfg.ordinary_buffers>=cfg.buffers)))
       throw std::invalid_argument("capture_exchange_config");
-    const auto bytes=[](CaptureCapacity cap){return sizeof(CaptureBuffer)+128+std::uint64_t(cap.records)*sizeof(CaptureRecord)+
-      std::uint64_t(cap.cells)*sizeof(CaptureCell)+std::uint64_t(cap.paths)*sizeof(CodecPathStep)+cap.bytes+std::uint64_t(cap.references)*sizeof(CaptureReferenceEntry);};
-    const auto estimate=std::uint64_t(cfg.buffers-cfg.ordinary_buffers)*bytes(cfg.capacity)+
-      std::uint64_t(cfg.ordinary_buffers)*bytes(cfg.ordinary_capacity)+sizeof(State)+std::uint64_t(cfg.buffers)*sizeof(Slot);
+    const auto estimate=std::uint64_t(cfg.buffers-cfg.ordinary_buffers)*CaptureBuffer::EstimatedBytes(cfg.capacity)+
+      std::uint64_t(cfg.ordinary_buffers)*CaptureBuffer::EstimatedBytes(cfg.ordinary_capacity)+sizeof(State)+std::uint64_t(cfg.buffers)*sizeof(Slot);
     if(estimate>StateBudgets().shared_value_bytes)
       throw std::invalid_argument("capture_exchange_shared_capacity");
     memory=memory::Reserve(memory::Pool::Values,sizeof(State)+128+std::uint64_t(cfg.buffers)*sizeof(Slot),"state_capture_exchange");
@@ -111,7 +114,7 @@ struct CaptureExchange::State {
       lane=&cold;cold_enqueued=key.cold_request;
     }else key.cold_request=0;
     if(!Next(order))return false;
-    slot.key=key;slot.order=order;slot.state.store(Ready,std::memory_order_release);
+    slot.key=key;slot.order=order;slot.queued_us=CaptureClock();slot.state.store(Ready,std::memory_order_release);
     const auto old=lane->exchange(key.slot,std::memory_order_acq_rel);
     if(old!=Empty){slots[old].state.store(Free,std::memory_order_release);replaced.fetch_add(1,std::memory_order_relaxed);}
     published.fetch_add(1,std::memory_order_relaxed);return true;
@@ -165,7 +168,7 @@ CaptureExchange::WriteTicket CaptureExchange::Acquire(CaptureLane lane,CaptureWi
   auto body_slot=Empty;
   if(lane==CaptureLane::Body){for(std::uint32_t i=0;i<s.config.body_lanes;++i)if(s.body_keys[i]==subject){body_slot=i;break;}
     if(body_slot==Empty)for(std::uint32_t i=0;i<s.config.body_lanes;++i)if(!s.body_keys[i].local){body_slot=i;break;}
-    if(body_slot==Empty){s.joint.fetch_add(1,std::memory_order_relaxed);failure=CaptureFailure::NeedsOrdinaryJoint;return {};}}
+    if(body_slot==Empty){failure=CaptureFailure::QueueFull;return {};}}
   const auto first=s.config.ordinary_buffers && lane==CaptureLane::Body?s.config.ordinary_buffers:0;
   const auto end=s.config.ordinary_buffers && lane==CaptureLane::Ordinary?s.config.ordinary_buffers:s.config.buffers;
   for(std::uint32_t i=first;i<end;++i){std::uint32_t expected=Free;
@@ -183,15 +186,24 @@ bool CaptureExchange::PopControl(CaptureControl &out) noexcept {
   const auto read=s.head.load(std::memory_order_relaxed);if(read==s.tail.load(std::memory_order_acquire))return false;
   out=s.controls[read];s.head.store(read==256?0:read+1,std::memory_order_release);return true;
 }
-CaptureExchange::ReadTicket CaptureExchange::Take() noexcept {
+CaptureExchange::ReadTicket CaptureExchange::Take(std::uint64_t available_ordinary) noexcept {
   auto &s=*state_;if(!s.Consumer() || s.reading.load(std::memory_order_acquire) || s.failed.load(std::memory_order_acquire) ||
     s.head.load(std::memory_order_acquire)!=s.tail.load(std::memory_order_acquire))return {};
-  // cold优先且独立钉住；其余候选有界扫描，不借用尚未取得所有权的槽内元数据。
+  // cold优先；其余轮转。未取得依赖时只延后该快槽，已可用的快槽仍能推进。
   for(std::uint32_t attempt=0;attempt<s.config.body_lanes+2;++attempt){
     const auto rotating=(s.next_lane+(attempt?attempt-1:0))%(s.config.body_lanes+1);
     std::atomic<std::uint32_t> *lane=attempt==0?&s.cold:rotating==0?&s.ordinary:&s.bodies[rotating-1];
     const auto index=lane->exchange(Empty,std::memory_order_acq_rel);if(index==Empty)continue;
     auto &slot=s.slots[index];auto expected=std::uint32_t(Ready);
+    // producer 可能在前一轮普通槽检查后才发布。同一生产线程先交 ordinary，再交依赖它的 Body。
+    if(attempt&&rotating&&slot.packet.witness.required_revision>available_ordinary&&
+       (s.cold.load(std::memory_order_acquire)!=Empty||s.ordinary.load(std::memory_order_acquire)!=Empty)){
+      auto empty=Empty;
+      if(!lane->compare_exchange_strong(empty,index,std::memory_order_acq_rel)){
+        slot.state.store(Free,std::memory_order_release);s.replaced.fetch_add(1,std::memory_order_relaxed);
+      }
+      continue;
+    }
     if(!slot.state.compare_exchange_strong(expected,Reading,std::memory_order_acq_rel)){s.Flag(CaptureFailure::InvalidTransaction);return {};}
     const auto key=slot.key;
     if(!s.Current(key) || (key.cold_request && key.cold_request!=s.request.load(std::memory_order_acquire))){
@@ -201,7 +213,7 @@ CaptureExchange::ReadTicket CaptureExchange::Take() noexcept {
   }
   return {};
 }
-CaptureExchangeStats CaptureExchange::Statistics() const noexcept {const auto &s=*state_;return {s.published.load(),s.replaced.load(),s.revoked.load(),s.joint.load(),s.failed.load()!=0,CaptureFailure(s.failure.load())};}
+CaptureExchangeStats CaptureExchange::Statistics() const noexcept {const auto &s=*state_;return {s.published.load(),s.replaced.load(),s.revoked.load(),s.failed.load()!=0,CaptureFailure(s.failure.load())};}
 bool CaptureExchange::Drained() const noexcept {const auto &s=*state_;return s.AllFree() && s.head.load(std::memory_order_acquire)==s.tail.load(std::memory_order_acquire);}
 std::uint64_t CaptureExchange::RetainedBytes() const noexcept {const auto &s=*state_;auto bytes=s.memory->Bytes();
   for(std::uint32_t i=0;i<s.config.buffers;++i)bytes+=s.slots[i].buffer->RetainedBytes();return bytes;}
@@ -237,6 +249,9 @@ bool CaptureExchange::ReadTicket::Current() const noexcept {
     (!key_.cold_request || key_.cold_request==state_->request.load(std::memory_order_acquire));
 }
 const CapturePacket *CaptureExchange::ReadTicket::Packet() const noexcept {return Current()?&state_->slots[key_.slot].packet:nullptr;}
+std::uint64_t CaptureExchange::ReadTicket::QueuedMicros() const noexcept {
+  return Current()?CaptureClock()-state_->slots[key_.slot].queued_us:0;
+}
 void CaptureExchange::ReadTicket::Reset() noexcept {
   if(state_ && state_->Owned(key_,Reading)){state_->Consumer();state_->slots[key_.slot].state.store(Free,std::memory_order_release);state_->reading.store(0,std::memory_order_release);}
   key_={};state_.reset();

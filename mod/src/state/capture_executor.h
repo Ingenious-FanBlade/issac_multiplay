@@ -1,6 +1,8 @@
 #pragma once
 #include "state/capture_values.h"
 
+namespace cs::world::binary { class EntitySource; }
+namespace cs::capture { struct ExecutionCounts; }
 namespace cs::state {
 // 来源游标仅在当前同步调用借用。opaque供具名owner保存头／holder／修订证言，
 // 绝不写入CapturePacket；open／element／close均只读、零分配且不调用游戏生产器。
@@ -20,11 +22,15 @@ struct CaptureTraversalBinding {
                   CaptureRoot &child,CaptureDiagnostic &) noexcept=nullptr;
   // 复核原头、共享holder、实际动态类／资源与同use来源，不能用恒真回调代替。
   bool (*close)(const CaptureFieldAccess &,const CaptureTraversalSource &,CaptureDiagnostic &) noexcept=nullptr;
+  // 已确认只借用本读段纯值，原生内存一律经该读段的有界读取。
+  bool in_read_segment=false;
 };
 // 704条件消费当前资源句柄的已核配置；不在主线程提前分配Peer资源序号或调用getter。
 struct CaptureExecutionContext {
   void *context=nullptr;
   bool (*item)(void *,const CaptureWitness &,std::uint8_t table,CaptureLink,CodecItemConfig &) noexcept=nullptr;
+  // 根事务结束后提交固定整数计数，禁止进入游戏或再次调用采集。
+  void (*observe)(const capture::ExecutionCounts &) noexcept=nullptr;
 };
 // 与正文codec保持相同保护范围；reliable只供完整ordinary交接，不扩大网络配额。
 struct CaptureExecutionLimits {
@@ -48,29 +54,65 @@ public:
                CaptureExecutionLimits={}) noexcept;
   std::uint64_t RetainedBytes() const noexcept {return memory_->Bytes();}
 private:
+  friend class cs::world::binary::EntitySource;
+  // 已识别的原生根在 FinishRoot 前由来源统一复核；失败仍回卷根游标。
+  using RootReview=bool (*)(void *,const CaptureRoot &,CaptureDiagnostic &) noexcept;
+  bool ExecuteBound(const CaptureWindow &,CaptureRoot,BodyStream,CaptureValueWriter &,CaptureDiagnostic &,
+                    CaptureExecutionLimits,RootReview,bool append_body=false) noexcept;
   friend class CaptureExecution;
   // 名称在构造期消解，此表的逐帧访问只按生成全局字段索引进行。
   struct Binding {
     decltype(CaptureTraversalBinding::open) open=nullptr;
     decltype(CaptureTraversalBinding::element) element=nullptr;
     decltype(CaptureTraversalBinding::close) close=nullptr;
+    // 全局元数据在冷准备切片，热路径只消费当前字段的约束。
+    std::span<const CountConstraint> counts;
+    std::span<const LayoutChoice> choices;
+    // canonical父字段核路径形状；子块和最短元素长度按当前投影绑定。
+    const Field *parent=nullptr;
+    const Layout *child=nullptr;
+    // 执行器自己的原生连续段；不要求变长正文之后仍有静态wire_offset。
+    const CopyRange *copy=nullptr;
+    // 同块连续纯标量的cell模板；只在段首登记，模板偏移相对该复制段。
+    std::uint32_t scalar_first=0;
+    std::uint16_t scalar_count=0;
+    std::uint32_t child_mask=0;
+    std::uint32_t shared_first=0,shared_count=0;
+    std::uint64_t child_minimum=0;
+    bool inline_child=false,in_read_segment=false,scalar_leaf=false;
   };
+  struct LayoutBinding {
+    std::array<std::uint32_t,3> masks{};
+    const LayoutBudget *budget=nullptr;
+    bool valid=false;
+  };
+  const LayoutBinding &BoundLayout(const Layout &layout) const noexcept {return layouts_[&layout-Layouts().data()];}
   // 每个递归实例独占一片字段状态；selector／配置句柄和来源游标不跨根复用。
   struct FieldState {
-    CaptureTraversalSource source;
     CaptureLink link;
     std::uint64_t bits=0;
+    std::uint32_t canonical_count=0;
     ScalarKind scalar=ScalarKind::None;
-    bool opened=false,seen=false,integer=false,linked=false;
+    bool opened=false,seen=false,integer=false,linked=false,qualified=false;
+    bool count_written=false,presence_written=false,canonical_presence=false;
+    // 计数组首字段和共享组 canonical 字段分别保存完成位，只在全部选中投影成功后设置。
+    bool count_group_done=false,shared_group_done=false;
   };
   const CapturePlan &plan_;
   std::thread::id owner_;
   CaptureExecutorCapacity capacity_;
   CaptureExecutionContext context_;
   memory::Lease memory_;
+  std::vector<LayoutBinding> layouts_;
   std::vector<Binding> bindings_;
+  std::vector<CopyRange> copy_ranges_;
+  std::vector<CaptureCell> scalar_cells_;
   std::vector<FieldState> states_;
+  // 容器游标按相同深度／字段切片独占，首次Open才重置，不占每个标量的热状态。
+  std::vector<CaptureTraversalSource> sources_;
   std::vector<std::byte> copy_;
+  std::vector<std::uint16_t> shared_;
+  std::uint32_t field_stride_=0;
   bool active_=false;
 };
 }

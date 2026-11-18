@@ -8,6 +8,8 @@
 
 namespace cs::net::live {class Client;}
 namespace cs::game {
+// 一次应用中独立于全局票据的成员状态。
+enum class ClientMemberFailure : std::uint8_t { None, Stale, Pool, Native };
 // 已安装对象由唯一原生安装 owner 解析；每次按完整身份重借，不按地址／成员序号猜复用。
 // 只供主线程调用；没有实际 owner 时 Reuse／Remap 明确失败，不能重新创建冒充复用。
 class ClientSceneObjectSource {
@@ -28,32 +30,40 @@ public:
   void Close() noexcept;
   // 可先从首个工作取得 resources->Memory() 创建本 owner，再将原工作归还给本入口。
   bool OfferResource(state::ClientStateResourceJob) noexcept;
-  // 直接消费已有专用邮箱；反馈失败时保留原工作和最终结果，下次只重发，不重复加载。
-  void PumpResources(net::live::Client &) noexcept;
+  enum class ResourcePump {Done,Blocked,Yielded};
+  // Done 表示邮箱已空；回执阻塞时保留结果。已有后续工作且片用完时才主动让出。
+  ResourcePump PumpResources(net::live::Client &,std::chrono::steady_clock::time_point deadline) noexcept;
   state::ClientStateNativeStep Prepare(state::ClientStateApplyBatchRef) noexcept;
   state::ClientStateNativeStep StageObjects(const state::ClientStateApplyBatch &) noexcept;
   state::ClientStateNativeStep StageFields(const state::ClientStateApplyBatch &) noexcept;
   bool Current(const state::ClientStateApplyBatch &)const noexcept;
-  bool ObjectsReady(const state::ClientStateApplyBatch &)const noexcept;
-  bool FieldsReady(const state::ClientStateApplyBatch &)const noexcept;
-  // 借用仅在 visitor 栈内有效，不发布 Render／原生成员关系；退出前必定归还用途计数。
-  using ObjectVisitor=bool (*)(void *,std::uint32_t,void *,const state::PresentationMember &) noexcept;
-  bool VisitObjects(const state::ClientStateApplyBatch &,void *,ObjectVisitor) noexcept;
+  // 一次扫描收集已暂存的承载。观察者只能复制结果，不能调用原生代码或推进准备。
+  using ObjectVisitor=bool (*)(void *,std::uint32_t,void *,const state::PresentationMember &,std::uint64_t instance,bool borrowed) noexcept;
   using ResourceVisitor=bool (*)(void *,state::ResourceKey,void *) noexcept;
-  bool VisitResources(const state::ClientStateApplyBatch &,void *,ResourceVisitor) noexcept;
-  // 原始 field 索引可共享同一投影 owner；所有字段仍为候选私有，不授予安装／发布资格。
-  bool VisitFields(const state::ClientStateApplyBatch &,void *,ClientSceneFieldStaging::Visitor) noexcept;
+  bool InspectStaged(const state::ClientStateApplyBatch &,void *,ObjectVisitor,ResourceVisitor,ClientSceneFieldStaging::Visitor) noexcept;
+  bool StagedCurrent(const state::ClientStateApplyBatch &)const noexcept;
+  bool PendingObjectCurrent(const state::ClientStateApplyBatch &,std::uint32_t,void *,std::uint64_t)const noexcept;
+  ClientMemberFailure StagedFailure(const state::ClientStateApplyBatch &,std::uint32_t)const noexcept;
+  bool OwnsFailedObject(const state::ClientStateApplyBatch &,std::uint32_t,void *,std::uint64_t)const noexcept;
+  bool ReleaseFailedObject(const state::ClientStateApplyBatch &,std::uint32_t,void *,std::uint64_t) noexcept;
+  bool AdoptMorph(const state::ClientStateApplyBatch &,std::uint32_t,const state::PresentationMember &prior,
+      void *,std::uint64_t,const state::ClientInstallEntity &) noexcept;
+  void RevokeStaged(const state::ClientStateApplyBatch &,const char *cause="native_preflight") noexcept;
   // 独占安装租约阻止DrainBatch提前销毁已接入世界的暂存；owner必须是实际主线程安装器。
-  bool HoldInstallation(const state::ClientStateApplyBatch &,const void *owner) noexcept;
-  bool ReleaseInstallation(const state::ClientStateApplyBatch &,const void *owner) noexcept;
+  bool BeginLiveUse(const state::ClientStateApplyBatch &,const void *owner) noexcept;
+  bool ReleaseLiveUse(const state::ClientStateApplyBatch &,const void *owner) noexcept;
   // 成功发布后把整批对象／字段／资源需求移入有界安装保管区，允许继续准备下一批。
   // 原安装租约不变；本调用不发送ACK，也不退休仍被展示／配对流借用的前一批。
   // 成功时逐对象转交复用根的构造责任；旧批次不再因该根固定全部历史字段和计划。
-  bool CommitInstallation(const state::ClientStateApplyBatch &,const void *owner) noexcept;
+  bool PublishLiveUse(const state::ClientStateApplyBatch &,const void *owner) noexcept;
   // 退休前把仍有已提交使用者的根交给存活批次；未提交候选的借用仍须先结束。
   // 本调用不执行原生析构，进入退休后也不再接纳新的根借用／构造责任。
   bool BeginInstallationRetirement(const state::ClientStateApplyBatch &) noexcept;
   bool InstalledObjectCurrent(const state::ClientStateApplyBatch &,std::uint32_t,const void *)const noexcept;
+  // 读回模板只保存实例号。这里在当前已安装租约内重新取得真实根。
+  void *InstalledObject(const state::ClientStateApplyBatch &,std::uint32_t,std::uint64_t *instance=nullptr)const noexcept;
+  void *FindLiveMember(const state::PresentationMember &,std::uint64_t &instance)const noexcept;
+  bool ReleaseRetiredObject(const state::ClientStateApplyBatch &,std::uint32_t,std::uint64_t instance) noexcept;
   using RetirementObjectVisitor=bool (*)(void *,std::uint32_t,bool retire_root) noexcept;
   bool VisitRetirementObjects(const state::ClientStateApplyBatch &,void *,RetirementObjectVisitor) noexcept;
   using InstallationAction=state::ClientStateNativeStep (*)(void *) noexcept;

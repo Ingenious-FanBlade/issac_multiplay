@@ -23,7 +23,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x4",
@@ -37,18 +38,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "二维向量",
-          "sequence": "body",
-          "fields": [
-            "x",
-            "y"
-          ]
+          },
+          "sequence": "body"
         }
       ],
       "conversions": {},
@@ -117,7 +108,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x4",
@@ -131,7 +123,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x8",
@@ -145,7 +138,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xC",
@@ -159,7 +153,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x10",
@@ -173,7 +168,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x14",
@@ -187,7 +183,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x18",
@@ -201,7 +198,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x1C",
@@ -215,7 +213,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x20",
@@ -229,7 +228,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x24",
@@ -243,7 +243,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x28",
@@ -257,27 +258,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "颜色变换",
-          "sequence": "body",
-          "fields": [
-            "tint_r",
-            "tint_g",
-            "tint_b",
-            "tint_a",
-            "colorize_r",
-            "colorize_g",
-            "colorize_b",
-            "colorize_a",
-            "offset_r",
-            "offset_g",
-            "offset_b"
-          ]
+          },
+          "sequence": "body"
         }
       ],
       "conversions": {},
@@ -640,7 +622,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x4",
@@ -654,7 +637,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x8",
@@ -668,7 +652,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xC",
@@ -682,7 +667,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x10",
@@ -696,21 +682,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "颜色分量与颜色空间",
-          "sequence": "body",
-          "fields": [
-            "red",
-            "green",
-            "blue",
-            "alpha",
-            "color_space"
-          ]
+          },
+          "sequence": "body"
         }
       ],
       "conversions": {},
@@ -803,7 +776,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x4",
@@ -817,7 +791,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x8",
@@ -831,7 +806,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xC",
@@ -845,7 +821,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x10",
@@ -859,21 +836,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "混合模式",
-          "sequence": "body",
-          "fields": [
-            "equation",
-            "rgb_source_factor",
-            "rgb_destination_factor",
-            "alpha_source_factor",
-            "alpha_destination_factor"
-          ]
+          },
+          "sequence": "body"
         }
       ],
       "conversions": {},
@@ -1036,7 +1000,8 @@
             "host": "anm2_animation_to_index",
             "client": "anm2_animation_from_index",
             "target": "anm2-animation-table"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x8",
@@ -1056,7 +1021,8 @@
             "host": "read_layer_frame_selectors",
             "client": "write_layer_frame_selectors",
             "count_from": "active_animation.layer_count"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xC",
@@ -1076,7 +1042,8 @@
             "host": "read_null_layer_frame_selectors",
             "client": "write_null_layer_frame_selectors",
             "count_from": "active_animation.null_layer_count"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x10",
@@ -1090,7 +1057,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x14",
@@ -1104,7 +1072,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x15",
@@ -1137,41 +1106,6 @@
           "evidence": "J273 AnimationState::WasEventTriggered 读取 this+0x1C（imagebase 0x400000）；官方 AnimationState.zhl；版本32同步职责复核：docs/design/binary-state/animation-resource-synchronization-review.md"
         }
       ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "动画选择",
-          "sequence": "body",
-          "fields": [
-            "active_animation"
-          ]
-        },
-        {
-          "id": 1,
-          "name": "帧选择器",
-          "sequence": "body",
-          "fields": [
-            "layer_frames",
-            "null_layer_frames"
-          ]
-        },
-        {
-          "id": 2,
-          "name": "播放位置",
-          "sequence": "body",
-          "fields": [
-            "anim_frame",
-            "is_playing"
-          ]
-        },
-        {
-          "id": 3,
-          "name": "原事件掩码（预留）",
-          "sequence": "body",
-          "fields": [],
-          "reserved": true
-        }
-      ],
       "conversions": {},
       "validators": {
         "anim_frame": {
@@ -1185,7 +1119,19 @@
       },
       "members": [],
       "public_owners": [],
-      "notes": "两个帧数组是独立选择器，不是 _animFrame 的派生值。SetLayerFrame 与 NullFrame 路径分别校验并更新数组；长度来自当前 AnimationData 的 layer_count/null_layer_count，不能使用 ANM2 总层数。 版本32：两组事件位归Host，块3显式预留；is_playing与anim_frame保留，官方InterpolV2.cpp绘制插值读取两者，不以Client停用Update为由删除。"
+      "notes": "两个帧数组是独立选择器，不是 _animFrame 的派生值。SetLayerFrame 与 NullFrame 路径分别校验并更新数组；长度来自当前 AnimationData 的 layer_count/null_layer_count，不能使用 ANM2 总层数。 版本32：两组事件位归Host，块3显式预留；is_playing与anim_frame保留，官方InterpolV2.cpp绘制插值读取两者，不以Client停用Update为由删除。",
+      "write_groups": [
+        {
+          "fields": [
+            "active_animation",
+            "layer_frames",
+            "null_layer_frames",
+            "anim_frame",
+            "is_playing"
+          ],
+          "handler": "anm2_animation_from_index"
+        }
+      ]
     },
     {
       "type": "LayerState",
@@ -1244,7 +1190,8 @@
             "host": "layer_spritesheet_path_to_resource",
             "client": "layer_spritesheet_path_from_resource",
             "target": "image-table"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x20",
@@ -1258,7 +1205,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x24",
@@ -1272,7 +1220,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x28",
@@ -1286,7 +1235,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x2C",
@@ -1300,7 +1250,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x30",
@@ -1334,7 +1285,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x33",
@@ -1348,7 +1300,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x34",
@@ -1362,7 +1315,8 @@
           "wire": {
             "kind": "nested",
             "type": "Vector"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x3C",
@@ -1376,7 +1330,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x40",
@@ -1390,7 +1345,8 @@
           "wire": {
             "kind": "nested",
             "type": "Vector"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x48",
@@ -1404,7 +1360,8 @@
           "wire": {
             "kind": "nested",
             "type": "ColorMod"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x74",
@@ -1418,7 +1375,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x75",
@@ -1442,7 +1400,8 @@
           "wire": {
             "kind": "nested",
             "type": "BlendMode"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x8C",
@@ -1456,7 +1415,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x90",
@@ -1470,7 +1430,8 @@
           "wire": {
             "kind": "nested",
             "type": "Vector"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x98",
@@ -1487,39 +1448,8 @@
             "host": "image_base_name_to_resource",
             "client": "image_base_resource_to_smart_pointer",
             "target": "image-table"
-          }
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "贴图资源",
-          "sequence": "body",
-          "fields": [
-            "spritesheet_path",
-            "image_selection"
-          ]
-        },
-        {
-          "id": 1,
-          "name": "图层外观",
-          "sequence": "body",
-          "fields": [
-            "min_filter_mode",
-            "mag_filter_mode",
-            "wrap_s_mode",
-            "wrap_t_mode",
-            "flip_x",
-            "flip_y",
-            "size",
-            "rotation",
-            "position",
-            "color",
-            "visible",
-            "blend_mode",
-            "render_flags",
-            "crop_offset"
-          ]
+          },
+          "sequence": "body"
         }
       ],
       "conversions": {
@@ -1678,7 +1608,20 @@
         }
       ],
       "public_owners": [],
-      "notes": "LayerState.HasCustomShader 与 HasCustomChampionShader 由 REPENTOGON Anm2Extras.cpp 的 ANM2* / LayerState* 旁表提供，非 J273 +0x31、非 ANM2 +0x108/+0x10C；需第8步旁表布局和资源路径接线。GetSpritesheet 返回实际 Image 对象，+0x98 的资源身份仍需核对名字唯一性/程序图像；+0x08 路径不能替代它，因为 SetSpriteSheet 仅更换 smart pointer、过滤/环绕和 loaded 状态，不改路径字符串。 版本32：sprite_sheet_loaded不上线；J273 ReplaceSpritesheet VA0x407CD0清+30但保留Image，Render经GetSpriteSheet读取实际Image而非该标志。安装实际image_selection与路径元数据分离，不能因路径变更抢先LoadGraphics；本地owner负责loaded，等待／失败不得伪装为空资源。"
+      "notes": "LayerState.HasCustomShader 与 HasCustomChampionShader 由 REPENTOGON Anm2Extras.cpp 的 ANM2* / LayerState* 旁表提供，非 J273 +0x31、非 ANM2 +0x108/+0x10C；需第8步旁表布局和资源路径接线。GetSpritesheet 返回实际 Image 对象，+0x98 的资源身份仍需核对名字唯一性/程序图像；+0x08 路径不能替代它，因为 SetSpriteSheet 仅更换 smart pointer、过滤/环绕和 loaded 状态，不改路径字符串。 版本32：sprite_sheet_loaded不上线；J273 ReplaceSpritesheet VA0x407CD0清+30但保留Image，Render经GetSpriteSheet读取实际Image而非该标志。安装实际image_selection与路径元数据分离，不能因路径变更抢先LoadGraphics；本地owner负责loaded，等待／失败不得伪装为空资源。",
+      "write_groups": [
+        {
+          "fields": [
+            "spritesheet_path",
+            "image_selection",
+            "min_filter_mode",
+            "mag_filter_mode",
+            "wrap_s_mode",
+            "wrap_t_mode"
+          ],
+          "handler": "image_base_resource_to_smart_pointer"
+        }
+      ]
     },
     {
       "type": "ANM2",
@@ -1712,7 +1655,8 @@
             "host": "anm2_selected_file_to_resource",
             "client": "anm2_selected_file_from_resource",
             "target": "anm2-files"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x18",
@@ -1731,7 +1675,8 @@
             "storage": "string",
             "host": "read_anm2_default_name",
             "client": "assign_anm2_default_name"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x30",
@@ -1745,7 +1690,8 @@
           "wire": {
             "kind": "nested",
             "type": "AnimationState"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x50",
@@ -1759,7 +1705,8 @@
           "wire": {
             "kind": "nested",
             "type": "AnimationState"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x70",
@@ -1773,7 +1720,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x71",
@@ -1823,7 +1771,8 @@
             "host": "read_anm2_layer_states",
             "client": "rebuild_anm2_layer_states",
             "count_field": "layer_count"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x80",
@@ -1887,7 +1836,8 @@
           "wire": {
             "kind": "nested",
             "type": "Vector"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x9C",
@@ -1901,7 +1851,8 @@
           "wire": {
             "kind": "nested",
             "type": "Vector"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xA4",
@@ -1915,7 +1866,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xA8",
@@ -1929,7 +1881,8 @@
           "wire": {
             "kind": "nested",
             "type": "ColorMod"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xD4",
@@ -1943,7 +1896,8 @@
           "wire": {
             "kind": "nested",
             "type": "ColorMod"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x100",
@@ -1957,7 +1911,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x101",
@@ -1971,7 +1926,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x102",
@@ -1995,7 +1951,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x108",
@@ -2049,45 +2006,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "外观与资源",
-          "sequence": "body",
-          "fields": [
-            "file_name",
-            "overlay_render_first",
-            "offset",
-            "scale",
-            "rotation",
-            "color",
-            "champion_color",
-            "flip_x",
-            "flip_y",
-            "playback_speed",
-            "render_flags",
-            "default_animation_name"
-          ]
-        },
-        {
-          "id": 1,
-          "name": "动画与独立选择器",
-          "sequence": "body",
-          "fields": [
-            "main_state",
-            "overlay_state"
-          ]
-        },
-        {
-          "id": 2,
-          "name": "图层状态",
-          "sequence": "body",
-          "fields": [
-            "layer_states"
-          ]
+          },
+          "sequence": "body"
         }
       ],
       "conversions": {
@@ -2279,7 +2199,29 @@
         }
       ],
       "public_owners": [],
-      "notes": "版本32：loaded原始字节归本地，资源有无并入file_name的可空资源号；Host的未选择、Client的等待／失败与成功准备分开。is_playing／anim_frame／playback_speed因官方InterpolV2绘制消费者保留。Sprite.HasCustomShader 与 HasCustomChampionShader 来自 REPENTOGON Anm2Extras.cpp 外部旁表，不是 ANM2 +0x108/+0x10C；未声明 Sprite public_owner，待第8步接入 shader 旁表和实际 Image 资源路径。_animDefaultName 是可写 std::string：J273 Load 拷贝缓存串到 +0x18，SetAnimation 只改当前 AnimationData，不构成不可变证明。 资源路径／实际Image／shader选择仍同步，本地指针、refcount及加载结果不上线。默认动画名此轮未裁剪，仍保留已有有界串与证据边界；不声称它是不可变文件派生。"
+      "notes": "版本32：loaded原始字节归本地，资源有无并入file_name的可空资源号；Host的未选择、Client的等待／失败与成功准备分开。is_playing／anim_frame／playback_speed因官方InterpolV2绘制消费者保留。Sprite.HasCustomShader 与 HasCustomChampionShader 来自 REPENTOGON Anm2Extras.cpp 外部旁表，不是 ANM2 +0x108/+0x10C；未声明 Sprite public_owner，待第8步接入 shader 旁表和实际 Image 资源路径。_animDefaultName 是可写 std::string：J273 Load 拷贝缓存串到 +0x18，SetAnimation 只改当前 AnimationData，不构成不可变证明。 资源路径／实际Image／shader选择仍同步，本地指针、refcount及加载结果不上线。默认动画名此轮未裁剪，仍保留已有有界串与证据边界；不声称它是不可变文件派生。",
+      "write_groups": [
+        {
+          "fields": [
+            "file_name",
+            "default_animation_name",
+            "main_state",
+            "overlay_state",
+            "overlay_render_first",
+            "layer_states",
+            "offset",
+            "scale",
+            "rotation",
+            "color",
+            "champion_color",
+            "flip_x",
+            "flip_y",
+            "playback_speed",
+            "render_flags"
+          ],
+          "handler": "anm2_selected_file_from_resource"
+        }
+      ]
     },
     {
       "type": "RNG",
@@ -2332,7 +2274,6 @@
           "evidence": "J273 VA 0x7DF4A0 SetSeed、0x7DF4E0 RandomInt、0x7DF540 RandomFloat、0x7DF5B0 Next（imagebase 0x400000）；官方 RNG.zhl"
         }
       ],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "members": [],
@@ -2568,7 +2509,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x4",
@@ -2582,7 +2524,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x8",
@@ -2596,7 +2539,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xC",
@@ -2610,20 +2554,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "128 位位集",
-          "sequence": "body",
-          "fields": [
-            "ll",
-            "lh",
-            "hl",
-            "hh"
-          ]
+          },
+          "sequence": "body"
         }
       ],
       "conversions": {},
@@ -2657,17 +2589,8 @@
             "target": "entity-members",
             "host": "entity_pointer_to_member_index",
             "client": "entity_pointer_from_member_index"
-          }
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "实体引用",
-          "sequence": "body",
-          "fields": [
-            "entity"
-          ]
+          },
+          "sequence": "body"
         }
       ],
       "conversions": {},
@@ -2757,15 +2680,6 @@
           "evidence": "ColorParams.zhl 声明到 +0x39；没有证据可把 +0x3A..+0x3B 认作填充"
         }
       ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "原颜色参数（预留）",
-          "sequence": "body",
-          "fields": [],
-          "reserved": true
-        }
-      ],
       "conversions": {},
       "validators": {},
       "members": [
@@ -2833,7 +2747,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x4",
@@ -2857,7 +2772,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xC",
@@ -2871,7 +2787,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x10",
@@ -2885,7 +2802,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x14",
@@ -2909,7 +2827,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x1C",
@@ -2923,22 +2842,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "主动道具描述",
-          "sequence": "body",
-          "fields": [
-            "item_id",
-            "charge",
-            "battery_charge",
-            "sub_charge",
-            "partial_charge",
-            "var_data"
-          ]
+          },
+          "sequence": "body"
         }
       ],
       "conversions": {},
@@ -3073,7 +2978,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x14",
@@ -3087,7 +2993,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x18",
@@ -3132,7 +3039,8 @@
             "kind": "copy",
             "type": "i32"
           },
-          "shape": true
+          "shape": true,
+          "sequence": "body"
         },
         {
           "offset": "0x34",
@@ -3146,7 +3054,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x38",
@@ -3177,19 +3086,6 @@
           "semantics": "J273 Weapon ctor 写入范围超过 SDK sizeof(Weapon)=0x40；+0x40 字节归属未核",
           "status": "未知",
           "evidence": "J273 Weapon ctor VA 0x9C4EB0 写 this+0x40；player-application.json:62582"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "武器基础状态",
-          "sequence": "body",
-          "fields": [
-            "max_fire_delay",
-            "charge",
-            "weapon_type",
-            "modifiers"
-          ]
         }
       ],
       "conversions": {},
@@ -3289,7 +3185,8 @@
             "host": "temporary_effect_config_to_index",
             "client": "temporary_effect_config_from_index",
             "target": "item-config"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x4",
@@ -3303,7 +3200,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x8",
@@ -3317,7 +3215,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xC",
@@ -3328,18 +3227,6 @@
           "semantics": "SDK 对象大小 0x10 中未声明的末尾 DWORD；尚未证明可当填充",
           "status": "未知",
           "evidence": "TemporaryEffect.zhl 只命名 +0x00 item、+0x04 count、+0x08 cooldown；J273 +0x0C 用途未核；J273 VA0x90A194把新记录尾字置0，VA0x90A0D0/0x90A0D3按16B复制传入记录；不能仅以常见零值判为padding，主审已复读"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "临时效果",
-          "sequence": "body",
-          "fields": [
-            "item",
-            "count",
-            "cooldown"
-          ]
         }
       ],
       "conversions": {},
@@ -3401,17 +3288,8 @@
             "host": "weapon_whip_main_to_member_index",
             "client": "weapon_whip_main_from_member_index"
           },
-          "read_requires": "player-equipment-current-window"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 1,
-          "name": "UmbilicalWhip展示主实体",
-          "sequence": "body",
-          "fields": [
-            "whip_main_entity"
-          ]
+          "read_requires": "player-equipment-current-window",
+          "sequence": "body"
         }
       ],
       "conversions": {},
@@ -3467,7 +3345,8 @@
             "host": "read_player_temporary_effect_entries",
             "client": "rebuild_player_temporary_effect_entries"
           },
-          "read_requires": "player-equipment-current-window"
+          "read_requires": "player-equipment-current-window",
+          "sequence": "body"
         },
         {
           "offset": "0x10",
@@ -3492,7 +3371,8 @@
             "kind": "copy",
             "type": "u8"
           },
-          "read_requires": "player-equipment-current-window"
+          "read_requires": "player-equipment-current-window",
+          "sequence": "body"
         },
         {
           "offset": "0x12",
@@ -3513,24 +3393,6 @@
           "semantics": "本地承载Player回指，由外层P8 owner建立与退休，不发送Host地址或额外网络关系。",
           "status": "已核",
           "evidence": "docs/design/binary-state/player-equipment-plus-synchronization-review.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "临时效果展示开关",
-          "sequence": "body",
-          "fields": [
-            "effects_disabled"
-          ]
-        },
-        {
-          "id": 1,
-          "name": "有序临时效果",
-          "sequence": "body",
-          "fields": [
-            "effect_entries"
-          ]
         }
       ],
       "conversions": {},

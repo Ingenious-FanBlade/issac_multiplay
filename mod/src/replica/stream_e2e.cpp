@@ -2,6 +2,7 @@
 #include "replica/stream_clock_e2e.h"
 #include "replica/stream_resource_e2e.h"
 #include "replica/stream_codec.h"
+#include "state/host_publish.h"
 #include <algorithm>
 #include <atomic>
 #include <deque>
@@ -9,6 +10,12 @@
 #include <cstring>
 #include <thread>
 #include <set>
+// 二进制协议生成常量（如公共头字节数）只在 cs::state 命名空间内展开，供 World 帧故障注入定位段数字段。
+namespace cs::state {
+namespace {
+#include "state_protocol.inc"
+}
+}
 namespace cs::replica::stream {
 namespace {
 Value WorldValue(const WorldScope &scope,Allocator &a){
@@ -28,7 +35,7 @@ std::atomic<bool> visual_requested{false};
 std::atomic<std::uint64_t> visual_until{0};
 std::atomic<std::uint64_t> visual_neutral_until{0};
 std::string wire_armed,wire_hit;
-unsigned wire_hits=0;
+unsigned wire_hits=0,wire_remaining=0;
 // 紧凑不变正文避免每条Json各自保留默认64KiB分配块；分页在锁外解析、编码。
 struct Row {std::uint64_t cursor=0;std::shared_ptr<const std::string> value;};
 std::deque<Row> events;
@@ -60,6 +67,7 @@ void E2EStreamProgress(const char *site,const std::array<std::uint64_t,8> &value
 }
 void E2ETrace(bool on) noexcept {try{std::lock_guard lock(mutex);enabled=on;events.clear();event_bytes=0;missed=0;visual_requested=false;visual_until=0;visual_neutral_until=0;drop_next=false;}catch(...){++missed;}}
 void E2EObservationLoss() noexcept {drop_next=true;}
+bool E2ETraceEnabled() noexcept {return enabled.load(std::memory_order_relaxed);}
 void E2EClockRejected(std::uint64_t echo,std::uint64_t now,std::uint64_t received,std::uint64_t sent,std::uint64_t sample) noexcept {
  if(!enabled)return;try{auto row=Base("clock-rejected");auto &a=row.GetAllocator();Put(row,"client_echo_ms",Decimal(echo,a),a);Put(row,"client_received_ms",Decimal(now,a),a);Put(row,"server_received_ms",Decimal(received,a),a);Put(row,"server_sent_ms",Decimal(sent,a),a);Put(row,"server_sample_ms",Decimal(sample,a),a);Add(std::move(row));}catch(...){++missed;}
 }
@@ -89,9 +97,11 @@ void E2EAge(std::uint64_t authority,std::uint64_t source,std::uint64_t elapsed,s
  if(!enabled)return;try{auto row=Base("age");auto &a=row.GetAllocator();Put(row,"authority_tick",Decimal(authority,a),a);Put(row,"source_tick",Decimal(source,a),a);Put(row,"anchor_elapsed_ms",Decimal(elapsed,a),a);Put(row,"error_ms",Decimal(error,a),a);Put(row,"stale",Value(stale),a);Add(std::move(row));}catch(...){++missed;}
 }
 void E2EWireArm(const std::string &name){
- static constexpr const char *known[]={"wire","stream-schema","compact-schema","resource-declaration","session-identity","framing","capability-missing"};
+ static constexpr const char *known[]={"wire","stream-schema","compact-schema","resource-declaration","session-identity","framing","capability-missing",
+   "world-frame-once","world-frame-three"};
  if(std::find(std::begin(known),std::end(known),name)==std::end(known))throw ContractError("e2e_wire_named_fault");
  std::lock_guard lock(mutex);wire_armed=name;wire_hit.clear();wire_hits=0;
+ wire_remaining=name=="world-frame-three"?3u:1u;
 }
 std::string E2EWireStatus(){std::lock_guard lock(mutex);return "ok=1\narmed="+wire_armed+"\nhit="+wire_hit+"\nhits="+std::to_string(wire_hits)+"\n";}
 // 仅供菜单容量负向的无世界握手探针；不会生成Ready/Input/Range或替代真实游戏Client。
@@ -100,7 +110,24 @@ std::string E2EHelloPackets(std::uint64_t nonce,const Value &caps){
  for(const auto &packet:packets){if(out.size()+packet.size()*2>60000)throw ContractError("e2e_hello_reply_budget");out+="packet."+std::to_string(count++)+"=";for(auto b:packet){out+=h[b>>4];out+=h[b&15];}out+='\n';}return out;
 }
 bool E2EWirePayload(const Message &m,Limits limits,std::vector<std::uint8_t> &payload){
- std::string fault;{std::lock_guard lock(mutex);if(wire_armed.empty()||m.kind!=(wire_armed=="session-identity"?Kind::Welcome:Kind::Hello))return false;fault=wire_armed;wire_hit=fault;wire_armed.clear();++wire_hits;}
+ std::string fault;
+ bool world=false;
+ {
+   std::lock_guard lock(mutex);
+   if(wire_armed.empty())return false;
+   world=wire_armed=="world-frame-once"||wire_armed=="world-frame-three";
+   if(world){
+     if(m.kind!=Kind::StateFrame||!m.state_body||m.state_lane!=Lane::WorldDynamic||
+        m.state_body->bytes.size()<=state::kW_StateCommonHeaderBytes)return false;
+   }else if(m.kind!=(wire_armed=="session-identity"?Kind::Welcome:Kind::Hello))return false;
+   fault=wire_armed;wire_hit=fault;++wire_hits;
+   if(!--wire_remaining)wire_armed.clear();
+ }
+ if(world){
+   // 保留真实连接和外层报文，只令 StateFrame 段数无效，客机仍走正常接收与解码。
+   payload=EncodePayload(m,limits);payload[state::kW_StateCommonHeaderBytes]=0;
+   return true;
+ }
  Message bad;bad.kind=m.kind;bad.sequence=m.sequence;bad.connection=m.connection;bad.route=m.route;bad.body=Copy(m.body);auto &a=bad.body.GetAllocator();
  if(fault=="session-identity")bad.body["client_nonce"]=Decimal(Unsigned(bad.body["client_nonce"])+1,a);
  else if(fault=="compact-schema"){payload=EncodePayload(m,limits);payload[0]=255;return true;}

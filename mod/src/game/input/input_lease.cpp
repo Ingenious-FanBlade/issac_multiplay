@@ -40,7 +40,7 @@ InputLease::InputLease(bool required) noexcept {
   if (!lock(mutex, -1))
     return;
   lease_depth = 1;
-  joined_ = ready_ = true;
+  acquired_ = joined_ = ready_ = true;
 }
 InputLease::~InputLease() noexcept {
   if (!joined_ || --lease_depth)

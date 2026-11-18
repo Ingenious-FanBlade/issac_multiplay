@@ -15,6 +15,13 @@ struct StateTarget {
 StateTarget DescribeStateTarget(const StateRoute &,const StateFrameView &);
 StateAppliedAck StateTargetAck(const StateTarget &);
 std::uint8_t StateTargetStreams(const StateTarget &);
+// 联合或完整恢复占用两槽；票据仍只接受报文实际携带的流。
+inline std::uint8_t StateApplyOccupancy(const StateTarget &target) {
+  return !target.sections[0].base_version?3:StateTargetStreams(target);
+}
+inline unsigned StateApplyChannel(const StateTarget &target) {
+  return StateApplyOccupancy(target)==2?1:0;
+}
 // 检查所有仍保留的候选／在途／提交凭据，同一序列target不可重新绑定正文或joint关系。
 bool StateTargetsConflict(const StateTarget &,const StateTarget &);
 
@@ -35,7 +42,6 @@ public:
   virtual ~StateCandidateContext() = default;
   virtual StateReadiness Inspect(const StateTarget &) const = 0;
 };
-enum class StateApplyOutcome : std::uint8_t { Success, FailedBeforeWrites, FailedAfterWrites };
 struct StateApplyTicket { StateRoute route; std::uint64_t serial=0; };
 
 // 此状态机没有游戏／网络调用，只交接凭据。owner按主线程完成消息串行驱动它，
@@ -47,14 +53,11 @@ public:
   StateAcceptDecision Assess(const StateTarget &,const StateCandidateContext &) const;
   // Begin再次Inspect，防止候选排队期间失效；仅Apply可获唯一ticket。
   StateApplyTicket Begin(const StateTarget &,const StateCandidateContext &);
-  // Success仅可由真正完成全部原生提交的owner回报。旧route／旧serial回调不产生ACK。
-  std::optional<StateAppliedAck> Finish(StateApplyTicket,StateApplyOutcome,std::uint8_t affected_streams=0);
+  // 只推进客机的应用版本与恢复状态。接收 ACK 由快照环生成。
+  bool MarkApplied(const StateTarget &);
   void RequireRecovery(std::uint8_t streams,StateResyncReason,bool structural=false);
   std::optional<StateResync> RecoveryRequest() const;
-  // 原始joint保持双项；污染／待完整重建的事务不补发历史ACK。相同凭据只返回一次。
-  std::array<std::optional<StateAppliedAck>,2> Reacknowledgements() const;
   std::array<std::uint32_t,2> HistoricalVersions() const noexcept { return versions_; }
-  std::uint64_t InstalledEvents() const noexcept { return events_; }
   std::uint8_t UnusableStreams() const noexcept { return needs_full_; }
 private:
   StateRoute route_{};
@@ -64,8 +67,6 @@ private:
   std::uint8_t needs_full_=3;
   bool needs_joint_=true;
   StateResyncReason reason_=StateResyncReason::Lifecycle;
-  std::optional<StateTarget> inflight_;
-  std::array<std::optional<StateTarget>,2> committed_{};
 };
 
 enum class StateAckResult : std::uint8_t { Accepted, Duplicate, StaleRoute, UnknownOrConflict };
@@ -102,8 +103,6 @@ private:
   bool recovery_joint_=false;
   std::array<std::uint32_t,2> recovery_floor_{}, recovery_history_{};
 };
-bool AcceptStateContextReady(const StateRoute &expected,const StateRoute &received,const StateContextReady &,
-    std::span<const StateContextReady> actually_sent) noexcept;
 StateRecoveryPlan PlanStateRecovery(const StateRoute &,const StateRoute &,const StateResync &,bool structural);
 // 仅由生命周期owner排空并退休旧复制route后调用。整数epoch可在新复制代次重新编号，
 // 但完整资源身份目录逐字节保持，同run编号／内容历史绝不清空，不因换route自动调用。

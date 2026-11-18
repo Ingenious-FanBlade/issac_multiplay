@@ -9,6 +9,7 @@
 #include "game/authority/tick.h"
 #include "game/observation/world_bridge.h"
 #include "runtime.h"
+#include "world/common/frame_read_regions.h"
 #include <algorithm>
 
 namespace cs::game {
@@ -273,34 +274,46 @@ LoadingOwnerScope::~LoadingOwnerScope() noexcept {
 namespace {
 // 完整图已在当前边界确认后，consumer只检查当前身体、设备及全局阻断字段。
 // 任一变化都退回完整图读取；不在原生调用之间缓存未知对象，也不因缓存授予绑定。
+// 只复用页权限。所有身体和设备身份字段仍在当前 consumer 内实读。
+class ConsumerReadWindow final {
+public:
+  bool Copy(const void *source,void *output,std::size_t size) noexcept {
+    return world::CheckedNativeCopy(reinterpret_cast<std::uintptr_t>(source),output,size,world::FrameRegionReader::Consumer);
+  }
+  template<class T>bool At(const void *object,std::size_t offset,T &value) noexcept {
+    const auto address=reinterpret_cast<std::uintptr_t>(object);
+    return object&&offset<=UINTPTR_MAX-address&&Copy(reinterpret_cast<const void *>(address+offset),&value,sizeof(value));
+  }
+};
 bool StableConsumerSnapshot(const SessionRuntime &r, void *player) noexcept {
-  if (!player || !r.pipeline.SimulationTick() || r.blocks || !r.observed ||
+  if (!IsMain() || !player || !r.pipeline.SimulationTick() || r.blocks || !r.observed ||
       r.lifecycle_loop != r.loop || r.lifecycle_epoch != r.query_epoch)
     return false;
+  ConsumerReadWindow reads;
   const auto &host = r.topology[0];
   void *game = GamePointer(), *room = nullptr, *manager = nullptr;
   bool run = false, starting = false, focused = false, pause_on_focus = false;
   int pause = 0, room_transition = 0, stage_transition = 0;
   unsigned stage = 0, stage_type = 0, index = 0, dimension = 0;
   if (!host.known || game != host.room.game ||
-      !ReadAt(game, offset::RunActive, run) || run != host.run ||
-      !ReadAt(game, offset::CurrentRoom, room) || room != host.room.room ||
-      !ReadAt(game, 0, stage) || stage != host.room.stage ||
-      !ReadAt(game, 4, stage_type) || stage_type != host.room.stage_type ||
-      !ReadAt(game, offset::RoomIndex, index) || index != host.room.index ||
-      !ReadAt(game, offset::Dimension, dimension) ||
+      !reads.At(game, offset::RunActive, run) || run != host.run ||
+      !reads.At(game, offset::CurrentRoom, room) || room != host.room.room ||
+      !reads.At(game, 0, stage) || stage != host.room.stage ||
+      !reads.At(game, 4, stage_type) || stage_type != host.room.stage_type ||
+      !reads.At(game, offset::RoomIndex, index) || index != host.room.index ||
+      !reads.At(game, offset::Dimension, dimension) ||
       dimension != host.room.dimension ||
-      !ReadAt(game, offset::PauseScreen, pause) || pause != host.pause ||
-      !ReadAt(game, offset::RoomTransition, room_transition) ||
+      !reads.At(game, offset::PauseScreen, pause) || pause != host.pause ||
+      !reads.At(game, offset::RoomTransition, room_transition) ||
       room_transition != host.room_transition ||
-      !ReadAt(game, offset::StageTransition, stage_transition) ||
+      !reads.At(game, offset::StageTransition, stage_transition) ||
       stage_transition != host.stage_transition ||
-      !ReadMemory(reinterpret_cast<void *>(Base + offset::Manager), &manager,
+      !reads.Copy(reinterpret_cast<void *>(Base + offset::Manager), &manager,
                   sizeof(manager)) ||
-      !ReadAt(manager, offset::Starting, starting) ||
-      starting != host.starting || !ReadAt(manager, offset::Focus, focused) ||
+      !reads.At(manager, offset::Starting, starting) ||
+      starting != host.starting || !reads.At(manager, offset::Focus, focused) ||
       focused != host.focused ||
-      !ReadAt(manager, offset::PauseOnFocusLost, pause_on_focus) ||
+      !reads.At(manager, offset::PauseOnFocusLost, pause_on_focus) ||
       pause_on_focus != host.pause_on_focus_lost)
     return false;
   for (unsigned ordinal = 0; ordinal < r.session.ParticipantLimit();
@@ -316,28 +329,28 @@ bool StableConsumerSnapshot(const SessionRuntime &r, void *player) noexcept {
       int character = -1, controller = -1, device_id = -1;
       bool valid = false, exists = false, dead = false, removed = false,
            ghost = false, enabled = false;
-      if (!ReadAt(player, offset::EntityType, type) || type != 1 ||
-          !ReadAt(player, offset::EntityVariant, variant) || variant != 0 ||
-          !ReadAt(player, offset::PlayerType, character) ||
+      if (!reads.At(player, offset::EntityType, type) || type != 1 ||
+          !reads.At(player, offset::EntityVariant, variant) || variant != 0 ||
+          !reads.At(player, offset::PlayerType, character) ||
           character != body.character ||
-          !ReadAt(player, offset::ControllerIndex, controller) ||
+          !reads.At(player, offset::ControllerIndex, controller) ||
           controller != body.controller ||
-          !ReadAt(player, offset::EntityValid, valid) || valid != body.valid ||
-          !ReadAt(player, offset::EntityExists, exists) ||
-          exists != body.exists || !ReadAt(player, offset::EntityDead, dead) ||
+          !reads.At(player, offset::EntityValid, valid) || valid != body.valid ||
+          !reads.At(player, offset::EntityExists, exists) ||
+          exists != body.exists || !reads.At(player, offset::EntityDead, dead) ||
           dead != body.dead ||
-          !ReadAt(player, offset::EntityRemoved, removed) ||
+          !reads.At(player, offset::EntityRemoved, removed) ||
           removed != body.removed ||
-          !ReadAt(player, offset::CoopGhost, ghost) || ghost != body.ghost ||
-          !ReadAt(group.pair.device, offset::DeviceId, device_id) ||
+          !reads.At(player, offset::CoopGhost, ghost) || ghost != body.ghost ||
+          !reads.At(group.pair.device, offset::DeviceId, device_id) ||
           device_id != group.pair.key ||
-          !ReadAt(group.pair.device, offset::DeviceEnabled, enabled) ||
+          !reads.At(group.pair.device, offset::DeviceEnabled, enabled) ||
           !enabled)
         return false;
       constexpr size_t offsets[] = {0x1D84, 0x1E4C, 0x1E50, 0x267C};
       for (unsigned relation = 0; relation < 4; ++relation) {
         void *target = nullptr;
-        if (!ReadAt(player, offsets[relation], target) ||
+        if (!reads.At(player, offsets[relation], target) ||
             target != body.relations[relation])
           return false;
       }
@@ -359,29 +372,24 @@ void RefreshLifecycle(SessionRuntime &r, bool authority,
   }
   ++r.lifecycle_refreshes;
   const bool host_mode = r.mode == core::SessionMode::Host;
-  std::array<Topology, core::kMaximumParticipants> values{};
-  values[0] = ReadTopology();
+  TopologyGroups values{};
+  TopologyDevices devices{};
+  unsigned mask = 1;
   if (host_mode)
     for (unsigned i = 1; i < core::kMaximumParticipants; ++i)
-      if (r.Remote(i).join.complete && !r.Remote(i).retired)
-        values[i] = ReadTopology(i, r.Remote(i).device.Object());
+      if (r.session.HasParticipant(i) && r.Remote(i).join.complete && !r.Remote(i).retired) {
+        mask |= 1u << i;
+        devices[i] = r.Remote(i).device.Object();
+      }
+  const auto conflicts = ReadTopologies(mask, devices, values);
+  if (Runtime() != &r)
+    return;
   // 不同参与者不得共享身体（包括备份）。冲突只撤销相关组，不借查询回退串用物理设备。
   for (unsigned i = 0; i < r.session.ParticipantLimit(); ++i)
-    for (unsigned j = i + 1; j < r.session.ParticipantLimit(); ++j) {
-      if (!r.session.HasParticipant(i) || !r.session.HasParticipant(j))
-        continue;
-      bool overlap = false;
-      for (unsigned b = 0; b < values[i].body_count; ++b)
-        overlap |= values[j].Contains(values[i].bodies[b].player, false);
-      if (overlap)
-        for (unsigned k : {i, j}) {
-          values[k].unique = false;
-          values[k].fault = TopologyFault::Ambiguous;
-          values[k].reason = "cross_participant_body_conflict";
-          if (r.players[k].BoundValid())
-            r.players[k].Invalidate();
-          WorldRevokePlayer(k);
-        }
+    if (r.session.HasParticipant(i) && (conflicts & (1u << i))) {
+      if (r.players[i].BoundValid())
+        r.players[i].Invalidate();
+      WorldRevokePlayer(i);
     }
   const auto &value = values[0];
   if (value.known && !value.run) {
@@ -488,6 +496,7 @@ void RefreshLifecycle(SessionRuntime &r, bool authority,
           value.reason);
   // 5. 只有稳定且未阻断的 Authority 入口才重新唯一绑定；B 的死亡状态在此
   // 之前已拒绝输入，不会因为 blocks 清零而被绕过。
+  bool topology_just_read = true;
   if (authority && !blocks) {
     if (r.loop > r.binding_defer_through[0] && !r.control_quarantined[0] &&
         !r.players[0].BoundValid() && values[0].unique && values[0].Alive()) {
@@ -512,10 +521,11 @@ void RefreshLifecycle(SessionRuntime &r, bool authority,
           continue;
         const bool revived = remote.life.status == RemoteLifeStatus::Revived;
         if (remote.life.status == RemoteLifeStatus::Alive || revived)
-          BindRevivedRemote(r, revived, i);
+          if (BindRevivedRemote(r, revived, i))
+            topology_just_read = false;
       }
   }
-  WorldRefreshAnchors();
+  WorldRefreshAnchors(topology_just_read);
   ObservePersistenceWindows(r);
   r.lifecycle_loop = r.loop;
   r.lifecycle_epoch = r.query_epoch;

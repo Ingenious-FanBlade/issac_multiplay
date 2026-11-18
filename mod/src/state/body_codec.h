@@ -6,7 +6,6 @@
 
 namespace cs::state {
 // 正文与原生对象分开：所有输入均为已封存自有纯值，小端标量保留实际位模式。
-enum class ScalarKind : std::uint8_t { None, U8, I8, U16, I16, U32, I32, U64, I64, F32, F64 };
 enum class BodyStream : std::uint8_t { World, Body, Value };
 // 采集与正文共用同源数字分支；热路径不再解释storage／predicate字符串。
 enum class BodyStorage : std::uint8_t { None, Vector, String, Array, Deque, CString, OrderedMap, Set, Aggregate, SharedOwner, SlotsMask };
@@ -30,6 +29,7 @@ bool DescribeBodySourceField(std::uint16_t layout,std::uint16_t field,BodySource
 std::uint32_t BodySourceMaximumFields() noexcept;
 // 同一数字validator同时用于正式正文与主线程采集；只判断纯值，不抛异常或分配。
 bool ValidBodySourceScalars(std::uint16_t layout,std::uint16_t field,std::span<const std::byte>) noexcept;
+bool ValidBoundBodyScalars(std::uint32_t field_slot,std::span<const std::byte>) noexcept;
 inline constexpr std::size_t kCodecMaxDepth = 32;
 // 纯值调用者可按类型扩充临时区或报告缺依赖，不解析Gap文本决定调度。
 enum class BodyScratchRegion : std::uint8_t { Facts, RootFields };
@@ -119,6 +119,8 @@ struct ProjectionFact {
   std::uint16_t layout=0, group=0, slot=0, field=0, value=0, limit=0, copies=0, slots=0;
   std::uint8_t depth=0;
   ProjectionFactKind kind=ProjectionFactKind::Count;
+  std::uint8_t root_block=0;
+  bool operator==(const ProjectionFact &) const = default;
 };
 // 可选根字段视图复用生成字段索引；失效条件分支明确present=false，不伪装为空容器。
 struct BodyFieldView {
@@ -146,6 +148,8 @@ struct BodyFieldNodeView {
   std::span<const std::byte> bytes;
   std::uint32_t elements=0,slot_mask=0;
   bool present=false,payload_present=false;
+  // 封存后的结构节点可直接携带可信生成定义，省去每批再次解析安装字段。
+  const Field *definition=nullptr;
 };
 class BodyNodeObserver {
 public:
@@ -162,7 +166,20 @@ struct BodyCodecScratch {
   std::uint32_t root_field_count=0;
   BodyNodeObserver *observer=nullptr;
 };
-struct BodyBlockView { std::uint8_t block=0; std::span<const std::byte> bytes; };
+struct BodyBlockView {
+  std::uint8_t block=0;
+  std::span<const std::byte> bytes;
+  std::uint32_t field_visits=0;
+  bool reused=false;
+};
+// 只供 Client 合并精确 base 后使用。cached 字段和事实必须来自同一不可变正文。
+struct BodyBlockInput {
+  std::span<const std::byte> bytes;
+  std::span<const BodyFieldView> cached_fields;
+  std::span<const ProjectionFact> cached_facts;
+  std::uint32_t cached_visits=0;
+  bool links=false;
+};
 // 成功返回只证明正文结构及本地值规则成立。links_required和needs_base_checks必须在
 // 第12步完整候选上解决；本对象不代表资源ready、生命周期合法、已安装或可回ACK。
 struct BodyView {
@@ -186,6 +203,8 @@ BodyView EncodeBodyInto(std::uint16_t layout, std::uint32_t block_mask, BodyStre
 BodyView DecodeBody(std::uint16_t layout, std::uint32_t block_mask, BodyStream,
     std::span<const std::byte> encoded, BodyCodecScratch &,
     const BodyCodecContext *context=nullptr, BodyCodecLimits={});
+BodyView DecodeBodyBlocks(std::uint16_t layout,std::uint32_t block_mask,BodyStream,
+    const std::array<BodyBlockInput,32> &,BodyCodecScratch &,const BodyCodecContext *,BodyCodecLimits);
 // 嵌套／结果／公共固定头按完整值布局编码，不额外添加状态记录头或块mask。
 BodyView EncodeValueInto(std::uint16_t layout, const BodyValueSource &, std::span<std::byte>,
     BodyCodecScratch &, const BodyCodecContext *context=nullptr, BodyCodecLimits={});

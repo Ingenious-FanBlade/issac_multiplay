@@ -11,6 +11,8 @@
 #include "game/participants/topology.h"
 #include "game/observation/world_bridge.h"
 #include "ops/world_commands.h"
+#include "core/capture_cost.h"
+#include "world/common/frame_read_regions.h"
 #ifdef ISAACCS_E2E
 #include "net/live.h"
 #include "ops/e2e_ui.h"
@@ -333,14 +335,24 @@ std::string Execute(std::string_view text, const char *source) {
   } else if(verb=="stream") {
     std::string target;unsigned page=0;in>>target;
     if(!(in>>page)&&!in.eof())result="ok=0\nerror=stream_page\n";
-    else if(page>=32||(in.clear(),bool(in>>extra)))result="ok=0\nerror=arguments\n";
+    else if(page>=unsigned(replica::stream::CpuStage::Count)||(in.clear(),bool(in>>extra)))result="ok=0\nerror=arguments\n";
     else if(target=="reload"){
       // 只更新下次会话的流配置；运行中的输入、Hook和其他设置不热替换。
       if(game::Busy()||game::ClientBusy()||game::TopOwner()!=Owner::Manager)result="ok=0\nerror=stream_configuration_in_use\n";
-      else{auto next=ReadConfig();if(!next.enabled)result="ok=0\nerror="+next.reason+"\n";else{Settings.stream=next.stream;Settings.peer_timeout_ms=next.peer_timeout_ms;result="ok=1\n"+Settings.stream.Fields("stream.requested.");}}
+      else{
+        // 归还进程共享缓存的租约，让空闲重载仍可配置三池预算。
+        const auto next=[]{
+          world::SetFrameReadRegionCache(false);
+          struct RestoreReadCache {~RestoreReadCache(){world::SetFrameReadRegionCache(true);}} restore;
+          return ReadConfig();
+        }();
+        if(!next.enabled)result="ok=0\nerror="+next.reason+"\n";
+        else{Settings.stream=next.stream;Settings.peer_timeout_ms=next.peer_timeout_ms;result="ok=1\n"+Settings.stream.Fields("stream.requested.");}
+      }
     }
     else if(target=="client")result=game::ClientStreamFields(page);
     else if(target=="source")result=game::SourceStreamFields(page);
+    else if(target=="main")result="ok=1\n"+capture::CostFields(page)+(page?std::string{}:world::FrameReadRegionFields());
     else if(target=="ipc")result="ok=1\n"+command_metrics.Fields("stream.ipc.",page);
     else if(target=="config")result="ok=1\n"+Settings.stream.Fields("stream.requested.");
     else if(target=="1"||target=="2"||target=="3")result=game::HostStreamFields(unsigned(target[0]-'0'),page);
@@ -489,6 +501,7 @@ void FrameBegin() noexcept {
     Trace("context_error", "reentrant_manager");
     return;
   }
+  world::InvalidateFrameReadRegions(world::FrameRegionReset::Frame);
   ++frame;
   if (frame <= 3)
     Trace("frame_begin", "frame=%llu", frame);
@@ -606,6 +619,7 @@ void FrameEnd(bool completed) noexcept {
     return;
   // 原生异常展开只归还深度，不发布未完成帧的状态快照。
   if(native_frame) {
+    // 根尾证言只覆盖本次 Manager 尾部，封存和时钟提交之间不能调用原生更新、Lua 或控制命令。
     game::WorldPreparePostState(completed);
     game::EndManager(completed);
     game::WorldFrameEnd();

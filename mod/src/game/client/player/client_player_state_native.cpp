@@ -38,7 +38,8 @@ using player_sdk::Timed;using player_sdk::Innate;using player_sdk::Spoof;using p
 // holder由官方Entity ctor拥有，Plus由官方base Init拥有；读取不调用会分配的新建fallback。
 PlusItems *Items(Entity_Player &p){const auto address=(std::uintptr_t(p._entityExtraDataPtrUpperBytes)<<16)|p._entityExtraDataPtrLowerBytes;
   if(!address)return nullptr;auto *plus=*reinterpret_cast<player_sdk::PlusHeader **>(address);
-  if(!plus||std::strcmp(typeid(*plus).name(),"class EntityPlayerPlus"))return nullptr;
+  // 固定MSVC目标下直接核原始RTTI类名，保留动态类型检查并避免CRT反修饰锁。
+  if(!plus||std::strcmp(typeid(*plus).raw_name(),".?AVEntityPlayerPlus@@"))return nullptr;
   return reinterpret_cast<PlusItems *>(reinterpret_cast<unsigned char *>(plus)+sizeof(player_sdk::PlusHeader));
 }
 void Number(lua_State *L,const char *key,float n){if(!std::isfinite(n))throw std::runtime_error("player_state_nonfinite");lua_pushnumber(L,n);lua_setfield(L,-2,key);}

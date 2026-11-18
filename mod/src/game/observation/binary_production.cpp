@@ -6,6 +6,7 @@
 #include "game/common/bridge.h"
 #include "game/common/display_paths.h"
 #include "world/observe.h"
+#include "core/capture_cost.h"
 #include "game/authority/state.h"
 #include "game/authority/tick.h"
 #include <exception>
@@ -42,11 +43,13 @@ void BinaryBossObserved(std::uint32_t owner,std::uint32_t first,std::uint32_t se
 // 异常、错线程、Client或停用时不产生新结果；original的执行仍完全由原Hook链拥有。
 BinaryProductionScope::BinaryProductionScope(BinaryProductionKind kind,void *object,void *manager) noexcept
     :kind_(kind),exceptions_(std::uncaught_exceptions()),object_(object) {
+  capture::Cost cost(capture::CostPart::Native);
   if(!IsMain() || ClientBusy())return;previous_=production;production=this;capture_=CurrentWorldRecording();
   if(kind>=BinaryProductionKind::MusicPlay&&kind<=BinaryProductionKind::MusicLayerOff)music_before_=BinaryNativeMusicCurrent(object);
   if(capture_&&capture_->binary_entities)token_=capture_->binary_entities->ProductionBegin(kind,world::PackWord(object),world::PackWord(manager));
 }
 BinaryProductionScope::~BinaryProductionScope() noexcept {
+  capture::Cost cost(capture::CostPart::Native);
   if(token_&&capture_&&capture_->binary_entities)capture_->binary_entities->ProductionEnd(token_,returned_&&exceptions_==std::uncaught_exceptions());
   if(!token_&&returned_&&exceptions_==std::uncaught_exceptions()&&IsMain()&&!ClientBusy()){
     if(kind_>=BinaryProductionKind::MusicPlay&&kind_<=BinaryProductionKind::MusicLayerOff){bool nested=false;

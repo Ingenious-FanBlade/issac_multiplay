@@ -13,20 +13,20 @@ void BinaryBackdropChanged(void *,bool current) noexcept;
 class StreamResourceScope final {
 public:
   explicit StreamResourceScope(void *object,bool retired=false,bool constructing=false,void *copy_source=nullptr,const char *operation="unspecified") noexcept;
-#ifdef ISAACCS_E2E
   ~StreamResourceScope() noexcept;
   void Returned() noexcept {returned_=true;}
 private:
-  std::shared_ptr<WorldCapture> capture_;
   bool returned_=false;
+  bool qualified_writer_=false;
+  bool foreign_writer_=false;
+  int exceptions_=0;
+#ifdef ISAACCS_E2E
+  std::shared_ptr<WorldCapture> capture_;
   bool retired_=false;
   bool constructing_=false;
   bool affects_source_=false;
   std::uint64_t copied_generation_=0;
   std::uint32_t address_=0;
-  int exceptions_=0;
-#else
-  void Returned() noexcept {}
 #endif
 };
 #ifdef ISAACCS_E2E
@@ -136,6 +136,8 @@ bool ClientBinaryGridWaterClip(const void *,std::uint32_t &) noexcept;
 // 完整原生 Entity Init 依赖随机与音频隔离 Hook。
 bool ClientEntityInitIsolationInstalled() noexcept;
 bool ClientBinaryDrawOrder(const void *,std::uint32_t &) noexcept;
+// 返回当前安装／已发布 roster 的 C/S 控制组槽位，不借用原版设备编号。
+bool ClientBinaryHudOrdinal(const void *,unsigned &) noexcept;
 constexpr std::uint64_t ClientEntryMask(ClientEntry entry) noexcept {
   return unsigned(entry)<64?std::uint64_t{1}<<unsigned(entry):0;
 }
@@ -186,11 +188,12 @@ public:
   explicit InputLease(bool required) noexcept;
   ~InputLease() noexcept;
   bool Ready() const noexcept { return ready_; }
+  bool Acquired() const noexcept { return acquired_; }
   InputLease(const InputLease &) = delete;
   InputLease &operator=(const InputLease &) = delete;
 
 private:
-  bool joined_ = false, ready_ = false;
+  bool joined_ = false, ready_ = false, acquired_ = false;
 };
 bool HostBusy() noexcept;
 void InputLeaseUnavailable() noexcept;

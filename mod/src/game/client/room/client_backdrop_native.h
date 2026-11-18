@@ -18,7 +18,7 @@ struct ClientBackdropWallTrace final {
   std::vector<ClientBackdropEffectStep> steps;
   bool operator==(const ClientBackdropWallTrace &b) const {return present==b.present&&applicable==b.applicable&&initial==b.initial&&before==b.before&&after==b.after&&steps==b.steps;}
 };
-// 正式Source在原调用前后只复制值；Client只在已声明NativeApply根重放轨迹。
+// Source在原调用前后只复制值。Client在声明的NativeApply内使用本机背景构图。
 class ClientBackdropBuildScope final {
 public:
   explicit ClientBackdropBuildScope(void *) noexcept;
@@ -55,11 +55,11 @@ private:
   ClientBackdropEffectStep step_{};
   bool source_=false,client_=false,returned_=false;
 };
-// 借用本次目标的自有轨迹仅覆盖同步Init栈；离栈撤销，不缓存目标地址。
-class ClientBackdropReplay final {
+// 允许当前Client Room用自身外观随机流构图，仍跳过原生装饰生成。
+class ClientBackdropLocalBuild final {
 public:
-  ClientBackdropReplay(void *,const ClientBackdropWallTrace &) noexcept;
-  ~ClientBackdropReplay();
+  explicit ClientBackdropLocalBuild(void *) noexcept;
+  ~ClientBackdropLocalBuild();
   bool Complete() const noexcept;
 private:
   bool active_=false;

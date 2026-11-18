@@ -5,6 +5,8 @@ namespace cs::replica::stream {
 struct Message;
 // 仅显式token启用的短期诊断；后台只写自有值，溢出/缺测不影响产品接纳。
 void E2ETrace(bool enabled) noexcept;
+// 高频视觉诊断必须随显式trace开关启停，避免混入正式性能采样。
+bool E2ETraceEnabled() noexcept;
 void E2EObservationLoss() noexcept;
 void E2ETime(const Metrics *,CpuStage,std::uint64_t wall,std::uint64_t cpu) noexcept;
 void E2EPacket(std::uint64_t connection,std::uint64_t route,std::uint64_t bytes,const std::array<std::uint64_t,4> &,const char *direction) noexcept;
@@ -27,7 +29,7 @@ void E2EInput(const char *event,const InputWitness &) noexcept;
 void E2EAge(std::uint64_t authority,std::uint64_t source,std::uint64_t elapsed,std::uint64_t error,bool stale) noexcept;
 // 只记录现有事务的精确版本/步骤/时刻，不产生进度或改变超时。
 void E2EStreamProgress(const char *site,const std::array<std::uint64_t,8> &) noexcept;
-// 在正式sender形成真实Hello/Welcome后仅改一次负向正文；接收端仍走完整wire解码。
+// 正式 sender 已形成真实握手或普通 World，并且 E2E 显式装填时才改写正文。
 void E2EWireArm(const std::string &name);
 std::string E2EWireStatus();
 // 入口提供实际应用层能力纯值，底层编码器不依赖网络owner或复制第二份能力目录。

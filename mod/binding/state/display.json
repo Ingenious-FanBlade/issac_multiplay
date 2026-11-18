@@ -91,6 +91,78 @@
           "evidence": "client-display-delegation 6.3／6.4；J273 RE-7／RE-8／RE-9；Host正常来源",
           "host": "display_value_read",
           "client": "display_value_install"
+        },
+        {
+          "name": "backdrop_wall_style",
+          "type": "i32",
+          "semantics": "背景20墙面构图读取的档位",
+          "evidence": "J273 91147B",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "backdrop_tutorial",
+          "type": "u8",
+          "semantics": "本房满足教程的楼层和起始位置条件；按钮使用Client本机映射",
+          "evidence": "J273 90F85D–90F8A4",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "room_graphics_flags",
+          "type": "u8",
+          "semantics": "bit0为原生游戏状态bit46，bit1为bit47。分别供FX背景筛选、特殊Boss房墙面和灯光消费。",
+          "evidence": "J273 968F8E → 748900；911829 → 81CB60 → 7489A0；804263",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "camera_entry_door",
+          "type": "i32",
+          "semantics": "原生Camera构造时使用的进入门",
+          "evidence": "J273 91CC0C",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "camera_previous_entry",
+          "type": "i32",
+          "semantics": "原生Camera构造时判定特殊进房或返回所用前一入口",
+          "evidence": "J273 91CCE4 → 744060",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "camera_return_focus",
+          "type": "u8",
+          "semantics": "当前入口等于地牢返回房时允许原生相机判断上一房类型并使用返回位置",
+          "evidence": "J273 744060",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "camera_return_position",
+          "type": "f32[2]",
+          "semantics": "与当前房关联的原生返回位置；无关联时规范为零",
+          "evidence": "J273 744060 Game+18320",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "poop_fx_countdown",
+          "type": "i32",
+          "semantics": "本房短时poop云的当前相位；Client按本地外观seed构建图像和pose",
+          "evidence": "J273 96CE20／96E570",
+          "host": "display_value_read",
+          "client": "display_value_install"
+        },
+        {
+          "name": "poop_fx_color",
+          "type": "f32[11]",
+          "semantics": "有poop云时的当前ColorMod",
+          "evidence": "J273 96CE20／96E570",
+          "host": "display_value_read",
+          "client": "display_value_install"
         }
       ],
       "blocks": [
@@ -108,7 +180,16 @@
             "pill_identified",
             "water_current",
             "map_focus",
-            "map_focus_large"
+            "map_focus_large",
+            "backdrop_wall_style",
+            "backdrop_tutorial",
+            "room_graphics_flags",
+            "camera_entry_door",
+            "camera_previous_entry",
+            "camera_return_focus",
+            "camera_return_position",
+            "poop_fx_countdown",
+            "poop_fx_color"
           ]
         }
       ],
@@ -119,6 +200,12 @@
       "members": [],
       "public_owners": [],
       "validators": {
+        "backdrop_tutorial": {"kind": "boolean", "scalar": "u8"},
+        "room_graphics_flags": {"kind": "range", "scalar": "u8", "min": 0, "max": 3},
+        "camera_return_focus": {"kind": "boolean", "scalar": "u8"},
+        "camera_return_position": {"kind": "finite", "scalar": "f32"},
+        "poop_fx_countdown": {"kind": "range", "scalar": "i32", "min": 0, "max": 180},
+        "poop_fx_color": {"kind": "finite", "scalar": "f32"},
         "devil_total": {
           "kind": "finite",
           "scalar": "f32"
@@ -168,7 +255,7 @@
           "max": 169
         }
       },
-      "record_limit": 128
+      "record_limit": 192
     },
     {
       "type": "MusicRequestState",

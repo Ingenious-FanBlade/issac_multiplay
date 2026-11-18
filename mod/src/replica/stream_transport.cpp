@@ -225,7 +225,10 @@ bool Reassembler::Receive(std::span<const std::uint8_t> b,std::uint64_t now,Mess
 std::vector<ReceiveBitmap> Reassembler::Acks(std::uint64_t now,unsigned max_windows){
   Expire(now);std::vector<ReceiveBitmap> out;max_windows=(std::min)(max_windows,8u);
   for(auto &[key,c]:pending_){if(!Reliable(c.header.lane)||now<c.ack_due)continue;
-    if(c.complete&&out.size()<max_windows){ReceiveBitmap a;a.transfer=key.transfer;a.part_count=c.header.count;a.window=((c.header.count-1)/256)*256;a.complete=true;for(unsigned j=0;j<4;++j){const auto index=a.window/64+j;if(index<c.bits.size())a.bits[j]=c.bits[index];}out.push_back(a);std::fill(c.dirty.begin(),c.dirty.end(),false);c.ack_due=now+route_.config.rto_initial_ms;continue;}
+    if(c.complete&&out.size()<max_windows){ReceiveBitmap a;a.transfer=key.transfer;a.part_count=c.header.count;a.window=((c.header.count-1)/256)*256;a.complete=true;for(unsigned j=0;j<4;++j){const auto index=a.window/64+j;if(index<c.bits.size())a.bits[j]=c.bits[index];}out.push_back(a);std::fill(c.dirty.begin(),c.dirty.end(),false);
+      // 完成历史只保留去重责任，不对所有旧传输永久定时补ACK。
+      // ACK丢失时发送方RTO会重发片；Receive核对真实重复片后把ack_due设为now，再立即确认。
+      c.ack_due=UINT64_MAX;continue;}
     for(unsigned window=0;window<c.dirty.size()&&out.size()<max_windows;++window)if(c.dirty[window]){ReceiveBitmap a;a.transfer=key.transfer;a.part_count=c.header.count;a.window=window*256;for(unsigned j=0;j<4;++j)if(window*4+j<c.bits.size())a.bits[j]=c.bits[window*4+j];out.push_back(a);c.dirty[window]=false;}
     c.ack_due=now+route_.config.receive_ack_ms;
   }statistics_.ack_windows+=out.size();return out;

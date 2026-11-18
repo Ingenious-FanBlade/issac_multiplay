@@ -23,6 +23,7 @@ struct RecordingRequest final {
   std::atomic<world::Reason> fault{world::Reason::None};
   std::atomic<std::uint64_t> v2_written{0};
   std::uint64_t stop_attempt=0,stop_events=0,stop_gaps=0,start_loss=0,start_capture_loss=0;
+  std::uint64_t stop_event_count=0; // 生命周期序号含轻量事件，排空只等待实际入环的计数。
   bool historical_gap=false,charged=false;
   std::unique_ptr<world::ValueQueue> queue;
   world::WorldWriter writer;
@@ -52,6 +53,8 @@ std::string snapshot="ok=1\nworld_status_version=1\nworld_state=Off\nreason=NONE
 std::uint64_t next_epoch=0;
 // 本次Host的准备失败保留首因并停止采集重试；下一会话重新取得独立owner，不拖累输入。
 std::uint64_t live_failed_session=0;
+// 后台准备失败后 job 会被释放，保留本次 Host 会话的具体阶段供只读查询。
+const char *live_failed_stage="";
 constexpr std::uint64_t kObservationReserve=world::kObservationReserveBytes;
 void Fail(WorldJob &j,world::Reason reason,const char *stage) noexcept {
   auto expected=world::Reason::None;
@@ -84,7 +87,10 @@ bool Prepare(WorldJob &j,game::WorldRecording &r) {
     r.faults.unreadable=std::uint32_t(reinterpret_cast<uintptr_t>(VirtualAlloc(nullptr,4096,MEM_RESERVE|MEM_COMMIT,PAGE_NOACCESS)));
     if(!r.faults.unreadable) { r.ledger.Release(65536); return false; }
   }
-  if(!r.storage.Prepare(config)||j.cancel.load()||!r.identities.Initialize(r.ledger)||!r.ledger.Charge(kObservationReserve)) return false;
+  if(!r.storage.Prepare(config)){Fail(j,world::Reason::PrepareFailed,"capture_storage");return false;}
+  if(j.cancel.load())return false;
+  if(!r.identities.Initialize(r.ledger)){Fail(j,world::Reason::PrepareFailed,"capture_identities");return false;}
+  if(!r.ledger.Charge(kObservationReserve)){Fail(j,world::Reason::PrepareFailed,"capture_observation_reserve");return false;}
   r.reserve_charged=true;
   // reserve 同时覆盖最多三个 pending payload、两个最新值及编码在途值，发布队列另计。
   r.collector=std::make_unique<world::Collector>(r.storage,r.identities,j.memory,std::uint32_t(r.epoch));
@@ -158,7 +164,10 @@ void CloseRecorder(WorldJob &j,RecordingRequest &q) {
 DWORD WINAPI Work(void *parameter) noexcept {
   std::unique_ptr<std::shared_ptr<WorldJob>> start(static_cast<std::shared_ptr<WorldJob> *>(parameter));
   auto j=std::move(*start); bool prepared=false;
-  try { prepared=Prepare(*j,*j->recording); } catch(...) { Fail(*j,world::Reason::PrepareFailed,"capture_prepare_exception"); }
+  try { prepared=Prepare(*j,*j->recording); } catch(const std::exception &error) {
+    Trace("capture_prepare_error","exception=%s",error.what());
+    Fail(*j,world::Reason::PrepareFailed,"capture_prepare_exception");
+  } catch(...) { Fail(*j,world::Reason::PrepareFailed,"capture_prepare_exception"); }
   if(!prepared) Fail(*j,world::Reason::PrepareFailed,"capture_prepare");
   j->ready.store(true,std::memory_order_release);
   auto &r=*j->recording;
@@ -198,7 +207,8 @@ DWORD WINAPI Work(void *parameter) noexcept {
     }
     if(current&&current->writer.Status().write_failed) current->fault.store(current->writer.Status().fault);
     if(current&&current->stop.load(std::memory_order_acquire)&&
-       r.storage.PassedFence(current->stop_attempt,current->stop_events,current->stop_gaps)&&(!r.storage.HasQueue()||r.storage.Queue().Empty())&&r.publications.Empty()) {
+       (r.storage.DiagnosticReaderFailed()||r.storage.PassedFence(current->stop_attempt,current->stop_event_count,current->stop_gaps))&&
+       (!r.storage.HasQueue()||r.storage.Queue().Empty())&&r.publications.Empty()) {
       CloseRecorder(*j,*current); current=nullptr;
     }
     if(j->producer_done.load(std::memory_order_acquire)||!prepared) r.storage.RequestStop(world::Reason::Stopped);
@@ -287,7 +297,8 @@ void StopWorldCommand(std::uint64_t,std::uint32_t generation) noexcept {
   if(!job||!job->consumer||job->generation!=generation||job->consumer->stop.load()) return;
   auto &r=*job->recording; auto &q=*job->consumer;
   if(job->attached) r.SetConsumers(job->formal,false);
-  if(job->ready.load(std::memory_order_acquire)) { q.stop_attempt=r.storage.Diag().last_attempt.load(); q.stop_events=r.storage.EventWatermark(); q.stop_gaps=r.storage.Diag().gaps_produced.load(); }
+  if(job->ready.load(std::memory_order_acquire)) { q.stop_attempt=r.storage.Diag().last_attempt.load(); q.stop_events=r.storage.EventWatermark();
+    q.stop_event_count=r.storage.Diag().events_produced.load();q.stop_gaps=r.storage.Diag().gaps_produced.load(); }
   q.stop.store(true,std::memory_order_release);
   if(!job->formal&&!job->live_session) job->stopping=true;
 }
@@ -302,7 +313,10 @@ void PumpWorldCommands() noexcept {
   try {
     // 正式Host本身持有采集需求；不要求执行observation start或world_record start。
     const auto live_session=process_exit_pending?0:game::LiveCaptureSession();
-    if(live_session&&!job&&live_session!=live_failed_session&&!EnsureJob())live_failed_session=live_session;
+    if(live_session&&!job&&live_session!=live_failed_session&&!EnsureJob()){
+      live_failed_session=live_session;
+      const auto *error=CaptureError();live_failed_stage=error?error:"capture_create_job";
+    }
     if(!job)return;
     const auto previous_live=job->live_session;
     if(previous_live&&previous_live!=live_session&&job->attached)job->recording->live.Invalidate("live_session_retired");
@@ -310,8 +324,11 @@ void PumpWorldCommands() noexcept {
     if(previous_live&&!live_session&&!job->formal&&!WorldCommandBusy())job->stopping=true;
     if(job->ready.load(std::memory_order_acquire)&&!job->closed.load()) {
       auto &r=*job->recording;
-      if(job->fault.load()!=world::Reason::None||r.storage.Status().fault.reason!=world::Reason::None) {job->stopping=true;if(job->live_session)live_failed_session=job->live_session;}
+      if(job->fault.load()!=world::Reason::None||(!r.storage.NativeAvailable()&&r.storage.Status().fault.reason!=world::Reason::None)) {
+        job->stopping=true;if(job->live_session)live_failed_session=job->live_session;}
       auto *q=job->consumer.get(); const bool qready=q&&q->ready.load(std::memory_order_acquire);
+      if(qready&&r.collector&&r.collector->LegacyOutputFailed()&&q->fault.load()==world::Reason::None)
+        q->fault.store(world::Reason::EventOverflow);
       if(!job->attached&&!job->stopping) {
         if(game::AttachPreparedWorld(job->recording)) job->attached=true;
         else { Fail(*job,world::Reason::PrepareFailed,"capture_attach"); job->stopping=true; }
@@ -335,6 +352,9 @@ void PumpWorldCommands() noexcept {
     }
     Publish(*job);
     if(job->closed.load(std::memory_order_acquire)) {
+      if(job->fault.load()!=world::Reason::None&&live_session){
+        live_failed_session=live_session;live_failed_stage=job->stage.load();
+      }
       if(job->attached&&!game::DetachClosedWorld(job->recording)) return;
       job->retired.store(true,std::memory_order_release); job.reset();
     }
@@ -349,7 +369,9 @@ std::string ObservationCommand(const std::string &action) {
   }
   if(action=="stop") { if(job) { job->formal=false; if(!WorldCommandBusy()&&!job->live_session) job->stopping=true; } return "ok=1\nobservation_state=Stopping\n"; }
   if(action!="status") return "ok=0\nerror=unknown_observation_verb\n";
-  if(!job) return game::LiveCaptureSession()&&game::LiveCaptureSession()==live_failed_session?"ok=1\nobservation_state=Faulted\nlive_request_reason=live_capture_prepare_failed\n":"ok=1\nobservation_state=Off\n";
+  if(!job) return game::LiveCaptureSession()&&game::LiveCaptureSession()==live_failed_session?
+    "ok=1\nobservation_state=Faulted\nlive_request_reason=live_capture_prepare_failed\nlive_failed_stage="+std::string(live_failed_stage)+"\n":
+    "ok=1\nobservation_state=Off\n";
   auto &r=*job->recording;
   const bool ready=job->ready.load(std::memory_order_acquire);
   std::string pools_text;

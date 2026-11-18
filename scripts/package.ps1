@@ -25,7 +25,7 @@ foreach($entry in $packageFiles){
     New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force | Out-Null
     Copy-Item -LiteralPath (Join-Path $packageRepo $entry[0]) -Destination $destination
 }
-$luaPackages=@(@('ui/isaac-cs-ui','mods/isaac-cs-ui'))
+$luaPackages=,@('ui/isaac-cs-ui','mods/isaac-cs-ui')
 if($E2E){
     $luaPackages+=,@("$inputRoot/isaac-cs-observation",'mods/isaac-cs-observation')
     $luaPackages+=,@("$inputRoot/isaac-cs-test",'mods/isaac-cs-test')}

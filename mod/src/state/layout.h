@@ -12,6 +12,8 @@ enum class Operation : std::uint8_t { Copy, Convert, Reference, Resource, Contai
 enum class FieldSource : std::uint8_t { Object, Companion, Synthetic };
 enum class Category : std::uint8_t { State, Convert, Reference, Resource, Container, Local, Derived, Authority, Padding, Unknown };
 enum class Validation : std::uint8_t { None, Finite, Boolean, Range, Enum };
+// 正文编码与平铺镜像共用同一套小端标量位模式。
+enum class ScalarKind : std::uint8_t { None, U8, I8, U16, I16, U32, I32, U64, I64, F32, F64 };
 struct Layout {
   std::uint16_t id, parent;
   const char *name;
@@ -22,6 +24,7 @@ struct Layout {
   const char *rtti;
   std::uint32_t rtti_rva;
   std::uint32_t first_field, field_count, first_block, first_copy, copy_count;
+  bool flat_record; // 已生成平铺根描述。版本 84 的采集和 codec 仍使用旧字段表。
 };
 // 字段索引在单个布局内稳定；变长项之后的偏移为 kDynamicOffset，必须顺序解码。
 struct Field {
@@ -135,6 +138,7 @@ bool IsStateMemberLayout(std::uint16_t) noexcept;
 std::span<const Layout> Layouts() noexcept;
 std::span<const Field> Fields() noexcept;
 std::span<const CopyRange> CopyRanges() noexcept;
+std::span<const std::uint16_t> CaptureBlockFields(std::uint32_t block) noexcept;
 std::span<const Block> Blocks() noexcept;
 std::span<const Validator> Validators() noexcept;
 std::span<const NativeRange> NativeRanges() noexcept;

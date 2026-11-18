@@ -16,29 +16,30 @@ struct SourceTrace final {
   bool active=false,complete=false,valid=false;
   ClientBackdropWallTrace value{};
 } source;
-struct Replay final {
+// Client构图的调用前缀只挂在当前主线程栈，既不采Host轨迹也不复现Spawn。
+struct LocalBuild final {
   void *backdrop=nullptr;
-  const ClientBackdropWallTrace *value=nullptr;
-  unsigned cursor=0;
-  bool started=false,finished=false,valid=false;
-} replay;
+  bool started=false,finished=false,wall=false,valid=false;
+} local;
 bool Current(void *value) noexcept {return IsMain()&&g_Game&&g_Game->_room&&value==&g_Game->_room->_backdrop;}
 unsigned &Seed(void *value) noexcept {return static_cast<Backdrop *>(value)->rng._seed;}
-void Fault(const char *reason) noexcept {if(IsMain())replay.valid=false;ClientCallbackFault(reason);}
-bool Same(const ClientBackdropEffectStep &a,const ClientBackdropEffectStep &b) noexcept {
-  return a.arguments==b.arguments&&a.quad==b.quad&&a.before==b.before&&a.flip_x==b.flip_x&&a.flip_y==b.flip_y;
-}
+void Fault(const char *reason) noexcept {if(IsMain())local.valid=false;ClientCallbackFault(reason);}
 void Number(lua_State *L,const char *key,unsigned value){lua_pushinteger(L,lua_Integer(value));lua_setfield(L,-2,key);}
 }
 ClientBackdropBuildScope::ClientBackdropBuildScope(void *value) noexcept:backdrop_(value){
-  if(ClientBusy()&&(!Current(value)||!replay.valid||replay.backdrop!=value||!replay.value)){
-    allowed_=false;Fault("backdrop_init_replay_context");return;
+  if(ClientBusy()&&Current(value)&&local.backdrop==value&&local.valid&&!local.started){
+    local.started=true;return;
+  }
+  if(ClientBusy()){
+    allowed_=false;Fault("backdrop_init_build_context");return;
   }
   source_=Current(value)&&!ClientBusy();
   if(source_){initial_=Seed(value);source={};source.room=g_Game->_room;source.backdrop=value;}
 }
 void ClientBackdropBuildScope::Returned() noexcept {
-  returned_=true;if(!source_)return;
+  returned_=true;
+  if(Current(backdrop_)&&local.backdrop==backdrop_&&local.valid){local.finished=!local.wall;return;}
+  if(!source_)return;
   const auto &b=*static_cast<Backdrop *>(backdrop_);source.id=b.backdropId;source.seed=b.seed;
   source.value.initial=initial_;
   // 只有真实Init正常返回且未调用墙面构建，才记录不适用；缓存完成后gfx可卸载，不能拿它推断。
@@ -49,8 +50,10 @@ ClientBackdropWallScope::ClientBackdropWallScope(void *value) noexcept:backdrop_
   if(!Current(value)){if(ClientBusy()){allowed_=false;Fault("backdrop_wall_owner");}return;}
   if(ClientBusy()){
     client_=true;
-    if(!replay.valid||replay.backdrop!=value||!replay.value||!replay.value->applicable||replay.started){allowed_=false;Fault("backdrop_wall_replay_context");return;}
-    replay.started=true;Seed(value)=replay.value->before;
+    if(!local.valid||local.backdrop!=value||!local.started||local.finished||local.wall){
+      allowed_=false;Fault("backdrop_wall_build_context");return;
+    }
+    local.wall=true;
     // 917420先完成h/v层随机选择和绘制，最后仅用该计数枚举*null标记生成121。
     // null标记不绘制；同步构建期间借用空枚举，离栈归还真实ANM2计数与资源所有权。
     auto &sprite=static_cast<Backdrop *>(value)->_wallDetailANM2;
@@ -65,28 +68,26 @@ ClientBackdropWallScope::ClientBackdropWallScope(void *value) noexcept:backdrop_
 void ClientBackdropWallScope::Returned() noexcept {
   returned_=true;
   if(source_){source.active=false;source.complete=source.valid;source.value.after=Seed(backdrop_);}
-  if(client_){
-    replay.finished=true;
-    if(!replay.valid||replay.cursor!=replay.value->steps.size()||Seed(backdrop_)!=replay.value->after)Fault("backdrop_wall_replay_completion");
-  }
+  if(client_)local.wall=false;
 }
 ClientBackdropWallScope::~ClientBackdropWallScope(){
   if(nulls_borrowed_)static_cast<Backdrop *>(backdrop_)->_wallDetailANM2._numNullLayers=null_count_;
   if(!returned_&&source_){source.active=source.complete=source.valid=false;}
-  if(!returned_&&client_)Fault("backdrop_wall_replay_exception");
+  if(!returned_&&client_)Fault("backdrop_wall_build_exception");
 }
 ClientBackdropEffectScope::ClientBackdropEffectScope(void *value,int a,int b,unsigned kind,int part,const void *quad,unsigned char flip_x,bool flip_y) noexcept:backdrop_(value){
   client_=ClientBusy();
   if(!Current(value)||!quad){if(client_)Fault("backdrop_effect_context");return;}
+  // Client的装饰实体已从Host成员集合安装。此helper只记录被隔离的调用。
+  if(client_){
+    if(!local.valid||local.backdrop!=value||!local.wall||
+       ClientDispatchBefore(ClientEntry::BackdropEffects)!=ClientEntryDecision::ExpectedSkip)Fault("backdrop_local_effect_context");
+    return;
+  }
   step_.arguments={unsigned(a),unsigned(b),kind,unsigned(part)};std::memcpy(step_.quad.data(),quad,32);
   step_.before=Seed(value);step_.flip_x=flip_x!=0;step_.flip_y=flip_y;
-  for(float f:step_.quad)if(!std::isfinite(f)||std::fabs(f)>1000000){if(client_)Fault("backdrop_effect_quad");else source.valid=false;return;}
-  if(client_){
-    if(ClientDispatchBefore(ClientEntry::BackdropEffects)!=ClientEntryDecision::ExpectedSkip||!replay.valid||!replay.started||replay.finished||
-       replay.backdrop!=value||replay.cursor>=replay.value->steps.size()||!Same(step_,replay.value->steps[replay.cursor])){Fault("backdrop_effect_replay_mismatch");return;}
-    // 只安装Authority在同一helper正常返回后的独立RNG后态；不调用Spawn/共享Random。
-    Seed(value)=replay.value->steps[replay.cursor++].after;
-  }else source_=source.active&&source.valid&&source.backdrop==value;
+  for(float f:step_.quad)if(!std::isfinite(f)||std::fabs(f)>1000000){source.valid=false;return;}
+  source_=source.active&&source.valid&&source.backdrop==value;
 }
 void ClientBackdropEffectScope::Returned() noexcept {
   returned_=true;if(!source_)return;
@@ -95,21 +96,18 @@ void ClientBackdropEffectScope::Returned() noexcept {
   try{source.value.steps.push_back(step_);}catch(...){source.valid=false;}
 }
 ClientBackdropEffectScope::~ClientBackdropEffectScope(){if(source_&&!returned_)source.valid=false;}
-ClientBackdropReplay::ClientBackdropReplay(void *value,const ClientBackdropWallTrace &trace) noexcept {
-  if(!Current(value)||!ClientBusy()||replay.value||!trace.present)return;
-  replay={};replay.backdrop=value;replay.value=&trace;replay.valid=true;active_=true;
-  // 公开SetBackdropType直接调用Init，不重置RNG；重建地面也必须采用真实调用前态。
-  if(trace.initial)Seed(value)=trace.initial;
+ClientBackdropLocalBuild::ClientBackdropLocalBuild(void *value) noexcept {
+  if(!Current(value)||!ClientBusy()||local.backdrop)return;
+  local={value,false,false,false,true};
+  active_=true;
 }
-ClientBackdropReplay::~ClientBackdropReplay(){if(active_)replay={};}
-bool ClientBackdropReplay::Complete() const noexcept {
-  return active_&&replay.valid&&replay.value&&(!replay.value->applicable?!replay.started:replay.started&&replay.finished);
-}
+ClientBackdropLocalBuild::~ClientBackdropLocalBuild(){if(active_)local={};}
+bool ClientBackdropLocalBuild::Complete() const noexcept {return active_&&local.valid&&local.finished;}
 // 两个原生variant7分支已经完成位置/距离判断；命中后唯一背景随机消费用于新实体scale。
 // 保持这一次本地独立流推进，略去全局seed、Spawn、配置和Entity.Update。
 bool ClientBackdropSkipDirectEffect(void *value) noexcept {
   if(!ClientBusy())return false;
-  if(!Current(value)||!replay.valid||!replay.started||replay.finished||replay.backdrop!=value||
+  if(!Current(value)||!local.valid||local.backdrop!=value||!local.wall||
      ClientDispatchBefore(ClientEntry::BackdropEffects)!=ClientEntryDecision::ExpectedSkip){Fault("backdrop_direct_effect_context");return true;}
   auto &r=static_cast<Backdrop *>(value)->rng;
   if(!r._seed||!r._shift1||r._shift1>31||!r._shift2||r._shift2>31||!r._shift3||r._shift3>31){Fault("backdrop_direct_effect_rng");return true;}

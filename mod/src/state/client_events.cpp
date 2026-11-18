@@ -35,11 +35,7 @@ void ClientStateEvents::Receive(const ClientStateCandidateRef &candidate) {
     const auto old=std::lower_bound(entries_.begin(),entries_.end(),value.sequence,[](const Entry &e,auto n){return e.event.value.sequence<n;});
     if(old!=entries_.end()&&old->event.value.sequence==value.sequence) {
       if(!Same(old->event.value,value))Fail(StateReadiness::InvalidEncoding,"client_event_sequence_conflict");
-      // payload中的数字引用也必须仍解释为同一真实身份／不可变资源。
-      const auto world=candidate->State(BodyStream::World);
-      if(old->event.members->Directory().epoch!=world->Members()->Directory().epoch||
-         old->event.resources->Directory().epoch!=world->Resources()->Directory().epoch)
-        Fail(StateReadiness::InvalidReference,"client_event_epoch_rebinding");
+      // 保留首次接收事件的目录与正文。相同序号重传只比较原始值。
       continue;
     }
     if(value.sequence<=covered_) {
@@ -67,7 +63,7 @@ void ClientStateEvents::Receive(const ClientStateCandidateRef &candidate) {
   for(const auto &value:batch.events)if(const auto n=incoming_index++;incoming[n]&&!drop[n]&&value.sequence>installed_) {
     const auto old=std::lower_bound(entries_.begin(),entries_.end(),value.sequence,[](const Entry &e,auto n){return e.event.value.sequence<n;});
     if(old!=entries_.end()&&old->event.value.sequence==value.sequence)continue;
-    entries_.insert(old,Entry{{value,world->Members(),world->Resources(),false,false},candidate});
+    entries_.insert(old,Entry{{value,world->Members(),world->Resources(),false,false},candidate->packet_});
   }
   bytes_=bytes;stats_.dropped_capacity+=dropped;
   if(!covered_&&!installed_&&!section->context.base_version)first_=batch.first_sequence;
@@ -79,7 +75,6 @@ ClientStateVector<ClientReceivedEvent> ClientStateEvents::Prepare(const ClientSt
   const auto *section=World(candidate);if(!section)return out;
   if(!active_||candidate.Target().route!=route_||section->context.event_watermark>covered_)Fail(StateReadiness::EventGap,"client_events_target_not_covered");
   const auto watermark=section->context.event_watermark;
-  if(section->presentation.first_sequence>installed_+1&&section->context.base_version)Fail(StateReadiness::EventGap,"client_events_uninstalled_prefix");
   out.reserve(entries_.size());
   for(auto &entry:entries_)if(entry.event.value.sequence<=watermark) {
     auto &event=entry.event;const auto age=std::uint32_t(frame-event.value.logical_frame);

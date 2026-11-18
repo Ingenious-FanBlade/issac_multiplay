@@ -13,15 +13,12 @@ EntityRead RunRecipe(std::string_view name) noexcept {
 bool EntitySource::Impl::RunOpen(const CaptureFieldAccess &a,CaptureTraversalSource &out,CaptureDiagnostic &d) noexcept {
   if(a.field.layout!=230 || a.field.index!=host_field::RunSeeds::effect_tree_head || a.root.address>UINT32_MAX-0x54)
     return Reject(a,d,CaptureFailure::MissingHandler);
-  const auto start=witness_used;std::array<std::uint32_t,80> nodes{};std::uint32_t count=0;
-  if(!NativeTree(a.root.address+0x54,nodes,count,d))return false;
+  if(!facts.scene||std::uint64_t(facts.scene->game)+0x1bb84!=a.root.address)return Reject(a,d,CaptureFailure::MissingQualification);
+  const auto count=facts.scene->seed_effect_count;
   auto bytes=Allocate(std::uint64_t(count)*4,4,d);if(d.reason!=CaptureFailure::None)return false;
-  std::int32_t previous=-1;
-  for(unsigned i=0;i<count;++i){std::int32_t effect=0;if(!Tracked(std::uint64_t(nodes[i])+16,effect,d))return false;
-    if(effect<0 || effect>=80 || effect<=previous)return Reject(a,d,CaptureFailure::InvalidValue);
-    std::memcpy(bytes.data()+i*4,&effect,4);previous=effect;}
+  if(count)std::memcpy(bytes.data(),facts.scene->seed_effect_ids.data(),bytes.size());
   out={};out.identity=std::uint64_t(a.root.address)+0x54;out.count=count;
-  out.opaque={NativeAddress(bytes),4u|(std::uint64_t(NativeSequence::Owned)<<32),start,witness_used-start};return true;
+  out.opaque={NativeAddress(bytes),4u|(std::uint64_t(NativeSequence::Owned)<<32),0,0};return true;
 }
 // Q12在Host原生Update完成后的ordinary窗口读取原始谓词，不执行Console／Overlay／菜单Update。
 // 原版Online目录只按原生谓词只读，绝不将C/S参与者写入该目录。
@@ -53,9 +50,7 @@ bool EntitySource::ReadDisplayContext(const CaptureWitness &w,EntityFacts &f,Cap
   else if(!overlay&&prompt)branch=B::GenericPrompt;else if(!overlay&&unknown)branch=B::UnknownUiByte;
   else if(secondary>0)branch=B::SecondaryFade;else if(pause_hold)branch=B::PauseScreen;
   else if(!native_peers&&extra)branch=B::UnknownUiWord;
-  std::array<std::byte,32> after{};
-  for(unsigned i=0;i<s.witness_used;++i){const auto &mark=s.witnesses[i];if(!s.Read(mark.address,std::span(after).first(mark.size),d) ||
-      !std::equal(after.begin(),after.begin()+mark.size,mark.bytes.begin()))return FailCapture(d,CaptureFailure::SourceChanged,{f.subject});}
+  if(!s.Verify({f.subject,f.address,0,f.layout},d))return false;
   f.display_branch=branch;f.display_ready=true;return true;
 }
 // 只读当前已声明Run窄投影；分数与最终进度资格必须有正常生产证言，不调用其生产器。

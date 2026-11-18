@@ -3,7 +3,7 @@
 
 namespace cs::state {
 // 与旧Range／JSON入口隔离。这里只接收重组完成的正文，连接与route取外层可信封套。
-enum class StateMessageKind : std::uint8_t { ContextReady=8, AppliedAck=9, Resync=10, Frame=21, Members=22, Resources=23 };
+enum class StateMessageKind : std::uint8_t { AppliedAck=9, Resync=10, Frame=21, Resources=23 };
 enum class StateLane : std::uint8_t { Control=1, Baseline=2, Context=3, World=4, Body=5 };
 struct StateRoute {
   std::uint64_t connection=0, route=0;
@@ -57,12 +57,17 @@ struct StateSectionView {
   PresentationBatchContext context;
   std::span<const StateRecordPayload> records;
   StateFrameEventView presentation;
+  // 按编号递增的 u16 小端序列，表示对象仍在但本次采集没有读到新值。
+  std::span<const std::byte> retained_members;
+  bool Retains(std::uint16_t member) const noexcept;
 };
 struct StateFrameView {
   StateScope scope;
   std::uint16_t layout_version=0;
   std::uint8_t section_count=0;
   std::array<StateSectionView,2> sections{};
+  // 版本 84 在分段后携带成员目录增量，基线帧携带完整目录。
+  std::span<const std::byte> member_update;
   // 解码／编码完成后的精确规范正文，由owner持有；用精确字节比较重复，不计算哈希。
   std::span<const std::byte> encoded;
   bool decoded=false; // 仅完整结构解码成功才为true；定界结果不能获应用ticket。
@@ -87,11 +92,20 @@ StateFrameView DecodeStateFrame(const StateScope &,std::span<const std::byte>,st
 // 不解析typed正文、不检查资源，不可当作完整候选或申请原生提交。
 StateFrameView InspectStateFrame(const StateScope &,std::span<const std::byte>,std::uint64_t installed_events,
     StateFrameScratch &,BodyCodecLimits={});
+// 与已定界帧同寿命的解码游标。每次核一条记录或一段有界事件，整帧共扣同一访问预算。
+struct StateFrameDecodeCursor {
+  std::size_t section=0,record=0,position=0,events=0;
+  std::uint32_t event_count=0;
+  BodyCodecLimits remaining{};
+  bool section_started=false;
+};
+bool DecodeStateFrameStep(StateFrameView &,const StateFrameCodecContext &,StateFrameScratch &,
+    BodyCodecLimits,StateFrameDecodeCursor &);
 std::span<const std::byte> EncodeStateFrameInto(StateFrameView &,std::span<std::byte>,
     const StateFrameCodecContext &,StateFrameScratch &,BodyCodecLimits={});
 StateLane StateFrameLane(const StateFrameView &);
 
-struct StateContextReady { StateScope scope; std::uint32_t member_epoch=0, resource_epoch=0; };
+// 后台实际持有的成员目录下限独立于原生安装 ACK。
 struct StateAckEntry {
   BodyStream stream=BodyStream::World;
   std::uint32_t target=0, member_epoch=0, resource_epoch=0;
@@ -113,12 +127,10 @@ struct StateResync {
   // reason=Apply时仅为历史成功版本，Host无条件为请求序列重建base=0。
   std::uint32_t installed_world=0, installed_body=0;
 };
-StateContextReady DecodeStateContextReady(const StateScope &,std::span<const std::byte>);
 StateAppliedAck DecodeStateAppliedAck(const StateScope &,std::span<const std::byte>);
 StateResync DecodeStateResync(const StateScope &,std::span<const std::byte>);
-std::span<const std::byte> EncodeStateContextReadyInto(const StateContextReady &,std::span<std::byte>);
 std::span<const std::byte> EncodeStateAppliedAckInto(const StateAppliedAck &,std::span<std::byte>);
 std::span<const std::byte> EncodeStateResyncInto(const StateResync &,std::span<std::byte>);
-// 从原完整目标形成ACK只提供数值转换；调用者只能在原生整批成功后发布。
+// 从原完整目标形成ACK只提供数值转换；接收方将完整目标保留为解码基线后即可发布。
 StateAppliedAck StateFrameAck(const StateFrameView &);
 } // namespace cs::state

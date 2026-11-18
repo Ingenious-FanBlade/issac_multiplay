@@ -27,7 +27,7 @@ public:
 private:
   struct Entry {
     ClientReceivedEvent event;
-    ClientStateCandidateRef packet;
+    std::shared_ptr<const ClientShadowPacket> packet;
   };
   std::shared_ptr<ClientStateMemory> memory_;
   ClientStateVector<Entry> entries_;

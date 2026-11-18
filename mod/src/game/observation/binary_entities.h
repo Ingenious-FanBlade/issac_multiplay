@@ -8,13 +8,23 @@
 
 namespace cs::game {
 struct WorldCapture;
+// 资源 Hook 的非主线程只上报水位，不访问游戏桥或主线程缓存。
+void BinaryForeignResourceWrite(bool entering) noexcept;
 struct BinaryEntityStats {
   bool active=false;
   std::uint64_t ordinary=0,bodies=0,joint=0,gaps=0;
-  state::CaptureDiagnostic failure;
+  state::CaptureDiagnostic failure,first_object_failure;
+  // 单根沿用、无 Body 资格和整帧失败分开计数。
+  std::uint64_t object_failures=0,body_skipped=0;
+  std::uint32_t retained_roots=0,max_retained_frames=0;
   state::CaptureExchangeStats exchange;
+  state::HostMemberIndexStats member_indices;
   BinaryEventCaptureStats events;
   std::uint64_t publication_revision=0;
+  world::binary::CaptureReadSession::Counters reads;
+  world::binary::NativeSourceStats native;
+  std::uint64_t body_reused=0,member_scans=0,scene_scans=0,roots=0,cells=0,paths=0,bytes=0;
+  std::uint64_t transient_entity_retirements=0;
   std::array<char,128> publication_failure{};
 };
 // 身份目录只保留物理身份，不可变；shape/binding/topology取同一packet的记录，不覆盖旧handle。
@@ -32,13 +42,13 @@ public:
   bool Active() const noexcept;
   void FrameBegin() noexcept;
   void FrameEnd() noexcept;
-  void Prepare(bool normal) noexcept;
+  bool Prepare(bool normal) noexcept;
   void Commit(bool committed,const core::TickPostState &) noexcept;
   void Invalidate() noexcept;
   void RetireBody(std::uint32_t address) noexcept;
   void EntityChanged(std::uint32_t address) noexcept;
   void TextWritten(std::uint32_t address,std::uint64_t local,std::uint64_t use,std::uint64_t shape) noexcept;
-  void ResourceChanged(std::uint32_t address) noexcept;
+  void ResourceChanged(std::uint32_t address,const char *operation) noexcept;
   void FloorBoundary(bool entering,bool normal) noexcept;
   void GridChanged(std::uint32_t address) noexcept;
   std::uint32_t ProductionBegin(BinaryProductionKind,std::uint32_t object,std::uint32_t manager) noexcept;
@@ -55,10 +65,10 @@ public:
   void BossShown(std::uint32_t,std::uint32_t,std::uint32_t,std::int32_t,std::int32_t) noexcept;
   void Background(bool stopping) noexcept;
   void NetworkPublication(bool enabled) noexcept;
-  // 主线程只复制共享自有快照；取不到短锁时保留上次值，不借用游戏对象。
-  state::HostStateSnapshotRef Publication() const noexcept;
-  state::HostStateSnapshotRef OrdinaryPublication() const noexcept;
+  // 主线程授权纯值邮箱，网络线程从邮箱读取，不取得采集对象或原生地址。
+  std::shared_ptr<const state::HostStatePublication> Publication() const noexcept;
   BinaryEntityStats Statistics() const noexcept;
+  std::string WorkerFields(unsigned page) const;
   // 唯一worker consumer领取票据；不得借用游戏对象或主线程scratch。
   state::CaptureExchange::ReadTicket Take() noexcept;
   BinaryEntityCatalog Catalog(const state::CaptureExchange::ReadTicket &) const noexcept;

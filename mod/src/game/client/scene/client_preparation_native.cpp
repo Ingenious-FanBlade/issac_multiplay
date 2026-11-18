@@ -102,6 +102,12 @@ bool Geometry(KAGE_Graphics_ImageBase *image,const state::ResourceLocalDescripti
   return image&&image->GetWidth()==int(d.numbers[first])&&image->GetHeight()==int(d.numbers[first+1])&&
     image->GetPaddedWidth()==int(d.numbers[first+2])&&image->GetPaddedHeight()==int(d.numbers[first+3]);
 }
+// 纯路径资源的宽高由本地解码确定，仍核对图像自身的逻辑和存储尺寸关系。
+bool LocalImageGeometry(KAGE_Graphics_ImageBase &image) {
+  const auto width=image.GetWidth(),height=image.GetHeight();
+  const auto stored_width=image.GetPaddedWidth(),stored_height=image.GetPaddedHeight();
+  return width>0&&height>0&&stored_width>=width&&stored_height>=height&&stored_width<=65535&&stored_height<=65535;
+}
 bool Animation(ClientPreparedResource &o,const state::ResourceLocalDescription &d,ClientPreparedResource *file) {
   if(!file||!file->ready||file->kind!=0||!file->sprite)return false;
   auto name=Path(d.text[0]);auto *a=file->sprite->GetAnimationData(name);
@@ -140,9 +146,9 @@ ClientPreparationResult ClientPreparedResourceLoad(ClientPreparedResource *o,con
         NativeVoid(*o,[&]{o->sprite->constructor();});o->constructed=true;auto path=Path(d.text[0]);NativeVoid(*o,[&]{o->sprite->Load(path,false);});
         if(!o->sprite->_loaded||!SamePath(o->sprite->_filename,d.text[0])||o->sprite->_layerCount>64||
             (o->sprite->_layerCount&&!o->sprite->_layerState))return Missing("binary_resource_anm2_load");break;}
-      case 1:{auto path=Path(d.text[0]);NativeVoid(*o,[&]{Manager::LoadImage(&o->image,path.c_str(),__ptr_g_VertexAttributeDescriptor_Position,false);});
+      case 1:case state::kResourceImagePathKind:{auto path=Path(d.text[0]);NativeVoid(*o,[&]{Manager::LoadImage(&o->image,path.c_str(),__ptr_g_VertexAttributeDescriptor_Position,false);});
         if(!o->image.image||!o->image.counter||!o->image.image->_name||!SamePath(o->image.image->_name,d.text[0]))return Missing("binary_resource_image_load");
-        if(!Geometry(o->image.image,d,1))return Bad("binary_resource_image_geometry");break;}
+        if(d.kind==1?!Geometry(o->image.image,d,1):!LocalImageGeometry(*o->image.image))return Bad("binary_resource_image_geometry");break;}
       case 2:{if(d.numbers[0]>=20||!__ptr_g_AllShaders)return Bad("binary_resource_shader_type");
         o->shader=__ptr_g_AllShaders[d.numbers[0]];if(!o->shader||!o->shader->_initialized||!o->shader->_glProgram||o->shader->_glProgram==UINT32_MAX)
           return Missing("binary_resource_shader_unavailable");break;}
@@ -162,16 +168,21 @@ ClientPreparationResult ClientPreparedResourceLoad(ClientPreparedResource *o,con
       case 6:if(!Animation(*o,d,first))return Bad("binary_resource_animation_shape");break;
       case 7:{
         const auto wire_id=std::uint32_t(d.numbers[1]);std::int32_t id=0;std::memcpy(&id,&wire_id,sizeof(id));
+        const auto *gfx=first&&first->ready&&(first->kind==1||first->kind==state::kResourceImagePathKind)?first->image.image:nullptr;
         if(id<0){
-          if(id< -1024||d.numbers[0]==2)return Bad("binary_resource_procedural_id");
+          if(id< -1024||d.numbers[0]==0||d.numbers[0]==2)return Bad("binary_resource_procedural_id");
           o->procedural_item=std::make_unique<ItemConfig_Item>();o->item=o->procedural_item.get();
           o->item->id=id;o->item->type=int(d.numbers[0]);o->item->maxCooldown=std::uint32_t(d.numbers[2]);
-          if(first&&first->ready&&first->kind==1)o->item->gfxFilename=first->image.image->_name;
+          if(gfx)o->item->gfxFilename=gfx->_name;
           if(second&&second->ready&&second->kind==0)o->item->costume.anm2Path=second->sprite->_filename;
-        }else o->item=NativeCall(*o,[&]{return d.numbers[0]==2?g_Manager->_itemConfig.GetTrinket(unsigned(id)):g_Manager->_itemConfig.GetCollectible(id);});
+        }else o->item=NativeCall(*o,[&]{
+          // 角色服装使用真实NullItem配置，不能用同号Collectible冒充；饰品同样按类型查目录。
+          if(d.numbers[0]==0)return g_Manager->_itemConfig.GetNullItem(unsigned(id));
+          return d.numbers[0]==2?g_Manager->_itemConfig.GetTrinket(unsigned(id)):g_Manager->_itemConfig.GetCollectible(id);
+        });
         if(!o->item)return Missing("binary_resource_item_missing");
         if(o->item->type!=d.numbers[0]||o->item->id!=id||o->item->maxCooldown!=std::uint32_t(d.numbers[2]))return Bad("binary_resource_item_identity");
-        if((d.numbers[3]!=UINT16_MAX&&(!first||!first->ready||first->kind!=1||!SamePath(o->item->gfxFilename,first->image.image->_name)))||
+        if((d.numbers[3]!=UINT16_MAX&&(!gfx||!SamePath(o->item->gfxFilename,gfx->_name)))||
            (d.numbers[4]!=UINT16_MAX&&(!second||!second->ready||second->kind!=0||!SamePath(o->item->costume.anm2Path,second->sprite->_filename))))
           return Bad("binary_resource_item_paths");o->dependency=first;o->second=second;break;}
       case 8:{o->entity=NativeCall(*o,[&]{return g_Manager->_entityConfig.GetEntity(int(d.numbers[0]),int(d.numbers[1]),int(std::uint32_t(d.numbers[2])));});
@@ -197,7 +208,7 @@ bool ClientPreparedResourceCurrent(const ClientPreparedResource *o) noexcept {
 }
 void *ClientPreparedResourceBorrow(ClientPreparedResource *o) noexcept {
   if(!ClientPreparedResourceCurrent(o))return nullptr;
-  switch(o->kind){case 0:return o->sprite;case 1:case 4:return &o->image;case 2:return o->shader;case 3:return o->room;
+  switch(o->kind){case 0:return o->sprite;case 1:case 4:case state::kResourceImagePathKind:return &o->image;case 2:return o->shader;case 3:return o->room;
     case 6:return o->animation;case 7:return o->item;case 8:return o->entity;case 9:return &o->audio;default:return nullptr;}
 }
 bool ClientPreparedResourceRelease(ClientPreparedResource *&o) noexcept {
@@ -304,41 +315,53 @@ struct ClientStagedObject {
 };
 namespace {
 ClientStagedObject *staged_objects=nullptr;
-bool Reserved(const void *address) noexcept {
-  for(auto *o=staged_objects;o;o=o->next)if(o->object==address)return true;
-  return false;
+constexpr unsigned kLargestEntityPool=*std::max_element(kClientEntityPools.begin(),kClientEntityPools.end());
+// 每次同步扫描先投影当前保留槽，避免“池中每个槽再遍历全部暂存owner”的平方成本。
+// 位图只活到本次调用返回，不跨原生调用或帧缓存；地址仍须精确对齐真实池槽。
+std::array<bool,kLargestEntityPool> ReservedPool(unsigned category,const unsigned char *base) noexcept {
+  std::array<bool,kLargestEntityPool> reserved{};
+  const auto start=reinterpret_cast<std::uintptr_t>(base);
+  const auto stride=kClientEntityPoolStrides[category],count=kClientEntityPools[category];
+  for(auto *o=staged_objects;o;o=o->next){const auto address=reinterpret_cast<std::uintptr_t>(o->object);
+    if(address<start)continue;const auto offset=address-start;
+    if(offset<std::uintptr_t(count)*stride&&offset%stride==0)reserved[offset/stride]=true;
+  }
+  return reserved;
 }
 // Factory选择器只看valid，无法识别本方尚未Init或已离开但仍被借用的槽。
 // 有保留空槽时，按同一J273池和官方ESSM入口取得已经构造的可用槽。
 Entity *AvailableEntity(unsigned category,bool &factory_safe) noexcept {
   auto *pool=reinterpret_cast<unsigned char *>(g_Game->_entityFactory)+kClientEntityPoolOffsets[category];
+  const auto reserved=ReservedPool(category,pool);
   Entity *result=nullptr;factory_safe=category!=12;
   for(unsigned i=0;i<kClientEntityPools[category];++i){
     auto *entity=reinterpret_cast<Entity *>(pool+i*kClientEntityPoolStrides[category]);
     if(entity->_valid)continue;
-    if(Reserved(entity)||entity->_exists){factory_safe=false;continue;}
+    if(reserved[i]||entity->_exists){factory_safe=false;continue;}
     if(!result)result=entity;
   }
   return result;
 }
 }
-ClientPreparationResult ClientStagedObjectsCapacity(const ClientNativeRoots &roots,const ClientStagedObjectInput *inputs,std::size_t count) noexcept {
-  if(!ClientPreparationWindow(roots,ClientLuaStateIdentity())||!g_Game->_entityFactory||(count&&!inputs))return Bad("binary_stage_capacity_context");
-  std::array<unsigned,13> wanted{};
-  for(std::size_t i=0;i<count;++i)if(inputs[i].kind==ClientStagedKind::Entity&&!inputs[i].borrowed){const auto category=inputs[i].category;
-    if(!category||category>=wanted.size()||inputs[i].native_size!=kClientEntityPoolStrides[category])return Bad("binary_stage_entity_factory_abi");++wanted[category];}
-  for(unsigned category=1;category<wanted.size();++category)if(wanted[category]){unsigned available=0;
-    bool notified=false;
-    auto *base=reinterpret_cast<unsigned char *>(g_Game->_entityFactory)+kClientEntityPoolOffsets[category];
-    for(unsigned i=0;i<kClientEntityPools[category];++i){auto *entity=reinterpret_cast<Entity *>(base+i*kClientEntityPoolStrides[category]);const bool reserved=Reserved(entity);
-      if(!entity->_valid&&entity->_exists&&!reserved)return Bad("binary_stage_unclassified_pool_use");
-      if(!reserved&&!entity->_valid&&!entity->_exists){++available;
-        // 在第一次 Factory／专用池取得前检查已封存的官方通知闭包；只检查，不发送通知。
-        if(!notified){const char *why="binary_stage_essm_preflight";
-          if(!ClientObjectStagedPoolNotification(entity,false,false,why)||
-             !ClientObjectStagedPoolNotification(entity,false,true,why))return Bad(why);notified=true;}}
-    }
-    if(wanted[category]>available)return Bad("binary_stage_entity_pool_capacity");}
+ClientPreparationResult ClientStagedPoolNotificationsCurrent(const ClientNativeRoots &roots,
+    const ClientStagedObjectInput *inputs,std::size_t count) noexcept {
+  if((count&&!inputs)||!ClientPreparationWindow(roots,ClientLuaStateIdentity())||!g_Game->_entityFactory)
+    return Bad("binary_stage_pool_context");
+  std::array<bool,kClientEntityPools.size()> checked{};
+  for(std::size_t i=0;i<count;++i){
+    const auto &input=inputs[i];
+    if(input.kind!=ClientStagedKind::Entity||input.borrowed)continue;
+    const auto category=input.category;
+    if(!category||category>=checked.size()||input.native_size!=kClientEntityPoolStrides[category])
+      return Bad("binary_stage_entity_factory_abi");
+    if(checked[category])continue;
+    // 检查官方闭包身份，无需申请、读写或腾空这个槽。
+    auto *slot=reinterpret_cast<std::byte *>(g_Game->_entityFactory)+kClientEntityPoolOffsets[category];
+    const char *why="binary_stage_essm_preflight";
+    if(!ClientObjectStagedPoolNotification(slot,false,false,why)||!ClientObjectStagedPoolNotification(slot,false,true,why))
+      return Bad(why);
+    checked[category]=true;
+  }
   return Ready();
 }
 ClientStagedObject *ClientStagedObjectCreate(ClientPreparationAllocator a) noexcept {
@@ -372,13 +395,13 @@ ClientPreparationResult ClientStagedObjectConstruct(ClientStagedObject *o,const 
       o->pool=true;
       if(!in.category||in.category>=kClientEntityPools.size())return Bad("binary_stage_entity_pool_category");
       bool factory_safe=false;auto *slot=AvailableEntity(in.category,factory_safe);
-      if(!slot)return Bad("binary_stage_entity_pool_full");
+      if(!slot)return Missing("binary_stage_entity_pool_full");
       if(!factory_safe){
         if(in.category==12&&*reinterpret_cast<std::uintptr_t *>(slot)!=Base+0x7181b8)return Bad("binary_stage_dummy_type");
         o->object=slot;
         if(!ClientObjectStagedPoolNotification(o->object,true,true,why)){o->uncertain=true;return Bad(why);}
       }else NativeVoid(*o,[&]{o->object=g_Game->_entityFactory->Create(in.type,true);});
-      if(!o->object)return Bad("binary_stage_entity_pool_full");o->notified=true;
+      if(!o->object)return Missing("binary_stage_entity_pool_full");o->notified=true;
       auto *e=static_cast<Entity *>(o->object);if(e->_valid||e->_exists){o->uncertain=true;return Bad("binary_stage_live_pool_use_retained");}
       for(auto *p=staged_objects;p;p=p->next)if(p!=o&&p->object==o->object){p->uncertain=o->uncertain=true;return Bad("binary_stage_duplicate_pool_use_retained");}
       o->constructed=true;break;}
@@ -396,8 +419,39 @@ bool ClientStagedObjectCurrent(const ClientStagedObject *o,const ClientNativeRoo
 }
 void *ClientStagedObjectBorrow(ClientStagedObject *o) noexcept {return o&&ClientStagedObjectCurrent(o,o->roots)?o->object:nullptr;}
 void *ClientStagedObjectOwnedAddress(const ClientStagedObject *o) noexcept {
-  if(!o||!o->ready||o->uncertain||o->release_entered||!o->context.Current()||!g_Game||g_Game!=o->roots.game||g_Game->_room!=o->roots.room)return nullptr;
-  return o->object&&(!o->vptr||*static_cast<void **>(o->object)==o->vptr)?o->object:nullptr;
+  __try {
+    if(!o||!o->ready||o->uncertain||o->release_entered||!o->context.Current()||!g_Game||g_Game!=o->roots.game||g_Game->_room!=o->roots.room)return nullptr;
+    return o->object&&(!o->vptr||*static_cast<void **>(o->object)==o->vptr)?o->object:nullptr;
+  }__except(EXCEPTION_EXECUTE_HANDLER){return nullptr;}
+}
+void *ClientStagedObjectLiveAddress(const ClientStagedObject *o) noexcept {
+  __try {
+    auto *address=ClientStagedObjectOwnedAddress(o);
+    if(!address)return nullptr;
+    if(o->input.kind==ClientStagedKind::Grid){
+      const auto *grid=static_cast<const GridEntity *>(address);
+      return grid->_gridIndex==o->input.index&&unsigned(grid->_desc._type)==o->input.type&&
+        unsigned(grid->_desc._variant)==o->input.variant?address:nullptr;
+    }
+    if(o->input.kind!=ClientStagedKind::Entity&&o->input.kind!=ClientStagedKind::Player)return address;
+    const auto *entity=static_cast<const Entity *>(address);
+    // Player 使用独立分配，合法的未入册身体可无 valid；池对象必须同时存活且未退役。
+    if((o->input.kind==ClientStagedKind::Entity&&(!entity->_valid||!entity->_exists))||
+        entity->_type!=o->input.type||entity->_variant!=o->input.variant||
+        entity->_subtype!=o->input.subtype||entity->_initSeed!=o->input.seed)return nullptr;
+    return address;
+  } __except(EXCEPTION_EXECUTE_HANDLER){return nullptr;}
+}
+bool ClientStagedObjectAdoptShape(ClientStagedObject *o,void *address,unsigned type,unsigned variant,
+    unsigned subtype,unsigned seed) noexcept {
+  __try {
+    if(!o||!address||ClientStagedObjectOwnedAddress(o)!=address||o->input.kind!=ClientStagedKind::Entity)return false;
+    const auto &entity=*static_cast<const Entity *>(address);
+    if(!entity._valid||!entity._exists||entity._type!=type||entity._variant!=variant||
+        entity._subtype!=subtype||entity._initSeed!=seed)return false;
+    o->input.type=type;o->input.variant=variant;o->input.subtype=subtype;o->input.seed=seed;
+    return true;
+  }__except(EXCEPTION_EXECUTE_HANDLER){return false;}
 }
 bool ClientStagedObjectRelease(ClientStagedObject *&o) noexcept {
   if(!o)return true;if(!Window()||!ClientBinaryPreparationScopeActive(true)||!ClientNativeCpuQueuesEmpty()||o->uncertain||o->release_entered||

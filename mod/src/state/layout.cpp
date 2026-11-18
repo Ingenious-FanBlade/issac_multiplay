@@ -1,15 +1,17 @@
-#include "state/layout.h"
+#include "state/flat_layout.h"
 #include <algorithm>
 #include <array>
 #include <iterator>
 
 namespace cs::state {
 namespace {
+struct CaptureSlice {std::uint32_t first,count;};
 #include "state_wire.inc"
 #include "state_capture.inc"
 #include "state_client.inc"
 #include "state_members.inc"
 #include "state_grid_factory.inc"
+#include "state_flat.inc"
 }
 std::uint16_t LayoutVersion() noexcept { return kStateLayoutVersion; }
 std::uint16_t GridFactoryLayout(std::int32_t type) noexcept {
@@ -20,6 +22,10 @@ bool IsStateMemberLayout(std::uint16_t id) noexcept {const auto *layout=FindLayo
 std::span<const Layout> Layouts() noexcept { return kStateLayouts; }
 std::span<const Field> Fields() noexcept { return kStateFields; }
 std::span<const CopyRange> CopyRanges() noexcept { return kStateCopyRanges; }
+std::span<const std::uint16_t> CaptureBlockFields(std::uint32_t block) noexcept {
+  if(block>=kCaptureBlockSlices.size())return {};
+  const auto slice=kCaptureBlockSlices[block];return std::span(kCaptureBlockFields).subspan(slice.first,slice.count);
+}
 std::span<const Block> Blocks() noexcept { return kStateBlocks; }
 std::span<const Validator> Validators() noexcept { return kStateValidators; }
 std::span<const NativeRange> NativeRanges() noexcept { return kStateNativeRanges; }
@@ -42,6 +48,10 @@ const Layout *FindLayout(std::uint16_t id) noexcept {
   if (id >= kStateLayoutSlots.size()) return nullptr;
   const auto slot = kStateLayoutSlots[id];
   return slot == kNullIndex ? nullptr : &kStateLayouts[slot];
+}
+// 子描述也在表中。调用方根据 Layout::flat_record 判定该布局可否用作平铺根。
+const FlatLayout *FindFlatLayout(std::uint16_t id) noexcept {
+  return id < kFlatSlots.size() ? kFlatSlots[id] : nullptr;
 }
 const Field *FindField(std::uint16_t id, std::uint16_t index) noexcept {
   const auto *layout = FindLayout(id);

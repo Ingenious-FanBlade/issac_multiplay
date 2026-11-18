@@ -5,7 +5,7 @@
 #include <memory>
 #include <optional>
 #include <span>
-namespace cs::state {class ClientStateMemory;}
+namespace cs::state {class ClientStateMemory;class ClientShadowState;}
 
 namespace cs::game {
 // 角色只用于索引同源生成表；不把字段名、布局号或网络偏移当执行参数。
@@ -72,6 +72,8 @@ struct ClientRoomLevelShadowView final {
   std::span<const ClientRoomDescriptorShadowView> descriptors;
   std::span<const ClientRoomConfigShadowView> configurations;
   std::span<const ClientRoomGridMember> grids;
+  // 正式流借精确影子块；独立输入继续由描述构造函数拷贝。
+  std::shared_ptr<const state::ClientShadowState> backing;
 };
 // 不含Name／Variant／权重／Spawn／Merged、原生指针或可触发选房的参数。
 struct ClientRoomConfiguration final {

@@ -1,6 +1,6 @@
 # 完整消息静态预算
 
-布局版本 75；普通构建生成，仅整数公式，不运行编解码样例或测试。
+布局版本 84；普通构建生成，仅整数公式，不运行编解码样例或测试。
 
 | 合同 | 数值 |
 |---|---|
@@ -27,6 +27,13 @@
 | body_burst_bytes | 4096 |
 | reliable_burst_bytes | 8192 |
 | world_hz | 30 |
+| world_send_window | 8 |
+| dynamic_send_bytes | 65536 |
+| decode_snapshots | 8 |
+| decode_failure_limit | 3 |
+| capture_failure_limit | 30 |
+| native_object_failure_limit | 3 |
+| pool_object_missing_limit | 30 |
 | body_hz | 60 |
 | ordinary_message_bytes | 65536 |
 | reliable_message_bytes | 33554432 |
@@ -36,7 +43,6 @@
 | progress_ms | 2000 |
 | recovery_attempts | 2 |
 | world_wait_ms | 100 |
-| joint_wait_ms | 500 |
 | baseline_wait_ms | 10000 |
 | body_send_ms | 50 |
 | world_send_ms | 100 |
@@ -47,7 +53,7 @@
 | sent_targets | 192 |
 | sent_recovery_slots | 2 |
 | sent_target_bytes | 67108864 |
-| sent_age_ms | 2000 |
+| sent_age_ms | 500 |
 | event_count | 4096 |
 | event_bytes | 262144 |
 | event_age_ms | 500 |
@@ -60,7 +66,7 @@
 | pool_value_bytes | 536870912 |
 | pool_wire_bytes | 134217728 |
 | pool_workspace_bytes | 134217728 |
-| shared_value_bytes | 67108864 |
+| shared_value_bytes | 75497472 |
 | shared_wire_bytes | 33554432 |
 | world_body_zstd | 1 |
 | zstd_level | 3 |
@@ -80,10 +86,10 @@
 | 64颗Tear运动块 | 3688 | 4176 | 30 | 125280 | 375840 |
 | 稠密运动设计负载 | 6376 | 7088 | 30 | 212640 | 637920 |
 | 八身体全部body成员投影下界 | 18408 | 20352 | 0 | 0 | 0 |
-| 四参与者八身体及稠密房间成员Baseline下界 | 124242 | 136602 | 0 | 0 | 0 |
+| 四参与者八身体及稠密房间成员Baseline下界 | 124241 | 136601 | 0 | 0 | 0 |
 | 上述成员表258项（另计） | 8574 | 9510 | 0 | 0 | 0 |
-| 648项本地资源声明设计样例 | 36420 | 40156 | 0 | 0 | 0 |
-| 单个100Quad纯值recipe资源 | 60 | 212 | 0 | 0 | 0 |
+| 648项本地资源声明设计样例 | 41604 | 45788 | 0 | 0 | 0 |
+| 单个100Quad纯值recipe资源 | 105 | 257 | 0 | 0 | 0 |
 | 八身体独立HUD时钟完整消息设计下界 | 1464 | 1728 | 60 | 103680 | 311040 |
 
 | 负载 | 组成 |
@@ -265,15 +271,15 @@
 | RunAmbush | 231 | 0 | 0 |
 | RunChallengeParam | 232 | 0 | 0 |
 | RunDailyChallenge | 233 | 1 | 1 |
-| RunScoreSheet | 234 | 64 | 64 |
+| RunScoreSheet | 234 | 0 | 0 |
 | RunColorModState | 235 | 24 | 24 |
 | RunGameStateFlags | 236 | 1 | 1 |
-| GameRun | 237 | 415 | 675846 |
+| GameRun | 237 | 422 | 675853 |
 | RunSeedEffectNode | 238 | 4 | 4 |
-| Room | 239 | 502 | 33554432 |
+| Room | 239 | 501 | 33554432 |
 | Backdrop | 240 | 21 | 35651649 |
 | BackdropConfig | 241 | 0 | 0 |
-| FXLayers | 242 | 1 | 1 |
+| FXLayers | 242 | 0 | 0 |
 | FXParams | 243 | 0 | 0 |
 | FXPose | 244 | 10 | 10 |
 | FX | 245 | 15 | 163855 |
@@ -335,11 +341,11 @@
 | MapFocusPair | 301 | 0 | 0 |
 | MapBadgeList | 302 | 0 | 0 |
 | MinimapQuestionImageBinding | 303 | 0 | 0 |
-| ResourceEntryHeader | 304 | 0 | 0 |
+| ResourceEntryHeader | 304 | 8 | 8 |
 | SurfacePixelsDescriptor | 305 | 0 | 0 |
 | ResourceBlobChunkHeader | 306 | 0 | 0 |
-| SurfaceRecipeHeader | 307 | 0 | 0 |
-| SurfaceRecipeClear | 308 | 0 | 0 |
+| SurfaceRecipeHeader | 307 | 16 | 16 |
+| SurfaceRecipeClear | 308 | 21 | 21 |
 | SurfaceRecipeQuad | 309 | 0 | 0 |
 | PlayerHUDHeart | 310 | 0 | 0 |
 | PlayerHUDActiveItem | 311 | 0 | 0 |
@@ -449,7 +455,6 @@
 | StateDependencyEntry | 415 | 32 | 32 |
 | StateContributionEntry | 416 | 16 | 16 |
 | StateAudioEventHeader | 417 | 40 | 40 |
-| StateContextReady | 418 | 8 | 8 |
 | StateAppliedAckHeader | 419 | 2 | 2 |
 | StateAppliedAckEntry | 420 | 21 | 21 |
 | StateResyncHeader | 421 | 11 | 11 |
@@ -469,7 +474,7 @@
 | PlayerHUDLocalClock | 435 | 0 | 0 |
 | HudMantleEffects | 436 | 0 | 0 |
 | SFXVolumeState | 437 | 4 | 4 |
-| DisplayInjectionState | 438 | 105 | 105 |
+| DisplayInjectionState | 438 | 176 | 176 |
 | MusicRequestState | 439 | 57 | 57 |
 | LoopSoundState | 440 | 38 | 38 |
 | LoopSoundSet | 441 | 10 | 19466 |
@@ -492,8 +497,7 @@
 
 | 对象 | 正文B | 不压缩一端发出B |
 |---|---|---|
-| ContextReady | 58 | 210 |
-| 单项AppliedAck | 73 | 225 |
+| 单项接收 ACK | 73 | 225 |
 | joint AppliedAck | 94 | 246 |
 | Resync | 61 | 213 |
 | 最大成员表 | 2162715 | 2376003 |
@@ -1217,16 +1221,16 @@
 | RunSeeds | 230/0 | world | 5 | 5 |
 | RunSeeds | 230/1 | world | 2 | 322 |
 | RunDailyChallenge | 233/0 | world | 1 | 1 |
-| RunScoreSheet | 234/0 | world | 64 | 64 |
+| RunScoreSheet | 234/0 | world | 0 | 0 |
 | RunColorModState | 235/0 | world | 24 | 24 |
 | RunGameStateFlags | 236/0 | world | 1 | 1 |
 | GameRun | 237/0 | world | 21 | 341 |
 | GameRun | 237/1 | world | 40 | 40 |
-| GameRun | 237/2 | world | 64 | 64 |
+| GameRun | 237/2 | world | 0 | 0 |
 | GameRun | 237/3 | world | 41 | 41 |
 | GameRun | 237/4 | world | 37 | 37 |
 | GameRun | 237/5 | world | 6 | 6 |
-| GameRun | 237/6 | world | 105 | 105 |
+| GameRun | 237/6 | world | 176 | 176 |
 | GameRun | 237/7 | world | 57 | 57 |
 | GameRun | 237/8 | world | 10 | 19466 |
 | GameRun | 237/9 | world | 2 | 131074 |
@@ -1238,7 +1242,7 @@
 | Room | 239/2 | world | 104 | 104 |
 | Room | 239/3 | world | 48 | 48 |
 | Room | 239/4 | world | 21 | 35651649 |
-| Room | 239/5 | world | 1 | 1 |
+| Room | 239/5 | world | 0 | 0 |
 | Room | 239/6 | world | 0 | 0 |
 | Room | 239/7 | world | 0 | 0 |
 | Room | 239/8 | world | 0 | 0 |
@@ -1248,7 +1252,7 @@
 | Room | 239/12 | world | 1 | 8323079 |
 | Room | 239/13 | world | 144 | 144 |
 | Backdrop | 240/0 | world | 21 | 35651649 |
-| FXLayers | 242/0 | world | 1 | 1 |
+| FXLayers | 242/0 | world | 0 | 0 |
 | FXPose | 244/0 | world | 10 | 10 |
 | FX | 245/0 | world | 15 | 163855 |
 | Ray | 246/0 | world | 10 | 10 |
@@ -1291,11 +1295,11 @@
 | MapFocusPair | 301/0 | world | 0 | 0 |
 | MapBadgeList | 302/0 | world | 0 | 0 |
 | MinimapQuestionImageBinding | 303/0 | world | 0 | 0 |
-| ResourceEntryHeader | 304/0 | world | 0 | 0 |
+| ResourceEntryHeader | 304/0 | world | 8 | 8 |
 | SurfacePixelsDescriptor | 305/0 | world | 0 | 0 |
 | ResourceBlobChunkHeader | 306/0 | world | 0 | 0 |
-| SurfaceRecipeHeader | 307/0 | world | 0 | 0 |
-| SurfaceRecipeClear | 308/0 | world | 0 | 0 |
+| SurfaceRecipeHeader | 307/0 | world | 16 | 16 |
+| SurfaceRecipeClear | 308/0 | world | 21 | 21 |
 | SurfaceRecipeQuad | 309/0 | world | 0 | 0 |
 | PlayerHUDHeart | 310/0 | world | 0 | 0 |
 | PlayerHUDActiveItem | 311/0 | world | 0 | 0 |
@@ -1353,7 +1357,6 @@
 | StateDependencyEntry | 415/0 | world | 32 | 32 |
 | StateContributionEntry | 416/0 | world | 16 | 16 |
 | StateAudioEventHeader | 417/0 | world | 40 | 40 |
-| StateContextReady | 418/0 | world | 8 | 8 |
 | StateAppliedAckHeader | 419/0 | world | 2 | 2 |
 | StateAppliedAckEntry | 420/0 | world | 21 | 21 |
 | StateResyncHeader | 421/0 | world | 11 | 11 |
@@ -1375,7 +1378,7 @@
 | PlayerHUDLocalClock | 435/0 | body | 0 | 0 |
 | HudMantleEffects | 436/0 | body | 0 | 0 |
 | SFXVolumeState | 437/0 | world | 4 | 4 |
-| DisplayInjectionState | 438/0 | world | 105 | 105 |
+| DisplayInjectionState | 438/0 | world | 176 | 176 |
 | MusicRequestState | 439/0 | world | 57 | 57 |
 | LoopSoundState | 440/0 | world | 38 | 38 |
 | LoopSoundSet | 441/0 | world | 10 | 19466 |

@@ -1,8 +1,11 @@
 #include "state/client_plan.h"
+#include <bit>
+#include "state/client_memory_resource.h"
 #include <algorithm>
 #include <cstring>
 #include <map>
 #include <tuple>
+#include <unordered_map>
 
 namespace cs::state {
 namespace {
@@ -18,6 +21,11 @@ std::span<const std::byte> Required(ClientShadowRecordView record,std::uint16_t 
   const auto *f=record.Field(field);if(!f||!f->present)Fail(StateReadiness::SourcePending,"client_plan_required_field");return f->bytes;
 }
 template<class T>T Number(ClientShadowRecordView record,std::uint16_t field){return Exact<T>(Required(record,field));}
+// 只用于对象独占段内选桶；发生碰撞仍比较完整路径，不以摘要代替身份。
+std::uint32_t FieldBucket(std::uint32_t path)noexcept {
+  auto value=(2166136261u^path)*16777619u;
+  value^=value>>16;value*=0x85ebca6bu;value^=value>>13;value*=0xc2b2ae35u;return value^(value>>16);
+}
 // 固定小值仍从可信数字布局取得边界；网络不能提供偏移或原生布局。
 template<class T>T Fixed(std::uint16_t layout,std::uint16_t field,std::span<const std::byte> bytes) {
   const auto *f=FindField(layout,field);
@@ -40,63 +48,316 @@ ClientInstallDomain Domain(const PresentationMember &m) {
   if(m.space==12&&m.layout==437)return ClientInstallDomain::Sfx;
   Fail(StateReadiness::InvalidReference,"client_plan_unregistered_domain");
 }
-// 共享投影只向同一完整目标／配对成功根查询，资源条件只查精确快照。
-class Context final:public BodyCodecContext {
-public:
-  Context(ClientResourceSnapshotRef resources,ClientShadowRecordView own,std::optional<ClientShadowRecordView> other)
-    :resources_(std::move(resources)),own_(own),other_(other) {}
-  std::optional<CodecItemConfig> Item(std::uint8_t table,std::uint16_t index)const override{return ResourceBodyContext(resources_->Directory()).Item(table,index);}
-  std::optional<bool> SharedPresence(const CodecLocation &location)const override {
-    const auto read=[&](ClientShadowRecordView r)->std::optional<bool>{for(const auto &f:r.Projections())if(f.kind==ProjectionFactKind::SharedPresence&&
-      f.layout==location.layout&&f.group==location.canonical_field&&f.depth==location.parents.size()&&std::equal(location.parents.begin(),location.parents.end(),f.parents.begin()))return f.value!=0;return {};};
-    if(const auto v=read(own_))return v;return other_?read(*other_):std::nullopt;
-  }
-private:ClientResourceSnapshotRef resources_;ClientShadowRecordView own_;std::optional<ClientShadowRecordView> other_;
-};
-template<class K>using WorkMap=std::map<K,std::uint32_t,std::less<K>,ClientStateAllocator<std::pair<const K,std::uint32_t>>>;
+template<class K>using WorkMap=std::pmr::map<K,std::uint32_t>;
 using PathKey=std::tuple<std::uint32_t,std::uint16_t,std::uint16_t,std::uint16_t,std::uint16_t>;
 using FieldKey=std::tuple<std::uint32_t,std::uint32_t,std::uint16_t,std::uint16_t>;
+// 数字路径只做精确查找；完整tuple相等比较负责区分碰撞，不依赖桶顺序生成计划。
+// 所有键成员都是32位以内的无符号编号；新增更宽成员时必须显式调整混合方式。
+struct WorkKeyHash {
+  template<class... T> std::size_t operator()(const std::tuple<T...> &key)const noexcept {
+    static_assert(((sizeof(T)<=sizeof(std::uint32_t))&&...));
+    std::uint32_t mixed=2166136261u;
+    std::apply([&](auto... part){((mixed=(mixed^std::uint32_t(part))*16777619u),...);},key);
+    mixed^=mixed>>16;mixed*=0x7feb352du;mixed^=mixed>>15;
+    return mixed;
+  }
+};
+template<class K>using WorkIndex=std::pmr::unordered_map<K,std::uint32_t,WorkKeyHash>;
 }
 bool ClientCostumeProjection(std::uint16_t layout,std::uint16_t field) noexcept {
   return layout==F::EntityPlayer::kLayout&&(field==F::EntityPlayer::_costumeSpriteDescs_0||
     field==F::EntityPlayer::_costumeSpriteDescs_1||field==F::EntityPlayer::_costumeSpriteDescs_2||field==F::EntityPlayer::_costumeSpriteDescs_3);
 }
+bool ClientCostumeDirectoryMatches(const ClientShadowStateRef &a,const ClientShadowStateRef &b,
+    const PresentationMember &player) noexcept {
+  if(!a||!b)return false;
+  const auto x=a->Find(player),y=b->Find(player);
+  return x&&y&&(a==b||(x->SameField(*y,F::EntityPlayer::costume_topology_revision)&&
+    x->SameField(*y,F::EntityPlayer::_costumeSpriteDescs_0)&&x->SameField(*y,F::EntityPlayer::_playerCostumeMap)));
+}
 ClientStateInstallPlan::ClientStateInstallPlan(const std::shared_ptr<ClientStateMemory> &m)
   :objects_(ClientStateAllocator<ClientInstallObject>(m)),retired_(ClientStateAllocator<StateMemberEntry>(m)),
-   records_(ClientStateAllocator<ClientInstallRecord>(m)),paths_(ClientStateAllocator<ClientInstallPath>(m)),
-   fields_(ClientStateAllocator<ClientInstallField>(m)),values_(ClientStateAllocator<ClientInstallValue>(m)),
-   bindings_(ClientStateAllocator<ClientInstallBinding>(m)),resources_(ClientStateAllocator<ClientStateResourceNeed>(m)),
+   records_(ClientStateAllocator<ClientInstallRecord>(m)),block_ends_(ClientStateAllocator<ClientInstallBlockEnd>(m)),
+   paths_(ClientStateAllocator<ClientInstallPath>(m)),
+   data_(ClientStateAllocator<std::shared_ptr<const ClientInstallRecordData>>(m)),
+   field_records_(ClientStateAllocator<std::uint32_t>(m)),value_records_(ClientStateAllocator<std::uint32_t>(m)),
+   binding_records_(ClientStateAllocator<std::uint32_t>(m)),private_records_(ClientStateAllocator<std::uint32_t>(m)),
+   field_ranges_(ClientStateAllocator<FieldRange>(m)),
+   field_lookup_(ClientStateAllocator<FieldSlot>(m)),
+   presentation_fields_(ClientStateAllocator<std::uint32_t>(m)),presentation_values_(ClientStateAllocator<std::uint32_t>(m)),
+   native_binding_values_(ClientStateAllocator<std::uint32_t>(m)),
+   native_display_values_(ClientStateAllocator<std::uint32_t>(m)),
    descriptors_(ClientStateAllocator<ClientInstallDescriptor>(m)),grids_(ClientStateAllocator<ClientInstallGrid>(m)),
    entities_(ClientStateAllocator<ClientInstallEntity>(m)),
    players_(ClientStateAllocator<ClientInstallPlayer>(m)),groups_(ClientStateAllocator<ClientInstallGroup>(m)),
    anchors_(ClientStateAllocator<std::uint32_t>(m)),events_(ClientStateAllocator<ClientInstallEvent>(m)),
    transitions_(ClientStateAllocator<ClientInstallTransition>(m)),
    native_needs_(ClientStateAllocator<ClientInstallNativeNeed>(m)),
-   commands_(ClientStateAllocator<ClientInstallCommand>(m)),bytes_(ClientStateAllocator<std::byte>(m)) {
+   stage_objects_(ClientStateAllocator<std::uint32_t>(m)),stage_fields_(ClientStateAllocator<std::uint32_t>(m)),
+   bytes_(ClientStateAllocator<std::byte>(m)) {
   world_.doors.fill(kClientPlanNone);world_.occupancy.fill(kNullIndex);
 }
 std::span<const std::byte> ClientStateInstallPlan::Bytes(ClientInstallSlice s)const {
+  if(s.block)return {s.block,s.size};
   if(s.offset>bytes_.size()||s.size>bytes_.size()-s.offset)Fail(StateReadiness::InvalidEncoding,"client_plan_slice");return std::span(bytes_).subspan(s.offset,s.size);
 }
+ClientInstallField ClientStateInstallPlan::Field(std::uint32_t index)const noexcept {
+  const auto record=field_records_[index];
+  auto field=data_[record]->fields[index-records_[record].first_field];
+  field.record=record;
+  return field;
+}
+ClientInstallValue ClientStateInstallPlan::Value(std::uint32_t index)const noexcept {
+  const auto record=value_records_[index];
+  return Value(record,index-records_[record].first_value);
+}
+ClientInstallValue ClientStateInstallPlan::Value(std::uint32_t record,std::uint32_t local)const noexcept {
+  auto value=data_[record]->values[local];
+  value.record=record;
+  const auto &r=records_[record];
+  if(r.object!=kClientPlanNone&&private_records_[r.object]==record){
+    if(value.field!=kClientPlanNone)value.field+=r.first_field;
+    if(value.parent_field!=kClientPlanNone)value.parent_field+=r.first_field;
+  }
+  return value;
+}
+ClientInstallBinding ClientStateInstallPlan::RebaseBinding(std::uint32_t record,ClientInstallBinding link)const noexcept {
+  link.value+=records_[record].first_value;
+  if(!link.is_resource&&!link.is_null&&(link.object>=objects_.size()||objects_[link.object].member.identity!=link.member)){
+    const auto i=std::lower_bound(objects_.begin(),objects_.end(),link.member,[](const auto &a,const auto &b){return a.member.identity<b;});
+    link.object=i!=objects_.end()&&i->member.identity==link.member?std::uint32_t(i-objects_.begin()):kClientPlanNone;
+  }
+  return link;
+}
+ClientInstallBinding ClientStateInstallPlan::Binding(std::uint32_t index)const noexcept {
+  const auto record=binding_records_[index];
+  return RebaseBinding(record,data_[record]->bindings[index-records_[record].first_binding]);
+}
+std::optional<ClientInstallBinding> ClientStateInstallPlan::BindingForValue(std::uint32_t record,std::uint32_t local)const noexcept {
+  const auto &links=data_[record]->bindings;
+  const auto i=std::lower_bound(links.begin(),links.end(),local,[](const auto &link,auto value){return link.value<value;});
+  if(i==links.end()||i->value!=local)return {};
+  return RebaseBinding(record,*i);
+}
+std::uint32_t ClientStateInstallPlan::CanonicalField(std::uint32_t object,std::uint32_t path)const noexcept {
+  if(path>=normalized_path_count_||object>=field_ranges_.size())return kClientPlanNone;
+  if(const auto record=private_records_[object];record!=kClientPlanNone){
+    const auto &lookup=data_[record]->lookup;
+    const auto i=std::lower_bound(lookup.begin(),lookup.end(),path,[](const auto &slot,auto key){return slot.path<key;});
+    return i!=lookup.end()&&i->path==path?records_[record].first_field+i->local:kClientPlanNone;
+  }
+  const auto range=field_ranges_[object];if(!range.count)return kClientPlanNone;
+  if(range.base!=kClientPlanNone){
+    if(path<range.base||path-range.base>=range.count)return kClientPlanNone;
+    return field_lookup_[range.first+path-range.base].field;
+  }
+  auto slot=FieldBucket(path)&(range.count-1);
+  for(std::uint32_t n=0;n<range.count;++n,slot=(slot+1)&(range.count-1)){
+    const auto &entry=field_lookup_[range.first+slot];if(entry.field==kClientPlanNone)return kClientPlanNone;
+    if(entry.path==path)return entry.field;
+  }
+  return kClientPlanNone;
+}
 ClientShadowStateRef ClientStateInstallPlan::Effective(BodyStream stream)const {
-  if(unsigned(stream)>1)Fail(StateReadiness::InvalidEncoding,"client_plan_stream");return effective_[unsigned(stream)];
+  if(unsigned(stream)>1)Fail(StateReadiness::InvalidEncoding,"client_plan_stream");
+  const auto i=unsigned(stream);
+  return streams_[i]?streams_[i]:peer_context_[i].lock();
+}
+std::uint32_t ClientStateInstallPlan::RecordIndex(BodyStream stream,const PresentationMember &identity)const noexcept {
+  if(unsigned(stream)>1||!candidate_)return kClientPlanNone;
+  const auto own=candidate_->State(stream);
+  if(!own)return kClientPlanNone;
+  const auto position=own->RecordPosition(identity);
+  if(!position)return kClientPlanNone;
+  const auto world=candidate_->State(BodyStream::World);
+  return *position+(stream==BodyStream::Body&&world?std::uint32_t(world->RecordCount()):0u);
+}
+bool ClientStateInstallPlan::ReusableRecord(const ClientInstallRecord &record,std::uint32_t previous_mask) const noexcept {
+  return record.event==kClientPlanNone&&record.context.base_version&&record.object<objects_.size()&&
+    objects_[record.object].action==ClientInstallAction::Reuse&&record.mask==previous_mask&&
+    !(record.structure_mask|record.dependency_mask);
+}
+bool ClientStateInstallPlan::SameRecordShape(std::uint32_t record,const ClientStateInstallPlan &other,std::uint32_t other_record)const noexcept {
+  if(record>=records_.size()||other_record>=other.records_.size())return false;
+  const auto &a=records_[record];const auto &b=other.records_[other_record];
+  if(a.event!=kClientPlanNone||b.event!=kClientPlanNone||a.layout!=b.layout||a.stream!=b.stream||
+     a.field_count!=b.field_count||a.value_count!=b.value_count||a.binding_count!=b.binding_count)return false;
+  const auto &x=data_[record];const auto &y=other.data_[other_record];
+  if(!x||!y)return false;
+  // 共享同一不可变描述数据：形状由构造保证一致。
+  if(x==y)return true;
+  if(x->fields.size()!=y->fields.size()||x->values.size()!=y->values.size()||x->bindings.size()!=y->bindings.size())return false;
+  const bool xp=a.object!=kClientPlanNone&&a.object<private_records_.size()&&private_records_[a.object]==record;
+  const bool yp=b.object!=kClientPlanNone&&b.object<other.private_records_.size()&&other.private_records_[b.object]==other_record;
+  // 私有记录的字段归属按记录内序号存放，共享记录按全局序号存放；统一换成记录内序号再比。
+  const auto local=[](std::uint32_t field,bool private_record,std::uint32_t first){
+    return field==kClientPlanNone||private_record?field:field-first;
+  };
+  for(std::size_t i=0;i<x->fields.size();++i){
+    const auto &f=x->fields[i];const auto &g=y->fields[i];
+    if(f.path!=g.path||f.definition!=g.definition||f.elements!=g.elements||f.slot_mask!=g.slot_mask||
+       f.present!=g.present||f.payload_present!=g.payload_present||f.phase!=g.phase)return false;
+  }
+  for(std::size_t i=0;i<x->values.size();++i){
+    const auto &v=x->values[i];const auto &w=y->values[i];
+    if(v.path!=w.path||v.layout!=w.layout||v.component!=w.component||v.operation!=w.operation||
+       local(v.field,xp,a.first_field)!=local(w.field,yp,b.first_field)||
+       local(v.parent_field,xp,a.first_field)!=local(w.parent_field,yp,b.first_field))return false;
+  }
+  for(std::size_t i=0;i<x->bindings.size();++i){
+    const auto &l=x->bindings[i];const auto &m=y->bindings[i];
+    if(l.value!=m.value||l.member!=m.member||l.resource!=m.resource||l.is_resource!=m.is_resource||l.is_null!=m.is_null)return false;
+  }
+  return true;
+}
+std::uint32_t ClientStateInstallPlan::MemberRecordCount()const noexcept {
+  std::uint32_t n=0;
+  while(n<records_.size()&&records_[n].event==kClientPlanNone)++n;
+  for(auto i=n;i<records_.size();++i)if(records_[i].event==kClientPlanNone)return kClientPlanNone;
+  return n;
+}
+bool ClientStateInstallPlan::SameStructure(const ClientStateInstallPlan &o)const noexcept {
+  if(objects_.size()!=o.objects_.size()||entities_.size()!=o.entities_.size()||players_.size()!=o.players_.size()||
+     groups_.size()!=o.groups_.size()||anchors_.size()!=o.anchors_.size()||grids_.size()!=o.grids_.size()||
+     descriptors_.size()!=o.descriptors_.size()||native_needs_.size()!=o.native_needs_.size()||
+     stage_objects_.size()!=o.stage_objects_.size()||o.paths_.size()>paths_.size()||
+     o.normalized_path_count_>normalized_path_count_)return false;
+  for(std::size_t i=0;i<objects_.size();++i){
+    const auto &a=objects_[i];const auto &b=o.objects_[i];
+    if(a.member.identity!=b.member.identity||a.domain!=b.domain||a.description!=b.description||a.streams!=b.streams)return false;
+  }
+  const auto &w=world_;const auto &v=o.world_;
+  if(w.run!=v.run||w.level!=v.level||w.room!=v.room||w.sfx!=v.sfx||w.current_descriptor!=v.current_descriptor||
+     w.doors!=v.doors||w.occupancy!=v.occupancy||w.grid_width!=v.grid_width||w.grid_height!=v.grid_height||
+     w.current_entry!=v.current_entry||w.dimension!=v.dimension||w.replace_world!=v.replace_world||w.replace_body!=v.replace_body)return false;
+  for(std::size_t i=0;i<entities_.size();++i){
+    const auto &a=entities_[i];const auto &b=o.entities_[i];
+    if(a.object!=b.object||a.type!=b.type||a.variant!=b.variant||a.subtype!=b.subtype||a.init_seed!=b.init_seed||
+       a.order!=b.order||a.configuration!=b.configuration)return false;
+  }
+  for(std::size_t i=0;i<players_.size();++i){
+    const auto &a=players_[i];const auto &b=o.players_[i];
+    if(a.object!=b.object||a.group!=b.group||a.topology!=b.topology||a.player_type!=b.player_type||a.roster!=b.roster||
+       a.membership!=b.membership||a.role!=b.role||a.control!=b.control)return false;
+  }
+  for(std::size_t i=0;i<groups_.size();++i){
+    const auto &a=groups_[i];const auto &b=o.groups_[i];
+    if(a.object!=b.object||a.participant!=b.participant||a.first_anchor!=b.first_anchor||a.anchor_count!=b.anchor_count||
+       a.session!=b.session||a.binding!=b.binding||a.ordinal!=b.ordinal)return false;
+  }
+  if(!std::equal(anchors_.begin(),anchors_.end(),o.anchors_.begin())||
+     !std::equal(stage_objects_.begin(),stage_objects_.end(),o.stage_objects_.begin()))return false;
+  for(std::size_t i=0;i<grids_.size();++i){
+    const auto &a=grids_[i];const auto &b=o.grids_[i];
+    if(a.object!=b.object||a.index!=b.index||a.spawn_seed!=b.spawn_seed||a.type!=b.type||a.variant!=b.variant||
+       a.state!=b.state||a.has_spawn_seed!=b.has_spawn_seed)return false;
+  }
+  for(std::size_t i=0;i<descriptors_.size();++i){
+    const auto &a=descriptors_[i];const auto &b=o.descriptors_[i];
+    if(a.object!=b.object||a.source_slot!=b.source_slot||a.ordinary_ordinal!=b.ordinary_ordinal)return false;
+  }
+  for(std::size_t i=0;i<native_needs_.size();++i){
+    const auto &a=native_needs_[i];const auto &b=o.native_needs_[i];
+    if(a.kind!=b.kind||a.id!=b.id||a.second_id!=b.second_id)return false;
+  }
+  for(std::size_t i=0;i<o.paths_.size();++i){
+    const auto &a=paths_[i];const auto &b=o.paths_[i];
+    if(a.parent!=b.parent||a.step!=b.step||a.normalized!=b.normalized||a.field_path!=b.field_path||a.canonical!=b.canonical)return false;
+  }
+  const auto members=MemberRecordCount();
+  if(members==kClientPlanNone||members!=o.MemberRecordCount())return false;
+  for(std::uint32_t n=0;n<members;++n){
+    const auto &a=records_[n];const auto &b=o.records_[n];
+    if(a.object!=b.object||a.first_field!=b.first_field||a.first_value!=b.first_value||a.first_binding!=b.first_binding||
+       !SameRecordShape(n,o,n))return false;
+  }
+  return true;
 }
 // 构建器唯一可变；发布后不修改路径、正文、资源顺序或执行描述。
 struct ClientInstallBuilder final:BodyNodeObserver {
   const ClientStatePreparedTarget &target;
   const ClientStateTables &tables;
-  const ClientStateWorkspace &workspace;
   std::shared_ptr<ClientStateInstallPlan> out;
-  WorkMap<PathKey> path_index;
-  WorkMap<FieldKey> field_index;
+  // 索引只活到本次数字计划封存；节点和桶均成块计费，不逐节点竞争Peer记账锁。
+  ClientStateMemoryResource index_upstream;
+  std::pmr::monotonic_buffer_resource index_memory;
+  WorkIndex<PathKey> path_index;
+  // 与暂存／原子writer共用同一规范路径结果，避免两次主线程重建纯值索引。
+  WorkIndex<PathKey> normalized_index;
+  WorkIndex<FieldKey> field_index;
+  WorkMap<std::uint64_t> loops;
+  WorkMap<std::int32_t> definitions;
+  WorkMap<std::uint32_t> overlays;
+  // 只在本后台工作片链借已接受计划。路径重定位表只含数字，完成后随工作区归还。
+  struct Accepted {
+    std::shared_ptr<const ClientStateInstallPlan> plan;
+    std::pmr::vector<std::uint32_t> paths;
+    explicit Accepted(std::pmr::memory_resource *resource):paths(resource) {}
+  };
+  std::array<Accepted,2> accepted;
+  // 借用的数据没有可写入口；后处理按记录跳过全部已封存区间。
+  std::pmr::vector<ClientInstallRecordData *> fresh;
+  ClientInstallRecordData *writing=nullptr;
+  std::uint32_t inherited_paths=0,scan_record=0;
+  // 纯值构建游标保留在同一候选内，分片之间不会发布半个计划。
+  enum class Pass {Objects,World,Players,Records,Events,PathFields,FieldCounts,FieldRanges,FieldIndex,Rules,Transitions,Commands,Done};
+#ifdef ISAACCS_E2E
+  // 保存一个后台工作片的细分时间，交还 worker 前一次归并。
+  struct Timing {
+    static constexpr unsigned first=unsigned(ClientApplyStage::PlanImport);
+    std::array<ClientApplyDetailTimer::Clock::duration,unsigned(ClientApplyStage::PlanCommands)-first+1> elapsed{};
+    ClientApplyDetailTimer Scope(ClientApplyStage stage) noexcept {
+      return ClientApplyDetailTimer(stage==ClientApplyStage::Count?nullptr:&elapsed[unsigned(stage)-first]);
+    }
+    void Report(ClientApplyMetrics &metrics,std::uint8_t streams) const noexcept {
+      for(unsigned i=0;i<elapsed.size();++i)if(elapsed[i].count())
+        metrics.Mark(streams,ClientApplyStage(first+i),ClientApplyDetailTimer::Microseconds(elapsed[i]));
+    }
+  };
+#endif
+  Pass pass=Pass::Objects;
+  unsigned stream=0,command=0;
+  std::size_t item=0;
+  ClientShadowVisitCursor cursor;
+  bool record_open=false;
+  std::uint32_t accepted_record=kClientPlanNone,imported=0;
+  // World 导入和重走共用同一块游标，断点可落在块内。
+  std::uint32_t world_blocks=0,world_rank=0;
+  std::array<std::uint64_t,2> reused_records{};
+  std::uint64_t reused_world_blocks=0;
+  std::uint64_t shared_world_records=0;
+  std::array<std::array<std::uint64_t,4>,2> volume{};
   ClientStateVector<ProjectionFact> facts;
   std::uint32_t record=0,visits=0;
   std::span<const std::byte> decoding;
-  ClientInstallBuilder(const ClientStatePreparedTarget &t,const ClientStateTables &s,const ClientStateWorkspace &w)
-    :target(t),tables(s),workspace(w),out(std::allocate_shared<ClientStateInstallPlan>(ClientStateAllocator<ClientStateInstallPlan>(s.Memory()),s.Memory())),
-     path_index(ClientStateAllocator<std::pair<const PathKey,std::uint32_t>>(s.Memory(),memory::Pool::Workspace)),
-     field_index(ClientStateAllocator<std::pair<const FieldKey,std::uint32_t>>(s.Memory(),memory::Pool::Workspace)),
-     facts(ClientStateAllocator<ProjectionFact>(s.Memory(),memory::Pool::Workspace)) {facts.resize(16);}
+  ClientInstallBuilder(const ClientStatePreparedTarget &t,const ClientStateTables &s,
+      const std::array<std::weak_ptr<const ClientStateInstallPlan>,2> &previous)
+    :target(t),tables(s),out(std::allocate_shared<ClientStateInstallPlan>(ClientStateAllocator<ClientStateInstallPlan>(s.Memory()),s.Memory())),
+     index_upstream(s.Memory(),memory::Pool::Workspace),index_memory(8192,&index_upstream),
+     path_index(&index_memory),normalized_index(&index_memory),field_index(&index_memory),loops(&index_memory),definitions(&index_memory),overlays(&index_memory),
+     accepted{Accepted(&index_memory),Accepted(&index_memory)},fresh(&index_memory),
+     facts(ClientStateAllocator<ProjectionFact>(s.Memory(),memory::Pool::Workspace)) {
+    facts.resize(128);
+    for(unsigned i=0;i<2;++i)if(t.candidate&&t.candidate->State(BodyStream(i))&&t.previous[i]){
+      auto plan=previous[i].lock();
+      if(plan&&plan->Target().route==t.candidate->Target().route&&plan->Effective(BodyStream(i))==t.previous[i]){
+        accepted[i].paths.resize(plan->Paths().size(),kClientPlanNone);accepted[i].plan=std::move(plan);
+      }
+    }
+    // 沿用受限的路径命名空间；形状长期变化时从当前目标重建，历史路径不会无界累积。
+    if(const auto &plan=accepted[0].plan;plan&&plan->Paths().size()<=16384){
+      inherited_paths=std::uint32_t(plan->Paths().size());
+      out->paths_.assign(plan->Paths().begin(),plan->Paths().end());
+      out->normalized_path_count_=plan->NormalizedPathCount();
+      for(std::uint32_t i=0;i<inherited_paths;++i){
+        const auto &p=out->paths_[i];const auto &s=p.step;
+        path_index.emplace(PathKey{p.parent,s.layout,s.field,s.element,s.choice_layout},i);
+        const auto parent=p.parent==kClientPlanNone?kClientPlanNone:out->paths_[p.parent].normalized;
+        normalized_index.emplace(PathKey{parent,s.layout,p.canonical,s.element,s.choice_layout},p.normalized);
+        accepted[0].paths[i]=i;
+      }
+    }
+  }
   std::uint32_t Object(const PresentationMember &id)const {
     const auto &objects=out->objects_;const auto i=std::lower_bound(objects.begin(),objects.end(),id,[](const auto &a,const auto &b){return a.member.identity<b;});
     return i!=objects.end()&&i->member.identity==id?std::uint32_t(i-objects.begin()):kClientPlanNone;
@@ -118,23 +379,52 @@ struct ClientInstallBuilder final:BodyNodeObserver {
     for(const auto &step:path) {
       PathKey key{parent,step.layout,step.field,step.element,step.choice_layout};const auto i=path_index.find(key);
       if(i!=path_index.end()){parent=i->second;continue;}
-      if(out->paths_.size()>=262144)Fail(StateReadiness::Budget,"client_plan_path_budget");
-      const auto next=std::uint32_t(out->paths_.size());out->paths_.push_back({parent,step});path_index.emplace(key,next);parent=next;
+      BodySourceFieldInfo format;
+      Require(DescribeBodySourceField(step.layout,step.field,format),"client_plan_path_definition");
+      parent=AddPath(parent,step,format.canonical,key);
     }
     return parent;
   }
+  std::uint32_t AddPath(std::uint32_t parent,const CodecPathStep &step,std::uint16_t canonical,const PathKey &key) {
+    if(out->paths_.size()-inherited_paths>=262144)Fail(StateReadiness::Budget,"client_plan_path_budget");
+    const auto normalized_parent=parent==kClientPlanNone?kClientPlanNone:out->paths_[parent].normalized;
+    const PathKey normalized_key{normalized_parent,step.layout,canonical,step.element,step.choice_layout};
+    const auto [at,inserted]=normalized_index.emplace(normalized_key,out->normalized_path_count_);
+    if(inserted)++out->normalized_path_count_;
+    const auto next=std::uint32_t(out->paths_.size());
+    out->paths_.push_back({parent,step,at->second,kClientPlanNone,canonical});
+    path_index.emplace(key,next);
+    return next;
+  }
+  // 相同旧路径最多重定位一次，保留完整条件臂及规范字段归属。
+  std::uint32_t ImportPath(Accepted &source,std::uint32_t path) {
+    if(path==kClientPlanNone)return path;
+    auto &mapped=source.paths[path];
+    if(mapped!=kClientPlanNone)return mapped;
+    const auto &old=source.plan->Paths()[path];
+    const auto parent=ImportPath(source,old.parent);
+    const auto &step=old.step;
+    const PathKey key{parent,step.layout,step.field,step.element,step.choice_layout};
+    const auto i=path_index.find(key);
+    return mapped=i==path_index.end()?AddPath(parent,step,old.canonical,key):i->second;
+  }
   ClientInstallSlice Slice(std::span<const std::byte> bytes)const {
     if(bytes.empty())return {};
+    if(out->records_[record].event==kClientPlanNone)return {0,std::uint32_t(bytes.size()),bytes.data()};
     const auto a=reinterpret_cast<std::uintptr_t>(decoding.data()),b=reinterpret_cast<std::uintptr_t>(bytes.data());
     if(b<a||b-a>decoding.size()||bytes.size()>decoding.size()-(b-a))Fail(StateReadiness::InvalidEncoding,"client_plan_unowned_node");
     return {out->records_[record].bytes.offset+std::uint32_t(b-a),std::uint32_t(bytes.size())};
   }
+  static bool PresentationLayout(std::uint16_t layout) noexcept {
+    return (layout>=438&&layout<=441)||(layout>=448&&layout<=455);
+  }
   void Field(const BodyFieldNodeView &node)override {
-    if(out->records_[record].paired_costume&&(node.path.empty()||!ClientCostumeProjection(node.path.front().layout,node.path.front().field)))return;
     Require(!node.path.empty(),"client_plan_field_path");const auto path=Path(node.path);const auto &step=node.path.back();
-    const auto *definition=FindField(step.layout,step.field);const auto *handler=FindClientField(step.layout,step.field);
-    Require(definition&&handler&&handler->operation==definition->operation,"client_plan_field_dispatch_missing");
-    if(out->fields_.size()>=262144)Fail(StateReadiness::Budget,"client_plan_field_budget");
+    const auto *definition=node.definition;
+    if(!definition){
+      definition=FindField(step.layout,step.field);const auto *handler=FindClientField(step.layout,step.field);
+      Require(definition&&handler&&handler->operation==definition->operation,"client_plan_field_dispatch_missing");
+    }
     auto phase=ClientInstallPhase::Values;const auto &r=out->records_[record];
     if(r.event!=kClientPlanNone)phase=ClientInstallPhase::Events;
     else {
@@ -144,29 +434,179 @@ struct ClientInstallBuilder final:BodyNodeObserver {
       BodySourceFieldInfo format;Require(DescribeBodySourceField(step.layout,step.field,format),"client_plan_field_format");
       if(format.linked&&format.resource_table==255)phase=ClientInstallPhase::RelationFields;
     }
-    const auto n=std::uint32_t(out->fields_.size());out->fields_.push_back({record,path,std::uint32_t(definition-state::Fields().data()),node.elements,node.slot_mask,Slice(node.bytes),node.present,node.payload_present,phase});
-    if(!field_index.emplace(FieldKey{record,out->paths_[path].parent,step.layout,step.field},n).second)
+    AddField({record,path,std::uint32_t(definition-state::Fields().data()),node.elements,node.slot_mask,Slice(node.bytes),node.present,node.payload_present,phase});
+  }
+  void AddField(const ClientInstallField &field) {
+    if(out->FieldCount()+writing->fields.size()>=262144)Fail(StateReadiness::Budget,"client_plan_field_budget");
+    const auto n=std::uint32_t(writing->fields.size());
+    writing->fields.push_back(field);
+    const auto &path=out->paths_[field.path];
+    const auto &definition=state::Fields()[field.definition];
+    if(PresentationLayout(definition.layout))writing->presentation_fields.push_back(n);
+    if(out->records_[record].event==kClientPlanNone&&
+        (definition.nested_layout||definition.operation==Operation::Container||definition.operation==Operation::Choice))
+      writing->stage_fields.push_back(n);
+    if(!field_index.emplace(FieldKey{record,path.parent,path.step.layout,path.step.field},out->records_[record].first_field+n).second)
       Fail(StateReadiness::InvalidEncoding,"client_plan_duplicate_field");
   }
+  std::uint32_t AddValue(const ClientInstallValue &node) {
+    if(out->ValueCount()+writing->values.size()>=262144)Fail(StateReadiness::Budget,"client_plan_value_budget");
+    const auto value=std::uint32_t(writing->values.size());writing->values.push_back(node);
+    if(node.layout&&(PresentationLayout(node.layout)||out->records_[record].event!=kClientPlanNone))
+      writing->presentation_values.push_back(value);
+    // NativeBindings的两个显示节点循环只消费这三个布局，完整检查仍在主线程执行。
+    if(node.layout==F::OverlayDisplayState::kLayout||node.layout==F::ProceduralDisplayDefinition::kLayout||
+        node.layout==F::ProceduralDisplaySet::kLayout)writing->native_display_values.push_back(value);
+    // 与主线程特殊字段的消费谓词一致；在已有解码遍历中登记，避免提交时再扫所有标量。
+    if(!node.layout&&node.path!=kClientPlanNone){
+      const auto &step=out->paths_[node.path].step;
+      if(node.operation==Operation::Reference||node.operation==Operation::Resource||
+          (step.layout==F::AnimationState::kLayout&&(step.field==F::AnimationState::layer_frames||
+            step.field==F::AnimationState::null_layer_frames)))writing->native_binding_values.push_back(value);
+    }
+    return value;
+  }
   void Node(const BodyNodeView &node)override {
-    if(out->records_[record].paired_costume&&(node.path.empty()||!ClientCostumeProjection(node.path.front().layout,node.path.front().field)))return;
-    if(out->values_.size()>=262144)Fail(StateReadiness::Budget,"client_plan_value_budget");
-    const auto path=Path(node.path),value=std::uint32_t(out->values_.size());
-    out->values_.push_back({record,path,node.layout,node.component,node.operation,Slice(node.bytes)});
+    const auto value=AddValue({record,Path(node.path),node.layout,node.component,node.operation,Slice(node.bytes)});
     if(node.layout||(node.operation!=Operation::Reference&&node.operation!=Operation::Resource))return;
     const auto index=Exact<std::uint16_t>(node.bytes);ClientInstallBinding link;link.value=value;link.is_null=index==kNullIndex;link.is_resource=node.operation==Operation::Resource;
     if(link.is_resource)link.resource={node.resource_table,index};
     else if(!link.is_null) {
       const auto *member=FindStateMember(out->records_[record].members->Directory(),index);Require(member,"client_plan_binding_member");
       link.member=member->identity;link.object=Object(link.member);
-      if(link.object==kClientPlanNone)Fail(out->records_[record].event==kClientPlanNone?StateReadiness::InvalidReference:
+      if(link.object==kClientPlanNone&&out->records_[record].event!=kClientPlanNone)Fail(
         (StateEventCosmetic(out->events_[out->records_[record].event].kind)?StateReadiness::SourcePending:StateReadiness::EventGap),"client_plan_binding_retired_target");
     }
-    out->bindings_.push_back(link);
+    writing->bindings.push_back(link);
+  }
+  void ImportField(Accepted &source,std::uint32_t index) {
+    auto field=source.plan->Field(index);
+    field.record=record;field.path=ImportPath(source,field.path);AddField(field);
+  }
+  void ImportValue(Accepted &source,std::uint32_t index) {
+    auto node=source.plan->Value(index);
+    node.record=record;node.path=ImportPath(source,node.path);node.field=node.parent_field=kClientPlanNone;
+    AddValue(node);
+  }
+  void ImportBinding(ClientInstallBinding binding,std::uint32_t value) {
+    binding.value=value;
+    if(!binding.is_resource&&!binding.is_null){
+      binding.object=Object(binding.member);
+    }
+    writing->bindings.push_back(binding);
+  }
+  void OpenRecord(ClientInstallRecord r) {
+    r.first_field=std::uint32_t(out->FieldCount());
+    r.first_value=std::uint32_t(out->ValueCount());
+    r.first_binding=std::uint32_t(out->BindingCount());
+    record=std::uint32_t(out->records_.size());
+    out->records_.push_back(std::move(r));
+  }
+  void NewRecordData() {
+    auto data=std::allocate_shared<ClientInstallRecordData>(
+      ClientStateAllocator<ClientInstallRecordData>(out->Memory()),out->Memory());
+    writing=data.get();
+    fresh.push_back(writing);
+    out->data_.push_back(std::move(data));
+  }
+  void CloseRecord() {
+    const auto &data=*out->data_[record];
+    auto &r=out->records_[record];
+    r.field_count=std::uint32_t(data.fields.size());
+    r.value_count=std::uint32_t(data.values.size());
+    r.binding_count=std::uint32_t(data.bindings.size());
+    Require(r.first_field+r.field_count<=262144&&r.first_value+r.value_count<=262144,"client_plan_record_budget");
+    out->field_records_.resize(r.first_field+r.field_count,record);
+    out->value_records_.resize(r.first_value+r.value_count,record);
+    out->binding_records_.resize(r.first_binding+r.binding_count,record);
+    const auto append=[](auto &dest,const auto &local,std::uint32_t base){
+      for(auto index:local)dest.push_back(base+index);
+    };
+    append(out->presentation_fields_,data.presentation_fields,r.first_field);
+    append(out->presentation_values_,data.presentation_values,r.first_value);
+    append(out->native_binding_values_,data.native_binding_values,r.first_value);
+    append(out->native_display_values_,data.native_display_values,r.first_value);
+    writing=nullptr;
+  }
+  // 内容、路径命名空间和字段归属均与前代一致。只借数字记录，块正文由本批直接持有。
+  bool ShareRecord(Accepted &source) {
+    if(!inherited_paths||accepted_record==kClientPlanNone)return false;
+    auto &r=out->records_[record];
+    if(r.changed_mask||out->private_records_[r.object]!=record)return false;
+    const auto &old=source.plan->records_[accepted_record];
+    const auto &data=source.plan->data_[accepted_record];
+    if(source.plan->private_records_[old.object]!=accepted_record||!data->shareable)return false;
+    for(auto blocks=r.mask;blocks;blocks&=blocks-1){
+      const auto b=std::countr_zero(blocks);
+      if(r.blocks[b].bytes.block!=old.blocks[b].bytes.block)return false;
+    }
+    // 绑定访问时会按当前成员表重定位。缺席目标仍保留完整身份，供后续帧补挂。
+    const auto shift=[&](const ClientInstallBlockEnd &end){
+      return ClientInstallBlockEnd{r.first_field+(end.field-old.first_field),
+        r.first_value+(end.value-old.first_value),r.first_binding+(end.binding-old.first_binding)};
+    };
+    for(unsigned i=0;i<unsigned(std::popcount(r.mask));++i)
+      out->block_ends_.push_back(shift(source.plan->block_ends_[old.first_block_end+i]));
+    out->data_.push_back(data);
+    fresh.push_back(nullptr);
+    CloseRecord();
+    reused_world_blocks+=std::popcount(r.mask);
+    ++shared_world_records;
+    ++reused_records[0];
+    return true;
+  }
+  // Body 沿用整记录导入，保留此前的路径登记方式。
+  bool ImportRecordStep(const ClientInstallRecord &old,Accepted &source) {
+    const auto total=old.field_count+old.value_count+old.binding_count;
+    const auto end=(std::min)(total,imported+128u);
+    for(;imported<end;++imported){
+      if(imported<old.field_count){
+        ImportField(source,old.first_field+imported);
+      }else if(const auto value=imported-old.field_count;value<old.value_count){
+        ImportValue(source,old.first_value+value);
+      }else{
+        const auto binding=source.plan->Binding(old.first_binding+value-old.value_count);
+        ImportBinding(binding,binding.value-old.first_value);
+      }
+    }
+    return imported==total;
+  }
+  static ClientInstallBlockEnd BlockStart(const ClientStateInstallPlan &plan,const ClientInstallRecord &r,unsigned rank) {
+    if(rank)return plan.block_ends_[r.first_block_end+rank-1];
+    return {r.first_field,r.first_value,r.first_binding};
+  }
+  // SameBlock 已核同一正文 owner、数字结构和引用语义。按原节点顺序导入，
+  // 因此路径首见顺序、字段／值下标及随后五趟处理与重走一致。
+  bool ImportWorldBlock(ClientShadowRecordView root,std::uint8_t block,unsigned &remaining,Accepted &source) {
+    const auto &old=source.plan->Records()[accepted_record];
+    const auto before=BlockStart(*source.plan,old,world_rank);
+    const auto end=source.plan->block_ends_[old.first_block_end+world_rank];
+    const auto after=BlockStart(*out,out->records_[record],world_rank);
+    auto field=before.field+std::uint32_t(out->FieldCount()+writing->fields.size()-after.field);
+    auto value=before.value+std::uint32_t(out->ValueCount()+writing->values.size()-after.value);
+    auto link=before.binding+std::uint32_t(out->BindingCount()+writing->bindings.size()-after.binding);
+    while(remaining&&(field!=end.field||value!=end.value)){
+      const auto count=(std::min)({remaining,64u,end.field-field+end.value-value});
+      auto fields=root.BlockFieldNodes(block,cursor.node,count);
+      for(unsigned i=0;i<count;++i,fields>>=1){
+        if(fields&1){ImportField(source,field++);continue;}
+        const auto next_value=std::uint32_t(writing->values.size());
+        ImportValue(source,value);
+        if(link<end.binding){
+          const auto binding=source.plan->Binding(link);
+          if(binding.value==value){ImportBinding(binding,next_value);++link;}
+        }
+        ++value;
+      }
+      cursor.node+=count;remaining-=count;
+    }
+    if(field!=end.field||value!=end.value)return false;
+    Require(link==end.binding,"client_plan_reused_block_bindings");
+    return true;
   }
   // 从数字实例路径查询已定界字段；不会在主线程重解变长头或按名称找字段。
-  const ClientInstallField &At(std::uint32_t rec,std::uint32_t parent,std::uint16_t layout,std::uint16_t field)const {
-    const auto i=field_index.find({rec,parent,layout,field});if(i==field_index.end())Fail(StateReadiness::SourcePending,"client_plan_nested_field_missing");return out->fields_[i->second];
+  ClientInstallField At(std::uint32_t rec,std::uint32_t parent,std::uint16_t layout,std::uint16_t field)const {
+    const auto i=field_index.find({rec,parent,layout,field});if(i==field_index.end())Fail(StateReadiness::SourcePending,"client_plan_nested_field_missing");return out->Field(i->second);
   }
   template<class T>T AtNumber(const ClientInstallValue &instance,std::uint16_t field)const {
     const auto &f=At(instance.record,instance.path,instance.layout,field);Require(f.present,"client_plan_nested_field_absent");return Exact<T>(out->Bytes(f.bytes));
@@ -181,26 +621,50 @@ struct ClientInstallBuilder final:BodyNodeObserver {
   }
   template<class Fn>void Decode(Fn &&fn) {
     // scratch需求重试不能留下半套数字描述或重复资源／引用。
-    const auto np=out->paths_.size(),nf=out->fields_.size(),nv=out->values_.size(),nb=out->bindings_.size();
+    const auto np=out->paths_.size(),nf=writing->fields.size(),nv=writing->values.size(),nb=writing->bindings.size();
+    const auto normalized=out->normalized_path_count_;
+    const auto pf=writing->presentation_fields.size(),pv=writing->presentation_values.size();
+    const auto bv=writing->native_binding_values.size(),dv=writing->native_display_values.size(),sf=writing->stage_fields.size();
     for(;;)try{fn();return;}catch(const BodyScratchError &e) {
       if(e.Region()!=BodyScratchRegion::Facts||e.Requested()>262144)throw;
       for(auto i=path_index.begin();i!=path_index.end();)if(i->second>=np)i=path_index.erase(i);else ++i;
-      for(auto i=field_index.begin();i!=field_index.end();)if(i->second>=nf)i=field_index.erase(i);else ++i;
-      out->paths_.resize(np);out->fields_.resize(nf);out->values_.resize(nv);out->bindings_.resize(nb);
+      // 规范索引与实际路径一起回卷，scratch扩容重试不保留未完成的数字描述。
+      for(auto i=normalized_index.begin();i!=normalized_index.end();)if(i->second>=normalized)i=normalized_index.erase(i);else ++i;
+      out->normalized_path_count_=normalized;
+      const auto first=out->records_[record].first_field+nf;
+      for(auto i=field_index.begin();i!=field_index.end();)if(i->second>=first)i=field_index.erase(i);else ++i;
+      out->paths_.resize(np);writing->fields.resize(nf);writing->values.resize(nv);writing->bindings.resize(nb);
+      writing->presentation_fields.resize(pf);writing->presentation_values.resize(pv);
+      writing->native_binding_values.resize(bv);writing->native_display_values.resize(dv);writing->stage_fields.resize(sf);
       facts.resize(std::max<std::size_t>(e.Requested(),facts.size()*2));
     }
   }
   void Objects() {
-    out->candidate_=target.candidate;out->effective_=target.effective;
     Require(target.candidate&&target.effective[0],"client_plan_world_context_missing");
+    out->candidate_=target.candidate;
+    out->streams_=target.effective;
+    const auto streams=StateTargetStreams(target.candidate->Target());
+    if(streams!=3){
+      // 单流计划的对侧仅用于本批准备和配对复查。提交后的服装复用只借仍存活的旧见证。
+      const auto peer=streams==1?1u:0u;
+      out->peer_context_[peer]=out->streams_[peer];
+      out->streams_[peer].reset();
+    }
     const auto &scope=target.candidate->Target().route.scope;
     for(unsigned stream=0;stream<2;++stream)if(const auto state=target.effective[stream]) {
       Require(state->Context().scope==scope&&state->Context().stream==BodyStream(stream),"client_plan_effective_scope");
       if(const auto next=target.candidate->State(BodyStream(stream)))Require(next==state,"client_plan_effective_not_candidate");
     }
-    for(const auto &member:target.effective[0]->Members()->Directory().entries)out->objects_.push_back({member,Domain(member.identity)});
+    for(const auto &member:target.effective[0]->Members()->Directory().entries)
+      if(member.identity.layout==195||target.effective[0]->Find(member.identity))
+        out->objects_.push_back({member,Domain(member.identity)});
     std::sort(out->objects_.begin(),out->objects_.end(),[](const auto &a,const auto &b){return a.member.identity<b.member.identity;});
-    for(const auto &change:target.candidate->Changes()) {
+    const auto &descriptor=target.candidate->Target();
+    if(descriptor.count==2&&!descriptor.sections[0].base_version){
+      // 双流完整基线在旧场景排空后安装。影子的历史成员仍可用于校验，
+      // 但不能将同身份的旧原生对象列为本次借用。
+      for(auto &object:out->objects_)object.action=ClientInstallAction::Join;
+    }else for(const auto &change:target.candidate->Changes()) {
       if(change.kind==ClientShadowChangeKind::Leave){out->retired_.push_back(change.before);continue;}
       const auto i=Object(change.after.identity);Require(i!=kClientPlanNone,"client_plan_change_target");
       out->objects_[i].action=change.kind==ClientShadowChangeKind::Join?ClientInstallAction::Join:
@@ -210,48 +674,282 @@ struct ClientInstallBuilder final:BodyNodeObserver {
     for(unsigned s=0;s<target.candidate->Target().count;++s){const auto &section=target.candidate->Target().sections[s];
       if(section.stream==BodyStream::World)out->world_.replace_world=section.base_version==0;else out->world_.replace_body=section.base_version==0;}
     for(unsigned stream=0;stream<2;++stream)if(const auto state=target.candidate->State(BodyStream(stream)))for(std::size_t i=0;i<state->RecordCount();++i) {
-      const auto root=state->Record(i);const auto object=Object(root.Identity());Require(object!=kClientPlanNone,"client_plan_record_object");
+      const auto root=state->Record(i);const auto object=Object(root.Identity());
+      if(stream&&object==kClientPlanNone)continue; // Body 只写已知的 World 对象。
+      Require(object!=kClientPlanNone,"client_plan_record_object");
       out->objects_[object].streams|=std::uint8_t(1u<<stream);
     }
   }
-  void Records() {
-    for(unsigned stream=0;stream<2;++stream)if(const auto state=target.effective[stream])for(std::size_t i=0;i<state->RecordCount();++i) {
-      const auto root=state->Record(i);const bool paired=!target.candidate->State(BodyStream(stream));
-      // 单流仍须为本次Player构造完整costume。配对流的其它字段和已离场对象不重装。
+  bool RecordStep(
+#ifdef ISAACCS_E2E
+      Timing *timing
+#endif
+      ) {
+    if(stream==2)return true;
+    const auto state=target.candidate->State(BodyStream(stream));
+    if(!state||item==state->RecordCount()){++stream;item=0;return false;}
+    const auto root=state->Record(item);
+    if(!record_open){
       const auto object=Object(root.Identity());
-      if(paired&&(root.Identity().layout!=F::EntityPlayer::kLayout||object==kClientPlanNone||!out->objects_[object].streams))continue;
-      ClientInstallRecord r;r.object=object;r.layout=root.Identity().layout;r.stream=BodyStream(stream);r.paired_costume=paired;
-      r.context=state->Context();r.members=state->Members();r.resources=state->Resources();r.mask=root.Mask();r.bytes.offset=std::uint32_t(out->bytes_.size());
-      if(paired){
-        r.mask=0;
-        for(const auto field:{F::EntityPlayer::_costumeSpriteDescs_0,F::EntityPlayer::_costumeSpriteDescs_1,
-            F::EntityPlayer::_costumeSpriteDescs_2,F::EntityPlayer::_costumeSpriteDescs_3}){
-          const auto *definition=FindField(F::EntityPlayer::kLayout,field);Require(definition,"client_plan_costume_definition");
-          const auto bit=std::uint32_t(1)<<definition->block;if(root.Mask()&bit)r.mask|=bit;
-        }
-        Require(r.mask!=0,"client_plan_costume_projection_missing");
+      if(stream&&object==kClientPlanNone){++item;return false;}
+      Require(object!=kClientPlanNone,"client_plan_record_object");
+      ClientInstallRecord r;r.object=object;r.layout=root.Identity().layout;r.stream=BodyStream(stream);
+      r.context=state->Context();r.members=state->Members();r.resources=state->Resources();r.mask=root.Mask();
+      const auto previous=target.previous[stream]?target.previous[stream]->Find(root.Identity()):std::nullopt;
+      for(unsigned b=0;b<32;++b)if(r.mask&(std::uint32_t(1)<<b))if(const auto block=root.Block(std::uint8_t(b))){
+        const auto bit=std::uint32_t(1)<<b;
+        r.blocks[b]={block->version,block->game_frame,block->source_revision,{0,std::uint32_t(block->bytes.size()),block->bytes.data()}};
+        if(!previous||!root.SameBlock(*previous,std::uint8_t(b)))r.changed_mask|=bit;
+        if(!previous||!root.SameContent(*previous,std::uint8_t(b)))r.value_mask|=bit;
+        if(!previous||!root.SameStructure(*previous,std::uint8_t(b)))r.structure_mask|=bit;
+        if(!previous||!root.SameDependencies(*previous,std::uint8_t(b)))r.dependency_mask|=bit;
       }
-      for(unsigned b=0;b<32;++b)if(r.mask&(std::uint32_t(1)<<b))if(const auto block=root.Block(std::uint8_t(b))) {
-        const auto offset=std::uint32_t(out->bytes_.size());out->bytes_.insert(out->bytes_.end(),block->bytes.begin(),block->bytes.end());
-        r.blocks[b]={block->version,block->game_frame,block->source_revision,{offset,std::uint32_t(block->bytes.size())}};
+      volume[stream][0]+=std::popcount(r.value_mask);
+      volume[stream][1]+=std::popcount(r.structure_mask);
+      volume[stream][2]+=std::popcount(r.dependency_mask);
+      volume[stream][3]+=std::popcount(r.mask&~r.structure_mask);
+      auto &source=accepted[stream];
+      const bool compatible=previous&&r.context.base_version&&out->objects_[object].action==ClientInstallAction::Reuse&&
+        r.mask==previous->Mask()&&(stream==0||(!r.changed_mask&&out->ReusableRecord(r,previous->Mask())));
+      accepted_record=source.plan&&compatible?
+        source.plan->RecordIndex(BodyStream(stream),root.Identity()):kClientPlanNone;
+      imported=0;
+      if(!stream){
+        r.first_block_end=std::uint32_t(out->block_ends_.size());
+        world_blocks=r.mask;world_rank=0;
       }
-      r.bytes.size=std::uint32_t(out->bytes_.size())-r.bytes.offset;r.first_field=std::uint32_t(out->fields_.size());
-      record=std::uint32_t(out->records_.size());out->records_.push_back(r);decoding=out->Bytes(r.bytes);
-      const auto other=target.effective[1-stream];Context context(state->Resources(),root,other?other->Find(root.Identity()):std::nullopt);
-      Decode([&]{BodyCodecScratch scratch{facts,0,{},0,this};const auto result=DecodeBody(r.layout,r.mask,r.stream,decoding,scratch,&context,{32u<<20,262144-visits,32,true});visits+=result.field_visits;});
-      out->records_[record].field_count=std::uint32_t(out->fields_.size())-r.first_field;
+      OpenRecord(std::move(r));
+      const auto domain=out->objects_[object].domain;
+      if(!stream&&(domain==ClientInstallDomain::Entity||domain==ClientInstallDomain::Grid)){
+        out->private_records_[object]=record;
+#ifdef ISAACCS_E2E
+        auto measured=timing->Scope(ClientApplyStage::PlanImport);
+#endif
+        if(ShareRecord(source)){++item;return false;}
+      }
+      NewRecordData();
+      record_open=true;
     }
+    const bool reuse=accepted_record!=kClientPlanNone;
+    auto &source=accepted[stream];
+    bool full_reuse=reuse,done=false;
+    if(stream==0){
+      const auto &r=out->records_[record];
+      full_reuse=reuse&&!r.changed_mask;
+      unsigned remaining=128;
+      while(world_blocks&&remaining){
+        const auto block=std::uint8_t(std::countr_zero(world_blocks));
+        const bool reuse_block=reuse&&!(r.changed_mask&(1u<<block));
+#ifdef ISAACCS_E2E
+        auto measured=timing->Scope(reuse_block?ClientApplyStage::PlanImport:ClientApplyStage::PlanWalk);
+#endif
+        if(!(reuse_block?ImportWorldBlock(root,block,remaining,source):root.VisitBlockSome(block,*this,cursor.node,remaining)))
+          return false;
+        out->block_ends_.push_back({r.first_field+std::uint32_t(writing->fields.size()),
+          r.first_value+std::uint32_t(writing->values.size()),r.first_binding+std::uint32_t(writing->bindings.size())});
+        reused_world_blocks+=reuse_block;
+        world_blocks&=world_blocks-1;++world_rank;cursor.node=0;
+      }
+      if(!world_blocks){
+        // 整条记录只有一个根布局标记，始终位于块片段之后。
+        Node({{},r.layout,Operation::Nested,255,{}});done=true;
+      }
+    }else{
+#ifdef ISAACCS_E2E
+      auto measured=timing->Scope(reuse?ClientApplyStage::PlanImport:ClientApplyStage::PlanWalk);
+#endif
+      done=reuse?ImportRecordStep(source.plan->Records()[accepted_record],source):root.VisitSome(root.Mask(),*this,cursor,128);
+    }
+    if(done){
+      CloseRecord();
+      reused_records[stream]+=full_reuse;
+      ++item;cursor={};record_open=false;
+    }
+    return false;
   }
   void World();
   void Players();
-  void Events();
-  void NestedRules();
-  void Commands();
-  void PairedCostumeResources();
-  std::shared_ptr<const ClientStateInstallPlan> Build() {
-    const auto ready=ValidateClientStateTarget(target,tables,workspace);if(ready!=StateReadiness::Ready)Fail(ready,"client_plan_common_validation");
-    Objects();World();Players();Records();Events();NestedRules();
-    out->resources_=ClientStateRequiredResources(target,tables,workspace);PairedCostumeResources();Commands();return out;
+  void Event(std::size_t);
+  void Rule(const ClientInstallValue &);
+  void Transitions();
+  bool CommandStep();
+  // 工作片只枚举新建数据，借用整条记录时一步越过其逻辑区间。
+  template<class Select,class Fn> bool FreshStep(Select select,Fn apply) {
+    unsigned budget=128;
+    while(budget&&scan_record<fresh.size()){
+      auto *data=fresh[scan_record];
+      if(data){
+        auto &entries=select(*data);
+        if(item<entries.size()){
+          apply(entries[item],std::uint32_t(item),*data);
+          ++item;--budget;
+          continue;
+        }
+      }
+      ++scan_record;item=0;--budget;
+    }
+    if(scan_record!=fresh.size())return false;
+    scan_record=0;item=0;return true;
+  }
+  bool Step(
+#ifdef ISAACCS_E2E
+      Timing *timing
+#endif
+      ) {
+#ifdef ISAACCS_E2E
+    const auto stage=[&]{
+      switch(pass){
+        case Pass::PathFields:return ClientApplyStage::PlanPaths;
+        case Pass::FieldCounts:return ClientApplyStage::PlanCounts;
+        case Pass::FieldRanges:return ClientApplyStage::PlanRanges;
+        case Pass::FieldIndex:return ClientApplyStage::PlanIndex;
+        case Pass::Rules:return ClientApplyStage::PlanRules;
+        case Pass::Commands:return ClientApplyStage::PlanCommands;
+        default:return ClientApplyStage::Count;
+      }
+    }();
+    auto measured=timing->Scope(stage);
+#endif
+    switch(pass){
+      case Pass::Objects:
+        Require(bool(target.facts),"client_plan_target_facts_missing");out->facts_=target.facts;Objects();
+        out->private_records_.resize(out->objects_.size(),kClientPlanNone);
+        pass=Pass::World;break;
+      case Pass::World:World();pass=Pass::Players;break;
+      case Pass::Players:Players();pass=Pass::Records;break;
+      case Pass::Records:
+        if(RecordStep(
+#ifdef ISAACCS_E2E
+            timing
+#endif
+            )){pass=Pass::Events;item=0;}
+        break;
+      case Pass::Events:
+        if(item<target.events.size())Event(item++);
+        else {pass=Pass::PathFields;item=0;}break;
+      case Pass::PathFields:{
+        // 所有普通／事件路径齐备后再找完整字段；每片最多128项，不额外阻塞后台预算。
+        const auto end=(std::min)(out->paths_.size(),item+128);
+        for(;item<end;++item){auto &p=out->paths_[item];
+          if(item<inherited_paths&&p.field_path!=kClientPlanNone)continue;
+          if(p.step.element==kNullIndex&&!p.step.choice_layout){p.field_path=p.normalized;continue;}
+          const auto parent=p.parent==kClientPlanNone?kClientPlanNone:out->paths_[p.parent].normalized;
+          const auto at=normalized_index.find(PathKey{parent,p.step.layout,p.canonical,kNullIndex,std::uint16_t{0}});
+          p.field_path=at==normalized_index.end()?kClientPlanNone:at->second;
+        }
+        if(item==out->paths_.size()){
+          out->field_ranges_.resize(out->objects_.size());pass=Pass::FieldCounts;item=0;
+        }
+        break;
+      }
+      case Pass::FieldCounts:{
+        const auto done=FreshStep([](auto &data)->auto &{return data.fields;},
+          [&](const auto &field,std::uint32_t local,auto &data){
+            const auto &r=out->records_[scan_record];
+            if(r.event!=kClientPlanNone)return;
+            Require(r.object<out->field_ranges_.size(),"client_plan_field_object");
+            const auto path=out->paths_[field.path].field_path;
+            Require(path!=kClientPlanNone,"client_plan_field_path_missing");
+            if(out->private_records_[r.object]==scan_record){
+              data.lookup.push_back({path,local});
+              return;
+            }
+            auto &range=out->field_ranges_[r.object];
+            ++range.count;
+            range.first=(std::min)(range.first,path);range.base=(std::max)(range.base,path);
+          });
+        if(done){pass=Pass::FieldRanges;item=0;}
+        break;
+      }
+      case Pass::FieldRanges:{
+        // 路径区间不超过字段数两倍时直接定位；否则沿用半空散列表，空对象不分配。
+        // 稠密路径不会比旧散列表占用更多槽，所有空间仍由Client Values预算计费。
+        const auto end=(std::min)(out->field_ranges_.size(),item+128);
+        for(;item<end;++item){
+          const auto record=out->private_records_[item];
+          if(record!=kClientPlanNone&&fresh[record]){
+            // 相同规范键保留记录中首先出现的字段。
+            auto &lookup=fresh[record]->lookup;
+            std::sort(lookup.begin(),lookup.end(),[](auto a,auto b){return std::tie(a.path,a.local)<std::tie(b.path,b.local);});
+          }
+          auto &range=out->field_ranges_[item];
+          const auto first=item?std::uint64_t(out->field_ranges_[item-1].first)+out->field_ranges_[item-1].count:0;
+          std::uint64_t capacity=range.count?2:0;
+          auto base=kClientPlanNone;
+          if(range.count&&std::uint64_t(range.base)-range.first+1<=std::uint64_t(range.count)*2){
+            capacity=std::uint64_t(range.base)-range.first+1;base=range.first;
+          }else while(capacity<std::uint64_t(range.count)*2)capacity*=2;
+          Require(first+capacity<=UINT32_MAX,"client_plan_field_index_capacity");
+          range={std::uint32_t(first),std::uint32_t(capacity),base};
+        }
+        if(item==out->field_ranges_.size()){
+          if(item){const auto &last=out->field_ranges_.back();out->field_lookup_.resize(std::size_t(last.first)+last.count);}
+          pass=Pass::FieldIndex;item=0;
+        }
+        break;
+      }
+      case Pass::FieldIndex:{
+        const auto done=FreshStep([](auto &data)->auto &{return data.fields;},
+          [&](const auto &field,std::uint32_t local,auto &){
+            const auto &record=out->records_[scan_record];
+            if(record.event!=kClientPlanNone||out->private_records_[record.object]==scan_record)return;
+            const auto path=out->paths_[field.path].field_path;
+            const auto range=out->field_ranges_[record.object];
+            const auto index=record.first_field+local;
+            Require(range.count!=0,"client_plan_field_index_capacity");
+            if(range.base!=kClientPlanNone){
+              Require(path>=range.base&&path-range.base<range.count,"client_plan_field_index_capacity");
+              auto &entry=out->field_lookup_[range.first+path-range.base];
+              if(entry.field==kClientPlanNone)entry={path,index};
+              return;
+            }
+            auto slot=FieldBucket(path)&(range.count-1);
+            for(std::uint32_t n=0;n<range.count;++n,slot=(slot+1)&(range.count-1)){
+              auto &entry=out->field_lookup_[range.first+slot];
+              if(entry.field==kClientPlanNone){entry={path,index};return;}
+              if(entry.path==path)return;
+            }
+            Require(false,"client_plan_field_index_capacity");
+          });
+        if(done)pass=Pass::Rules;
+        break;
+      }
+      case Pass::Rules:{
+        const auto done=FreshStep([](auto &data)->auto &{return data.values;},
+          [&](auto &value,std::uint32_t,auto &){
+            const auto &record=out->records_[scan_record];
+            if(!value.layout&&record.event==kClientPlanNone){
+              const auto &path=out->paths_[value.path];
+              const auto own_field=[&](std::uint32_t key){
+                const auto index=out->CanonicalField(record.object,key);
+                if(index==kClientPlanNone||out->private_records_[record.object]!=scan_record)return index;
+                return index-record.first_field;
+              };
+              value.field=own_field(path.field_path);
+              Require(value.field!=kClientPlanNone,"client_plan_value_field_missing");
+              if(path.parent!=kClientPlanNone)value.parent_field=own_field(out->paths_[path.parent].field_path);
+            }
+            Rule(value);
+          });
+        if(done)pass=Pass::Transitions;
+        break;
+      }
+      case Pass::Transitions:Transitions();pass=Pass::Commands;item=0;break;
+      case Pass::Commands:
+        if(CommandStep()){
+          auto &metrics=tables.Memory()->ApplyMetrics();
+          for(unsigned i=0;i<2;++i)for(unsigned n=0;n<4;++n)if(volume[i][n])
+            metrics.Volume(std::uint8_t(1u<<i),ClientApplyVolume(n),volume[i][n]);
+          for(unsigned i=0;i<2;++i)if(reused_records[i])
+            metrics.Volume(std::uint8_t(1u<<i),ClientApplyVolume::PlanReusedRecords,reused_records[i]);
+          if(reused_world_blocks)metrics.Volume(1,ClientApplyVolume::PlanReusedWorldBlocks,reused_world_blocks);
+          if(shared_world_records)metrics.Volume(1,ClientApplyVolume::PlanSharedRecords,shared_world_records);
+          pass=Pass::Done;
+        }
+        break;
+      case Pass::Done:return true;
+    }
+    return pass==Pass::Done;
   }
 };
 void ClientInstallBuilder::World() {
@@ -270,6 +968,7 @@ void ClientInstallBuilder::World() {
         // Host SceneSeed明确以物理槽+1建立稳定身份；不从可变ListIndex反推。
         Require(id.id>=1&&id.id<=527&&id.id!=526&&id.use==scope.floor,"client_plan_descriptor_identity");
         const auto slot=std::uint16_t(id.id-1);Require(descriptors[slot]==kClientPlanNone,"client_plan_descriptor_slot_conflict");descriptors[slot]=i;
+        out->objects_[i].description=std::uint32_t(out->descriptors_.size());
         out->descriptors_.push_back({i,slot,slot<507?slot:kNullIndex});break;
       }
       default:break;
@@ -316,6 +1015,7 @@ void ClientInstallBuilder::World() {
       const auto count=Exact<std::uint16_t>(Required(root,F::GridEntityRock::rubble_offsets).first(2)),animation=Number<std::uint16_t>(root,F::GridEntityRock::rubble_animation);
       Require((g.state==2||(!count&&animation==kNullIndex))&&(!count||animation!=kNullIndex),"client_plan_rubble_state");
     }
+    out->objects_[i].description=std::uint32_t(out->grids_.size());
     out->grids_.push_back(g);
   }
   const auto doors=Exact<std::array<std::uint16_t,8>>(Required(room,F::Room::door_slots));
@@ -353,8 +1053,11 @@ void ClientInstallBuilder::Players() {
   for(std::uint32_t i=0;i<out->objects_.size();++i)if(out->objects_[i].domain==ClientInstallDomain::Player) {
     Require(out->players_.size()<256,"client_plan_player_limit");const auto r=Root(i);ClientInstallPlayer player;player.object=i;
     player.player_type=Number<std::int32_t>(r,F::EntityPlayer::_playerType);
+    // World 先建立本帧的服装目录，Body 应用时比对活对象的对应拓扑。
     player.group=Reference(r,F::EntityPlayer::control_group);player.topology=Number<std::uint32_t>(r,F::EntityPlayer::costume_topology_revision);
-    Require(player.topology&&(!out->world_.topology||out->world_.topology==player.topology),"client_plan_global_player_topology");out->world_.topology=player.topology;
+    // Host 为每个身体独立记录目录修订。结构变更由上面的 joint 规则协调，
+    // 同一目标里的 P0/P6 必须按身体身份配对，其他身体可以仍在各自的旧修订。
+    Require(player.topology!=0,"client_plan_player_costume_topology");
     player.membership=Number<std::uint8_t>(r,F::EntityPlayer::native_membership);player.role=Number<std::uint8_t>(r,F::EntityPlayer::body_role);player.control=Number<std::uint8_t>(r,F::EntityPlayer::control_flags);player.roster=Number<std::uint16_t>(r,F::EntityPlayer::roster_rank);
     Require(player.membership<=15&&(!(player.membership&2)||(player.membership&1))&&(!(player.membership&12)||(player.membership&2)),"client_plan_player_membership");
     Require(player.role<=6&&player.control<=3&&(!(player.control&2)||(player.control&1)),"client_plan_player_control");
@@ -366,10 +1069,13 @@ void ClientInstallBuilder::Players() {
       Require(std::find(first,last,i)==last||bool(player.control&1),"client_plan_inactive_anchor");
     }
     if(player.roster!=kNullIndex){Require(player.roster<256&&!ranks[player.roster],"client_plan_roster_duplicate");ranks[player.roster]=true;++rank_count;}
-    if(const auto body=target.effective[1]) {
-      const auto pose=body->Find(r.Identity());if(!pose)Fail(StateReadiness::SourcePending,"client_plan_player_pose_missing");
-      if(Number<std::uint32_t>(*pose,F::EntityPlayer::render_topology_revision)!=player.topology)Fail(StateReadiness::SourcePending,"client_plan_player_pose_topology");
-    }else Fail(StateReadiness::SourcePending,"client_plan_body_context_missing");
+    if(target.candidate->Target().count==2){
+      const auto body=target.effective[1];
+      const auto pose=body?body->Find(r.Identity()):std::nullopt;
+      if(!pose)Fail(StateReadiness::SourcePending,"client_plan_player_pose_missing");
+      if(Number<std::uint32_t>(*pose,F::EntityPlayer::render_topology_revision)!=player.topology)
+        Fail(StateReadiness::SourcePending,"client_plan_player_pose_topology");
+    }
     out->players_.push_back(player);
   }
   for(unsigned n=0;n<rank_count;++n)Require(ranks[n],"client_plan_roster_gap");
@@ -380,33 +1086,31 @@ void ClientInstallBuilder::Players() {
   if(target.candidate->State(BodyStream::World))for(std::uint32_t i=0;i<out->objects_.size();++i) {
     const auto domain=out->objects_[i].domain;if(domain!=ClientInstallDomain::Entity&&domain!=ClientInstallDomain::Player)continue;
     const auto r=Root(i);BodySourceFieldInfo config;Require(DescribeBodySourceField(r.Identity().layout,F::Entity::selected_config,config),"client_plan_entity_configuration_plan");
+    out->objects_[i].description=std::uint32_t(out->entities_.size());
     out->entities_.push_back({i,Number<std::uint32_t>(r,F::Entity::type),Number<std::uint32_t>(r,F::Entity::variant),Number<std::uint32_t>(r,F::Entity::subtype),
       Number<std::uint32_t>(r,F::Entity::init_seed),Number<std::uint32_t>(r,F::Entity::authority_order),{config.resource_table,Number<std::uint16_t>(r,F::Entity::selected_config)}});
   }
 }
-void ClientInstallBuilder::Events() {
-  std::uint64_t last=0;
-  for(std::uint32_t i=0;i<target.events.size();++i) {
-    const auto &source=target.events[i];const auto &event=source.value;const auto kind=StateEventKind(event.purpose);
-    Require(event.sequence>last&&StateEventLayout(kind)==event.layout,"client_plan_event_order_or_kind");last=event.sequence;
-    ClientInstallEvent e;e.record=std::uint32_t(out->records_.size());e.kind=kind;e.sequence=event.sequence;e.game_frame=event.logical_frame;
-    if(event.owner!=kNullIndex){const auto *owner=FindStateMember(source.members->Directory(),event.owner);Require(owner,"client_plan_event_owner");e.owner=owner->identity;e.has_owner=true;}
-    out->events_.push_back(e);ClientInstallRecord r;r.event=i;r.layout=event.layout;r.stream=BodyStream::Value;
-    r.context=target.effective[0]->Context();r.context.member_epoch=source.members->Directory().epoch;r.context.resource_epoch=source.resources->Directory().epoch;
-    r.members=source.members;r.resources=source.resources;r.mask=1;r.bytes={std::uint32_t(out->bytes_.size()),std::uint32_t(event.payload.size())};
-    out->bytes_.insert(out->bytes_.end(),event.payload.begin(),event.payload.end());r.first_field=std::uint32_t(out->fields_.size());
-    record=std::uint32_t(out->records_.size());out->records_.push_back(r);decoding=out->Bytes(r.bytes);ResourceBodyContext context(source.resources->Directory());
-    Decode([&]{BodyCodecScratch scratch{facts,0,{},0,this};const auto result=DecodeValue(r.layout,decoding,scratch,&context,{256u<<10,262144-visits,32,true});visits+=result.field_visits;});
-    out->records_[record].field_count=std::uint32_t(out->fields_.size())-r.first_field;
+void ClientInstallBuilder::Event(std::size_t i) {
+  const auto &source=target.events[i];const auto &event=source.value;const auto kind=StateEventKind(event.purpose);
+  Require((out->events_.empty()||event.sequence>out->events_.back().sequence)&&StateEventLayout(kind)==event.layout,"client_plan_event_order_or_kind");
+  ClientInstallEvent e;e.record=std::uint32_t(out->records_.size());e.kind=kind;e.sequence=event.sequence;e.game_frame=event.logical_frame;
+  if(event.owner!=kNullIndex){
+    const auto *owner=FindStateMember(source.members->Directory(),event.owner);
+    Require(owner,"client_plan_event_owner");
+    e.owner_object=Object(owner->identity);
   }
+  out->events_.push_back(e);ClientInstallRecord r;r.event=std::uint32_t(i);r.layout=event.layout;r.stream=BodyStream::Value;
+  r.context=target.effective[0]->Context();r.context.member_epoch=source.members->Directory().epoch;r.context.resource_epoch=source.resources->Directory().epoch;
+  r.members=source.members;r.resources=source.resources;r.mask=1;r.bytes={std::uint32_t(out->bytes_.size()),std::uint32_t(event.payload.size())};
+  out->bytes_.insert(out->bytes_.end(),event.payload.begin(),event.payload.end());
+  OpenRecord(r);NewRecordData();
+  decoding=out->Bytes(r.bytes);ResourceBodyContext context(source.resources->Directory());
+  Decode([&]{BodyCodecScratch scratch{facts,0,{},0,this};const auto result=DecodeValue(r.layout,decoding,scratch,&context,{256u<<10,262144-visits,32,true});visits+=result.field_visits;});
+  CloseRecord();
 }
-void ClientInstallBuilder::NestedRules() {
-  WorkMap<std::uint64_t> loops{ClientStateAllocator<std::pair<const std::uint64_t,std::uint32_t>>(tables.Memory(),memory::Pool::Workspace)};
-  WorkMap<std::int32_t> definitions{ClientStateAllocator<std::pair<const std::int32_t,std::uint32_t>>(tables.Memory(),memory::Pool::Workspace)};
-  WorkMap<std::uint32_t> overlays{ClientStateAllocator<std::pair<const std::uint32_t,std::uint32_t>>(tables.Memory(),memory::Pool::Workspace)};
-  // 每个嵌套实例均已有明确边界；这里仅检查完整目标才可判定的语义。
-  for(const auto &v:out->values_) {
-    if(!v.layout)continue;
+void ClientInstallBuilder::Rule(const ClientInstallValue &v) {
+    if(!v.layout)return;
     const auto &r=out->records_[v.record];
     switch(v.layout) {
       case F::GridFireEmber::kLayout:{
@@ -421,7 +1125,7 @@ void ClientInstallBuilder::NestedRules() {
       case F::FamiliarUmbilicalBabyData::kLayout:{
         const auto f=field_index.find({v.record,v.path,v.layout,F::FamiliarUmbilicalBabyData::rope_nodes});
         // 首Sprite等其它投影没有rope_nodes；实际绳索投影的非空owner至少一个节点。
-        if(f!=field_index.end())Require(out->fields_[f->second].elements>=1,"client_plan_umbilical_rope_empty");break;
+        if(f!=field_index.end())Require(out->Field(f->second).elements>=1,"client_plan_umbilical_rope_empty");break;
       }
       case F::MusicRequestState::kLayout:{
         const auto revision=AtNumber<std::uint64_t>(v,F::MusicRequestState::revision),generation=AtNumber<std::uint64_t>(v,F::MusicRequestState::generation);
@@ -485,15 +1189,21 @@ void ClientInstallBuilder::NestedRules() {
         auto &e=out->events_[r.event];e.transition=AtNumber<std::uint64_t>(v,F::RoomTransitionEvent::transition);
         const auto done=AtNumber<std::uint8_t>(v,F::RoomTransitionEvent::completed);const auto room=AtNumber<std::uint64_t>(v,F::RoomTransitionEvent::final_room);
         const auto dimension=AtNumber<std::int32_t>(v,F::RoomTransitionEvent::dimension),final=AtNumber<std::int32_t>(v,F::RoomTransitionEvent::final_dimension);
-        Require(e.transition&&done<=1&&dimension>=0&&dimension<=2&&final>=0&&final<=2&&bool(done)==bool(room),"client_plan_transition_scope_or_completion");
+        // 分别记录已接受维度、实际房间维度与完成身份的校验失败，便于定位原生生产边界。
+        Require(e.transition&&done<=1&&bool(done)==bool(room),"client_plan_transition_scope_or_completion");
+        Require(dimension>=0&&dimension<=2,"client_plan_transition_requested_dimension");
+        Require(final>=0&&final<=2,"client_plan_transition_final_dimension");
         const auto player=AtNumber<std::uint16_t>(v,F::RoomTransitionEvent::player);
         if(player!=kNullIndex){const auto *m=FindStateMember(r.members->Directory(),player);Require(m&&m->identity.space==1&&m->identity.layout==197,"client_plan_transition_player");}break;
       }
-      default:break;
+      default:return;
     }
-  }
+    // 有独立规则的记录每批仍参与校验，包括全局唯一性检查。
+    fresh[v.record]->shareable=false;
+}
+void ClientInstallBuilder::Transitions() {
   // 转场关联以Host序号建索引；开始／完成同时存在时，其请求元组必须一致。
-  WorkMap<std::uint64_t> transitions{ClientStateAllocator<std::pair<const std::uint64_t,std::uint32_t>>(tables.Memory(),memory::Pool::Workspace)};
+  WorkMap<std::uint64_t> transitions{&index_memory};
   for(std::uint32_t i=0;i<out->events_.size();++i) {
     const auto &event=out->events_[i];if(!event.transition)continue;
     auto [at,inserted]=transitions.emplace(event.transition,std::uint32_t(out->transitions_.size()));
@@ -511,59 +1221,67 @@ void ClientInstallBuilder::NestedRules() {
     }
   }
 }
-void ClientInstallBuilder::PairedCostumeResources() {
-  // 单流只增加配对costume实际引用的闭包，并固定其原资源快照；不拉入整份旧world。
-  ClientResourceSnapshotRef resources;
-  ClientStateVector<ResourceKey> roots{ClientStateAllocator<ResourceKey>(tables.Memory(),memory::Pool::Workspace)};
-  for(const auto &link:out->bindings_){
-    const auto &r=out->records_[out->values_[link.value].record];
-    if(!r.paired_costume||!link.is_resource||link.is_null)continue;
-    Require(!resources||resources==r.resources,"client_plan_costume_resource_snapshot");resources=r.resources;roots.push_back(link.resource);
+bool ClientInstallBuilder::CommandStep() {
+  // 只有两个实际消费的暂存列表需要封存；写段按安装器自己的原生阶段排序。
+  if(!command){
+    const auto n=out->objects_.size();
+    const auto end=(std::min)(n*(unsigned(ClientInstallDomain::Sfx)+1),item+128);
+    for(;item<end;++item){
+      const auto index=std::uint32_t(item%n);
+      const auto &object=out->objects_[index];
+      if(unsigned(object.domain)==item/n&&(object.streams||object.action!=ClientInstallAction::Reuse))
+        out->stage_objects_.push_back(index);
+    }
+    if(item==n*(unsigned(ClientInstallDomain::Sfx)+1)){++command;item=0;}
+    return false;
   }
-  if(roots.empty())return;
-  std::sort(roots.begin(),roots.end());roots.erase(std::unique(roots.begin(),roots.end()),roots.end());
-  ClientStateVector<std::uint32_t> order{ClientStateAllocator<std::uint32_t>(tables.Memory(),memory::Pool::Workspace)};
-  ClientStateVector<std::uint8_t> state{ClientStateAllocator<std::uint8_t>(tables.Memory(),memory::Pool::Workspace)},
-    heights{ClientStateAllocator<std::uint8_t>(tables.Memory(),memory::Pool::Workspace)};
-  const auto directory=resources->Directory();order.resize(directory.entries.size());state.resize(order.size());heights.resize(order.size());
-  ResourceGraphScratch graph{{},{},order,state,heights};const auto closure=tables.Prepare(resources,roots,graph,workspace);
-  if(!closure.closed)Fail(StateReadiness::MissingClosure,"client_plan_costume_resource_closure");
-  if(!closure.materialized)Fail(StateReadiness::ResourcePending,"client_plan_costume_resource_pending");
-  WorkMap<std::pair<std::uint32_t,ResourceKey>> seen{ClientStateAllocator<std::pair<const std::pair<std::uint32_t,ResourceKey>,std::uint32_t>>(tables.Memory(),memory::Pool::Workspace)};
-  for(const auto &need:out->resources_)seen.emplace(std::pair{need.resources->Directory().epoch,need.key},0);
-  for(const auto n:closure.materialization_order){const auto key=directory.entries[n].key;
-    if(seen.emplace(std::pair{directory.epoch,key},0).second)out->resources_.push_back({resources,key});}
+  // 延续原 StageFields 的逆字段顺序，只拼接各记录已封存的暂存项。
+  const auto count=out->records_.size();
+  const auto end=(std::min)(count,item+128);
+  for(;item<end;++item){
+    const auto record=count-1-item;
+    const auto base=out->records_[record].first_field;
+    const auto &fields=out->data_[record]->stage_fields;
+    for(auto i=fields.rbegin();i!=fields.rend();++i)out->stage_fields_.push_back(base+*i);
+  }
+  return item==count;
 }
-void ClientInstallBuilder::Commands() {
-  const auto add=[&](ClientInstallPhase phase,std::uint32_t n=kClientPlanNone){out->commands_.push_back({phase,n});};
-  for(std::uint32_t i=0;i<out->resources_.size();++i)add(ClientInstallPhase::Resources,i);
-  for(std::uint32_t i=0;i<out->native_needs_.size();++i)add(ClientInstallPhase::NativeResources,i);
-  const bool world=bool(target.candidate->State(BodyStream::World));
-  if(world)add(ClientInstallPhase::CaptureOldRoom);
-  // 暂存按域排序；值与关系分开，合法的parent／twin环不会形成创建死锁。
-  for(unsigned d=0;d<=unsigned(ClientInstallDomain::Sfx);++d)for(std::uint32_t i=0;i<out->objects_.size();++i)
-    if(unsigned(out->objects_[i].domain)==d&&(out->objects_[i].streams||out->objects_[i].action!=ClientInstallAction::Reuse))add(ClientInstallPhase::StageObjects,i);
-  // codec字段是后序；反向暂存让外层容器先取得临时承载，正向赋值保留元素提交顺序。
-  for(std::size_t i=out->fields_.size();i>0;--i){const auto &f=out->fields_[i-1];const auto &def=state::Fields()[f.definition];
-    if(out->records_[f.record].event==kClientPlanNone&&(def.nested_layout||def.operation==Operation::Container||def.operation==Operation::Choice))add(ClientInstallPhase::StageFields,std::uint32_t(i-1));}
-  for(std::uint32_t i=0;i<out->fields_.size();++i){const auto &f=out->fields_[i];const auto &def=state::Fields()[f.definition];
-    if(f.phase==ClientInstallPhase::Values&&def.operation!=Operation::Reference)add(ClientInstallPhase::Values,i);}
-  // 先清空／定长关系字段（含空anchors），再写已解析的目标；不把u16序号当原生指针。
-  for(std::uint32_t i=0;i<out->fields_.size();++i)if(out->fields_[i].phase==ClientInstallPhase::RelationFields)add(ClientInstallPhase::RelationFields,i);
-  for(std::uint32_t i=0;i<out->bindings_.size();++i){const auto &link=out->bindings_[i];const auto &v=out->values_[link.value];
-    if(!link.is_resource&&out->records_[v.record].event==kClientPlanNone)add(ClientInstallPhase::Relations,i);}
-  for(std::uint32_t i=0;i<out->fields_.size();++i)if(out->fields_[i].phase==ClientInstallPhase::Display)add(ClientInstallPhase::Display,i);
-  if(world)add(ClientInstallPhase::CaptureNewRoom);
-  for(std::uint32_t i=0;i<out->events_.size();++i)add(ClientInstallPhase::Events,i);
-  add(ClientInstallPhase::Publish);
-  // 退休发生在发布后的真实借用排空；本清单不是已完成析构／可以提前释放的回执。
-  for(std::uint32_t i=0;i<out->retired_.size();++i)add(ClientInstallPhase::Retire,i);
+// 等待槽持有构建器与其 arena。每个工作片重新取得同一进程的执行租约。
+struct ClientInstallPlanWork final {
+  ClientInstallBuilder builder;
+  ClientInstallPlanWork(const ClientStatePreparedTarget &target,const ClientStateTables &tables,
+      const std::array<std::weak_ptr<const ClientStateInstallPlan>,2> &accepted):builder(target,tables,accepted) {}
+};
+std::shared_ptr<const ClientStateInstallPlan> BuildClientStateInstallPlanStep(const ClientStatePreparedTarget &target,
+    const ClientStateTables &tables,std::shared_ptr<ClientInstallPlanWork> &work,std::chrono::steady_clock::time_point stop,
+    const std::array<std::weak_ptr<const ClientStateInstallPlan>,2> &accepted) {
+  ClientStateWorkspace workspace;
+  try{
+    if(!work)work=std::allocate_shared<ClientInstallPlanWork>(ClientStateAllocator<ClientInstallPlanWork>(tables.Memory()),target,tables,accepted);
+#ifdef ISAACCS_E2E
+    struct Slice {
+      ClientInstallBuilder::Timing timing;
+      ClientApplyMetrics &metrics;
+      std::uint8_t streams;
+      ~Slice(){timing.Report(metrics,streams);}
+    } slice{{},tables.Memory()->ApplyMetrics(),StateTargetStreams(target.candidate->Target())};
+#endif
+    do{
+      if(work->builder.Step(
+#ifdef ISAACCS_E2E
+          &slice.timing
+#endif
+          )){auto plan=work->builder.out;work.reset();return plan;}
+    }while(std::chrono::steady_clock::now()<stop);
+    return {};
+  }catch(const BodyVisitError &){work.reset();Fail(StateReadiness::Budget,"client_plan_visit_budget");}
+   catch(const BodyDependencyError &){work.reset();Fail(StateReadiness::SourcePending,"client_plan_body_dependency");}
+   catch(const Gap &){work.reset();Fail(StateReadiness::InvalidEncoding,"client_plan_invalid_body");}
+   catch(...){work.reset();throw;}
 }
 std::shared_ptr<const ClientStateInstallPlan> BuildClientStateInstallPlan(const ClientStatePreparedTarget &target,const ClientStateTables &tables) {
-  ClientStateWorkspace workspace;
-  try{return ClientInstallBuilder(target,tables,workspace).Build();}
-  catch(const BodyVisitError &){Fail(StateReadiness::Budget,"client_plan_visit_budget");}
-  catch(const BodyDependencyError &){Fail(StateReadiness::SourcePending,"client_plan_body_dependency");}
-  catch(const Gap &){Fail(StateReadiness::InvalidEncoding,"client_plan_invalid_body");}
+  std::shared_ptr<ClientInstallPlanWork> work;
+  return BuildClientStateInstallPlanStep(target,tables,work,std::chrono::steady_clock::time_point::max());
 }
+
 } // namespace cs::state

@@ -257,7 +257,7 @@ void Event(void *owner,const world::LifecycleEvent &event) noexcept {
 }
 void Gap(void *owner,const world::GapRecord &gap) noexcept {
   auto &c=*static_cast<WorldCapture *>(owner);
-  if(!c.observation.Active()) return;
+  if(!c.observation.Active()||!c.collector->LegacyDiagnostics())return;
   try {
     obs::ObservationEnvelope e; e.schema="isaac.cs.entity.coverage"; e.kind=obs::RecordKind::Gap;
     // Gap 没有完成普通窗口；保留真实 outer 和候选 tick，而不是伪造完整 OrdinaryPost。
@@ -288,6 +288,8 @@ void WorldCapture::SetConsumers(bool formal,bool recorder) noexcept {
     const auto result=recorder?observation.AttachConsumer({2,this,Record,Plan()}):observation.DetachConsumer(2);
     if(result.accepted) { recorder_consumer=recorder; if(recorder) {GlobalRandomCheckpoint();RandomSourcesCheckpoint();} }
   }
+  // 显式旧观测或 Recorder 才启用旧字段、RNG 和 JSON；网络 Host 只订阅生命周期与二进制值。
+  collector->SetLegacyDiagnostics(formal_consumer||recorder_consumer);
   ArmObservationValueSources(observation.Active()&&!observation.Plan().domains.empty());
   if(binary_entities)binary_entities->Active(formal_consumer||live_consumer||recorder_consumer);
   ArmGlobalRandom(observation.Needed(obs::DomainId::Random,obs::Phase::ActualCall));

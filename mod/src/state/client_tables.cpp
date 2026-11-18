@@ -1,6 +1,8 @@
 #include "state/client_tables.h"
 #include <algorithm>
 #include <tuple>
+#include <type_traits>
+#include <cstdio>
 
 namespace cs::state {
 namespace {
@@ -30,7 +32,6 @@ TableHeader Header(const StateRoute &route,std::span<const std::byte> bytes) {
       std::uint16_t(value(StateTableHeaderField::entry_count))};
   if(!result.epoch || result.previous>=result.epoch)Fail(ClientTableFailure::InvalidEncoding,"client_table_epoch");return result;
 }
-auto Key(const PresentationMember &identity) {return std::pair(identity.space,identity.id);}
 } // namespace
 
 struct ClientResourceContent final {
@@ -38,8 +39,8 @@ struct ClientResourceContent final {
   ClientStateVector<std::byte> bytes;
 };
 ClientMemberSnapshot::ClientMemberSnapshot(const std::shared_ptr<ClientStateMemory> &memory)
-    :entries_(ClientStateAllocator<StateMemberEntry>(memory)),update_(ClientStateAllocator<StateMemberEntry>(memory)) {}
-StateMemberDirectory ClientMemberSnapshot::Directory() const noexcept {return {route_.scope,epoch_,previous_,entries_,update_};}
+    :entries_(ClientStateAllocator<StateMemberEntry>(memory)) {}
+StateMemberDirectory ClientMemberSnapshot::Directory() const noexcept {return {route_.scope,epoch_,0,entries_,{}};}
 ClientResourceSnapshot::ClientResourceSnapshot(const std::shared_ptr<ClientStateMemory> &memory)
     :entries_(ClientStateAllocator<ResourceEntryView>(memory)),update_(ClientStateAllocator<ResourceEntryView>(memory)),
      content_(ClientStateAllocator<std::shared_ptr<const ClientResourceContent>>(memory)),
@@ -49,7 +50,6 @@ ResourceGraphPlan ClientResourceSnapshot::Graph() const noexcept {return {sessio
 
 // 唯一后台可变状态；registry强引用负责最后释放，快照之间仅共享不可变内容项。
 struct ClientStateTableStorage final {
-  struct History {PresentationMember identity;bool live=false;};
   struct LocalResource {
     ResourceKey key;
     ClientResourceState state=ClientResourceState::Unprepared;
@@ -64,16 +64,12 @@ struct ClientStateTableStorage final {
   std::uint64_t generation=0,serial=0;
   std::uint32_t resource_entries=0,resource_edges=0;
   ClientStateVector<ClientMemberLayoutBinding> bindings;
-  ClientStateVector<History> history;
-  ClientStateVector<std::shared_ptr<ClientMemberSnapshot>> members;
   ClientStateVector<std::shared_ptr<ClientResourceSnapshot>> resources;
-  std::shared_ptr<ClientMemberSnapshot> current_members;
   std::shared_ptr<ClientResourceSnapshot> current_resources;
   ClientStateVector<LocalResource> local;
 
   ClientStateTableStorage(std::shared_ptr<ClientStateMemory> account,std::thread::id thread,std::span<const ClientMemberLayoutBinding> policy)
       :memory(std::move(account)),owner(thread),bindings(ClientStateAllocator<ClientMemberLayoutBinding>(memory)),
-       history(ClientStateAllocator<History>(memory)),members(ClientStateAllocator<std::shared_ptr<ClientMemberSnapshot>>(memory)),
        resources(ClientStateAllocator<std::shared_ptr<ClientResourceSnapshot>>(memory)),local(ClientStateAllocator<LocalResource>(memory)) {
     Thread();if(policy.empty())Fail(ClientTableFailure::InvalidReference,"client_member_policy_empty");
     bindings.assign(policy.begin(),policy.end());std::sort(bindings.begin(),bindings.end());
@@ -81,68 +77,27 @@ struct ClientStateTableStorage final {
       if(!binding.space || !layout || !IsStateMemberLayout(binding.layout) || (!layout->block_count&&binding.layout!=195) || (i && binding==bindings[i-1]))
         Fail(ClientTableFailure::InvalidReference,"client_member_policy_invalid");}
     if(StateBudgets().table_snapshots>std::numeric_limits<std::uint16_t>::max())Fail(ClientTableFailure::Internal,"client_snapshot_policy");
-    members.reserve(std::size_t(StateBudgets().table_snapshots));resources.reserve(std::size_t(StateBudgets().table_snapshots));
+    resources.reserve(std::size_t(StateBudgets().table_snapshots+2*StateBudgets().decode_snapshots));
     resource_entries=StateResourceBounds().entries;resource_edges=StateResourceBounds().edges;
   }
   void Thread() const {if(std::this_thread::get_id()!=owner)Fail(ClientTableFailure::WrongThread,"client_tables_wrong_thread");}
   void Route(const StateRoute &received) const {Thread();if(!active || route!=received)Fail(ClientTableFailure::WrongRoute,"client_tables_wrong_route");}
   void Collect() {
-    Thread();std::erase_if(members,[&](const auto &value){return value!=current_members && value.use_count()==1;});
+    Thread();
     std::erase_if(resources,[&](const auto &value){return value!=current_resources && value.use_count()==1;});
   }
   bool Pinned() const {
-    for(const auto &value:members)if(value.use_count()>1+(value==current_members?1:0))return true;
     for(const auto &value:resources)if(value.use_count()>1+(value==current_resources?1:0))return true;
     return false;
   }
-  template<class Registry> void Slot(Registry &registry) {
-    Collect();if(registry.size()>=StateBudgets().table_snapshots)
-      throw ClientTableError(ClientTableFailure::SnapshotLimit,"client_table_snapshots_pinned",registry.size()+1,StateBudgets().table_snapshots);
-  }
-  ClientMemberSnapshotRef Member(std::uint32_t epoch) const {
-    if(active)for(const auto &snapshot:members)if(snapshot->route_==route && snapshot->epoch_==epoch)return snapshot;return {};
+  void ResourceSlot() {
+    Collect();
+    const auto maximum=StateBudgets().table_snapshots+2*StateBudgets().decode_snapshots;
+    if(resources.size()>=maximum)
+      throw ClientTableError(ClientTableFailure::SnapshotLimit,"client_resource_snapshots_pinned",resources.size()+1,maximum);
   }
   ClientResourceSnapshotRef Resource(std::uint32_t epoch) const {
     if(active)for(const auto &snapshot:resources)if(snapshot->session_==route.scope.session && snapshot->run_==route.scope.run && snapshot->epoch_==epoch)return snapshot;return {};
-  }
-  void Identity(const StateMemberEntry &entry) const {
-    const ClientMemberLayoutBinding binding{entry.identity.space,entry.identity.layout};
-    if(!std::binary_search(bindings.begin(),bindings.end(),binding))Fail(ClientTableFailure::InvalidReference,"client_unregistered_member_space_layout");
-    const auto it=std::lower_bound(history.begin(),history.end(),Key(entry.identity),[](const History &known,auto key){return Key(known.identity)<key;});
-    if(it==history.end() || Key(it->identity)!=Key(entry.identity))return;
-    const auto &before=it->identity,&after=entry.identity;
-    if(after.use<before.use || (after.use==before.use && (!it->live || after.shape<before.shape)))
-      Fail(ClientTableFailure::RetiredIdentity,"client_member_identity_rewind_or_retired");
-    if(after.use==before.use && after.shape==before.shape && after.layout!=before.layout)
-      Fail(ClientTableFailure::InvalidReference,"client_member_layout_changed_without_shape");
-  }
-  void Index(const StateMemberEntry &next) const {
-    for(const auto &snapshot:members){
-      if(snapshot.use_count()<=1+(snapshot==current_members?1:0))continue;
-      const auto *before=FindStateMember(snapshot->Directory(),next.index);
-      if(before && (Key(before->identity)!=Key(next.identity) || before->identity.use!=next.identity.use))
-        Fail(ClientTableFailure::MemberReuse,"client_member_index_still_borrowed");
-    }
-  }
-  struct Transitions final : StateMemberTransitions {
-    explicit Transitions(const ClientStateTableStorage &value):storage(value) {}
-    bool Allowed(const StateScope &,const StateMemberEntry *,const StateMemberEntry *after) const override {
-      if(after){storage.Identity(*after);storage.Index(*after);}return true;
-    }
-    const ClientStateTableStorage &storage;
-  };
-  // 构建独立历史，完整成功前不退休旧身份。跨route首次full同样核最高use／shape。
-  ClientStateVector<History> HistoryFor(const ClientMemberSnapshot &snapshot) const {
-    ClientStateVector<StateMemberEntry> ordered(snapshot.entries_,ClientStateAllocator<StateMemberEntry>(memory,memory::Pool::Workspace));
-    std::sort(ordered.begin(),ordered.end(),[](const auto &a,const auto &b){return Key(a.identity)<Key(b.identity);});
-    ClientStateVector<History> next{ClientStateAllocator<History>(memory)};next.reserve(history.size()+ordered.size());
-    std::size_t a=0,b=0;
-    while(a<history.size() || b<ordered.size()){
-      if(b==ordered.size() || (a<history.size() && Key(history[a].identity)<Key(ordered[b].identity))){auto old=history[a++];old.live=false;next.push_back(old);}
-      else {const auto &entry=ordered[b++];Identity(entry);Index(entry);next.push_back({entry.identity,true});
-        if(a<history.size() && Key(history[a].identity)==Key(entry.identity))++a;}
-    }
-    return next;
   }
   LocalResource *Local(ResourceKey key) {
     const auto it=std::lower_bound(local.begin(),local.end(),key,[](const auto &value,auto target){return value.key<target;});
@@ -150,33 +105,37 @@ struct ClientStateTableStorage final {
   }
   const LocalResource *Local(ResourceKey key) const {return const_cast<ClientStateTableStorage *>(this)->Local(key);}
 
-  ClientTableInstall Members(std::span<const std::byte> encoded) {
-    Workspace workspace;const auto header=Header(route,encoded);
-    if(encoded.size()!=kW_StateCommonHeaderBytes+kW_StateTableHeaderBytes+std::size_t(header.count)*kW_StateMemberEntryBytes)
-      Fail(ClientTableFailure::InvalidEncoding,"client_member_table_length");
-    ClientStateVector<StateMemberEntry> update{ClientStateAllocator<StateMemberEntry>(memory,memory::Pool::Workspace)};update.resize(header.count);
-    ClientStateVector<std::uint16_t> order{ClientStateAllocator<std::uint16_t>(memory,memory::Pool::Workspace)};order.resize(header.count);
-    const auto incoming=DecodeStateMemberTable(route.scope,encoded,update,order);Transitions transitions(*this);
-    const auto existing=Member(header.epoch);
-    if(existing){
-      // 重传只比较当时快照，不按当前退休历史重新解释旧操作。
-      try {(void)MergeStateMemberTableInto(existing->Directory(),incoming,{},transitions);}
-      catch(const Gap &error){throw ClientTableError(ClientTableFailure::EpochConflict,error.what());}
-      return ClientTableInstall::Duplicate;
+  ClientMemberSnapshotRef FrameMembers(std::uint32_t epoch,const ClientMemberSnapshotRef &base,
+      std::span<const std::byte> encoded) const {
+    if(encoded.empty()){
+      if(!base||base->epoch_!=epoch)Fail(ClientTableFailure::EpochChain,"client_frame_member_base");
+      return base;
     }
-    if(current_members && header.epoch<current_members->epoch_)return ClientTableInstall::Stale;
-    const auto current=current_members?current_members->Directory():StateMemberDirectory{};
-    if(header.previous && header.previous!=current.epoch)Fail(ClientTableFailure::EpochChain,"client_member_previous_epoch");
-    Slot(members);
+    const auto header=Header(route,encoded);
+    if(header.epoch!=epoch||(base&&header.epoch<=base->epoch_)||(header.previous&&(!base||header.previous!=base->epoch_)))
+      Fail(ClientTableFailure::EpochChain,"client_frame_member_epoch");
+    if(encoded.size()!=kW_StateCommonHeaderBytes+kW_StateTableHeaderBytes+std::size_t(header.count)*kW_StateMemberEntryBytes)
+      Fail(ClientTableFailure::InvalidEncoding,"client_frame_member_length");
+    ClientStateVector<StateMemberEntry> update{ClientStateAllocator<StateMemberEntry>(memory,memory::Pool::Workspace)};
+    ClientStateVector<std::uint16_t> order{ClientStateAllocator<std::uint16_t>(memory,memory::Pool::Workspace)};
+    update.resize(header.count);order.resize(header.count);
+    const auto incoming=DecodeStateMemberTable(route.scope,encoded,update,order);
+    // 同一个数字编号只在快照的目录内有意义。同一 base 可独立解出多个后继。
+    struct FrameTransitions final : StateMemberTransitions {
+      std::span<const ClientMemberLayoutBinding> bindings;
+      explicit FrameTransitions(std::span<const ClientMemberLayoutBinding> value):bindings(value) {}
+      bool Allowed(const StateScope &,const StateMemberEntry *,const StateMemberEntry *after) const override {
+        return !after||std::binary_search(bindings.begin(),bindings.end(),
+          ClientMemberLayoutBinding{after->identity.space,after->identity.layout});
+      }
+    } transitions(bindings);
+    const auto current=base?base->Directory():StateMemberDirectory{};
     auto next=std::allocate_shared<ClientMemberSnapshot>(ClientStateAllocator<ClientMemberSnapshot>(memory),memory);
-    next->route_=route;next->epoch_=header.epoch;next->previous_=header.previous;next->update_.assign(update.begin(),update.end());
-    for(const auto &entry:update)if(entry.operation!=MemberOperation::Leave)Identity(entry);
+    next->route_=route;next->epoch_=epoch;
     next->entries_.resize((std::min)(std::size_t(kW_member_entries),current.entries.size()+update.size()));
-    const StateMemberTable owned{route.scope,header.epoch,header.previous,next->update_};
-    const auto merged=MergeStateMemberTableInto(current,owned,next->entries_,transitions);next->entries_.resize(merged.entries.size());
-    auto next_history=HistoryFor(*next);
-    // registry已预分配，以下提交不分配；任何此前异常仅销毁私有候选。
-    members.push_back(next);history.swap(next_history);current_members=std::move(next);return ClientTableInstall::Installed;
+    const auto merged=MergeStateMemberTableInto(current,incoming,next->entries_,transitions);
+    next->entries_.resize(merged.entries.size());
+    return next;
   }
 
   ClientTableInstall Resources(std::span<const std::byte> encoded,bool rebase) {
@@ -194,7 +153,7 @@ struct ClientStateTableStorage final {
     if(!rebase && current_resources && header.epoch<current_resources->epoch_)return ClientTableInstall::Stale;
     const auto current=current_resources?current_resources->Directory():ResourceDirectoryView{};
     if(!rebase && header.previous && header.previous!=current.epoch)Fail(ClientTableFailure::EpochChain,"client_resource_previous_epoch");
-    Slot(resources);
+    ResourceSlot();
     auto next=std::allocate_shared<ClientResourceSnapshot>(ClientStateAllocator<ClientResourceSnapshot>(memory),memory);
     next->session_=route.scope.session;next->run_=route.scope.run;next->epoch_=header.epoch;next->previous_=header.previous;
     next->entries_.resize((std::min)(std::size_t(resource_entries),current.entries.size()+update.size()));
@@ -238,11 +197,10 @@ void ClientStateTables::Open(const StateRoute &route,StateAgreement agreement,st
     Fail(ClientTableFailure::WrongRoute,"client_tables_open_route_or_agreement");
   const bool same=s.route.scope.session==route.scope.session && s.route.scope.run==route.scope.run;
   if(!same){if(s.Pinned())Fail(ClientTableFailure::Busy,"client_tables_previous_run_borrowed");
-    s.current_members.reset();s.current_resources.reset();s.members.clear();s.resources.clear();
-    ClientStateVector<ClientStateTableStorage::History>{ClientStateAllocator<ClientStateTableStorage::History>(memory_)}.swap(s.history);
+    s.current_resources.reset();s.resources.clear();
     ClientStateVector<ClientStateTableStorage::LocalResource>{ClientStateAllocator<ClientStateTableStorage::LocalResource>(memory_)}.swap(s.local);s.generation=0;
   } else if(generation<s.generation)Fail(ClientTableFailure::Generation,"client_resource_generation_rewind");
-  s.current_members.reset();s.route=route;s.active=true;s.resource_seen=false;
+  s.route=route;s.active=true;s.resource_seen=false;
   if(generation>s.generation){s.generation=generation;for(auto &local:s.local)local.state=ClientResourceState::Unprepared;}
   // 旧route未结束的准备仍固定其输入；只有旧最终反馈能释放，不向新route转移Pending资格。
   for(auto &local:s.local)if(local.pending)local.state=ClientResourceState::Unprepared;s.Collect();
@@ -250,8 +208,11 @@ void ClientStateTables::Open(const StateRoute &route,StateAgreement agreement,st
 void ClientStateTables::Close() {auto &s=*storage_;s.Thread();if(s.active){s.closed=s.route;s.active=false;}s.Collect();}
 bool ClientStateTables::Drained() const {const auto &s=*storage_;s.Thread();return !s.active && !s.Pinned();}
 void ClientStateTables::Collect() {storage_->Collect();}
-ClientTableInstall ClientStateTables::InstallMembers(const StateRoute &route,std::span<const std::byte> encoded) {
-  storage_->Route(route);try {return storage_->Members(encoded);}catch(const Gap &error){throw ClientTableError(ClientTableFailure::InvalidEncoding,error.what());}
+ClientMemberSnapshotRef ClientStateTables::FrameMembers(const StateRoute &route,std::uint32_t epoch,
+    const ClientMemberSnapshotRef &base,std::span<const std::byte> encoded) const {
+  storage_->Route(route);
+  try{return storage_->FrameMembers(epoch,base,encoded);}
+  catch(const Gap &error){throw ClientTableError(ClientTableFailure::InvalidEncoding,error.what());}
 }
 ClientTableInstall ClientStateTables::InstallResources(const StateRoute &route,std::span<const std::byte> encoded) {
   storage_->Route(route);try {const auto result=storage_->Resources(encoded,false);if(result!=ClientTableInstall::Stale)storage_->resource_seen=true;return result;}
@@ -264,11 +225,9 @@ ClientTableInstall ClientStateTables::RebaseResources(const StateRoute &retired,
   s.Collect();try {const auto result=s.Resources(encoded,true);s.resource_seen=true;return result;}
   catch(const Gap &error){throw ClientTableError(ClientTableFailure::InvalidEncoding,error.what());}
 }
-ClientMemberSnapshotRef ClientStateTables::Members(std::uint32_t epoch) const {storage_->Thread();return storage_->Member(epoch);}
 ClientResourceSnapshotRef ClientStateTables::Resources(std::uint32_t epoch) const {storage_->Thread();return storage_->Resource(epoch);}
-std::optional<StateContextReady> ClientStateTables::MetadataReady() const {
-  const auto &s=*storage_;s.Thread();if(!s.active || !s.resource_seen || !s.current_members || !s.current_resources)return {};
-  return StateContextReady{s.route.scope,s.current_members->Directory().epoch,s.current_resources->Directory().epoch};
+ClientResourceSnapshotRef ClientStateTables::LatestResources() const {
+  storage_->Thread();return storage_->active&&storage_->resource_seen?storage_->current_resources:nullptr;
 }
 ClientResourceState ClientStateTables::ResourceState(std::uint32_t epoch,ResourceKey key) const {
   const auto &s=*storage_;s.Thread();const auto snapshot=s.Resource(epoch);

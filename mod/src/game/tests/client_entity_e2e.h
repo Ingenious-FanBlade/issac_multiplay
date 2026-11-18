@@ -8,6 +8,9 @@ namespace cs::game {
 // 故障只在已解释的正常返回边界触发一次；产品编译消除全部注入分支。
 #ifdef ISAACCS_E2E
 bool ClientEntityTestFault(const char *point) noexcept;
+bool HostTearReadTestFault() noexcept;
+bool ClientTearWriteTestFault(std::uint64_t member) noexcept;
+bool ClientEntityTestArmed(const char *point) noexcept;
 bool ClientTestDummyAcquire(void *,unsigned,bool,void *&) noexcept;
 std::string ClientEntityTestArm(const std::string &,const std::string &) noexcept;
 std::string ClientEntityTestStatus(const std::string &) noexcept;

@@ -253,6 +253,9 @@
           "type": "integer",
           "minimum": 1,
           "maximum": 65535
+        },
+        "sequence": {
+          "$ref": "#/$defs/field_sequence"
         }
       },
       "additionalProperties": false
@@ -388,6 +391,13 @@
             "countdown",
             "display-utf8"
           ]
+        },
+        "flat_storage": {
+          "enum": [
+            "deque",
+            "owner",
+            "unordered"
+          ]
         }
       },
       "additionalProperties": false
@@ -507,7 +517,6 @@
         "rtti",
         "layout",
         "ranges",
-        "blocks",
         "conversions",
         "validators",
         "members",
@@ -651,6 +660,15 @@
                   "type": "integer"
                 },
                 "uniqueItems": true
+              },
+              "fields": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
               }
             },
             "additionalProperties": false
@@ -659,8 +677,7 @@
         "conversions": {
           "type": "object",
           "additionalProperties": {
-            "type": "string",
-            "minLength": 1
+            "$ref": "#/$defs/conversion"
           }
         },
         "variants": {
@@ -743,6 +760,15 @@
                             "type": "integer"
                           },
                           "uniqueItems": true
+                        },
+                        "fields": {
+                          "type": "array",
+                          "minItems": 1,
+                          "uniqueItems": true,
+                          "items": {
+                            "type": "string",
+                            "minLength": 1
+                          }
                         }
                       },
                       "additionalProperties": false
@@ -751,8 +777,7 @@
                   "conversions": {
                     "type": "object",
                     "additionalProperties": {
-                      "type": "string",
-                      "minLength": 1
+                      "$ref": "#/$defs/conversion"
                     }
                   },
                   "members": {
@@ -760,6 +785,9 @@
                     "items": {
                       "$ref": "#/$defs/member"
                     }
+                  },
+                  "write_groups": {
+                    "$ref": "#/$defs/write_groups"
                   }
                 },
                 "additionalProperties": false
@@ -866,6 +894,9 @@
                   }
                 },
                 "additionalProperties": false
+              },
+              "sequence": {
+                "$ref": "#/$defs/field_sequence"
               }
             },
             "additionalProperties": false
@@ -933,6 +964,12 @@
             "empty-active-zero",
             "null-costume-layer-zero"
           ]
+        },
+        "flat": {
+          "type": "boolean"
+        },
+        "write_groups": {
+          "$ref": "#/$defs/write_groups"
         }
       },
       "additionalProperties": false
@@ -977,6 +1014,9 @@
         },
         "shape": {
           "type": "boolean"
+        },
+        "sequence": {
+          "$ref": "#/$defs/field_sequence"
         }
       },
       "additionalProperties": false
@@ -1352,7 +1392,7 @@
               "kind": {
                 "type": "integer",
                 "minimum": 0,
-                "maximum": 9
+                "maximum": 10
               },
               "type": {
                 "type": "string"
@@ -1488,6 +1528,69 @@
         }
       },
       "additionalProperties": false
+    },
+    "field_sequence": {
+      "enum": [
+        "world",
+        "body",
+        "world-or-player-body"
+      ]
+    },
+    "write_groups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "fields"
+        ],
+        "properties": {
+          "fields": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "handler": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "conversion": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "object",
+          "required": [
+            "semantics",
+            "fields"
+          ],
+          "properties": {
+            "semantics": {
+              "type": "string",
+              "minLength": 1
+            },
+            "fields": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
     }
   }
 }

@@ -53,6 +53,8 @@ InstallResources复用正式资源codec核全部typed payload、table／kind／�
 
 Resources(epoch)只返回本session/run内保留的精确快照，Members(epoch)还核当前完整route。Prepare针对指定快照及实际资源根复用闭包检查；空根直接给出合法空闭包，不调用“空roots表示全目录”的底层默认分支。调用者提供的order／state／heights不足时先返回类型化Budget；结果中的顺序span仍属于调用者scratch，须在复用前消费／复制。
 
+2026-11-16 应用频率修复顺序 1 接通上述增量合并路径。Host 用可靠完整回执更新各表的增量基准。在启用 `state-table-delta-v1` 的连接中，资源表未变化时，接收器可在安装成员表后用当前资源代次回报 ContextReady。布局82起，Host 对基线和真正联合仍凭实际完整发送的精确目录对推进；普通 World 可并行发送。Client 后台回收后报告实际外部借用的最小成员代次，旧目录的编号借用检查继续执行。传输取消重发时，接收线程按路由内的表消息序列跳过迟到的旧传输，非零 `previous_epoch` 仍须匹配当前代次。
+
 ### 本地准备与过期反馈
 
 每项资源的Unprepared／Pending／Ready／MissingLocalResource／Failed与元数据分开。MetadataReady仅表示两类current元数据存在，绝不代表资源／完整候选／原生ready或AppliedAck。

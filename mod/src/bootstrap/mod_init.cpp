@@ -3,6 +3,7 @@
 #include "runtime.h"
 #include "game/observation/world_bridge.h"
 #include "hooks/random_runtime.h"
+#include "game/client/display/client_display_memory.h"
 namespace cs {
 DWORD MainThread = 0;
 uintptr_t Base = 0;
@@ -70,6 +71,7 @@ MOD_EXPORT int ModInit() noexcept {
     InstallClientShutdownPatch();
     InstallClientBackdropPatch();
     InstallClientDisplayPatch();
+    game::InstallClientDisplayMemoryHooks();
     InitializeRuntimeRandomHooks();
     PublishStatus();
     if (Settings.control && Capabilities[size_t(Group::Loop)] &&

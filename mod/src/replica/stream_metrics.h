@@ -7,12 +7,18 @@
 
 namespace cs::replica::stream {
 std::string LimitsFields(const Limits &,const std::string &prefix);
-enum class CpuStage : unsigned { Capture, Encode, Compress, Queue, Decode, NativePrepare, NativeApply, Draw, Network, Ipc, NativeRetire, Build, MainCapture, FrameInterval, SourceLua, SourceNative, SourceCopy, SourceControl, SourceHandoff, Count };
+enum class CpuStage : unsigned { Capture, Encode, Compress, Queue, Decode, NativePrepare, NativeApply, Draw, Network, Ipc, NativeRetire, Build, MainCapture, FrameInterval, SourceLua, SourceNative, SourceCopy, SourceControl, SourceHandoff,
+  ScenePrepare, TopologyResources, EntityValues, SceneValues, FastBody, SourceReview, SourceCommit, OrdinaryOuter, BodyOuter, CaptureIndex, CaptureQueueAge,
+  TopologyCommon, TopologyGroups, TopologyLease, AnchorInstall, FieldExecution, JointPrepare, BodyClone,
+  OrdinaryPublishedOuter, OrdinaryFailedOuter, BodyPublishedOuter, BodyFailedOuter, BodyMixedOuter, BodyJointOnlyOuter, CaptureIdleOuter, Count };
 // 固定对数桶保留计数/总量/最大值；生产不保存每tick日志或无界历史。
 struct Duration final {
   std::uint64_t count=0,total_us=0,max_us=0;
+  // 验收阈值用精确计数；2047us／4095us的桶上界不能替代2ms／4ms判断。
+  std::uint64_t over_2000_us=0,over_4000_us=0;
   std::array<std::uint64_t,32> buckets{};
   void Observe(std::uint64_t us) noexcept;
+  std::uint64_t Percentile(unsigned percent) const noexcept;
 };
 struct Metrics final {
   WorldScope scope{};
@@ -38,6 +44,7 @@ private:
   std::atomic<std::uint64_t> missed_{0};
 };
 std::uint64_t ThreadCpuMicros() noexcept;
+const char *CpuStageName(CpuStage) noexcept;
 #ifdef ISAACCS_E2E
 void E2ETime(const Metrics *,CpuStage,std::uint64_t,std::uint64_t) noexcept;
 #endif

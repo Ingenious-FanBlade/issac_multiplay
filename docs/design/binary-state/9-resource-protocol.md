@@ -1,5 +1,7 @@
 # 第9步第四项：资源协议
 
+**2026-11-15 第15步换装修复，版本80**。图像表新增 `ImagePath`（table 1、kind 10），使用与其他本地文件资源一致的有界路径值。道具配置、历史栏和图层文件路径可以在 Host 尚无对应 Image 实例时立即发布。Client 通过原生装载本地文件，核对解析出的路径及本机逻辑／存储尺寸关系。已经观察到 Host 实例的 `ImageFile`（kind 1）仍携带并核对四个尺寸。两种记录共用 Client 图像 owner 和退休路径。
+
 **2026-11-12 显示委托修订**：
 
 - 只保留实体、Grid、costume 等资源引用。
@@ -44,7 +46,7 @@
 | 5／3 | 既有RoomConfig_Room263显示投影15B | 保留实际Data／OverrideData选择；不包含候选生成、权重、保存体或原生对象 |
 | 1／4 | SurfaceRecipeHeader307＋有序308／309 | 完整本地有限合成描述；见下节 |
 | 0／6 | ResourceAnimation428 | 文件资源号＋ResourceName429＋u32长度＋有序layer／null-layer元数据列表；430每项为u16 ID＋u32 frame_count |
-| 3／7 | ResourceItemConfig431，16B | 实际(type,id,cooldown)及可空图像／costume文件资源；不复制库存、解锁资格或配置指针 |
+| 3／7 | ResourceItemConfig431，16B | 实际(type,id,cooldown)及可空图像／costume文件资源；不复制库存、解锁资格或配置指针。版本81补齐ItemType 0—4：0按GetNullItem、2按GetTrinket、1／3／4按GetCollectible解析，身份、冷却和资源路径仍严格核对 |
 | 4／8 | ResourceEntityConfig432，22B | 实际选中配置的type／variant／subtype、可空ANM2、portrait、shadow_size；不按Entity当前类型重新猜配置 |
 | 7／9 | ResourceAudio433 | audio_class、has_intro、实际main路径、条件intro路径；选择后的文件／音乐声部，不是再次随机选sample的sound ID |
 

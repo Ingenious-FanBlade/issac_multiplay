@@ -110,7 +110,7 @@
 
 | 布局／variant | 复用区 | 附属payload与发送块 |
 | --- | --- | --- |
-| 101 基础，其余未核variant | 32B未知 | 合法holder为空；非空未知类型报Gap，FX2预留 |
+| 101 基础，其余未核variant | 32B未知 | 实机 variant 21 可出现对象指针为空而控制块仍存活的 holder。对象指针非空且类型未知仍报 Gap，FX2 预留 |
 | 102 TearFlags，54／126 | 前16B眼泪效果位归Host，后16B未知；167已分到148 | FX2预留，不再发BitSet128 |
 | 103 GridDesc，136 | 八成员29B归Host，三个未知字节保持 | FX2预留；主Sprite／持物关系展示，Effect和Grid域均不发描述 |
 | 104 MrMe，108 | 同基础臂 | FX3—FX5：present＋独立ANM2三投影 |

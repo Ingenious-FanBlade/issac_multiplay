@@ -117,4 +117,18 @@ bool ClientEntityInitIsolationInstalled() noexcept {
     if(std::strcmp(h.id,"client_entity_local_sound")==0)play=h.registered&&h.super&&*h.super;
   }return random&&sound&&play;
 }
+bool ClientMorphIsolationInstalled() noexcept {
+  if(!IsMain())return false;
+  const char *required[]={"client_morph_pickup_init","client_morph_pickup_modifiers",
+    "client_morph_pickup_alternates","client_morph_npc_effects","pgd_encounter"};
+  std::size_t count=0;const auto hooks=Hooks(count);
+  for(const auto *id:required){
+    bool installed=false;
+    for(std::size_t i=0;i<count;++i)if(!std::strcmp(hooks[i]->id,id)){
+      const auto &h=*hooks[i];installed=h.registered&&h.super&&*h.super;break;
+    }
+    if(!installed)return false;
+  }
+  return ClientEntityInitIsolationInstalled();
+}
 }

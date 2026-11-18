@@ -115,7 +115,7 @@ core::TickPostState WorldPostState(std::uint64_t tick) noexcept;
 void WorldPublishPostState(bool committed, const core::TickPostState &post) noexcept;
 void WorldFrameEnd() noexcept;
 void WorldNativeReturned(const core::TickBoundary &boundary, std::uint64_t tick) noexcept;
-void WorldRefreshAnchors() noexcept;
+void WorldRefreshAnchors(bool topology_just_read = false) noexcept;
 std::uint64_t WorldEntityLocalId(void *player) noexcept;
 world::PlayerAnchor WorldPlayerAnchor(unsigned ordinal, void *player = nullptr) noexcept;
 void WorldPlayerReturned(unsigned ordinal, const world::PlayerAnchor &before,

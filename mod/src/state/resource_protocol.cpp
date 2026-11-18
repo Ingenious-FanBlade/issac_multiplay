@@ -139,7 +139,8 @@ void Path(std::span<const std::byte> bytes,std::uint8_t kind) {
     begin=end+1;
   }
   const bool gfx=text.starts_with("gfx/"),music=text.starts_with("music/"),sfx=text.starts_with("sfx/");
-  if (kind==0 ? !(gfx && Ends(text,".anm2")) : kind==1 ? !(gfx && (Ends(text,".png") || Ends(text,".pcx"))) :
+  const bool image=kind==1||kind==kResourceImagePathKind;
+  if (kind==0 ? !(gfx && Ends(text,".anm2")) : image ? !(gfx && (Ends(text,".png") || Ends(text,".pcx"))) :
       kind==9 ? !((sfx || music) && (Ends(text,".ogg") || Ends(text,".wav") || Ends(text,".mp3"))) : true)
     Fail("resource_path_kind_or_namespace_mismatch");
 }
@@ -281,7 +282,7 @@ ResourceLocalDescription DescribeResourceLocal(const ResourceEntryView &entry,Re
   }
   const auto value=DecodeValue(dispatch.layout,entry.payload,scratch.body,nullptr,{32u<<20,262144,32,true});
   const auto at=[&](unsigned f){return FieldBytes(value.fields,std::uint16_t(f));};
-  if(entry.kind==0){out.text[0]=Text(entry.payload);return out;}
+  if(entry.kind==0||entry.kind==kResourceImagePathKind){out.text[0]=Text(entry.payload);return out;}
   for(const auto &f:value.fields)if(f.present&&f.field<out.numbers.size()) {
     const auto *definition=FindField(dispatch.layout,f.field);
     if(definition&&definition->operation!=Operation::Container&&definition->operation!=Operation::Nested&&f.bytes.size()<=8)
@@ -518,6 +519,9 @@ void ValidateResourceBindings(std::uint16_t layout,std::uint32_t mask,BodyStream
   const auto body=stream==BodyStream::Value?DecodeValue(layout,bytes,scratch,context,limits):DecodeBody(layout,mask,stream,bytes,scratch,context,limits);
   // 投影／base完整性由第12步合并候选检查，不因只核资源引用而给body增加world等待。
   (void)body;
+}
+void ValidateResourceBindingNode(const BodyNodeView &node,const ResourceDirectoryView &directory,const ResourceReadyContext &ready) {
+  ResourceObserver observer(nullptr,&directory,{},&ready);observer.Node(node);
 }
 std::optional<CodecItemConfig> ResourceBodyContext::Item(std::uint8_t table,std::uint16_t index) const {
   if (table!=3) return {};

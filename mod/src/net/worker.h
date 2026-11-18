@@ -82,6 +82,9 @@ struct WorkerStatus {
   std::array<std::uint64_t,4> uplink_lane_bytes{},uplink_lane_packets{};
   unsigned publication_phase=0;
   std::uint64_t binary_world_ack=0,binary_body_ack=0,binary_event_ack=0,binary_event_dropped_capacity=0,binary_event_dropped_expired=0,binary_unmatched_acks=0;
+  std::uint64_t binary_joint_sent=0,binary_world_sent=0,binary_body_sent=0;
+  std::uint64_t binary_body_dependency_blocks=0;
+  std::uint64_t binary_world_window_skips=0,binary_world_inflight_max=0,binary_world_retries=0;
   bool stream_stale=false;
   replica::stream::RuntimeConfig stream_config;
   replica::stream::Metrics stream_metrics,encoder_metrics;

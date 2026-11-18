@@ -28,7 +28,8 @@ class StateEventQueue final {
 public:
   explicit StateEventQueue(std::uint32_t count=512,std::uint32_t bytes=256u<<10);
   void Reset(std::uint64_t baseline_watermark=0) noexcept;
-  bool Offer(const StateEventView &) noexcept;
+  // 事件正文可以独立于来源快照留队，引用目录租约随该事件实际退休。
+  bool Offer(const StateEventView &,std::shared_ptr<const void> owner={}) noexcept;
   // 完整采集范围内未出现的序号只可能是采集端已丢弃的纯外观；不能跨过未交接范围。
   bool Cover(std::uint64_t first_sequence,std::uint64_t watermark) noexcept;
   bool CanCover(std::uint64_t first_sequence,std::uint64_t watermark) const noexcept;
@@ -36,12 +37,14 @@ public:
   // 最大字节包含本段全部头；未选后缀留队，不能用最新源水位跳过尚未投递的事件。
   StateEventSegment Select(std::span<StateEventView>,std::uint32_t maximum_bytes,std::uint64_t through=UINT64_MAX) const noexcept;
   bool Sent(std::uint64_t watermark) noexcept;
+  // 只在真实完整发送记账后前进；选取事件仍从已确认水位开始。
+  std::uint64_t SentWatermark() const noexcept{return sent_;}
   bool Ack(std::uint64_t watermark) noexcept;
   void Expire(std::uint32_t host_frame,std::uint32_t maximum_age=15) noexcept;
   const StateEventQueueStats &Statistics() const noexcept{return stats_;}
   std::uint64_t RetainedBytes() const noexcept{return memory_->Bytes();}
 private:
-  struct Entry {StateEventView value;std::uint32_t offset=0;};
+  struct Entry {StateEventView value;std::uint32_t offset=0;std::shared_ptr<const void> owner;};
   void Remove(std::uint32_t) noexcept;
   memory::Lease memory_;
   std::vector<Entry> entries_;
@@ -52,5 +55,5 @@ private:
 };
 // worker按本Peer的成员／资源快照编码，资源号不在主线程提前分配；latest替换不清此队列。
 bool QueueCapturedStateEvents(const CapturePacket &,StateEventQueue &,CaptureLinkResolver,std::span<std::byte> link_scratch,
-    std::span<std::byte> encode_scratch,BodyCodecScratch &,const BodyCodecContext *,BodyCodecLimits={});
+    std::span<std::byte> encode_scratch,BodyCodecScratch &,const BodyCodecContext *,BodyCodecLimits,std::span<std::uint32_t> index_scratch);
 }

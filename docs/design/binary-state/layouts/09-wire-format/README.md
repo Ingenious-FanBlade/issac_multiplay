@@ -16,7 +16,6 @@
 | [StateDependencyEntry](StateDependencyEntry.md) | 415 | 0 | 0 | 是 |
 | [StateContributionEntry](StateContributionEntry.md) | 416 | 0 | 0 | 是 |
 | [StateAudioEventHeader](StateAudioEventHeader.md) | 417 | 0 | 0 | 是 |
-| [StateContextReady](StateContextReady.md) | 418 | 0 | 0 | 是 |
 | [StateAppliedAckHeader](StateAppliedAckHeader.md) | 419 | 0 | 0 | 是 |
 | [StateAppliedAckEntry](StateAppliedAckEntry.md) | 420 | 0 | 0 | 是 |
 | [StateResyncHeader](StateResyncHeader.md) | 421 | 0 | 0 | 是 |

@@ -6,9 +6,9 @@ namespace cs::world::binary {
 bool EntitySource::HudDealEligibility(const CaptureWitness &w,EntityFacts f,bool &eligible,CaptureDiagnostic &d) noexcept {
   auto &s=*impl_;eligible=false;
   if(s.active||std::this_thread::get_id()!=s.thread||!f.ready||!s.services.current(s.services.owner,w,f))return FailCapture(d,CaptureFailure::InvalidWindow,{f.subject});
-  NativeScene scene;scene.game=f.address;
-  if(!s.memory.copy||!s.memory.copy(scene.game+0x18300,&scene.room,4)||!scene.room)return FailCapture(d,CaptureFailure::MissingQualification,{f.subject});
-  if(!ReadSceneContext(w,f,scene,d))return false;s.facts=f;s.active=true;s.scratch_used=s.witness_used=0;
+  if(!f.scene||f.scene->game!=f.address)return FailCapture(d,CaptureFailure::MissingQualification,{f.subject});
+  const auto &scene=*f.scene;
+  s.facts=f;s.active=true;s.scratch_used=s.witness_used=0;
   struct End{bool &active;~End(){active=false;}}end{s.active};
   s.window={s.thread,w,&s,[](void *p,const CaptureWitness &v,const CaptureRoot &r) noexcept{return static_cast<Impl *>(p)->Current(v,r);},nullptr};
   const auto game=std::uint64_t(scene.game);std::int32_t stage=0,stage_type=0,difficulty=0,challenge=0,special=0,last_boss=0;
@@ -31,8 +31,6 @@ bool EntitySource::HudDealEligibility(const CaptureWitness &w,EntityFacts f,bool
     if(!s.Tracked(game+0x18314,last_boss,d)||!s.Tracked(game+0x182cc,descriptors,d)||descriptors>527||last_boss<0||std::uint32_t(last_boss)>=descriptors||
        !s.Tracked(game+36+std::uint32_t(last_boss)*184u,config,d)||!config||!s.Tracked(std::uint64_t(config)+56,doors,d))return FailCapture(d,CaptureFailure::MissingQualification,{f.subject});
     eligible=std::popcount(doors&255u)>=2;}
-  std::array<std::byte,32> after{};for(unsigned i=0;i<s.witness_used;++i){const auto &mark=s.witnesses[i];
-    if(!s.Read(mark.address,std::span(after).first(mark.size),d)||!std::equal(after.begin(),after.begin()+mark.size,mark.bytes.begin()))return FailCapture(d,CaptureFailure::SourceChanged,{f.subject});}
-  return true;
+  return s.Verify({f.subject,f.address,0,f.layout},d);
 }
 }

@@ -2,6 +2,7 @@
 #include "game/client/player/client_player_control.h"
 #include "state/wire_protocol.h"
 #include <memory>
+#include <string>
 
 namespace cs::net::live {class Client;}
 namespace cs::state {class ClientStatePreparation;class ClientStateMemory;}
@@ -19,6 +20,7 @@ public:
   void Recover(state::StateResyncReason) noexcept;
   bool Drained() const noexcept;
   ClientPlayerControlView Control(unsigned ordinal) const noexcept;
+  std::string Diagnostics(unsigned page)const;
 private:
   struct Impl;
   std::unique_ptr<Impl> impl_;

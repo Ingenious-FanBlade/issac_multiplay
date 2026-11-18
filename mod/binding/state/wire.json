@@ -228,8 +228,8 @@
         "statesectionheader_game_frame_decode": "按公共合同有界解码：Host原生GameFrame位模式，不能代替来源身份；这里只登记处理器名，不安装世界或提前ACK。",
         "statesectionheader_record_count_encode": "从已封存自有纯值编码：后随12B头的成员记录数；不读取原生对象或调用Lua。",
         "statesectionheader_record_count_decode": "按公共合同有界解码：后随12B头的成员记录数；这里只登记处理器名，不安装世界或提前ACK。",
-        "statesectionheader_group_count_encode": "从已封存自有纯值编码：后随具名结果组数；不读取原生对象或调用Lua。",
-        "statesectionheader_group_count_decode": "按公共合同有界解码：后随具名结果组数；这里只登记处理器名，不安装世界或提前ACK。",
+        "statesectionheader_group_count_encode": "从已封存自有纯值编码：记录后随沿用成员编号数；不读取原生对象或调用Lua。",
+        "statesectionheader_group_count_decode": "按公共合同有界解码：记录后随沿用成员编号数；这里只登记处理器名，不安装世界或提前ACK。",
         "statesectionheader_event_count_encode": "从已封存自有纯值编码：后随音频事件数；body必须为0；不读取原生对象或调用Lua。",
         "statesectionheader_event_count_decode": "按公共合同有界解码：后随音频事件数；body必须为0；这里只登记处理器名，不安装世界或提前ACK。",
         "statesectionheader_event_watermark_encode": "从已封存自有纯值编码：world目标覆盖的连续事件水位；body必须为0；不读取原生对象或调用Lua。",
@@ -339,7 +339,7 @@
         {
           "name": "group_count",
           "type": "u16",
-          "semantics": "后随具名结果组数",
+          "semantics": "记录后随沿用成员编号数",
           "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statesectionheader_group_count_encode",
           "client": "statesectionheader_group_count_decode"
@@ -1182,57 +1182,6 @@
       "notes": "40B；只有kind3 Clear允许非零clear_scope，其余事件必须精确voice。 本表仅定义固定封装字节；不再包12B状态记录头，也不表示完整消息编解码已实现。"
     },
     {
-      "type": "StateContextReady",
-      "layout": 418,
-      "native_size": 0,
-      "extent": "protocol",
-      "parent": null,
-      "rtti": {
-        "name": "纯C/S公共报文固定头，无原生对象",
-        "rva": 0
-      },
-      "ranges": [],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "StateContextReady固定头（封装，不是world状态块）",
-          "sequence": "world",
-          "fields": [
-            "member_epoch",
-            "resource_epoch"
-          ]
-        }
-      ],
-      "conversions": {
-        "statecontextready_member_epoch_encode": "从已封存自有纯值编码：可解析的成员表版本；不读取原生对象或调用Lua。",
-        "statecontextready_member_epoch_decode": "按公共合同有界解码：可解析的成员表版本；这里只登记处理器名，不安装世界或提前ACK。",
-        "statecontextready_resource_epoch_encode": "从已封存自有纯值编码：可解析的资源表版本；不代表每项资源已物化；不读取原生对象或调用Lua。",
-        "statecontextready_resource_epoch_decode": "按公共合同有界解码：可解析的资源表版本；不代表每项资源已物化；这里只登记处理器名，不安装世界或提前ACK。"
-      },
-      "validators": {},
-      "members": [],
-      "public_owners": [],
-      "synthetic_fields": [
-        {
-          "name": "member_epoch",
-          "type": "u32",
-          "semantics": "可解析的成员表版本",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
-          "host": "statecontextready_member_epoch_encode",
-          "client": "statecontextready_member_epoch_decode"
-        },
-        {
-          "name": "resource_epoch",
-          "type": "u32",
-          "semantics": "可解析的资源表版本；不代表每项资源已物化",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
-          "host": "statecontextready_resource_epoch_encode",
-          "client": "statecontextready_resource_epoch_decode"
-        }
-      ],
-      "notes": "8B；公共头后直接编码；不等于AppliedAck。 本表仅定义固定封装字节；不再包12B状态记录头，也不表示完整消息编解码已实现。"
-    },
-    {
       "type": "StateAppliedAckHeader",
       "layout": 419,
       "native_size": 0,
@@ -1328,14 +1277,14 @@
       "conversions": {
         "stateappliedackentry_stream_encode": "从已封存自有纯值编码：0 world、1 body；不读取原生对象或调用Lua。",
         "stateappliedackentry_stream_decode": "按公共合同有界解码：0 world、1 body；这里只登记处理器名，不安装世界或提前ACK。",
-        "stateappliedackentry_target_version_encode": "从已封存自有纯值编码：已完成原生提交且确实由Host发送的目标；不读取原生对象或调用Lua。",
-        "stateappliedackentry_target_version_decode": "按公共合同有界解码：已完成原生提交且确实由Host发送的目标；这里只登记处理器名，不安装世界或提前ACK。",
+        "stateappliedackentry_target_version_encode": "从已封存自有纯值编码：完整解码并保留为差分基线的 Host 目标；不读取原生对象或调用Lua。",
+        "stateappliedackentry_target_version_decode": "按公共合同有界解码：完整解码并保留为差分基线的 Host 目标；这里只登记处理器名，不安装世界或提前ACK。",
         "stateappliedackentry_member_epoch_encode": "从已封存自有纯值编码：该目标使用的成员快照；不读取原生对象或调用Lua。",
         "stateappliedackentry_member_epoch_decode": "按公共合同有界解码：该目标使用的成员快照；这里只登记处理器名，不安装世界或提前ACK。",
         "stateappliedackentry_resource_epoch_encode": "从已封存自有纯值编码：该目标使用的资源快照；不读取原生对象或调用Lua。",
         "stateappliedackentry_resource_epoch_decode": "按公共合同有界解码：该目标使用的资源快照；这里只登记处理器名，不安装世界或提前ACK。",
-        "stateappliedackentry_event_watermark_encode": "从已封存自有纯值编码：world已提交连续事件水位；body为0；不读取原生对象或调用Lua。",
-        "stateappliedackentry_event_watermark_decode": "按公共合同有界解码：world已提交连续事件水位；body为0；这里只登记处理器名，不安装世界或提前ACK。"
+        "stateappliedackentry_event_watermark_encode": "从已封存自有纯值编码：World 已接管的连续事件水位；body为0；不读取原生对象或调用Lua。",
+        "stateappliedackentry_event_watermark_decode": "按公共合同有界解码：World 已接管的连续事件水位；body为0；这里只登记处理器名，不安装世界或提前ACK。"
       },
       "validators": {
         "stream": {
@@ -1361,7 +1310,7 @@
         {
           "name": "target_version",
           "type": "u32",
-          "semantics": "已完成原生提交且确实由Host发送的目标",
+          "semantics": "完整解码并保留为差分基线的 Host 目标",
           "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateappliedackentry_target_version_encode",
           "client": "stateappliedackentry_target_version_decode"
@@ -1385,7 +1334,7 @@
         {
           "name": "event_watermark",
           "type": "u64",
-          "semantics": "world已提交连续事件水位；body为0",
+          "semantics": "World 已接管的连续事件水位；body为0",
           "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateappliedackentry_event_watermark_encode",
           "client": "stateappliedackentry_event_watermark_decode"
@@ -1944,7 +1893,9 @@
           "kind": "enum",
           "scalar": "u32",
           "values": [
+            0,
             1,
+            2,
             3,
             4
           ]
@@ -2386,15 +2337,9 @@
   "protocol_constants": [
     {
       "domain": "message",
-      "name": "ContextReady",
-      "value": 8,
-      "semantics": "公共协议Kind编号；仅合同登记，运行stream_codec尚未接通"
-    },
-    {
-      "domain": "message",
       "name": "AppliedAck",
       "value": 9,
-      "semantics": "公共协议Kind编号；仅合同登记，运行stream_codec尚未接通"
+      "semantics": "沿用线上编号，表示完整帧已经解码且接收快照可作基线"
     },
     {
       "domain": "message",
@@ -2406,12 +2351,6 @@
       "domain": "message",
       "name": "StateFrame",
       "value": 21,
-      "semantics": "公共协议Kind编号；仅合同登记，运行stream_codec尚未接通"
-    },
-    {
-      "domain": "message",
-      "name": "MemberTable",
-      "value": 22,
       "semantics": "公共协议Kind编号；仅合同登记，运行stream_codec尚未接通"
     },
     {
@@ -2533,6 +2472,12 @@
       "name": "Audio",
       "value": 9,
       "semantics": "版本63已完成typed payload与table/kind数字矩阵；仅本地资源描述／有限recipe，不包含媒体文件内容。"
+    },
+    {
+      "domain": "resource_kind",
+      "name": "ImagePath",
+      "value": 10,
+      "semantics": "配置、历史栏及图层路径等只见到文件名时的图像资源；由 Client 加载本地文件并检查路径与本地几何。"
     },
     {
       "domain": "stream",
@@ -2898,7 +2843,7 @@
       "domain": "flag",
       "name": "Joint",
       "value": 1,
-      "semantics": "Frame和AppliedAck bit0；双分段共同提交"
+      "semantics": "Frame和AppliedAck bit0；对应双分段完整基线"
     },
     {
       "domain": "flag",
@@ -3249,6 +3194,12 @@
         "table": 7,
         "kind": 9,
         "type": "ResourceAudio",
+        "recipe": false
+      },
+      {
+        "table": 1,
+        "kind": 10,
+        "type": "ResourcePath",
         "recipe": false
       }
     ],
@@ -3637,6 +3588,13 @@
     "body_burst_bytes": 4096,
     "reliable_burst_bytes": 8192,
     "world_hz": 30,
+    "world_send_window": 8,
+    "dynamic_send_bytes": 65536,
+    "decode_snapshots": 8,
+    "decode_failure_limit": 3,
+    "capture_failure_limit": 30,
+    "native_object_failure_limit": 3,
+    "pool_object_missing_limit": 30,
     "body_hz": 60,
     "ordinary_message_bytes": 65536,
     "reliable_message_bytes": 33554432,
@@ -3646,7 +3604,6 @@
     "progress_ms": 2000,
     "recovery_attempts": 2,
     "world_wait_ms": 100,
-    "joint_wait_ms": 500,
     "baseline_wait_ms": 10000,
     "body_send_ms": 50,
     "world_send_ms": 100,
@@ -3657,7 +3614,7 @@
     "sent_targets": 192,
     "sent_recovery_slots": 2,
     "sent_target_bytes": 67108864,
-    "sent_age_ms": 2000,
+    "sent_age_ms": 500,
     "event_count": 4096,
     "event_bytes": 262144,
     "event_age_ms": 500,
@@ -3670,7 +3627,7 @@
     "pool_value_bytes": 536870912,
     "pool_wire_bytes": 134217728,
     "pool_workspace_bytes": 134217728,
-    "shared_value_bytes": 67108864,
+    "shared_value_bytes": 75497472,
     "shared_wire_bytes": 33554432,
     "world_body_zstd": 1,
     "zstd_level": 3,

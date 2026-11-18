@@ -1,5 +1,13 @@
 # 第9步第五项：版本、接受与恢复
 
+**2026-11-17 最终一致修订（E1—E9 已同意，尚未实施）**：[设计文档](eventual-consistency-revision.md)、[规范第17节](../../refactor/project-conventions.md#17-原生二进制状态同步重构)。ACK 改为接收确认（E1），基线改为客机快照环与 8 帧／64KiB 窗口（E2），整批 FailedBeforeWrites／FailedAfterWrites 改为对象级失败（E3），版本 84（E8）。本文下列旧合同按时点保留，实施后以修订为准。
+
+**2026-11-16 布局 83 的 World 发送和接纳已接线**。Host 普通 World 发送窗口为 2。普通单流 World 可用唯一保留的成功前代解码完整目标，再相对当前已接受状态准备应用。旧 base 无精确前代或所需表快照时 Reack，版本不匹配时握手失败。运行验证归第 15 步。[World 应用节奏设计](13-client-world-cadence.md)
+
+**2026-11-15 用户采纳Body接纳修订，版本79**：[第13步10.4](13-client-incremental-apply.md#104-普通body单槽等待与前代解码基线2026-11-15用户采纳)允许普通Body用唯一保留的成功前代解码完整目标，再相对当前接受状态准备应用；Begin和实际提交锁定应用基线。旧base无对应保留根仍Reack，World／joint保持严格匹配。原正文／target／ACK身份不改，真实Success才确认；单槽等待、期限及失败方式以新节为准。本条覆盖下方冲突的零等待／所有旧base必拒绝描述，历史记录保留；第15步尚未通过。
+
+**2026-11-15 双通道设计修订，尚未实施**：[增量应用设计](13-client-incremental-apply.md)将普通World／Body的在途接受分别管理，joint独占两流，票据回执允许跨流交错并只推进其覆盖的确认序列。单流自身的成功base、重复处理、事件前缀、写后污染与完整恢复规则保持；共享根失效仍共同撤销。下方全局单inflight描述保留原实现事实，未来以新设计和[容量表](9-budget-capacity.md#4-容量及时间表)改造；不新增线格式、ACK序列或延长期限。本次未改代码、未构建、未测试。
+
 **2026-11-11 第9步收尾，版本65**：[预算／容量／时间合同](9-budget-capacity.md)已给出具体等待、恢复期限、重试／账本／事件／缓存／内存限制，并将带宽按用户决定改为90%＝9Mbps。第五项接受／原生污染恢复原则保持；下方版本64的“剩余预算细化”属于原时点，现以本项合同及唯一源常量为准。
 
 2026-11-11，按用户采纳的讨论方案实施，布局整数版本 **64**。本项完成纯值报文与接受／恢复合同；Host来源、逐Peer发送调度、完整影子及原生提交仍分别由10—13步接线，第14步退役旧路径。当前工作期间不运行测试，第15步唯一统一整体验收。
@@ -22,11 +30,17 @@
 
 布局整数版本严格相等，握手声明二进制能力；版本不符明确失败，不回退旧Range。布局源及影响互通的接受合同变化均递增版本。不计算哈希。
 
-完整候选按scope／route、精确表、base／target、生成布局、实际条件／投影、全部必要组／引用／资源／拓扑检查。普通base等于成功安装版本，baseline当且仅当base=0；target前进。提交前重查生命周期和依赖，joint共同提交／确认；解码成功、影子完整和原生成功分开。
+完整候选按 scope／route、精确表、base／target、生成布局、实际条件／投影、全部必要组／引用／资源／拓扑检查。普通单流的非零 base 可等于当前成功安装版本或本流唯一合格的成功前代版本，联合的非零 base 必须匹配两流当前成功安装版本。base=0 表示完整基线，target 必须前进。提交前重查生命周期、依赖和 Begin 封存的实际应用基线。联合共同提交与确认，真实 Success 后才确认原目标。
 
 ContextReady仅确认元数据。资源准备只遍历本目标实际闭包；缺声明不能借后来epoch补进旧目标。不可变目录、同epoch精确重传与同run不回收按第四项合同。
 
-同号目标内容固定，精确重复幂等，冲突拒绝。旧base帧先丢弃并重发最近成功提交的原始ACK凭据，joint保持双项，不立即全量恢复。Host按实际发出的完整目标核ACK，不根据任意较大数字退休内容。
+布局 82 起，Client 回报当前路由实际已安装的目录对和成员借用下限 `member_floor`。目录或下限变化时立即回报，同路由每 50ms 补发。Host 只用精确发出的目录对解除基线或联合的目录等待，并独立使用经验明的单调下限释放旧成员租约。旧路由的确认随路由退休。
+
+普通 World 在所需表交给可靠发送后即可下发。缺表使用原有 World 等待槽，仍缺表时到期只移除该候选；后续候选继续使用真实成功基线。基线、真正联合及其他恢复条件沿用原时限和回执要求。
+
+普通 World 正在解码、准备或在途时，可另留一个可替换的原始报文。该位满时仅以严格较新的普通 World 目标替换，仍检查同目标内容冲突。该位到期只丢该包，本流空闲后才将存活报文转入候选槽。联合候选、恢复和关闭均清空该位。
+
+同号目标内容固定，精确重复幂等，冲突拒绝。普通单流旧 base 命中合格前代时进入 Decode。未命中的旧 base 帧丢弃并重发最近成功提交的原始 ACK 凭据，joint 凭据保持双项。Host 按实际发出的完整目标核 ACK。
 
 旧route／scope和迟到目标丢弃；缺表／异步准备有界等待，普通单body未就绪即丢；可靠单body完整恢复仍可有界等待。base无法接续、表链断裂及事件缺口请求具名Resync；非法编码和同号冲突拒绝；必需资源缺失明确失败。普通world和joint各至多保留一个最新候选，一次仅有一个原生应用批次。全部自有字节仍计共享内存池；等待截止时间／发送峰值已由[版本65预算](9-budget-capacity.md)细化；仍不捏造性能通过结论。
 
@@ -45,7 +59,7 @@ ContextReady仅确认元数据。资源准备只遍历本目标实际闭包；�
 | DecodeStateFrame／EncodeStateFrameInto | 1／2段、精确成员layout、12B记录／u32 mask、typed结果与事件、整帧数量／字段访问预算 |
 | Decode／EncodeStateMemberTable | 50B公共头＋10B表头＋N×33B；严格member升序、非Null身份、合法操作、Key唯一 |
 | MergeStateMemberTableInto | 新不可变快照；同epoch精确重复／恢复full、准确previous、真实换形／离开及生命周期回收检查 |
-| Decode／EncodeStateContextReady／AppliedAck／Resync | 58B／73或94B／61B完整消息，精确长度、joint关系、合法stream及水位 |
+| Decode／EncodeStateContextReady／AppliedAck／Resync | 62B／73或94B／61B完整消息，精确长度、joint关系、合法stream及水位 |
 | StateFrameLane | 普通world／body各走原通道；base=0或joint可靠承运，绝不因超预算自动升级通道 |
 
 Inspect先对整帧定界，允许接受状态机在解码旧事件之前识别旧base并补ACK。只有完整Decode／Encode成功的视图才标记decoded；它仍不等于完整影子或原生成功。两个分段固定world随后body，同来源窗口、batch、GameFrame及表epoch，显式提供两项Peer target；不能用来源修订猜配对。
@@ -62,7 +76,7 @@ Inspect先对整帧定界，允许接受状态机在解码旧事件之前识别�
 |---|---|
 | 旧route／scope；全体target迟到 | Drop或合并补发现存成功ACK，不请求全量恢复 |
 | 保留凭据／候选／inflight中同target不同正文或joint关系 | Terminal，不覆盖原目标 |
-| target新，但base小于本端成功版本 | 丢该完整目标，Reack；不按当前事件水位误解码旧事件 |
+| target 新且 base 小于本端成功版本 | 普通单流命中合格前代时 Decode，其余旧 base 按 Reack 处理 |
 | base无法接续，或joint仅一项仍新 | Resync，不能部分安装 |
 | 仅完成固定头及整帧定界，base可接续 | Decode；先确认精确表可用再解typed正文，不是等待原生提交 |
 | 缺精确表、资源尚在准备、合法来源尚在等待 | world／joint／可靠恢复Wait，普通单body Drop |

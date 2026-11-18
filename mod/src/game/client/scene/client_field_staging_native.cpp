@@ -11,6 +11,7 @@
 #include <map>
 #include <list>
 #include <set>
+#include <stdexcept>
 #include <unordered_map>
 #include <unordered_set>
 #include <windows.h>
@@ -95,11 +96,13 @@ struct ClientStagedField {
   void (__cdecl *shared_release)(void *)=nullptr;
   std::size_t object_charge=0;
   unsigned rows_constructed=0;
-  bool entered=false,ready=false,uncertain=false,release_entered=false,shared_constructed=false;
+  bool entered=false,ready=false,uncertain=false,release_entered=false,shared_constructed=false,deferred=false;
   void *attached=nullptr;
   std::size_t attachment_size=0;
   std::array<std::byte,32> displaced{},published{};
   ClientStagedField *predecessor=nullptr,*successor=nullptr;
+  // 暂存槽持有承载，已安装写入器持有 header 用途。两者都在主线程退休。
+  unsigned owners=1,attachment_uses=0;
 };
 namespace {
 // 注册表节点直接使用Peer分配器；不归某个字段的native分配集合，因而可跨批次移交头部责任。
@@ -149,11 +152,20 @@ template<class T>T &Container(ClientStagedField &o) {
 void ConstructRow(ClientStagedField &o,void *p) {
   if(Sprite(o.input.layout)||o.input.layout==152){if(o.input.stride<sizeof(ANM2))throw std::bad_alloc();Native(o,[&]{static_cast<ANM2 *>(p)->constructor();});}
   else if(Layer(o.input.layout)){if(o.input.stride!=sizeof(LayerState))throw std::bad_alloc();new(p)LayerState{};}
+  else if(o.input.layout==246){
+    // Ray 尾部持有图像强引用，元素更换时须走原生引用计数。
+    static_assert(sizeof(KAGE_SmartPointer_ImageBase)==8);
+    if(o.input.stride!=20)throw std::bad_alloc();
+    new(static_cast<std::byte *>(p)+12)KAGE_SmartPointer_ImageBase();
+  }
 }
 void DestroyRow(ClientStagedField &o,void *p) {
   if(Sprite(o.input.layout)||o.input.layout==152)Native(o,[&]{static_cast<ANM2 *>(p)->destructor();});
   else if(Layer(o.input.layout))Native(o,[&]{static_cast<LayerState *>(p)->~LayerState();});
   else if(o.input.layout==10)Native(o,[&]{static_cast<EntityPtr *>(p)->SetReference(nullptr);});
+  else if(o.input.layout==246)Native(o,[&]{
+    reinterpret_cast<KAGE_SmartPointer_ImageBase *>(static_cast<std::byte *>(p)+12)->~KAGE_SmartPointer_ImageBase();
+  });
 }
 void Rows(ClientStagedField &o) {
   if(!o.input.stride||o.input.count>SIZE_MAX/o.input.stride)throw std::bad_alloc();auto &v=Container<Vector<std::byte>>(o);
@@ -164,6 +176,13 @@ void Rows(ClientStagedField &o) {
 template<unsigned N>void MakeDeque(ClientStagedField &o) {
   auto &v=Container<Deque<Row<N>>>(o);v.resize(o.input.count);o.element=[](void *p,unsigned i){return static_cast<void *>(&(*static_cast<Deque<Row<N>> *>(p))[i]);};
   o.rows_constructed=o.input.count;
+}
+void MakeReferenceDeque(ClientStagedField &o) {
+  static_assert(sizeof(EntityPtr)==4&&sizeof(Deque<EntityPtr>)==20);
+  // deque 扩缩不搬移仍存活的引用槽。收缩时由 EntityPtr 析构向原生反向树摘边。
+  auto &v=Container<Deque<EntityPtr>>(o);
+  v.resize(o.input.count);
+  o.element=[](void *p,unsigned i)->void *{return &(*static_cast<Deque<EntityPtr> *>(p))[i];};
 }
 std::int32_t Int(const std::byte *p){std::int32_t n;std::memcpy(&n,p,4);return n;}
 void Shared(ClientStagedField &o) {
@@ -219,73 +238,249 @@ ClientPreparationResult ClientStagedFieldConstruct(ClientStagedField *o,const Cl
   if(o->entered)return o->ready&&ClientStagedFieldCurrent(o)?Ready():Bad("binary_fields_prefix_retained");
   if(in.kind==Kind::Shared&&in.present&&in.payload_present&&in.count&&!(*reinterpret_cast<void **>(Base+SharedCallback(in.layout))))return Bad("binary_fields_shared_release_callback");
   o->entered=true;o->input=in;o->roots=ClientPreparationRoots();o->vm=ClientLuaStateIdentity();o->manager=g_Manager;ClientRendererHandles(o->dc,o->gl);
-  try {AllocationScope allocation(*o);
-    if(in.present||in.kind==Kind::Records)switch(in.kind){
-      case Kind::Group:break;
-      case Kind::Rows:case Kind::Vector:case Kind::CString:Rows(*o);break;
-      case Kind::String:{auto &s=Container<String>(*o);if(in.bytes!=in.count)throw std::bad_alloc();if(in.bytes)s.assign(reinterpret_cast<const char *>(in.data),in.bytes);break;}
-      case Kind::Deque:switch(in.stride){case 4:MakeDeque<4>(*o);break;case 8:MakeDeque<8>(*o);break;case 12:MakeDeque<12>(*o);break;case 64:MakeDeque<64>(*o);break;case 120:MakeDeque<120>(*o);break;default:return Bad("binary_fields_deque_stride");}break;
-      case Kind::Records:{if(in.count>1)return Bad("binary_fields_draw_record_count");auto &list=Container<List<Row<32>>>(*o);list.resize(in.count);
-        o->element=[](void *p,unsigned)->void *{return reinterpret_cast<std::byte *>(&static_cast<List<Row<32>> *>(p)->front())-offsetof(RecordNode,_Myval);};break;}
-      case Kind::Map:{if(in.bytes!=std::size_t(in.count)*8)return Bad("binary_fields_map_keys");auto &m=Container<Map<int,int>>(*o);o->elements.reserve(in.count);
-        for(unsigned i=0;i<in.count;++i){const auto result=m.emplace(Int(in.data+i*8),Int(in.data+i*8+4));if(!result.second)return Bad("binary_fields_map_duplicate");o->elements.push_back(&*result.first);}break;}
-      case Kind::Blocked:{if(in.bytes!=std::size_t(in.count)*4)return Bad("binary_fields_set_keys");auto &m=Container<Blocked>(*o);m.reserve(in.count);
-        o->elements.reserve(in.count);for(unsigned i=0;i<in.count;++i){const auto result=m.insert(Int(in.data+i*4));if(!result.second)return Bad("binary_fields_set_duplicate");o->elements.push_back(const_cast<int *>(&*result.first));}break;}
-      case Kind::Innate:{if(in.bytes!=std::size_t(in.count)*8)return Bad("binary_fields_innate_values");auto &m=Container<Innates>(*o);o->elements.reserve(in.count);
-        if(in.count){auto &g=m["IsaacCS"];g.persistent.reserve(in.count);for(unsigned i=0;i<in.count;++i){const auto result=g.persistent.emplace(Int(in.data+i*8),Int(in.data+i*8+4));
-          if(!result.second)return Bad("binary_fields_innate_duplicate");o->elements.push_back(&*result.first);}}break;}
-      case Kind::Seeds:{if(in.bytes!=std::size_t(in.count)*4)return Bad("binary_fields_seed_values");auto &m=Container<Seeds>(*o);o->elements.reserve(in.count);
-        for(unsigned i=0;i<in.count;++i){const auto result=m.insert(Int(in.data+i*4));if(!result.second)return Bad("binary_fields_seed_duplicate");
-          o->elements.push_back(reinterpret_cast<unsigned char *>(const_cast<int *>(&*result.first))-16);}break;}
-      case Kind::Shared:Shared(*o);break;
-      case Kind::Weapons:Weapons(*o);break;
-    }
-    // 输入片段只在当前调用借用，实际承载不固定临时 vector 的地址。
-    o->input.data=nullptr;o->input.bytes=0;o->ready=true;
-    return ClientStagedFieldCurrent(o)?Ready():Bad("binary_fields_construct_context_changed");
-  }catch(...){return Bad(o->uncertain?"binary_fields_native_prefix_retained":"binary_fields_allocation_failed");}
+  o->deferred=true;o->ready=true;o->input.data=nullptr;o->input.bytes=0;
+  return Ready();
 }
 bool ClientStagedFieldCurrent(const ClientStagedField *o) noexcept {
   if(!o||!o->ready||o->uncertain||o->release_entered||!Window()||o->vm!=ClientLuaStateIdentity()||o->manager!=g_Manager)return false;
   void *dc=nullptr,*gl=nullptr;const auto roots=ClientPreparationRoots();if(roots.game!=o->roots.game||roots.room!=o->roots.room||!ClientRendererHandles(dc,gl)||dc!=o->dc||gl!=o->gl)return false;
   if(o->attached){if(o->successor){if(o->successor->predecessor!=o||o->successor->attached!=o->attached)return false;}
     else if(std::memcmp(o->attached,o->published.data(),o->attachment_size))return false;}
+  if(o->deferred)return true;
   if(o->input.kind==Kind::Weapons&&o->input.present&&!WeaponsCurrent(*o))return false;
   if(o->input.kind==Kind::Shared&&o->input.present&&o->input.payload_present&&o->input.count)
     return o->shared_constructed&&o->shared[0]==o->container&&o->shared[1]&&*static_cast<const std::uintptr_t *>(o->container)==Base+SharedVptr(o->input.layout)&&
       o->shared_release&&o->shared_release==*reinterpret_cast<void (__cdecl **)(void *)>(Base+SharedCallback(o->input.layout));
   return true;
 }
-const void *ClientStagedFieldContainer(const ClientStagedField *o) noexcept {
-  if(!ClientStagedFieldCurrent(o))return nullptr;
-  return o->input.kind==Kind::Weapons?static_cast<const void *>(o->weapons.data()):o->input.kind==Kind::Shared?static_cast<const void *>(o->shared.data()):o->container;
+namespace {
+bool MaterializeField(ClientStagedField *o,const ClientStagedFieldInput &in) noexcept {
+  if(!o||!o->deferred||o->input.kind!=in.kind||
+      !ClientBinaryInstallationScopeActive(false)||!ClientNativeCpuQueuesEmpty()||!ClientStagedFieldCurrent(o))return false;
+  try {
+    AllocationScope allocation(*o);
+    // 在实际写段构造接入本地字段的承载，正文只在这次调用内借用。
+    if(in.present||in.kind==Kind::Records)switch(in.kind){
+      case Kind::Group:break;
+      case Kind::Rows:case Kind::Vector:case Kind::CString:Rows(*o);break;
+      case Kind::String:{auto &s=Container<String>(*o);if(in.bytes!=in.count)throw std::bad_alloc();if(in.bytes)s.assign(reinterpret_cast<const char *>(in.data),in.bytes);break;}
+      case Kind::Deque:switch(in.stride){case 4:if(in.layout==10)MakeReferenceDeque(*o);else MakeDeque<4>(*o);break;
+        case 8:MakeDeque<8>(*o);break;case 12:MakeDeque<12>(*o);break;case 64:MakeDeque<64>(*o);break;
+        case 120:MakeDeque<120>(*o);break;default:return false;}break;
+      case Kind::Records:{if(in.count>1)return false;auto &list=Container<List<Row<32>>>(*o);list.resize(in.count);
+        o->element=[](void *p,unsigned)->void *{return reinterpret_cast<std::byte *>(&static_cast<List<Row<32>> *>(p)->front())-offsetof(RecordNode,_Myval);};break;}
+      case Kind::Map:{if(in.bytes!=std::size_t(in.count)*8)return false;auto &m=Container<Map<int,int>>(*o);o->elements.reserve(in.count);
+        for(unsigned i=0;i<in.count;++i){const auto result=m.emplace(Int(in.data+i*8),Int(in.data+i*8+4));if(!result.second)return false;o->elements.push_back(&*result.first);}break;}
+      case Kind::Blocked:{if(in.bytes!=std::size_t(in.count)*4)return false;auto &m=Container<Blocked>(*o);m.reserve(in.count);
+        o->elements.reserve(in.count);for(unsigned i=0;i<in.count;++i){const auto result=m.insert(Int(in.data+i*4));if(!result.second)return false;o->elements.push_back(const_cast<int *>(&*result.first));}break;}
+      case Kind::Innate:{if(in.bytes!=std::size_t(in.count)*8)return false;auto &m=Container<Innates>(*o);o->elements.reserve(in.count);
+        if(in.count){auto &g=m["IsaacCS"];g.persistent.reserve(in.count);for(unsigned i=0;i<in.count;++i){const auto result=g.persistent.emplace(Int(in.data+i*8),Int(in.data+i*8+4));
+          if(!result.second)return false;o->elements.push_back(&*result.first);}}break;}
+      case Kind::Seeds:{if(in.bytes!=std::size_t(in.count)*4)return false;auto &m=Container<Seeds>(*o);o->elements.reserve(in.count);
+        for(unsigned i=0;i<in.count;++i){const auto result=m.insert(Int(in.data+i*4));if(!result.second)return false;
+          o->elements.push_back(reinterpret_cast<unsigned char *>(const_cast<int *>(&*result.first))-16);}break;}
+      case Kind::Shared:Shared(*o);break;
+      case Kind::Weapons:Weapons(*o);break;
+    }
+    o->deferred=false;
+    return ClientStagedFieldCurrent(o);
+  }catch(...){return false;}
 }
-void *ClientStagedFieldElement(ClientStagedField *o,std::uint32_t i) noexcept {
-  if(!ClientStagedFieldCurrent(o)||!o->input.present)return nullptr;
+}
+bool ClientStagedFieldMaterialize(ClientStagedField *o,const ClientStagedFieldInput &in) noexcept {
+  __try {return MaterializeField(o,in);}
+  __except(EXCEPTION_EXECUTE_HANDLER){if(o)o->uncertain=true;return false;}
+}
+namespace {
+// 只在已验证此 owner 的纯访问片中使用；别名和 attachment 变动之后重新验证。
+const void *ContainerAddress(const ClientStagedField &o) noexcept {
+  if(o.input.kind==Kind::Weapons)return o.weapons.data();
+  if(o.input.kind==Kind::Shared)return o.shared.data();
+  return o.container;
+}
+void *ElementAddress(ClientStagedField *o,std::uint32_t i) noexcept {
+  if(o->deferred||!o->input.present)return nullptr;
   if(o->input.kind==Kind::Weapons)return i<5?o->weapons[i]:nullptr;
   if(i>=o->input.count)return nullptr;if(o->input.kind==Kind::Shared)return o->container;
   if(i<o->elements.size())return o->elements[i];
   if(o->input.kind==Kind::String)return &(*static_cast<String *>(o->container))[i];
   if(!o->element)return nullptr;AllocationScope allocation(*o);return o->element(o->container,i);
 }
-std::size_t ClientStagedFieldAttachmentSize(const ClientStagedField *o) noexcept {
-  if(!ClientStagedFieldCurrent(o)||(!o->input.present&&o->input.kind!=Kind::Records))return 0;
+std::size_t AttachmentBytes(const ClientStagedField *o) noexcept {
+  if(!o->input.present&&o->input.kind!=Kind::Records)return 0;
   switch(o->input.kind){
     case Kind::Vector:return 12;case Kind::String:return 24;case Kind::Deque:return 20;
     case Kind::Map:case Kind::Innate:case Kind::Seeds:case Kind::Shared:return 8;
     case Kind::Blocked:return 32;case Kind::Weapons:return 20;case Kind::Records:return 12;default:return 0;
   }
 }
-bool ClientStagedFieldCanAttach(const ClientStagedField *o,void *destination,std::size_t size) noexcept {
-  if(!o||o->attached||o->predecessor||o->successor||!destination||!size||size!=ClientStagedFieldAttachmentSize(o)||destination==ClientStagedFieldContainer(o))return false;
+}
+void *ClientStagedFieldElement(ClientStagedField *o,std::uint32_t i) noexcept {
+  return ClientStagedFieldCurrent(o)?ElementAddress(o,i):nullptr;
+}
+void *ClientInspectedFieldElement(ClientStagedField *o,std::uint32_t i) noexcept {
+  return o?ElementAddress(o,i):nullptr;
+}
+std::size_t ClientInspectedFieldAttachmentSize(const ClientStagedField *o) noexcept {return o?AttachmentBytes(o):0;}
+bool ClientInspectedFieldCanAttach(const ClientStagedField *o,void *destination,std::size_t size) noexcept {
+  if(!o||o->attached||o->predecessor||o->successor||!destination||!size||
+      size!=AttachmentBytes(o)||destination==ContainerAddress(*o))return false;
   if(attachments){if(attachments->allocator.context!=o->allocator.context)return false;const auto i=attachments->entries.find(destination);
     if(i!=attachments->entries.end()){const auto *old=i->second;return old!=o&&!old->successor&&old->attachment_size==size&&
       old->input.kind==o->input.kind&&ClientStagedFieldCurrent(old);}}
   return true;
 }
+// 下列向量元素只有值或不拥有资源的配置指针，没有移动时需维护的引用槽和子承载。
+bool ClientLiveVectorLayout(std::uint16_t layout,std::uint32_t stride) noexcept {
+  switch(layout){
+    case 0:return stride!=0; // 无子布局的扁平标量序列，调用者另核对 linked。
+    case 1:return stride==8; // Vector
+    case 14:case 180:return stride==16; // TemporaryEffect / PlayerTemporaryEffect
+    case 155:return stride==4; // SmeltedTrinketDesc
+    case 205:return stride==24; // GridFireEmber
+    case 244:return stride==20; // FXPose
+    default:return false;
+  }
+}
+namespace {
+// 记录投影最多一条。链表哨兵继续归原容器，cursor 跟随 resize 后的当前节点。
+bool ResizeDrawRecords(ClientStagedField &o,const ClientStagedFieldInput &in) {
+  static_assert(sizeof(List<Row<32>>)==8);
+  if(!in.resize_live_sequence||in.count>1)return false;
+  auto &live=*static_cast<List<Row<32>> *>(o.attached);
+  live.resize(in.count);
+  std::memcpy(o.container,o.attached,sizeof(live));
+  o.input.count=in.count;o.input.present=in.present;o.input.payload_present=in.payload_present;
+  void *cursor=ElementAddress(&o,0);
+  if(!cursor)std::memcpy(&cursor,o.attached,sizeof(cursor));
+  std::memcpy(static_cast<std::byte *>(o.attached)+sizeof(live),&cursor,sizeof(cursor));
+  std::memcpy(o.published.data(),o.attached,o.attachment_size);
+  return true;
+}
+// 原生容器的头部在活对象内，旧 owner 仅记录实际分配和最终析构责任。
+bool InstallLiveContainer(ClientStagedField &o,const ClientStagedFieldInput &in) noexcept {
+  const auto width=in.kind==Kind::String?1u:(in.kind==Kind::Map||in.kind==Kind::Innate)?8u:
+    (in.kind==Kind::Blocked||in.kind==Kind::Seeds)?4u:0u;
+  if(in.bytes!=std::uint64_t(in.count)*width)return false;
+  if((in.kind==Kind::Map||in.kind==Kind::Innate)&&o.elements.size()==in.count){
+    bool same_keys=true;
+    for(unsigned i=0;i<in.count;++i){
+      const auto *entry=static_cast<const std::pair<const int,int> *>(o.elements[i]);
+      if(entry->first!=Int(in.data+i*8)){same_keys=false;break;}
+    }
+    if(same_keys){
+      // 键集合相同的更新保留节点和迭代器，只改映射值。
+      for(unsigned i=0;i<in.count;++i){
+        auto &mapped=static_cast<std::pair<const int,int> *>(o.elements[i])->second;
+        const auto value=Int(in.data+i*8+4);
+        if(mapped!=value)mapped=value;
+      }
+      return true;
+    }
+  }
+  AllocationScope allocation(o);
+  bool complete=false;
+  try {
+    if(in.kind==Kind::Records)return ResizeDrawRecords(o,in);
+    // 元素索引先预留。若分配失败，现有容器仍可安全析构。
+    if(in.kind==Kind::Map||in.kind==Kind::Innate||in.kind==Kind::Blocked||in.kind==Kind::Seeds)
+      o.elements.reserve(in.count);
+    switch(in.kind){
+      case Kind::String:{
+        auto &live=*static_cast<String *>(o.attached);
+        if(in.bytes)live.assign(reinterpret_cast<const char *>(in.data),in.bytes);
+        else live.clear();
+        break;
+      }
+      case Kind::Vector:{
+        if(!in.resize_live_sequence||!ClientLiveVectorLayout(in.layout,in.stride)||in.count>SIZE_MAX/in.stride)return false;
+        static_cast<Vector<std::byte> *>(o.attached)->resize(std::size_t(in.count)*in.stride);
+        o.rows_constructed=in.count;
+        break;
+      }
+      case Kind::Deque:{
+        if(!in.resize_live_sequence)return false;
+        switch(in.stride){
+          case 4:if(in.layout!=10)return false;static_cast<Deque<EntityPtr> *>(o.attached)->resize(in.count);break;
+          case 8:static_cast<Deque<Row<8>> *>(o.attached)->resize(in.count);break;
+          case 12:static_cast<Deque<Row<12>> *>(o.attached)->resize(in.count);break;
+          case 64:static_cast<Deque<Row<64>> *>(o.attached)->resize(in.count);break;
+          default:return false;
+        }
+        if(in.layout!=10)o.rows_constructed=in.count;
+        break;
+      }
+      case Kind::Map:{
+        auto &live=*static_cast<Map<int,int> *>(o.attached);
+        live.clear();o.elements.clear();
+        for(unsigned i=0;i<in.count;++i){
+          const auto inserted=live.emplace(Int(in.data+i*8),Int(in.data+i*8+4));
+          if(!inserted.second)throw std::invalid_argument("binary_live_map_duplicate");
+          o.elements.push_back(&*inserted.first);
+        }
+        break;
+      }
+      case Kind::Innate:{
+        auto &live=*static_cast<Innates *>(o.attached);
+        live.clear();o.elements.clear();
+        if(in.count){
+          auto &entries=live["IsaacCS"].persistent;
+          entries.reserve(in.count);
+          for(unsigned i=0;i<in.count;++i){
+            const auto inserted=entries.emplace(Int(in.data+i*8),Int(in.data+i*8+4));
+            if(!inserted.second)throw std::invalid_argument("binary_live_innate_duplicate");
+            o.elements.push_back(&*inserted.first);
+          }
+        }
+        break;
+      }
+      case Kind::Blocked:{
+        auto &live=*static_cast<Blocked *>(o.attached);
+        live.clear();o.elements.clear();live.reserve(in.count);
+        for(unsigned i=0;i<in.count;++i){
+          const auto inserted=live.insert(Int(in.data+i*4));
+          if(!inserted.second)throw std::invalid_argument("binary_live_blocked_duplicate");
+          o.elements.push_back(const_cast<int *>(&*inserted.first));
+        }
+        break;
+      }
+      case Kind::Seeds:{
+        auto &live=*static_cast<Seeds *>(o.attached);
+        live.clear();o.elements.clear();
+        for(unsigned i=0;i<in.count;++i){
+          const auto inserted=live.insert(Int(in.data+i*4));
+          if(!inserted.second)throw std::invalid_argument("binary_live_seed_duplicate");
+          o.elements.push_back(reinterpret_cast<std::byte *>(const_cast<int *>(&*inserted.first))-16);
+        }
+        break;
+      }
+      default:return false;
+    }
+    complete=true;
+  }catch(...){}
+  // 正常 C++ 异常后，仍保留实际 header，供既有退休路径释放本次已取得的分配。
+  std::memcpy(o.container,o.attached,o.attachment_size);
+  std::memcpy(o.published.data(),o.attached,o.attachment_size);
+  if(in.kind==Kind::Deque)DequeOwner(o,o.attached);
+  if(complete)o.input.count=in.count;
+  return complete&&!o.uncertain;
+}
+}
+bool ClientStagedFieldInstallValues(ClientStagedField *o,const ClientStagedFieldInput &in) noexcept {
+  __try {
+    return in.update_live&&o&&ClientBinaryInstallationScopeActive(false)&&o->attached&&
+      ClientStagedFieldAttached(o,o->attached)&&in.kind==o->input.kind&&InstallLiveContainer(*o,in);
+  } __except(EXCEPTION_EXECUTE_HANDLER){
+    if(o)o->uncertain=true;
+    return false;
+  }
+}
 bool ClientStagedFieldAttach(ClientStagedField *o,void *destination,std::size_t size) noexcept {
-  if(!ClientBinaryInstallationScopeActive(false)||!ClientNativeCpuQueuesEmpty()||!ClientStagedFieldCanAttach(o,destination,size))return false;
-  const auto *source=ClientStagedFieldContainer(o);if(!source)return false;
+  // 成功路径仅以Peer分配器新增注册表节点并改写已保管的header／Deque代理。
+  // 不执行原生回调或销毁旧承载；安装器据此保留页见证。失败后禁止继续使用本批。
+  if(!o||o->deferred||!ClientBinaryInstallationScopeActive(false)||!ClientNativeCpuQueuesEmpty()||!ClientStagedFieldCurrent(o)||
+      !ClientInspectedFieldCanAttach(o,destination,size))return false;
+  const auto *source=ContainerAddress(*o);if(!source)return false;
   Attachments *registry=nullptr;
   try {registry=AttachmentRegistry(o->allocator);if(!registry)return false;
     const auto [at,inserted]=registry->entries.emplace(destination,o);if(!inserted){o->predecessor=at->second;o->predecessor->successor=o;at->second=o;}}
@@ -295,18 +490,34 @@ bool ClientStagedFieldAttach(ClientStagedField *o,void *destination,std::size_t 
   if(o->input.kind==Kind::Records){
     // 原生绘制序列的游标跟随list头交接。空序列使用候选自身的哨兵。
     std::memcpy(o->published.data(),source,8);
-    void *cursor=ClientStagedFieldElement(o,0);
+    void *cursor=ElementAddress(o,0);
     if(!cursor)std::memcpy(&cursor,source,sizeof(cursor));
     std::memcpy(o->published.data()+8,&cursor,sizeof(cursor));
   }else std::memcpy(o->published.data(),source,size);
-  o->attached=destination;o->attachment_size=size;std::memcpy(destination,o->published.data(),size);DequeOwner(*o,destination);
+  o->attached=destination;o->attachment_size=size;o->attachment_uses=1;
+  std::memcpy(destination,o->published.data(),size);DequeOwner(*o,destination);
   return ClientStagedFieldAttached(o,destination);
 }
 bool ClientStagedFieldAttached(const ClientStagedField *o,const void *destination) noexcept {
   return o&&!o->successor&&o->attached==destination&&destination&&ClientStagedFieldCurrent(o);
 }
-bool ClientStagedFieldCommitAttachment(ClientStagedField *o) noexcept {
-  if(!o||!o->attached||o->successor||!ClientBinaryInstallationScopeActive(false)||!ClientStagedFieldCurrent(o)||!attachments)return false;
+bool ClientStagedFieldRetain(ClientStagedField *o) noexcept {
+  if(!o||o->owners==UINT_MAX||!o->attachment_uses||o->predecessor||
+      !ClientStagedFieldAttached(o,o->attached)||!attachments)return false;
+  const auto i=attachments->entries.find(o->attached);
+  if(i==attachments->entries.end()||i->second!=o)return false;
+  ++o->owners;return true;
+}
+bool ClientStagedFieldBorrowAttachment(ClientStagedField *o,void *destination,std::size_t size) noexcept {
+  // 安装器在此纯借用路径保留页见证：只能检查当前承载和修改自有计数，
+  // 不得加入原生调用、header替换或分配释放；若扩展这些行为须恢复调用边界。
+  if(!ClientBinaryInstallationScopeActive(false)||!ClientNativeCpuQueuesEmpty()||!o||o->owners<2||
+      !o->attachment_uses||o->attachment_uses==UINT_MAX||size!=o->attachment_size||!ClientStagedFieldAttached(o,destination))return false;
+  ++o->attachment_uses;return true;
+}
+bool ClientStagedFieldCommitCheckedAttachment(ClientStagedField *o,const void *destination) noexcept {
+  // 发布已读回此 header。同一主线程段内只有保管转移，仍核对登记及前一租约关系。
+  if(!o||!destination||o->attached!=destination||o->successor||!ClientBinaryInstallationScopeActive(false)||!attachments)return false;
   const auto i=attachments->entries.find(o->attached);if(i==attachments->entries.end()||i->second!=o)return false;
   if(auto *previous=o->predecessor){
     if(previous->successor!=o||previous->attached!=o->attached||previous->attachment_size!=o->attachment_size)return false;
@@ -316,16 +527,24 @@ bool ClientStagedFieldCommitAttachment(ClientStagedField *o) noexcept {
   return true;
 }
 bool ClientStagedFieldDetach(ClientStagedField *o) noexcept {
-  if(!o||!o->attached)return true;
+  if(!o||!o->attachment_uses)return true;
+  if(!ClientBinaryInstallationScopeActive(true)||!ClientNativeCpuQueuesEmpty())return false;
+  // 新批次仍借用同一 header 时只退本批用途。真实替换已折叠的 header 同样无需再写。
+  if(o->attachment_uses>1||!o->attached){--o->attachment_uses;return true;}
   if(!ClientBinaryInstallationScopeActive(true)||!ClientNativeCpuQueuesEmpty()||!ClientStagedFieldCurrent(o)||o->successor||!attachments)return false;
   const auto i=attachments->entries.find(o->attached);if(i==attachments->entries.end()||i->second!=o)return false;
   std::memcpy(o->attached,o->displaced.data(),o->attachment_size);DequeOwner(*o,o->container);
   if(auto *previous=o->predecessor){previous->successor=nullptr;i->second=previous;o->predecessor=nullptr;}
   else attachments->entries.erase(i);
-  o->attached=nullptr;o->attachment_size=0;RetireAttachmentRegistry();
+  o->attached=nullptr;o->attachment_size=0;o->attachment_uses=0;RetireAttachmentRegistry();
   return true;
 }
 bool ClientStagedFieldRelease(ClientStagedField *&o) noexcept {
+  if(o&&o->owners>1){
+    if(!Window()||!ClientBinaryPreparationScopeActive(true)||!ClientNativeCpuQueuesEmpty())return false;
+    --o->owners;o=nullptr;return true;
+  }
+  if(o&&o->attachment_uses)return false;
   if(!o)return true;if(o->attached||o->predecessor||o->successor||!Window()||!ClientBinaryPreparationScopeActive(true)||!ClientNativeCpuQueuesEmpty()||o->uncertain||o->release_entered)return false;
   if(o->entered){void *dc=nullptr,*gl=nullptr;const auto r=ClientPreparationRoots();if(r.game!=o->roots.game||r.room!=o->roots.room||o->vm!=ClientLuaStateIdentity()||o->manager!=g_Manager||!ClientRendererHandles(dc,gl)||dc!=o->dc||gl!=o->gl)return false;}
   if(o->input.kind==Kind::Shared&&o->container&&(!o->shared_constructed||o->shared[0]!=o->container||!o->shared[1]||!o->shared_release||o->shared_release!=*reinterpret_cast<void (__cdecl **)(void *)>(Base+SharedCallback(o->input.layout))))return false;

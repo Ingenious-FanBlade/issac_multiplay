@@ -14,13 +14,17 @@ public:
   ClientSceneFieldStaging(ClientSceneFieldStaging &&) noexcept;
   ClientSceneFieldStaging &operator=(ClientSceneFieldStaging &&) noexcept;
   void Describe(const state::ClientStateInstallPlan &);
-  // 调用者提供当前 BinaryPreparation 分派；每次只进入有限个独立原生承载。
-  ClientPreparationResult Stage(unsigned maximum) noexcept;
-  bool Ready()const noexcept;
+  // 借用已提交的同一根实例上的容器；校验根实例由场景保管 owner 提供。
+  using SameObject=bool (*)(const void *,std::uint32_t,std::uint32_t) noexcept;
+  void ReuseFrom(const ClientSceneFieldStaging &,const void *,SameObject) noexcept;
+  void SkipObjects(const void *,bool (*skip)(const void *,std::uint32_t) noexcept) noexcept;
+  // 调用者提供当前 BinaryPreparation 分派；一次登记本帧的全部承载。
+  ClientPreparationResult Stage() noexcept;
   bool HasNative()const noexcept;
   bool Drain() noexcept;
   using Visitor=bool (*)(void *,std::uint32_t,const ClientStagedFieldInput &,ClientStagedField *) noexcept;
-  bool Visit(void *,Visitor) noexcept;
+  using Continue=bool (*)(const void *) noexcept;
+  bool Visit(void *,Visitor,const void *window,Continue,std::uint64_t ticket,const char *phase) noexcept;
 private:
   struct Impl;
   std::unique_ptr<Impl> impl_;

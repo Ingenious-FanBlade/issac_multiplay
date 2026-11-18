@@ -2,6 +2,10 @@
   "evidence": "STATIC_CONFIRMED",
   "base": "0x400000",
   "functions": [
+    {"rva":"0x2DD7C0","pattern":"55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 00 00 00 00 50 83 EC 74","type":"void __thiscall(u32,i32,i32,u32)","entry":["RE-11：Pickup vtable+4，6DE853 ret10h。Morph 作用域内沿用无玩法的公共 Init。"]},
+    {"rva":"0x27560","pattern":"55 8B EC 83 EC 38 A1 ?? ?? ?? ?? 33 C5 89","type":"bool __thiscall(i32*,i32*,i32*)","entry":["RE-11：6DFFCE 调用的拾取物变体与物品池修正；42761E ret0Ch。"]},
+    {"rva":"0x2DED90","pattern":"55 8B EC 83 E4 F8 83 EC 14 53 56 57 8B F9","type":"void __thiscall(i32)","entry":["RE-11：6E030A 调用的替代底座逻辑，可接合另一个活对象；6DF07D ret4。"]},
+    {"rva":"0x303350","pattern":"55 8B EC 83 E4 F8 83 EC 38 A1 ?? ?? ?? ??","type":"void __stdcall(Entity*,u32)","entry":["RE-11：6BD267 可达的生成和头目死亡副作用；703455 ret8。"]},
     {"rva":"0x3D7DA0","pattern":"53 8B DC 83 EC 08 83 E4 F8 83 C4 04 55 8B 6B 04 89 6C 24 04 8B EC","type":"void __thiscall()","entry":["版本74：J273 Manager尾部正常音乐tick，无显式栈参；原函数恰好一次，仅标识内部Queue消费，不额外推进或复制后端状态。IDA静态字节与RE-10一致，未运行测试。"]},
     {"rva":"0x5635B0","pattern":"53 8B DC 83 EC 08 83 E4 F8 83 C4 04 55 8B 6B 04 89 6C 24 04 8B EC 81 EC","type":"void __thiscall()","entry":["显示委托Q13：9635B0，ECX为已构造MinimapConfig；仅临时镜像SavedEntities与保存Grid头，原函数正常调用一次后归还。"]},
     {"rva":"0x3E0880","pattern":"55 8B EC 51 53 56 57 8D B9 84 70 00 00 33 F6 90","type":"void __thiscall()","entry":["J273 Room 环境声清除；仅在 Client BossReplay 的 823D9D 调用点拦截。"]},

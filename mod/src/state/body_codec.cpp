@@ -94,6 +94,16 @@ bool Floating(ScalarKind scalar) noexcept { return scalar==ScalarKind::F32 || sc
 // 有界小端读取不做未对齐强转，也不把u64先转double。
 std::uint64_t Bits(std::span<const std::byte> bytes) {
   if (bytes.empty() || bytes.size()>8) Fail("scalar_width");
+  // 小端平台的标准标量宽度用 memcpy，既允许未对齐来源，也避免 Win32 逐字节做 64 位移位。
+  // 非标准宽度及其他字节序继续走通用解码，数值与后续 validator 完全一致。
+  if constexpr(std::endian::native==std::endian::little){
+    switch(bytes.size()){
+      case 1:return std::to_integer<std::uint8_t>(bytes[0]);
+      case 2:{std::uint16_t value;std::memcpy(&value,bytes.data(),2);return value;}
+      case 4:{std::uint32_t value;std::memcpy(&value,bytes.data(),4);return value;}
+      case 8:{std::uint64_t value;std::memcpy(&value,bytes.data(),8);return value;}
+    }
+  }
   std::uint64_t value=0;
   for (std::size_t i=0;i<bytes.size();++i) value|=std::uint64_t(std::to_integer<unsigned>(bytes[i]))<<(8*i);
   return value;
@@ -104,6 +114,17 @@ std::int64_t Sign(std::uint64_t value,unsigned width) noexcept {
 }
 double Real(std::uint64_t value,ScalarKind scalar) noexcept {
   return scalar==ScalarKind::F32 ? double(std::bit_cast<float>(std::uint32_t(value))) : std::bit_cast<double>(value);
+}
+// IEEE标量的全一指数恰好覆盖正负无穷与全部NaN；无需为每个F32先做x87扩宽再调用CRT。
+// 只优化有限性判定，范围等其他规则继续消费原数值；其他浮点表示保留通用路径。
+bool ScalarFinite(std::uint64_t value,ScalarKind scalar) noexcept {
+  if constexpr(std::numeric_limits<float>::is_iec559&&sizeof(float)==4&&
+      std::numeric_limits<double>::is_iec559&&sizeof(double)==8){
+    if(scalar==ScalarKind::F32)return (std::uint32_t(value)&0x7f800000u)!=0x7f800000u;
+    if(scalar==ScalarKind::F64)return (value&0x7ff0000000000000ull)!=0x7ff0000000000000ull;
+    return true;
+  }
+  return !Floating(scalar)||std::isfinite(Real(value,scalar));
 }
 void Put(std::span<std::byte> out,std::uint64_t value) {
   for (std::size_t i=0;i<out.size();++i) out[i]=std::byte(value>>(8*i));
@@ -117,9 +138,27 @@ const char *ScalarError(const Field &field,const BodyFieldPlan &plan,std::span<c
   const auto width=Width(plan.scalar);
   if(encoded.size()%width)return "scalar_array_width";
   const auto &validator=kBodyValidators[plan.validator];
+  // 无逐值约束的整数只需上面的宽度检查；字符串、集合的结构检查仍由调用者执行。
+  // 常见浮点字段只要求有限性，将静态规则分派移出元素循环，保留逐元素NaN／Inf拒绝。
+  if((validator.kind==Validation::None||validator.kind==Validation::Finite)&&!field.value_mask&&
+      (plan.rule==ValueRule::None||plan.rule==ValueRule::DisplayUtf8)){
+    if(!Floating(plan.scalar))return nullptr;
+    if constexpr(std::endian::native==std::endian::little&&std::numeric_limits<float>::is_iec559&&sizeof(float)==4){
+      if(plan.scalar==ScalarKind::F32){
+        for(std::size_t offset=0;offset<encoded.size();offset+=4){
+          std::uint32_t bits;std::memcpy(&bits,encoded.data()+offset,4);
+          if((bits&0x7f800000u)==0x7f800000u)return "nonfinite_scalar";
+        }
+        return nullptr;
+      }
+    }
+    for(std::size_t offset=0;offset<encoded.size();offset+=width)
+      if(!ScalarFinite(Bits(encoded.subspan(offset,width)),plan.scalar))return "nonfinite_scalar";
+    return nullptr;
+  }
   for(std::size_t offset=0;offset<encoded.size();offset+=width){
     const auto value=Bits(encoded.subspan(offset,width));
-    if(Floating(plan.scalar) && !std::isfinite(Real(value,plan.scalar)))return "nonfinite_scalar";
+    if(!ScalarFinite(value,plan.scalar))return "nonfinite_scalar";
     if(validator.kind==Validation::Boolean && value>1)return "boolean_value";
     if(validator.kind==Validation::Range){
       const bool valid=Floating(plan.scalar)?Real(value,plan.scalar)>=Real(validator.minimum,plan.scalar) && Real(value,plan.scalar)<=Real(validator.maximum,plan.scalar):
@@ -173,8 +212,9 @@ struct FieldSlice { std::span<const std::byte> bytes; bool seen=false; };
 class BodyMachine {
 public:
   BodyMachine(const BodyValueSource *source,std::span<std::byte> output,std::span<const std::byte> input,
-              BodyCodecScratch &scratch,const BodyCodecContext *context,BodyCodecLimits limits)
-      :source_(source),output_(output),input_(input),scratch_(scratch),context_(context),limits_(limits) {
+              BodyCodecScratch &scratch,const BodyCodecContext *context,BodyCodecLimits limits,
+              const std::array<BodyBlockInput,32> *blocks=nullptr)
+      :source_(source),output_(output),input_(input),scratch_(scratch),context_(context),limits_(limits),blocks_(blocks) {
     if (!limits.bytes || limits.bytes>(32u<<20) || !limits.field_visits || !limits.depth || limits.depth>kCodecMaxDepth)
       Fail("invalid_codec_limits");
     if (!limits.reliable && limits.bytes>65536) Fail("ordinary_message_protection");
@@ -190,8 +230,10 @@ public:
     BodyView result;
     result.layout=id;result.block_mask=mask;result.stream=stream;
     Walk(layout,mask,stream,&result);
-    if (!source_ && position_!=input_.size()) Fail("trailing_body_bytes");
-    result.bytes=Bytes().first(position_);
+    if (!blocks_) {
+      if (!source_ && position_!=input_.size()) Fail("trailing_body_bytes");
+      result.bytes=Bytes().first(position_);
+    }
     result.facts=scratch_.facts.first(scratch_.used);
     result.fields=scratch_.root_fields.first(scratch_.root_field_count);
     result.needs_base_checks=ValidateProjectionFacts(scratch_.facts.first(scratch_.used),false);
@@ -242,7 +284,7 @@ private:
     if (kind==ProjectionFactKind::Count && plan.group==kNullIndex) return;
     if (scratch_.used>=scratch_.facts.size()) throw BodyScratchError(BodyScratchRegion::Facts,scratch_.used+1,std::uint32_t(scratch_.facts.size()));
     auto &fact=scratch_.facts[scratch_.used++];
-    fact={};fact.depth=std::uint8_t(depth_);std::copy_n(path_.begin(),depth_,fact.parents.begin());
+    fact={};fact.depth=std::uint8_t(depth_);fact.root_block=root_block_;std::copy_n(path_.begin(),depth_,fact.parents.begin());
     fact.layout=field.layout;fact.field=field.index;fact.kind=kind;fact.value=value;
     if (kind==ProjectionFactKind::Count) {
       fact.group=plan.group;fact.slot=plan.slot;fact.limit=plan.count_limit;fact.copies=plan.copies;fact.slots=plan.slots;
@@ -290,7 +332,13 @@ private:
   }
   // 保留原位模式检查；整数按真实符号／宽度比较，避免u64经浮点转换丢失边界。
   void CheckScalar(const Field &field,const BodyFieldPlan &plan,std::span<const std::byte> encoded) {
-    if(const auto *error=ScalarError(field,plan,encoded))Fail(field,error);
+    if(const auto *error=ScalarError(field,plan,encoded)){
+      // 同名type字段分布在多种布局；失败必须携带布局/字段和首个值，才能定位实机枚举缺口。
+      const auto first=encoded.first((std::min)(encoded.size(),std::size_t{8}));
+      const auto detail=std::string(error)+" layout="+std::to_string(field.layout)+" field="+std::to_string(field.index)+
+        " value="+std::to_string(first.empty()?0:Bits(first));
+      Fail(field,detail.c_str());
+    }
     const auto width=Width(plan.scalar);
     for (std::size_t offset=0;offset<encoded.size();offset+=width) {
       const auto value=Bits(encoded.subspan(offset,width));
@@ -456,16 +504,53 @@ private:
     }
     scratch_.observer->Field(value);
   }
+  // 即便块本身没变，来自上一块的条件选择值也可能已变。重算根条件，
+  // 确认缓存边界和本批一致后才复用嵌套结果。
+  bool ReplayBlock(const Layout &layout,unsigned block,const BodyBlockInput &input,
+      std::array<FieldSlice,kBodyMaxFields> &values) {
+    if(!input.cached_visits)return false;
+    auto staged=values;
+    std::size_t at=0;
+    for(unsigned i=0;i<layout.field_count;++i){
+      const auto &field=Fields()[layout.first_field+i];if(field.block!=block)continue;
+      if(at==input.cached_fields.size())return false;
+      const auto &cached=input.cached_fields[at++];
+      if(cached.field!=field.index||cached.block!=block||
+          cached.present!=Condition(field,kBodyFieldPlans[layout.first_field+i],staged))return false;
+      if(cached.present)staged[i]={cached.bytes,true};
+    }
+    if(at!=input.cached_fields.size())return false;
+    if(input.cached_visits>limits_.field_visits-visits_)throw BodyVisitError(std::uint64_t(visits_)+input.cached_visits,limits_.field_visits);
+    for(const auto &cached:input.cached_fields){
+      const auto *field=FindField(layout.id,cached.field);
+      RootField(*field,cached.present,cached.bytes);
+    }
+    for(const auto &fact:input.cached_facts)if(fact.root_block==block){
+      if(scratch_.used>=scratch_.facts.size())throw BodyScratchError(BodyScratchRegion::Facts,scratch_.used+1,std::uint32_t(scratch_.facts.size()));
+      scratch_.facts[scratch_.used++]=fact;
+    }
+    values=staged;position_=input.bytes.size();visits_+=input.cached_visits;links_|=input.links;
+    return true;
+  }
   // 同一递归实例独占selector缓存；块号、条件和长度均由可信计划决定，失败不交付视图。
   void Walk(const Layout &layout,std::uint32_t mask,BodyStream stream,BodyView *root) {
     Visit();
     std::array<FieldSlice,kBodyMaxFields> values{};
     const auto begin=position_;
+    std::size_t root_bytes=0;
     for (std::uint8_t block=0;block<layout.block_count;++block) if (mask&(std::uint32_t{1}<<block)) {
       const auto &b=BlockFor(layout,block);
       if (stream!=BodyStream::Value && b.body!=(stream==BodyStream::Body)) Fail("block_stream_mismatch");
+      const auto *input=root&&blocks_?&(*blocks_)[block]:nullptr;
+      if(root)root_block_=block;
+      if(input){
+        if(input->bytes.size()>limits_.bytes-root_bytes)Fail("body_byte_budget");
+        root_bytes+=input->bytes.size();input_=input->bytes;position_=0;
+      }
       const auto block_begin=position_;
-      for (std::uint16_t i=0;i<layout.field_count;++i) {
+      const auto before_visits=visits_;
+      const bool reused=input&&ReplayBlock(layout,block,*input,values);
+      for (std::uint16_t i=0;!reused&&i<layout.field_count;++i) {
         const auto &field=Fields()[layout.first_field+i];
         if (field.block!=block) continue;
         Visit();
@@ -498,15 +583,16 @@ private:
       }
       const auto size=position_-block_begin;
       if (size<b.min_size || size>b.max_size) Fail("block_byte_budget");
-      if (root) root->blocks[root->block_count++]={block,Bytes().subspan(block_begin,size)};
+      if(input&&size!=input->bytes.size())Fail("trailing_body_block_bytes");
+      if (root) root->blocks[root->block_count++]={block,Bytes().subspan(block_begin,size),visits_-before_visits,reused};
     }
     LocalRules(layout,values);
     for (const auto &budget:LayoutBudgets()) if (budget.layout==layout.id) {
-      const auto bytes=position_-begin;
+      const auto bytes=root&&blocks_?root_bytes:position_-begin;
       if (bytes>budget.record_bytes || (!limits_.reliable && stream==BodyStream::Body && bytes>budget.body_bytes)) Fail("layout_record_budget");
       break;
     }
-    if (scratch_.observer)
+    if (scratch_.observer&&!(root&&blocks_))
       scratch_.observer->Node({std::span(node_path_).first(depth_),layout.id,Operation::Nested,255,
                               Bytes().subspan(begin,position_-begin)});
   }
@@ -516,6 +602,8 @@ private:
   BodyCodecScratch &scratch_;
   const BodyCodecContext *context_;
   BodyCodecLimits limits_;
+  const std::array<BodyBlockInput,32> *blocks_;
+  std::uint8_t root_block_=0;
   std::array<CodecPathStep,kCodecMaxDepth> path_{};
   std::array<CodecPathStep,kCodecMaxDepth> node_path_{};
   std::size_t position_=0,depth_=0;
@@ -589,27 +677,41 @@ bool DescribeBodySourceField(std::uint16_t id,std::uint16_t index,BodySourceFiel
   out={};const auto *layout=FindLayout(id);
   if(!layout || index>=layout->field_count ||
      std::find(kBodyDisabledLayouts.begin(),kBodyDisabledLayouts.end(),id)!=kBodyDisabledLayouts.end())return false;
-  const auto &plan=kBodyFieldPlans[layout->first_field+index];
-  const auto &field=Fields()[layout->first_field+index];
-  out={plan.scalar,plan.components,plan.canonical,plan.table,plan.predicate!=PredicateKind::None,false,
+  // 生成计划在进程内不变；一次展开全字段格式，热路径只做已核边界的索引复制。
+  // 固定数组不分配Peer内存；函数静态初始化保证Host和Client后台并发首次访问安全。
+  static const auto formats=[] {
+    std::array<BodySourceFieldInfo,kBodyFieldPlans.size()> result{};
+    const auto fields=Fields();
+    for(std::size_t i=0;i<result.size();++i){
+      const auto &plan=kBodyFieldPlans[i];const auto &field=fields[i];auto &info=result[i];
+      info={plan.scalar,plan.components,plan.canonical,plan.table,plan.predicate!=PredicateKind::None,false,
        plan.storage==BodyStorage::SharedOwner,plan.storage==BodyStorage::SlotsMask,
        field.operation==Operation::Reference || field.operation==Operation::Resource ||
        (field.operation==Operation::Container && field.target && field.target[0])};
-  out.storage=plan.storage;out.predicate=plan.predicate;out.selector=plan.selector;
-  out.operand=plan.operand;out.choices=plan.choices;out.nonnull=plan.rule==ValueRule::NonNull;
-  for(const auto &rule:kBodyLayoutRules)if(rule.layout==id &&
-      ((rule.kind==LayoutRuleKind::EmptyActiveZero && index!=rule.selector) ||
-       (rule.kind==LayoutRuleKind::NullCostumeLayerZero && index==rule.other))){
-    out.canonical_zero=true;out.zero_selector=rule.selector;
-    out.zero_rule=rule.kind==LayoutRuleKind::EmptyActiveZero?BodyZeroRule::IfZero:BodyZeroRule::IfNullIndex;
-  }
+      info.storage=plan.storage;info.predicate=plan.predicate;info.selector=plan.selector;
+      info.operand=plan.operand;info.choices=plan.choices;info.nonnull=plan.rule==ValueRule::NonNull;
+      for(const auto &rule:kBodyLayoutRules)if(rule.layout==field.layout &&
+          ((rule.kind==LayoutRuleKind::EmptyActiveZero && field.index!=rule.selector) ||
+           (rule.kind==LayoutRuleKind::NullCostumeLayerZero && field.index==rule.other))){
+        info.canonical_zero=true;info.zero_selector=rule.selector;
+        info.zero_rule=rule.kind==LayoutRuleKind::EmptyActiveZero?BodyZeroRule::IfZero:BodyZeroRule::IfNullIndex;
+      }
+    }
+    return result;
+  }();
+  out=formats[layout->first_field+index];
   return true;
 }
 std::uint32_t BodySourceMaximumFields() noexcept {return std::uint32_t(kBodyMaxFields);}
 bool ValidBodySourceScalars(std::uint16_t id,std::uint16_t index,std::span<const std::byte> bytes) noexcept {
   const auto *layout=FindLayout(id);BodySourceFieldInfo info;
   if(!layout || !DescribeBodySourceField(id,index,info) || info.linked)return false;
-  const auto &plan=kBodyFieldPlans[layout->first_field+index];const auto &field=Fields()[layout->first_field+index];
+  return ValidBoundBodyScalars(layout->first_field+index,bytes);
+}
+// 已绑定 Host 字段直接消费生成的数字 validator；网络正文仍使用原有入口。
+bool ValidBoundBodyScalars(std::uint32_t field_slot,std::span<const std::byte> bytes) noexcept {
+  const auto &plan=kBodyFieldPlans[field_slot];
+  const auto &field=Fields()[field_slot];
   if(ScalarError(field,plan,bytes))return false;
   if(plan.rule==ValueRule::DisplayUtf8 && DisplayUtf8Error(bytes))return false;
   if(plan.storage==BodyStorage::CString &&
@@ -629,6 +731,10 @@ BodyView EncodeBodyInto(std::uint16_t layout,std::uint32_t mask,BodyStream strea
 BodyView DecodeBody(std::uint16_t layout,std::uint32_t mask,BodyStream stream,std::span<const std::byte> bytes,
     BodyCodecScratch &scratch,const BodyCodecContext *context,BodyCodecLimits limits) {
   return BodyMachine(nullptr,{},bytes,scratch,context,limits).Run(layout,mask,stream);
+}
+BodyView DecodeBodyBlocks(std::uint16_t layout,std::uint32_t mask,BodyStream stream,
+    const std::array<BodyBlockInput,32> &blocks,BodyCodecScratch &scratch,const BodyCodecContext *context,BodyCodecLimits limits) {
+  return BodyMachine(nullptr,{},{},scratch,context,limits,&blocks).Run(layout,mask,stream);
 }
 BodyView EncodeValueInto(std::uint16_t id,const BodyValueSource &source,std::span<std::byte> out,
     BodyCodecScratch &scratch,const BodyCodecContext *context,BodyCodecLimits limits) {

@@ -13,9 +13,7 @@ bool EntitySource::AudioResource(const CaptureWitness &w,EntityFacts f,std::uint
   const std::string_view text(reinterpret_cast<const char *>(path.data()),size);
   if(!(text.starts_with("sfx/")||text.starts_with("music/")) || text.find("..")!=text.npos || text.find_first_of(":<>\"|?*")!=text.npos ||
      !(text.ends_with(".wav")||text.ends_with(".ogg")||text.ends_with(".mp3")))return FailCapture(d,CaptureFailure::ResourcePending,{f.subject});
-  std::array<std::byte,32> check{};
-  for(std::uint32_t i=0;i<s.witness_used;++i){const auto &mark=s.witnesses[i];if(!s.Read(mark.address,std::span(check).first(mark.size),d)||
-      !std::equal(check.begin(),check.begin()+mark.size,mark.bytes.begin()))return FailCapture(d,CaptureFailure::SourceChanged,{f.subject});}
+  if(!s.Verify({f.subject,f.address,0,f.layout},d))return false;
   NativeResource resource;resource.table=7;resource.kind=9;resource.values[0]=0;resource.values[1]=0;
   return s.Intern(resource,std::span(path).first(size),{},out,d);
 }

@@ -24,7 +24,8 @@ public:
                BinaryDisplayRead,const BinaryDisplayInputs &,state::CaptureDiagnostic &) noexcept;
   bool Observe(BinaryProductionKind,std::uint32_t,std::span<const std::uint32_t>,const state::CaptureWitness &,
                world::binary::EntityFacts,world::binary::EntitySource &,BinaryDisplayRead,
-               std::span<const state::CaptureReferenceEntry>,state::CaptureDiagnostic &) noexcept;
+               std::span<const state::CaptureReferenceEntry>,state::CaptureDiagnostic &,
+               const state::CaptureReferenceEntry *event_player=nullptr) noexcept;
   bool Sfx(const state::CaptureWitness &,world::binary::EntityFacts,world::binary::EntitySource &,BinaryDisplayRead,
            int,float,int,bool,float,float,std::uint32_t,int,std::span<const state::CaptureReferenceEntry>,state::CaptureDiagnostic &) noexcept;
   bool Events(const state::StateScope &,state::CaptureValueWriter &,std::uint32_t &,state::CaptureDiagnostic &,state::CaptureAppendContext) noexcept;
@@ -36,7 +37,9 @@ public:
   std::uint64_t ReserveTransition() noexcept;
   void OverlayShown(std::uint32_t,std::int32_t) noexcept;
   void BossShown(std::uint32_t,std::uint32_t,std::uint32_t,std::int32_t,std::int32_t) noexcept;
-  void Fault() noexcept;
+  // 锁存导致显示源失效的第一条诊断，后续ordinary不能用Incomplete覆盖它。
+  void Fault(const state::CaptureDiagnostic &) noexcept;
+  state::CaptureDiagnostic FirstFailure() const noexcept;
   std::uint64_t RetainedBytes() const noexcept;
   std::uint64_t EventWatermark() const noexcept;
   // worker已让所有当前Peer可靠队列拥有该范围后，主线程才退休采集副本；这不是AppliedAck。

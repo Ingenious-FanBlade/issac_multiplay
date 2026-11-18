@@ -8,10 +8,14 @@
 namespace cs::game {
 namespace {
 // 此状态仅主线程访问；不保存原生地址、不改变类别owner或回收策略。
-constexpr std::array<const char *,16> points={"acquire-before","acquire-after","init-before","init-after",
+constexpr std::array<const char *,29> points={"acquire-before","acquire-after","init-before","init-after",
   "fields-before","fields-after","resources-before","resources-after","publish-before","publish-after",
-  "references-before","references-after","check-before","check-after","draw-before","draw-after"};
+  "references-before","references-after","check-before","check-after","draw-before","draw-after",
+  "binary-world-before-install","binary-world-after-install","binary-joint-after-install","binary-object-write",
+  "binary-write-overlap","binary-write-conflict","binary-late-overlap","binary-late-conflict",
+  "binary-fragment-seal-fallback","binary-fragment-drift","binary-fragment-after-install","binary-host-tear-read","binary-object-write-three"};
 const char *armed=nullptr,*hit=nullptr;unsigned hits=0;
+std::uint64_t tear_member=0;
 // 测量只保存累计值和单次峰值，不写逐tick日志，也不持有任何原生借用。
 struct Time {std::uint64_t count=0,total=0,maximum=0;};
 std::map<std::string,Time> times;
@@ -19,14 +23,29 @@ bool Token(const std::string &token){return IsMain()&&TopOwner()==Owner::Manager
 }
 std::string ClientEntityTestArm(const std::string &token,const std::string &name) noexcept {
   if(!Token(token))return "ok=0\nerror=entity_fault_context\n";
-  if(name=="clear"){armed=hit=nullptr;hits=0;return "ok=1\ncleared=1\n";}
+  if(name=="clear"){armed=hit=nullptr;hits=0;tear_member=0;return "ok=1\ncleared=1\n";}
   if(armed)return "ok=0\nerror=entity_fault_already_armed\n";
-  for(const auto *p:points)if(name==p){armed=p;hit=nullptr;hits=0;return "ok=1\narmed="+name+"\n";}
+  for(const auto *p:points)if(name==p){armed=p;hit=nullptr;hits=0;tear_member=0;return "ok=1\narmed="+name+"\n";}
   return "ok=0\nerror=entity_fault_unknown_point\n";
 }
 bool ClientEntityTestFault(const char *point) noexcept {
-  if(!IsMain()||!ClientBusy()||!armed||std::strcmp(point,armed))return false;
+  if(!ClientEntityTestArmed(point))return false;
   hit=armed;armed=nullptr;++hits;return true;
+}
+// 在 Host 普通采集的单根回卷边界命中一次，复用既有控制口与状态查询。
+bool HostTearReadTestFault() noexcept {
+  if(!IsMain()||!HostBusy()||!armed||std::strcmp(armed,"binary-host-tear-read"))return false;
+  hit=armed;armed=nullptr;++hits;return true;
+}
+// 连续三次只故障同一同步成员，覆盖正常回收及下一份候选中的重新构造。
+bool ClientTearWriteTestFault(std::uint64_t member) noexcept {
+  if(!ClientEntityTestArmed("binary-object-write-three")||(tear_member&&tear_member!=member))return false;
+  tear_member=member;hit=armed;
+  if(++hits==3)armed=nullptr;
+  return true;
+}
+bool ClientEntityTestArmed(const char *point) noexcept {
+  return IsMain()&&ClientBusy()&&armed&&std::strcmp(point,armed)==0;
 }
 std::string ClientEntityTestStatus(const std::string &token) noexcept {
   if(!Token(token))return "ok=0\nerror=entity_fault_token\n";

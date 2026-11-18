@@ -29,6 +29,7 @@ public:
   const ClientDisplayInjections &Inputs() const noexcept;
   std::span<const std::uint64_t> MapFacts() const noexcept;
   long StorageReferences()const noexcept;
+  ClientDisplayMemoryRef Memory() const noexcept;
 private:
   friend std::shared_ptr<const ClientDisplayWorld> ClientDescribeDisplayWorld(
     state::ClientShadowStateRef,const ClientDisplaySelection &,ClientRoomLevelDescription,std::shared_ptr<state::ClientStateMemory>);

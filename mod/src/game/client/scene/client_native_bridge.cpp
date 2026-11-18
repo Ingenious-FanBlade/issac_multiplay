@@ -1,6 +1,7 @@
 #include "IsaacRepentance.h"
 #include "LuaCore.h"
 #include "game/common/bridge.h"
+#include "game/common/context.h"
 #include "game/client/scene/client_lifetime.h"
 #include "game/client/display/client_display_bridge.h"
 #include "runtime.h"
@@ -67,6 +68,14 @@ bool ReleaseLuaRegistryImpl(void *pointer) noexcept {
 template <class T> bool Field(const void *base,std::size_t offset,T &value) noexcept {
   return base&&ReadMemory(static_cast<const unsigned char *>(base)+offset,&value,sizeof(value));
 }
+// 仅重读本轮已经完整核过的窗口字段；异常不能把旧句柄当成仍然有效。
+bool SameRendererWindow(void *window,void *hwnd,void *dc,void *gl) noexcept {
+  __try {
+    const auto *p=static_cast<const unsigned char *>(window);
+    return *reinterpret_cast<void *const *>(p+0x218)==hwnd&&
+      *reinterpret_cast<void *const *>(p+0x234)==dc&&*reinterpret_cast<void *const *>(p+0x238)==gl;
+  } __except(EXCEPTION_EXECUTE_HANDLER) {return false;}
+}
 }
 bool ClientNativeCpuQueuesEmpty() noexcept {
   if(!IsMain()||!__ptr_g_KAGE_Graphics_ImageManager)return false;
@@ -81,12 +90,23 @@ bool ClientRendererHandles(void *&dc,void *&context) noexcept {
   dc=context=nullptr;
   if(!IsMain()||!__ptr_g_KAGE_Graphics_Manager)return false;
   auto *window=__ptr_g_KAGE_Graphics_Manager->_window;
+  // 同一主线程边界内按字段写入时，窗口归属不必重复调用三次 VirtualQuery 和窗口管理 API。
+  // 每个新边界仍完整校验；窗口或任一句柄变化立即重验。当前 WGL context 由各调用作用域继续检查。
+  struct ValidatedWindow {std::uint64_t token=0;void *window=nullptr,*hwnd=nullptr,*dc=nullptr,*gl=nullptr;};
+  static thread_local ValidatedWindow known;
+  const auto token=ContextHealthy()&&TopOwner()==Owner::Manager?OwnerToken(Owner::Manager):0;
+  if(token&&known.token==token&&known.window==window&&SameRendererWindow(window,known.hwnd,known.dc,known.gl)){
+    dc=known.dc;context=known.gl;return true;
+  }
+  known={};
   void *hwnd=nullptr;
   if(!Field(window,0x218,hwnd)||!hwnd)return false;
   DWORD pid=0;
   if(!GetWindowThreadProcessId(static_cast<HWND>(hwnd),&pid)||pid!=GetCurrentProcessId())return false;
   if(!Field(window,0x234,dc)||!Field(window,0x238,context)||!dc||!context)return false;
-  return WindowFromDC(static_cast<HDC>(dc))==static_cast<HWND>(hwnd);
+  if(WindowFromDC(static_cast<HDC>(dc))!=static_cast<HWND>(hwnd))return false;
+  if(token)known={token,window,hwnd,dc,context};
+  return true;
 }
 // 只观察当前 VM 的身份；借用者必须再检查对应 Lua 代次和 owner 阶段。
 void *ClientLuaStateIdentity() noexcept {

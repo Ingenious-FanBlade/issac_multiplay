@@ -1,6 +1,7 @@
 #include "game/client/grid/client_grid_description.h"
 #include "state/nested.h"
 #include "state/client_description_memory.h"
+#include "state/client_shadow.h"
 #include "core/replication_memory.h"
 #include <algorithm>
 #include <cmath>
@@ -32,12 +33,13 @@ template<class T> T Scalar(ClientGridBytes bytes,std::uint32_t offset=0) {
   T value{};std::memcpy(&value,bytes.data+offset,sizeof(value));return value;
 }
 // 切片只指向当前描述拥有的字节；不允许来自网络的偏移或原生字段地址。
-struct Slice final { const state::Field *field=nullptr;std::uint32_t offset=0,size=0,version=0; };
+struct Slice final { const state::Field *field=nullptr;std::uint32_t offset=0,size=0,version=0;const std::uint8_t *borrowed=nullptr; };
 }
 struct ClientGridShadowStorage final {
   ClientGridShadowIdentity identity;
   const GridDescriptionPlan *plan=nullptr;
   std::array<Slice,kRoles> slices{};
+  std::shared_ptr<const state::ClientShadowState> backing;
   std::vector<std::uint8_t,state::ClientDescriptionAllocator<std::uint8_t>> bytes;
   memory::Lease charge;
   explicit ClientGridShadowStorage(const std::shared_ptr<state::ClientStateMemory> &m):bytes(state::ClientDescriptionAllocator<std::uint8_t>(m)) {}
@@ -50,7 +52,7 @@ const Slice &SliceFor(const ClientGridShadowStorage &s,ClientGridFieldRole role)
 }
 ClientGridBytes BytesFor(const ClientGridShadowStorage &s,ClientGridFieldRole role) {
   const auto &slice=SliceFor(s,role);
-  return {slice.size?s.bytes.data()+slice.offset:nullptr,slice.size};
+  return {slice.size?(slice.borrowed?slice.borrowed:s.bytes.data()+slice.offset):nullptr,slice.size};
 }
 // 元素数和完整有效前缀必须一致，空列表与不适用保留不同含义；不读取capacity尾部。
 std::uint16_t Count(const ClientGridShadowStorage &s,ClientGridFieldRole role,std::uint32_t stride) {
@@ -69,7 +71,7 @@ ClientGridProjection::ClientGridProjection(std::shared_ptr<const ClientGridShado
   :storage_(std::move(s)),role_(r){}
 ClientGridBytes ClientGridProjection::Bytes() const noexcept {
   if(!storage_)return {};const auto &s=storage_->slices[std::size_t(role_)];
-  return {s.size?storage_->bytes.data()+s.offset:nullptr,s.size};
+  return {s.size?(s.borrowed?s.borrowed:storage_->bytes.data()+s.offset):nullptr,s.size};
 }
 std::uint16_t ClientGridProjection::RootLayout() const noexcept {return storage_?storage_->identity.layout:0;}
 std::uint16_t ClientGridProjection::FieldIndex() const noexcept {return storage_?storage_->slices[std::size_t(role_)].field->index:UINT16_MAX;}
@@ -140,13 +142,22 @@ ClientGridDescription ClientDescribeGrid(const ClientGridShadowRecordView &sourc
     if(input.size>byte_limit-total)Fail("record_budget");total+=input.size;present|=std::uint32_t(1)<<i;
   }
   if((present&plan->required_blocks)!=plan->required_blocks)Fail("incomplete_shadow_record");
-  // 描述一次性取得全部块的自有字节，之后只共享const owner，不保留输入指针或逐字段树。
+  // 正式流只借与本记录精确匹配的影子块。独立描述仍使用原有自有字节路径。
+  const auto cached=source.backing?source.backing->Find({id.key.space,id.layout,id.key.id,id.use,id.shape}):std::nullopt;
+  if(source.backing&&(!cached||cached->Member()!=id.member))Fail("shadow_backing_identity");
   auto charge=peer?memory::Lease{}:memory::Reserve(memory::Pool::Values,sizeof(ClientGridShadowStorage)+32ull+total,"grid_shadow_description");
   auto storage=peer?std::allocate_shared<ClientGridShadowStorage>(state::ClientStateAllocator<ClientGridShadowStorage>(peer),peer):std::make_shared<ClientGridShadowStorage>(peer);
-  storage->charge=std::move(charge);storage->identity=id;storage->plan=plan;
-  storage->bytes.resize(total);if(storage->charge)storage->charge->Resize(sizeof(ClientGridShadowStorage)+32ull+storage->bytes.capacity());
-  for(unsigned i=0;i<32;++i)if(source.blocks[i].present&&source.blocks[i].size)
-    std::memcpy(storage->bytes.data()+offsets[i],source.blocks[i].data,source.blocks[i].size);
+  storage->charge=std::move(charge);storage->identity=id;storage->plan=plan;storage->backing=source.backing;
+  if(!cached)storage->bytes.resize(total);
+  if(storage->charge)storage->charge->Resize(sizeof(ClientGridShadowStorage)+32ull+storage->bytes.capacity());
+  for(unsigned i=0;i<32;++i)if(source.blocks[i].present){
+    const auto &input=source.blocks[i];
+    if(cached){
+      const auto block=cached->Block(std::uint8_t(i));
+      if(!block||block->version!=input.version||block->bytes.size()!=input.size||
+         reinterpret_cast<const std::uint8_t *>(block->bytes.data())!=input.data)Fail("shadow_backing_block");
+    }else if(input.size)std::memcpy(storage->bytes.data()+offsets[i],input.data,input.size);
+  }
   for(std::size_t r=0;r<kRoles;++r){const auto index=plan->fields[r];if(index==UINT16_MAX)continue;
     const auto *field=state::FindField(id.layout,index);if(!field||field->block>=layout->block_count||field->wire_offset==UINT32_MAX)Fail("field_plan");
     const auto &input=source.blocks[field->block];const auto start=field->wire_offset;
@@ -154,7 +165,7 @@ ClientGridDescription ClientDescribeGrid(const ClientGridShadowRecordView &sourc
     for(std::uint16_t next=index+1;next<layout->field_count;++next){const auto *f=state::FindField(id.layout,next);
       if(f->block==field->block){end=f->wire_offset;break;}}
     if(start>end||end>input.size||end-start<field->min_size||end-start>field->max_size)Fail("field_bounds");
-    storage->slices[r]={field,offsets[field->block]+start,end-start,input.version};
+    storage->slices[r]={field,offsets[field->block]+start,end-start,input.version,cached&&end>start?input.data+start:nullptr};
   }
   ClientGridDescription result(storage);const auto desc=result.Descriptor();
   if(FactoryLayout(desc.type)!=id.layout||result.Index()>447)Fail("factory_type_or_index");

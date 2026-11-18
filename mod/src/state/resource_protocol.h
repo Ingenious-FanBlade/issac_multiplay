@@ -104,6 +104,8 @@ bool ResourceShaderAllowed(std::uint8_t use,std::uint8_t shader_type) noexcept;
 void ValidateResourceBindings(std::uint16_t layout,std::uint32_t block_mask,BodyStream,
     std::span<const std::byte>,const ResourceDirectoryView &,const ResourceReadyContext &,
     BodyCodecScratch &,const BodyCodecContext *context=nullptr,BodyCodecLimits={});
+// 已由正文 codec 定界的节点可复用同一资源用途与就绪检查。
+void ValidateResourceBindingNode(const BodyNodeView &,const ResourceDirectoryView &,const ResourceReadyContext &);
 // 为704等正文条件提供同resource_epoch的真实(type,id,cooldown)，不访问原生配置指针。
 class ResourceBodyContext final : public BodyCodecContext {
 public:

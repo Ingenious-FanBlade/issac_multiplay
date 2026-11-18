@@ -12,6 +12,7 @@
 #include "game/authority/state.h"
 #include "game/authority/tick.h"
 #include "world/observe.h"
+#include "world/common/frame_read_regions.h"
 #include "game/observation/sources/value_source.h"
 #include "game/observation/sources/lua_entity.h"
 #include <algorithm>
@@ -36,10 +37,12 @@ WorldJoinEffectSourceScope::~WorldJoinEffectSourceScope() noexcept {
   if(token_&&capture_&&capture_->collector)capture_->collector->EndJoinEffectSource(token_,normal);
 }
 StreamResourceScope::StreamResourceScope(void *object,bool retired,bool constructing,void *copy_source,const char *operation) noexcept {
-  if(!IsMain()||!object)return;
+  if(!object)return;
+  if(!IsMain()){foreign_writer_=true;BinaryForeignResourceWrite(true);return;}
   auto current=CurrentWorldRecording();
   capture::Cost cost(capture::CostPart::Control);
-  if(current&&current->binary_entities)current->binary_entities->ResourceChanged(world::PackWord(object));
+  if(current&&current->binary_entities){current->binary_entities->ResourceChanged(world::PackWord(object),operation);
+    qualified_writer_=current->binary_entities->Active();exceptions_=std::uncaught_exceptions();}
 #ifdef ISAACCS_E2E
   capture_=std::move(current);exceptions_=std::uncaught_exceptions();
   if(!capture_||!capture_->live_consumer){capture_.reset();return;}
@@ -89,8 +92,12 @@ StreamResourceScope::StreamResourceScope(void *object,bool retired,bool construc
   (void)retired;(void)constructing;(void)copy_source;(void)operation;
 #endif
 }
-#ifdef ISAACCS_E2E
 StreamResourceScope::~StreamResourceScope() noexcept {
+  if(foreign_writer_){BinaryForeignResourceWrite(false);return;}
+  if(qualified_writer_&&(!returned_||exceptions_!=std::uncaught_exceptions())){
+    if(const auto current=CurrentWorldRecording();current&&current->binary_entities)current->binary_entities->Invalidate();
+  }
+#ifdef ISAACCS_E2E
   if(!capture_)return;auto &c=*capture_;if(affects_source_&&c.stream_resource_depth)--c.stream_resource_depth;
   capture::Cost cost(capture::CostPart::Control);
   // copy原链内部Reset不能把读取副本改成独立世界资源；只在原链正常返回后恢复来源代次。
@@ -101,7 +108,9 @@ StreamResourceScope::~StreamResourceScope() noexcept {
   // 原生析构内部还会调用Reset；外层最终收口再次抹除，不能留下嵌套Reset分配的新token。
   if(retired_)c.stream_resources.erase(address_);
   if(!returned_||exceptions_!=std::uncaught_exceptions())c.observation.Invalidate("stream_resource_original_exception");
+#endif
 }
+#ifdef ISAACCS_E2E
 std::uint64_t StreamResourceGeneration(void *object,bool copied_value) noexcept {
   auto c=CurrentWorldRecording();if(!IsMain()||!c||!c->live_consumer||!object||c->stream_resource_depth)return 0;
   capture::Cost cost(capture::CostPart::Control);
@@ -329,7 +338,10 @@ world::Stage StageFor(WorldBoundary kind) noexcept {
 }
 } // namespace
 bool WorldCaptureActive() noexcept { return IsMain()&&recording&&recording->collector&&recording->collector->Participating(); }
-void InitializeWorldBridge() noexcept { world::SetObservationSink(&sink); }
+void InitializeWorldBridge() noexcept {
+  world::InitializeFrameReadRegions([]() noexcept {Trace("read_regions_guard","cross_call_cache_disabled");});
+  world::SetObservationSink(&sink);
+}
 world::MemoryReader WorldMemoryReader() noexcept {
   world::MemoryReader result{};
   if (!IsMain() || !Base)
@@ -350,6 +362,31 @@ world::MemoryReader WorldMemoryReader() noexcept {
   result.image_base = static_cast<std::uint32_t>(Base);
   result.image_size = nt.OptionalHeader.SizeOfImage;
   result.main_thread = MainThread;
+  result.copy_image = [](std::uint32_t address, void *out, std::size_t size) noexcept {
+    SIZE_T copied=0;
+    return ReadProcessMemory(GetCurrentProcess(),reinterpret_cast<const void *>(uintptr_t(address)),out,size,&copied) && copied==size;
+  };
+  result.roots=[](std::uint32_t image_base,const std::array<std::uint32_t,4> &offsets,
+      std::array<std::uint32_t,4> &values) noexcept {
+    if(!IsMain())return false;
+    for(unsigned i=0;i<values.size();++i){
+      const auto base=i?values[0]:image_base;
+      const auto address=std::uint64_t(base)+offsets[i];
+      if(!base||!world::CheckedNativeCopy(address,&values[i],sizeof(values[i]),world::FrameRegionReader::Roots))return false;
+    }
+    return true;
+  };
+  result.classify=[](world::ObjectDomain domain,std::uint32_t address,std::uint32_t image_base,
+      std::uint32_t image_size,std::uint32_t &vptr,bool &base_known) noexcept {
+    base_known=false;if(!IsMain())return world::Class::Unknown;
+    // RTTI 仍逐项读取并定界。与其他读者共享页权限，分类结果不缓存。
+    world::NativeSource source;
+    source.image_base=image_base;source.image_size=image_size;
+    source.copy=[](void *,std::uint64_t p,void *out,std::size_t size) noexcept {
+      return world::CheckedNativeCopy(p,out,size,world::FrameRegionReader::Classify);
+    };
+    return world::ClassifyNative(source,domain,address,vptr,base_known);
+  };
   return result;
 }
 std::shared_ptr<WorldRecording> CurrentWorldRecording() noexcept {
@@ -390,6 +427,7 @@ void StopWorldRecording() noexcept {
     recording->observation.RequestStop();
     collector->Stop();
   }
+  if(IsMain())capture::FrameEnd();
 }
 std::array<std::uint64_t,4> CurrentLiveSource() noexcept {
   if(!IsMain()||!recording||!recording->live_consumer||!recording->observation.Active()||
@@ -409,7 +447,7 @@ bool DetachClosedWorld(const std::shared_ptr<WorldRecording> &closed) noexcept {
   return true;
 }
 void WorldFrameBegin(std::uint64_t loop) noexcept {
-  capture::FrameBegin(loop,recording&&recording->live_consumer&&RunActive());
+  capture::FrameBegin(loop,recording&&recording->binary_entities&&recording->binary_entities->Active()&&RunActive());
   capture::Cost cost(capture::CostPart::Native);
   auto *collector = Collector();
   if (!collector)
@@ -453,7 +491,9 @@ world::PlayerAnchor WorldPlayerAnchor(unsigned ordinal, void *player) noexcept {
   // ST7：B 的不可读/不唯一分支未必递增原绑定代次，因此这里独立复读拓扑。
   const auto topology = ReadTopology(
       ordinal, ordinal ? r->Remote(ordinal).device.Object() : nullptr);
-  if (!topology.known || !topology.unique || !topology.Alive() ||
+  if (Runtime() != r || Collector() != collector ||
+      !topology.known || !topology.unique || !topology.Alive() ||
+      topology.room != r->topology[ordinal].room ||
       topology.pair != r->players[ordinal].Bound() ||
       !SameControlGroup(topology, r->topology[ordinal]))
     return anchor;
@@ -475,49 +515,64 @@ std::uint64_t WorldEntityLocalId(void *player) noexcept {
              ? collector->EntityLocalId(world::PackWord(player))
              : 0;
 }
-void WorldRefreshAnchors() noexcept {
+void WorldRefreshAnchors(bool topology_just_read) noexcept {
   capture::Cost cost(capture::CostPart::Native);
   auto *collector = Collector();
   auto *r = Runtime();
-  if (!collector || !r)
+  if (!collector || !collector->Recording() || !r)
     return;
-  std::array<world::PlayerAnchor, world::kControlAnchorCapacity> values{};
-  for (unsigned ordinal = 0; ordinal < r->session.ParticipantLimit();
-       ++ordinal) {
-    if (!r->session.HasParticipant(ordinal) || r->finished || r->retiring ||
-        r->failure || r->blocks || !r->players[ordinal].BoundValid() ||
-        InBlockedContext())
-      continue;
-    const auto group = ReadTopology(
-        ordinal, ordinal ? r->Remote(ordinal).device.Object() : nullptr);
-    if (!group.known || !group.unique || !group.Alive() ||
-        group.pair != r->players[ordinal].Bound() ||
-        !SameControlGroup(group, r->topology[ordinal]))
-      continue;
-    for (unsigned b = 0; b < group.body_count; ++b) {
-      if (!group.bodies[b].CanConsume())
-        continue;
-      values[ordinal * kMaximumGroupBodies + b] = {
-          world::PackWord(group.bodies[b].player),
-          world::PackWord(group.pair.device),
-          group.pair.key,
-          SessionGeneration(*r),
-          r->players[ordinal].Generation(),
-          true};
+  world::PlayerAnchorSet values{};
+  if (!r->finished && !r->retiring && !r->failure && !r->blocks &&
+      !InBlockedContext()) {
+    unsigned mask = 0;
+    TopologyDevices devices{};
+    for (unsigned ordinal = 0; ordinal < r->session.ParticipantLimit(); ++ordinal)
+      if (r->session.HasParticipant(ordinal) && r->players[ordinal].BoundValid()) {
+        mask |= 1u << ordinal;
+        if (ordinal)
+          devices[ordinal] = r->Remote(ordinal).device.Object();
+      }
+    // 只有生命周期刚读到的见证可直接消费。每个其他 Hook 同步边界独立取公共快照。
+    const auto project = [&](const TopologyGroups &groups) noexcept {
+      const auto session = SessionGeneration(*r);
+      for (unsigned ordinal = 0; ordinal < groups.size(); ++ordinal) {
+        if (!(mask & (1u << ordinal)))
+          continue;
+        const auto &group = groups[ordinal];
+        const auto &binding = r->players[ordinal];
+        if (!group.known || !group.unique || !group.Alive() ||
+            group.room != r->topology[ordinal].room ||
+            group.pair != binding.Bound() ||
+            !SameControlGroup(group, r->topology[ordinal]))
+          continue;
+        for (unsigned b = 0; b < group.body_count; ++b)
+          if (group.bodies[b].CanConsume())
+            values[ordinal * kMaximumGroupBodies + b] = {
+                world::PackWord(group.bodies[b].player),
+                world::PackWord(group.pair.device), group.pair.key,
+                session, binding.Generation(), true};
+      }
+    };
+    if (topology_just_read) {
+      project(r->topology);
+    } else if (mask) {
+      TopologyGroups refreshed;
+      ReadTopologies(mask, devices, refreshed);
+      if (Runtime() != r || Collector() != collector)
+        return;
+      project(refreshed);
     }
   }
-  std::array<world::PlayerAnchor,world::kControlAnchorCapacity> previous{};
-  for(unsigned slot=0;slot<values.size();++slot) previous[slot]=collector->CurrentAnchor(slot);
-  // 根切换会重排身体槽；先撤销全部变化槽，再赋新值，避免同一个Entity身份被旧槽清掉。
-  for (unsigned slot = 0; slot < values.size(); ++slot)
-    if (!(collector->CurrentAnchor(slot) == values[slot])) {
-      if(recording->binary_entities)recording->binary_entities->RetireBody(previous[slot].player);
-      collector->RevokePlayer(slot);
-    }
-  for (unsigned slot = 0; slot < values.size(); ++slot)
-    collector->AnchorPlayer(slot, values[slot]);
-  for(unsigned slot=0;slot<values.size();++slot) if(!(previous[slot]==values[slot]))
-    ObservationControlChange(slot,previous[slot],values[slot],"observed_topology_or_lifecycle_refresh");
+  capture::Cost install(capture::CostPart::AnchorInstall);
+  capture::CountAnchorChanges(collector->ReplacePlayerAnchors(values,
+      [](std::uint32_t address) noexcept {
+        if (recording->binary_entities)
+          recording->binary_entities->RetireBody(address);
+      },
+      [](unsigned slot, const world::PlayerAnchor &before,
+         const world::PlayerAnchor &after) noexcept {
+        ObservationControlChange(slot, before, after, "observed_topology_or_lifecycle_refresh");
+      }));
 }
 // 身体组成员与当前输入锚点分开：死亡／ghost可以仍在已复核的唯一组内，但不获得消费资格。
 // 只读本普通窗口的缓存拓扑，不增加逐consumer原生扫描；多组重叠、未知或跨房直接保留缺口。
@@ -570,6 +625,8 @@ void WorldPlayerReturned(unsigned ordinal, const world::PlayerAnchor &before,
     return;
   void *player = reinterpret_cast<void *>(uintptr_t(before.player));
   const auto after = WorldPlayerAnchor(ordinal, player);
+  if (Runtime() != r || Collector() != collector)
+    return;
   const auto &group = r->topology[ordinal];
   for (unsigned b = 0; b < group.body_count; ++b)
     if (group.bodies[b].player == player) {
@@ -584,6 +641,8 @@ void WorldNativeReturned(const core::TickBoundary &boundary,
   capture::Cost cost(capture::CostPart::Native);
   if (auto *collector = Collector()) {
     WorldRefreshAnchors();
+    if (Collector() != collector)
+      return;
     collector->NativeReturned({boundary.loop, OwnerToken(Owner::Manager), tick,
                                boundary.scope_token,
                                boundary.kind == core::TickKind::StandardRoom
@@ -601,9 +660,16 @@ void WorldPreparePostState(bool normal) noexcept {
       return;
     }
     WorldRefreshAnchors();
+    if (Collector() != collector)
+      return;
     ObserveFailures(*collector);
-    prepared_post = collector->PreparePostState(normal);
-    if(recording->binary_entities)recording->binary_entities->Prepare(normal);
+    if(collector->LegacyDiagnostics()){
+      // 分开计量旧原生批次与后续二进制来源，定位主线程采集成本。
+      capture::Cost legacy(capture::CostPart::Copy);
+      prepared_post = collector->PreparePostState(normal);
+    }else prepared_post=collector->PreparePostState(normal);
+    const bool binary_prepared=recording->binary_entities&&recording->binary_entities->Prepare(normal);
+    if(prepared_post.status!=core::PostStateStatus::Disabled)prepared_post=collector->NativePrepared(binary_prepared);
     frame_prepared = true;
     // 无 Authority 的 gap 已由采集器发布；没有 pending 世界值需要 core 提交。
   }

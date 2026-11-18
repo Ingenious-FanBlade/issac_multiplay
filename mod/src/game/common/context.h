@@ -7,6 +7,8 @@ uint64_t PushOwner(Owner owner) noexcept;
 void PopOwner(uint64_t token) noexcept;
 Owner TopOwner() noexcept;
 uint64_t OwnerToken(Owner owner) noexcept;
+// 包括已退出的嵌套 owner，供同步只读批次识别调用期间的重入。
+uint64_t OwnerSequence() noexcept;
 bool HasOwner(Owner owner) noexcept;
 bool ContextHealthy() noexcept;
 bool InBlockedContext() noexcept;

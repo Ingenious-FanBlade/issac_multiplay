@@ -8,7 +8,7 @@
 namespace cs::state {
 namespace {
 #include "state_protocol.inc"
-static_assert(unsigned(StateMessageKind::Frame)==kW_StateFrame && unsigned(StateMessageKind::Members)==kW_MemberTable &&
+static_assert(unsigned(StateMessageKind::Frame)==kW_StateFrame &&
     unsigned(StateMessageKind::Resources)==kW_ResourceTable && unsigned(StateMessageKind::AppliedAck)==kW_AppliedAck);
 [[noreturn]] void Fail(const char *reason) { throw Gap("state_protocol",reason); }
 bool Overlap(std::span<const std::byte> a,std::span<const std::byte> b) {
@@ -132,7 +132,7 @@ void FrameContexts(const StateFrameView &frame,bool reliable) {
     const std::array<std::uint32_t,2> targets{a.target_version,b.target_version};
     if (!reliable || a.source_revision!=b.source_revision || a.presentation_batch!=b.presentation_batch ||
         a.game_frame!=b.game_frame || a.member_epoch!=b.member_epoch || a.resource_epoch!=b.resource_epoch ||
-        bool(a.base_version)!=bool(b.base_version) || a.paired_targets!=targets || b.paired_targets!=targets) Fail("joint_context");
+        a.base_version || b.base_version || a.paired_targets!=targets || b.paired_targets!=targets) Fail("joint_context");
   } else if (reliable!=(!frame.sections[0].context.base_version)) Fail("frame_reliability_does_not_match_lane");
 }
 void Record(const StateRecordPayload &record,const PresentationBatchContext &section,const StateFrameCodecContext &context,
@@ -262,6 +262,17 @@ StateMemberDirectory MergeStateMemberTableInto(const StateMemberDirectory &curre
   return {incoming.scope,incoming.epoch,incoming.previous_epoch,result,incoming.entries};
 }
 
+bool StateSectionView::Retains(std::uint16_t member) const noexcept {
+  std::size_t first=0,last=retained_members.size()/2;
+  while(first<last){
+    const auto middle=first+(last-first)/2;
+    const auto index=Bits(retained_members.subspan(middle*2,2));
+    if(index<member)first=middle+1;
+    else if(index>member)last=middle;
+    else return true;
+  }
+  return false;
+}
 StateFrameView InspectStateFrame(const StateScope &scope,std::span<const std::byte> bytes,std::uint64_t installed_events,
     StateFrameScratch &scratch,BodyCodecLimits limits) {
   Limits(limits,bytes.size());
@@ -285,7 +296,8 @@ StateFrameView InspectStateFrame(const StateScope &scope,std::span<const std::by
     c.installed_event_watermark=c.stream==BodyStream::World?installed_events:0;
     if (get(StateSectionHeaderField::flags)!=(c.base_version?0u:1u)) Fail("baseline_flag");
     const auto n=std::size_t(get(StateSectionHeaderField::record_count));
-    if(get(StateSectionHeaderField::group_count))Fail("display_result_groups_retired");
+    const auto retained=std::size_t(get(StateSectionHeaderField::group_count));
+    if(retained>kW_member_entries)Fail("frame_retained_count");
     event_counts[i]=std::uint32_t(get(StateSectionHeaderField::event_count));
     if(n>scratch.records.size()-records||n>kW_frame_records-records||
        event_counts[i]>kW_max_audio_events-events||event_counts[i]>scratch.events.size()-events)Fail("frame_count_or_scratch");
@@ -297,13 +309,20 @@ StateFrameView InspectStateFrame(const StateScope &scope,std::span<const std::by
       Visit(remaining,std::uint32_t(StateRecordHeaderField::count));
     }
     s.records=scratch.records.subspan(records,n);records+=n;
+    s.retained_members=input.Take(retained*2);
+    for(std::size_t k=0;k<retained;++k){
+      const auto member=Bits(s.retained_members.subspan(k*2,2));
+      if(member==kNullIndex||(k&&member<=Bits(s.retained_members.subspan((k-1)*2,2))))Fail("frame_retained_order");
+    }
     const auto start=input.Position();
     if(c.stream==BodyStream::World){const auto segment=InspectStateEvents(c,event_counts[i],bytes.subspan(start),scratch.events.subspan(events,event_counts[i]));
       s.presentation.first_sequence=segment.first_sequence;input.Take(segment.consumed);}
     else if(event_counts[i])Fail("body_events");
     presentation_bytes[i]=bytes.subspan(start,input.Position()-start);events+=event_counts[i];
   }
-  if (input.Position()!=bytes.size()) Fail("frame_trailing_bytes");
+  // 最后一段之后的所有字节属于唯一成员目录更新，由影子按精确 base 合并。
+  frame.member_update=input.Take(bytes.size()-input.Position());
+  if(!frame.sections[0].context.base_version&&frame.member_update.empty())Fail("baseline_member_directory");
   if (frame.section_count==2) for (auto &s:frame.sections) s.context.paired_targets={frame.sections[0].context.target_version,frame.sections[1].context.target_version};
   FrameContexts(frame,limits.reliable);
   // consumed仅记录已定界的区域长度，不暴露未解码groups／events为合法值。
@@ -314,30 +333,59 @@ StateFrameView InspectStateFrame(const StateScope &scope,std::span<const std::by
   frame.encoded=bytes;return frame;
 }
 
+bool DecodeStateFrameStep(StateFrameView &frame,const StateFrameCodecContext &context,StateFrameScratch &scratch,
+    BodyCodecLimits limits,StateFrameDecodeCursor &cursor) {
+  if(frame.decoded)return true;
+  if(cursor.section>=frame.section_count||frame.encoded.empty())Fail("frame_decode_cursor");
+  if(!cursor.position){
+    cursor.remaining=limits;
+    Visit(cursor.remaining,std::uint32_t(StateCommonHeaderField::count)+std::uint32_t(StateFrameHeaderField::count));
+    cursor.position=kW_StateCommonHeaderBytes+kW_StateFrameHeaderBytes;
+  }
+  auto &s=frame.sections[cursor.section];
+  const auto bytes=frame.encoded;
+  if(!cursor.section_started){
+    UniqueRecords(s.records,scratch.member_order);
+    const auto h=Read<StateSectionHeaderField>(kW_StateSectionHeader,bytes.subspan(cursor.position,kW_StateSectionHeaderBytes));
+    Visit(cursor.remaining,std::uint32_t(StateSectionHeaderField::count));
+    cursor.event_count=std::uint32_t(h[std::size_t(StateSectionHeaderField::event_count)]);
+    cursor.position+=kW_StateSectionHeaderBytes;cursor.section_started=true;
+  }
+  if(cursor.record<s.records.size()){
+    const auto &record=s.records[cursor.record];
+    // 只有成功才推进游标；typed scratch 扩容后可从同一记录继续。
+    auto next=cursor.remaining;
+    Record(record,s.context,context,scratch.body,next);
+    Visit(next,std::uint32_t(StateRecordHeaderField::count));
+    cursor.remaining=next;cursor.position+=kW_StateRecordHeaderBytes+record.bytes.size();++cursor.record;
+    return false;
+  }
+  for(std::size_t i=0;i<s.retained_members.size();i+=2)
+    if(!context.Member(s.context.member_epoch,std::uint16_t(Bits(s.retained_members.subspan(i,2)))))Fail("frame_retained_member");
+  cursor.position+=s.retained_members.size();
+  const auto region=bytes.subspan(cursor.position,s.presentation.consumed);
+  const auto ne=cursor.event_count;
+  if(s.context.stream==BodyStream::World){
+    auto local=cursor.remaining;
+    local.bytes=region.empty()?local.bytes:std::uint32_t(region.size());
+    const auto segment=DecodeStateEvents(s.context,ne,region,scratch.events.subspan(cursor.events,ne),scratch.body,
+      context.BodyContext(s.context,kNullIndex),local);
+    if(segment.consumed!=region.size())Fail("event_segment_trailing");
+    for(const auto &e:segment.events)if(e.owner!=kNullIndex&&!context.Member(s.context.member_epoch,e.owner))Fail("event_owner_missing");
+    Visit(cursor.remaining,segment.field_visits);
+    s.presentation={segment.events,segment.consumed,segment.first_sequence};
+  }else if(ne||!region.empty())Fail("body_event_segment");
+  cursor.events+=ne;cursor.position+=region.size();cursor.record=0;cursor.section_started=false;
+  frame.decoded=++cursor.section==frame.section_count;
+  return frame.decoded;
+}
+
 StateFrameView DecodeStateFrame(const StateScope &scope,std::span<const std::byte> bytes,std::uint64_t installed_events,
     const StateFrameCodecContext &context,StateFrameScratch &scratch,BodyCodecLimits limits) {
   auto frame=InspectStateFrame(scope,bytes,installed_events,scratch,limits);
-  std::size_t position=kW_StateCommonHeaderBytes+kW_StateFrameHeaderBytes,events=0;auto remaining=limits;
-  Visit(remaining,std::uint32_t(StateCommonHeaderField::count)+std::uint32_t(StateFrameHeaderField::count));
-  for (unsigned i=0;i<frame.section_count;++i) {
-    auto &s=frame.sections[i];UniqueRecords(s.records,scratch.member_order);
-    const auto h=Read<StateSectionHeaderField>(kW_StateSectionHeader,bytes.subspan(position,kW_StateSectionHeaderBytes));position+=kW_StateSectionHeaderBytes;
-    const auto ne=std::uint32_t(h[std::size_t(StateSectionHeaderField::event_count)]);
-    Visit(remaining,std::uint32_t(StateSectionHeaderField::count));
-    for (const auto &record:s.records) {
-      Record(record,s.context,context,scratch.body,remaining);position+=kW_StateRecordHeaderBytes+record.bytes.size();
-      Visit(remaining,std::uint32_t(StateRecordHeaderField::count));
-    }
-    const auto region=bytes.subspan(position,s.presentation.consumed);auto local=remaining;local.bytes=std::uint32_t(region.size());
-    // 空显示区域仍用剩余正预算校验；其线上长度仍精确为0。
-    if (!local.bytes) local.bytes=remaining.bytes;
-    if(s.context.stream==BodyStream::World){const auto segment=DecodeStateEvents(s.context,ne,region,scratch.events.subspan(events,ne),scratch.body,context.BodyContext(s.context,kNullIndex),local);
-      if(segment.consumed!=region.size())Fail("event_segment_trailing");s.presentation={segment.events,segment.consumed,segment.first_sequence};Visit(remaining,segment.field_visits);
-      for(const auto &e:segment.events)if(e.owner!=kNullIndex&&!context.Member(s.context.member_epoch,e.owner))Fail("event_owner_missing");
-    }else if(ne||!region.empty())Fail("body_event_segment");
-    events+=ne;position+=region.size();
-  }
-  frame.decoded=true;return frame;
+  StateFrameDecodeCursor cursor;
+  while(!DecodeStateFrameStep(frame,context,scratch,limits,cursor)){}
+  return frame;
 }
 
 StateLane StateFrameLane(const StateFrameView &frame) {
@@ -351,12 +399,14 @@ StateLane StateFrameLane(const StateFrameView &frame) {
 }
 std::span<const std::byte> EncodeStateFrameInto(StateFrameView &frame,std::span<std::byte> output,
     const StateFrameCodecContext &context,StateFrameScratch &scratch,BodyCodecLimits limits) {
-  FrameContexts(frame,limits.reliable);std::uint64_t size=kW_StateCommonHeaderBytes+kW_StateFrameHeaderBytes;
+  FrameContexts(frame,limits.reliable);std::uint64_t size=kW_StateCommonHeaderBytes+kW_StateFrameHeaderBytes+frame.member_update.size();
   FrameScratch(scratch,output);
   if (Overlap(ObjectBytes(frame),output)) Fail("frame_encode_metadata_overlap");
   std::uint64_t events=0;
   for (unsigned i=0;i<frame.section_count;++i) {
-    const auto &s=frame.sections[i];size+=kW_StateSectionHeaderBytes;
+    const auto &s=frame.sections[i];size+=kW_StateSectionHeaderBytes+s.retained_members.size();
+    if(s.retained_members.size()%2||s.retained_members.size()/2>kW_member_entries||Overlap(s.retained_members,output))
+      Fail("frame_retained_encode");
     if (Overlap(std::as_bytes(s.records),output) ||
         Overlap(std::as_bytes(s.presentation.events),output)) Fail("frame_encode_metadata_overlap");
     for (const auto &r:s.records) {size+=kW_StateRecordHeaderBytes+r.bytes.size();if (Overlap(r.bytes,output)) Fail("frame_record_overlap");}
@@ -377,6 +427,7 @@ std::span<const std::byte> EncodeStateFrameInto(StateFrameView &frame,std::span<
     At(v,StateSectionHeaderField::base_version)=c.base_version;At(v,StateSectionHeaderField::target_version)=c.target_version;
     At(v,StateSectionHeaderField::source_revision)=c.source_revision;At(v,StateSectionHeaderField::presentation_batch)=c.presentation_batch;
     At(v,StateSectionHeaderField::game_frame)=c.game_frame;At(v,StateSectionHeaderField::record_count)=s.records.size();
+    At(v,StateSectionHeaderField::group_count)=s.retained_members.size()/2;
     At(v,StateSectionHeaderField::event_count)=s.presentation.events.size();At(v,StateSectionHeaderField::event_watermark)=c.event_watermark;
     Write(kW_StateSectionHeader,v,output.subspan(position,kW_StateSectionHeaderBytes));position+=kW_StateSectionHeaderBytes;Visit(remaining,std::uint32_t(StateSectionHeaderField::count));
     for (const auto &r:s.records) {
@@ -387,6 +438,10 @@ std::span<const std::byte> EncodeStateFrameInto(StateFrameView &frame,std::span<
       if (!r.bytes.empty()) std::memcpy(output.data()+position,r.bytes.data(),r.bytes.size());
       position+=r.bytes.size();Visit(remaining,std::uint32_t(StateRecordHeaderField::count));
     }
+    if(!s.retained_members.empty()){
+      std::memcpy(output.data()+position,s.retained_members.data(),s.retained_members.size());
+      position+=s.retained_members.size();
+    }
     auto local=remaining;local.bytes=limits.bytes-std::uint32_t(position);
     if (!local.bytes) local.bytes=remaining.bytes;
     std::uint32_t visits=0;
@@ -395,22 +450,15 @@ std::span<const std::byte> EncodeStateFrameInto(StateFrameView &frame,std::span<
     // 复用正式编码检查的真实成本，不信调用者计数，也不重复解码全部结果。
     Visit(remaining,visits);
   }
+  if(!frame.sections[0].context.base_version&&frame.member_update.empty())Fail("baseline_member_directory");
+  if(!frame.member_update.empty()){
+    if(Overlap(frame.member_update,output))Fail("frame_member_update_overlap");
+    std::memcpy(output.data()+position,frame.member_update.data(),frame.member_update.size());
+    position+=frame.member_update.size();
+  }
   if (position!=size) Fail("frame_encoded_size");frame.encoded=output.first(position);frame.decoded=true;return frame.encoded;
 }
 
-StateContextReady DecodeStateContextReady(const StateScope &scope,std::span<const std::byte> bytes) {
-  if (bytes.size()!=kW_StateCommonHeaderBytes+kW_StateContextReadyBytes) Fail("context_ready_size");
-  Cursor input(bytes);Common(input,scope);const auto v=Read<StateContextReadyField>(kW_StateContextReady,input.Take(kW_StateContextReadyBytes));
-  StateContextReady out{scope,std::uint32_t(v[std::size_t(StateContextReadyField::member_epoch)]),
-      std::uint32_t(v[std::size_t(StateContextReadyField::resource_epoch)])};
-  if (!out.member_epoch || !out.resource_epoch) Fail("context_ready_epoch");return out;
-}
-std::span<const std::byte> EncodeStateContextReadyInto(const StateContextReady &ready,std::span<std::byte> output) {
-  constexpr auto size=kW_StateCommonHeaderBytes+kW_StateContextReadyBytes;
-  if (output.size()<size || !ready.member_epoch || !ready.resource_epoch || Overlap(ObjectBytes(ready),output)) Fail("context_ready_output");
-  Common(ready.scope,output);Values<StateContextReadyField> v{};At(v,StateContextReadyField::member_epoch)=ready.member_epoch;At(v,StateContextReadyField::resource_epoch)=ready.resource_epoch;
-  Write(kW_StateContextReady,v,output.subspan(kW_StateCommonHeaderBytes,kW_StateContextReadyBytes));return output.first(size);
-}
 StateAppliedAck DecodeStateAppliedAck(const StateScope &scope,std::span<const std::byte> bytes) {
   Cursor input(bytes);Common(input,scope);const auto h=Read<StateAppliedAckHeaderField>(kW_StateAppliedAckHeader,input.Take(kW_StateAppliedAckHeaderBytes));
   StateAppliedAck ack;ack.scope=scope;ack.count=std::uint8_t(h[std::size_t(StateAppliedAckHeaderField::entry_count)]);

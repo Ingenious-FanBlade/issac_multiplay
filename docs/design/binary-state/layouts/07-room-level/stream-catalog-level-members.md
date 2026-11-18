@@ -1,6 +1,6 @@
 # stream-catalog：逐行公开成员回映射
 
-布局版本 75；来源 `docs/design/tx-04-21/stream-catalog.json`，共 131 行。由正式布局源生成；行号从1开始，重复ID不去重。
+布局版本 84；来源 `docs/design/tx-04-21/stream-catalog.json`，共 131 行。由正式布局源生成；行号从1开始，重复ID不去重。
 
 本表只完成原目录的 `level` 域，其它域不在本次完整声明中。
 
@@ -110,7 +110,7 @@
 | 3101 | RoomDescriptor.DeliriumDistance / RoomDescriptor.DeliriumDistance | null / "int" | [RoomDescriptor (270)](RoomDescriptor.md)： | authority；@HostGeneration/RoomSave -> @FinalWorldResults | 生成/奖励/防刷/传送选择/保存历史留Host；实际Entity/Grid/地图/音画继续由具名owner承接；原stream行3101归属ReplicatedState原样保留；第7步当前处置，具体缓存／adapter尚待接线。 |
 | 3102 | RoomDescriptor.DisplayFlags / RoomDescriptor.DisplayFlags | null / "int" | [RoomDescriptor (270)](RoomDescriptor.md)：display_flags | derived；RoomDescriptor.display_flags | 最终地图显示值；不执行原生可见性生产器；原stream行3102归属ReplicatedState原样保留；第7步当前处置，具体缓存／adapter尚待接线。 正式字段只承接该API必要的当前显示投影；不保证被裁原数值Getter相等。 |
 | 3103 | RoomDescriptor.Doors / RoomDescriptor.Doors | null / "int[]" | [RoomDescriptor (270)](RoomDescriptor.md)：doors | derived；RoomDescriptor.doors | 八个i32结构目标，保留特殊路由；目标存在不等于实际门存在；原stream行3103归属ReplicatedState原样保留；第7步当前处置，具体缓存／adapter尚待接线。 正式字段只承接该API必要的当前显示投影；不保证被裁原数值Getter相等。 |
-| 3104 | RoomDescriptor.Flags / RoomDescriptor.Flags | null / "RoomDescriptor" | [RoomDescriptor (270)](RoomDescriptor.md)：flags | derived；RoomDescriptor.flags | 五位原生0/10/11/18/5→线上0..4；sacrifice/pitch-black最终lighting及音乐/背景另承接；不回放全flags；原stream行3104归属ReplicatedState原样保留；第7步当前处置，具体缓存／adapter尚待接线。 正式字段只承接该API必要的当前显示投影；不保证被裁原数值Getter相等。 |
+| 3104 | RoomDescriptor.Flags / RoomDescriptor.Flags | null / "RoomDescriptor" | [RoomDescriptor (270)](RoomDescriptor.md)：flags | derived；RoomDescriptor.flags | 原生0/10/11/18/5/9/12/2→线上0..7，供地图、坑、门光及本地构图／光照使用。原stream行3104归属ReplicatedState原样保留。 |
 | 3105 | RoomDescriptor.GetDecoSaveState / RoomDescriptor.GetDecoSaveState | " " / "EntitiesSaveStateVector" | [RoomDescriptor (270)](RoomDescriptor.md)： | authority；@HostRoomSave + @Entity.CurrentEffects | 离房效果保存不复制，当前显示Effect由Entity域承接；无已核地图消费者；原stream行3105归属ReplicatedState原样保留；第7步当前处置，具体缓存／adapter尚待接线。 |
 | 3106 | RoomDescriptor.GetDimension / RoomDescriptor.GetDimension | " " / "Dimension" | [RoomDescriptor (270)](RoomDescriptor.md)：dimension | derived；RoomDescriptor.dimension | 原生i32核0..2后发送u8；原stream行3106归属ReplicatedState原样保留；第7步当前处置，具体缓存／adapter尚待接线。 正式字段只承接该API必要的当前显示投影；不保证被裁原数值Getter相等。 |
 | 3107 | RoomDescriptor.GetEntitiesSaveState / RoomDescriptor.GetEntitiesSaveState | " " / "EntitiesSaveStateVector" | [RoomDescriptor (270)](RoomDescriptor.md)：map_icons | derived；RoomDescriptor.map_icons | Host过滤后按原生OR/max聚合；不发保存数量/顺序/type/variant/subtype；存在时仅3..12B，保留Slot default和全部选中帧；原stream行3107归属ReplicatedState原样保留；第7步当前处置，具体缓存／adapter尚待接线。 正式字段只承接该API必要的当前显示投影；不保证被裁原数值Getter相等。 |

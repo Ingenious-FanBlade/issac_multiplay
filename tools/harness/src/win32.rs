@@ -414,7 +414,7 @@ fn wide(s: &str) -> Vec<u16> {
 fn error(action: &str) -> String {
     format!("{action}: {}", std::io::Error::last_os_error())
 }
-pub fn processes() -> Result<Vec<String>, String> {
+fn process_entries() -> Result<Vec<(u32, String)>, String> {
     unsafe {
         let h = CreateToolhelp32Snapshot(2, 0);
         if h as isize == -1 {
@@ -426,12 +426,43 @@ pub fn processes() -> Result<Vec<String>, String> {
         let mut more = Process32FirstW(h, &mut e);
         while more != 0 {
             let n = e.exe.iter().position(|&v| v == 0).unwrap_or(260);
-            names.push(String::from_utf16_lossy(&e.exe[..n]));
+            names.push((e.pid, String::from_utf16_lossy(&e.exe[..n])));
             more = Process32NextW(h, &mut e);
         }
         CloseHandle(h);
         Ok(names)
     }
+}
+
+pub fn processes() -> Result<Vec<String>, String> {
+    Ok(process_entries()?.into_iter().map(|(_, name)| name).collect())
+}
+
+// 双开只拒绝目标副本的已有实例，其他安装的 Isaac 按实际映像路径区分。
+#[allow(dead_code)] // 供独立的 isaac-dual 入口调用。
+pub fn ensure_copies_idle(executables: &[&Path]) -> Result<(), String> {
+    for (pid, name) in process_entries()? {
+        if !name.eq_ignore_ascii_case("isaac-ng.exe") {
+            continue;
+        }
+        let process = unsafe { OpenProcess(0x1000, 0, pid) };
+        if process.is_null() {
+            return Err(error(&format!("cannot identify Isaac PID {pid}")));
+        }
+        let mut path = [0u16; 32768];
+        let mut length = path.len() as u32;
+        let found = unsafe { QueryFullProcessImageNameW(process, 0, path.as_mut_ptr(), &mut length) };
+        let failure = (found == 0).then(|| error(&format!("cannot read Isaac PID {pid} path")));
+        unsafe { CloseHandle(process) };
+        if let Some(failure) = failure {
+            return Err(failure);
+        }
+        let path = ordinary_path(Path::new(&String::from_utf16_lossy(&path[..length as usize])))?;
+        if executables.iter().any(|exe| exe.to_string_lossy().eq_ignore_ascii_case(&path.to_string_lossy())) {
+            return Err(format!("test copy already running: PID {pid} {}", path.display()));
+        }
+    }
+    Ok(())
 }
 // REPENTOGON 的 Lua5.3.3r.dll 在 DllMain 中检查此变量（libs/lua/lua.c:28-41），
 // 缺失或为空时弹出 “Use The Launcher!” 并退出；官方启动器在创建进程前设置它。
@@ -440,7 +471,7 @@ const LAUNCHER_MARKER_VALUE: &str = "1";
 
 // 构造子进程的 Unicode 环境块：复制 harness 当前环境，覆盖启动器标记。
 // 按名称不区分大小写排序，每项以 NUL 结尾，整体再以一个 NUL 结束。
-fn launcher_environment() -> Vec<u16> {
+fn launcher_environment(extra: &[(&str, &str)]) -> Vec<u16> {
     let mut variables: Vec<(String, String)> = std::env::vars_os()
         .map(|(k, v)| {
             (
@@ -448,9 +479,13 @@ fn launcher_environment() -> Vec<u16> {
                 v.to_string_lossy().into_owned(),
             )
         })
-        .filter(|(k, _)| !k.eq_ignore_ascii_case(LAUNCHER_MARKER))
+        .filter(|(k, _)| {
+            !k.eq_ignore_ascii_case(LAUNCHER_MARKER)
+                && !extra.iter().any(|(name, _)| k.eq_ignore_ascii_case(name))
+        })
         .collect();
     variables.push((LAUNCHER_MARKER.into(), LAUNCHER_MARKER_VALUE.into()));
+    variables.extend(extra.iter().map(|(name, value)| ((*name).into(), (*value).into())));
     variables.sort_by_key(|(k, _)| k.to_uppercase());
     let mut block = Vec::new();
     for (key, value) in variables {
@@ -468,8 +503,28 @@ impl Game {
     pub fn pid(&self) -> u32 {
         self.info.pid
     }
+
+    // 手测交接后只归还启动器句柄，游戏由用户从各自窗口正常退出。
+    #[allow(dead_code)] // 供独立的 isaac-dual 入口调用。
+    pub fn detach(self) {
+        let game = std::mem::ManuallyDrop::new(self);
+        unsafe {
+            CloseHandle(game.info.thread);
+            CloseHandle(game.info.process);
+        }
+    }
     // 只启动挂起的自有子进程，失败诊断完成后才允许 Drop 终止它。
     pub fn launch(directory: &Path, diagnostic: &Path) -> Result<Self, String> {
+        Self::launch_with_bootstrap(directory, diagnostic, None, &[])
+    }
+
+    // 测试专用 DLL 在 REPENTOGON 载入前完成子进程隔离，普通 harness 启动不传参数。
+    pub fn launch_with_bootstrap(
+        directory: &Path,
+        diagnostic: &Path,
+        bootstrap: Option<&Path>,
+        environment: &[(&str, &str)],
+    ) -> Result<Self, String> {
         unsafe {
             fs::create_dir_all(diagnostic).map_err(|e| e.to_string())?;
             let directory = ordinary_path(directory)?;
@@ -488,6 +543,12 @@ impl Game {
             let mut report = json!({"directory":directory,"exe":exe,"dll":dll,
             "command_line":format!("\"{}\"",exe.display()),
             "environment_added":{LAUNCHER_MARKER:LAUNCHER_MARKER_VALUE},"before":file_state(&log)});
+            if let Some(bootstrap) = bootstrap {
+                report["bootstrap"] = json!(bootstrap);
+                for (name, value) in environment {
+                    report["environment_added"][*name] = json!(value);
+                }
+            }
             if log.exists() {
                 report["before_copy"] = json!(
                     fs::copy(&log, diagnostic.join("repentogon-before.log"))
@@ -505,7 +566,7 @@ impl Game {
                 let mut info = ProcessInfo::default();
                 let mut command = wide(&format!("\"{}\"", exe.display()));
                 // D17：显式环境块带上启动器标记，harness 自身环境保持不变。
-                let mut environment = launcher_environment();
+                let mut environment = launcher_environment(environment);
                 // CREATE_SUSPENDED | CREATE_UNICODE_ENVIRONMENT
                 if CreateProcessW(
                     wide(&exe.to_string_lossy()).as_ptr(),
@@ -525,7 +586,10 @@ impl Game {
                 created = Some(Self { info });
                 let game = created.as_mut().unwrap();
                 report["pid"] = json!(game.pid());
-                game.inject(&directory)?;
+                if let Some(bootstrap) = bootstrap {
+                    game.inject(bootstrap, c"PrepareDualTest".to_bytes_with_nul())?;
+                }
+                game.inject(&dll, c"Launch".to_bytes_with_nul())?;
                 if ResumeThread(game.info.thread) == u32::MAX {
                     return Err(error("ResumeThread"));
                 }
@@ -561,16 +625,13 @@ impl Game {
             Ok(created.unwrap())
         }
     }
-    unsafe fn inject(&mut self, directory: &Path) -> Result<(), String> {
+    unsafe fn inject(&mut self, library: &Path, entry: &[u8]) -> Result<(), String> {
         unsafe {
-            let dll = directory
-                .join("zhlLoader.dll")
-                .to_string_lossy()
-                .as_bytes()
-                .to_vec();
-            if !dll.is_ascii() {
-                return Err("LoadLibraryA launcher path must be ASCII".into());
+            let dll = library.to_str().ok_or("launcher DLL path is not Unicode")?;
+            if !dll.is_ascii() || dll.len() >= 260 {
+                return Err("LoadLibraryA launcher path must be ASCII and below MAX_PATH".into());
             }
+            let dll = dll.as_bytes();
             let remote = VirtualAllocEx(self.info.process, null_mut(), 4096, 0x3000, 0x40);
             if remote.is_null() {
                 return Err(error("VirtualAllocEx"));
@@ -593,7 +654,7 @@ impl Game {
             code.extend(get.to_le_bytes());
             code.extend([0xFF, 0xD0, 0x85, 0xC0, 0x74, 0]);
             let second = code.len() - 1;
-            // Launch 使用 cdecl；线程入口使用 stdcall(LPVOID)，以 ret 4 返回。
+            // DLL 的启动入口使用 cdecl；线程入口使用 stdcall(LPVOID)，以 ret 4 返回。
             code.extend([0x6A, 0, 0xFF, 0xD0, 0x83, 0xC4, 4, 0xC2, 4, 0]);
             let fail = code.len();
             code.extend([0xB8, 0xFF, 0xFF, 0xFF, 0xFF, 0xC2, 4, 0]);
@@ -601,12 +662,8 @@ impl Game {
             code[second] = (fail - second - 1) as u8;
             let mut block = vec![0u8; 2048];
             block[..code.len()].copy_from_slice(&code);
-            if dll.len() >= 768 {
-                VirtualFreeEx(self.info.process, remote, 0, 0x8000);
-                return Err("loader path too long".into());
-            }
-            block[256..256 + dll.len()].copy_from_slice(&dll);
-            block[1024..1031].copy_from_slice(b"Launch\0");
+            block[256..256 + dll.len()].copy_from_slice(dll);
+            block[1024..1024 + entry.len()].copy_from_slice(entry);
             let mut written = 0;
             if WriteProcessMemory(
                 self.info.process,
@@ -646,7 +703,7 @@ impl Game {
                 return Err(e);
             }
             if wait == 258 {
-                return Err("Launch timeout (60 seconds)".into());
+                return Err(format!("{} startup timeout (60 seconds)", library.display()));
             }
             if wait != 0 {
                 return Err(format!("unexpected launch wait status {wait}"));
@@ -656,7 +713,7 @@ impl Game {
             }
             VirtualFreeEx(self.info.process, remote, 0, 0x8000);
             if code != 0 {
-                return Err(format!("Launch returned 0x{code:08X}"));
+                return Err(format!("{} returned 0x{code:08X}", library.display()));
             }
             Ok(())
         }
@@ -783,6 +840,20 @@ pub fn focus_state(window: usize) -> Value {
             "minimized":IsIconic(window as Handle)!=0})
     }
 }
+// 输入续验只接管已启动的隔离副本；发键前重新核对PID对应的实际映像，防止PID复用。
+pub fn process_image(pid: u32) -> Result<PathBuf, String> {
+    unsafe {
+        let process = OpenProcess(0x1000, 0, pid);
+        if process.is_null() { return Err(error("OpenProcess input target")); }
+        let mut path = [0u16; 32768];
+        let mut count = path.len() as u32;
+        let ok = QueryFullProcessImageNameW(process, 0, path.as_mut_ptr(), &mut count);
+        let failure = if ok == 0 { Some(error("QueryFullProcessImageNameW input target")) } else { None };
+        CloseHandle(process);
+        if let Some(error) = failure { return Err(error); }
+        Ok(PathBuf::from(String::from_utf16_lossy(&path[..count as usize])))
+    }
+}
 pub fn focus(window: usize) -> Result<(), String> {
     unsafe {
         if GetForegroundWindow() == window as _ {
@@ -829,6 +900,7 @@ fn scan(window: usize, code: u16, up: bool, extended: bool) -> Result<(), String
 fn key_code(name: &str) -> Result<(u16, bool), String> {
     let (code, extended) = match name {
         "ENTER" => (0x1C, false),
+        "TAB" => (0x0F, false),
         "ESC" => (1, false),
         "LEFT" => (0x4B, true),
         "RIGHT" => (0x4D, true),

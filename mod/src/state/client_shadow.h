@@ -1,4 +1,5 @@
 #pragma once
+#include <chrono>
 #include "state/client_tables.h"
 
 namespace cs::state {
@@ -25,13 +26,22 @@ private:
   StateReadiness readiness_;
   std::uint16_t member_,layout_,field_;
 };
-// 变化版本／帧／来源属于最后实际携带该块的目标；继承及重新绑定表不伪造新变化。
+// 版本／帧／来源描述块内容及引用语义的来源。等价重传沿用已安装块的元数据。
 struct ClientShadowBlockView {
   std::uint8_t block=0;
   std::uint32_t version=0,game_frame=0,source_member_epoch=0,source_resource_epoch=0;
   std::uint64_t source_revision=0;
   std::span<const std::byte> bytes;
 };
+// 反向边按被引用身份／资源建立，消费者精确到成员与根块。
+struct ClientShadowDependency {
+  PresentationMember member,consumer;
+  ResourceKey resource;
+  std::uint8_t block=0;
+  bool is_resource=false;
+  auto operator<=>(const ClientShadowDependency &) const = default;
+};
+struct ClientShadowVisitCursor {unsigned block=0;std::size_t node=0;};
 // 此视图只借用持有它的State；返回字段片段指向独立不可变块，不指向解码scratch。
 class ClientShadowRecordView final {
 public:
@@ -39,6 +49,22 @@ public:
   const PresentationMember &Identity() const noexcept;
   std::uint32_t Mask() const noexcept;
   std::optional<ClientShadowBlockView> Block(std::uint8_t) const noexcept;
+  // 块相同须同时满足内容和解析出的引用语义，不能只比较 wire 序号或地址。
+  bool SameBlock(ClientShadowRecordView,std::uint8_t) const noexcept;
+  bool SameContent(ClientShadowRecordView,std::uint8_t) const noexcept;
+  // 比较指定根字段及其实际引用，允许同块别的字段更新。
+  bool SameField(ClientShadowRecordView,std::uint16_t) const noexcept;
+  bool SameStructure(ClientShadowRecordView,std::uint8_t) const noexcept;
+  bool SameDependencies(ClientShadowRecordView,std::uint8_t) const noexcept;
+  std::uint32_t FieldVisits() const noexcept;
+  // 回放已定界的数字节点，所有 span 都借自此记录的不可变块。
+  void Visit(std::uint32_t mask,BodyNodeObserver &) const;
+  bool VisitSome(std::uint32_t mask,BodyNodeObserver &,ClientShadowVisitCursor &,unsigned max_nodes) const;
+  // 按块重放时由调用方在记录末尾统一登记根节点，块本身只产生字段和数字节点。
+  bool VisitBlockSome(std::uint8_t,BodyNodeObserver &,std::size_t &node,unsigned &remaining) const;
+  // 导入已验证的计划片段只需字段／值的原交错顺序，每次最多取 64 个节点。
+  std::uint64_t BlockFieldNodes(std::uint8_t,std::size_t first,unsigned count) const;
+  void AppendResourceKeys(std::uint8_t block,ClientStateVector<ResourceKey> &)const;
   std::span<const BodyFieldView> Fields() const noexcept;
   const BodyFieldView *Field(std::uint16_t) const noexcept;
   std::span<const ProjectionFact> Projections() const noexcept;
@@ -55,13 +81,26 @@ public:
   std::size_t RecordCount() const noexcept;
   ClientShadowRecordView Record(std::size_t) const;
   std::optional<ClientShadowRecordView> Find(const PresentationMember &) const noexcept;
+  std::optional<std::uint16_t> RecordPosition(const PresentationMember &) const noexcept;
   const ClientMemberSnapshotRef &Members() const noexcept;
   const ClientResourceSnapshotRef &Resources() const noexcept;
+  // 比较实际根和引用编号；资源目录同 run 只追加，旧引用必须在目标表存在。
+  bool MemberClosureCompatible(const ClientMemberSnapshotRef &) const noexcept;
+  bool ResourceClosureCompatible(const ClientResourceSnapshotRef &) const noexcept;
+  std::span<const ClientShadowDependency> MemberConsumers(const PresentationMember &) const noexcept;
+  std::span<const ClientShadowDependency> ResourceConsumers(ResourceKey) const noexcept;
 private:
   friend struct ClientShadowStorage;
+  friend class ClientStateShadow;
   std::shared_ptr<ClientShadowStateData> data_;
 };
 using ClientShadowStateRef=std::shared_ptr<const ClientShadowState>;
+// 一次发布的完整两流引用。它只持有纯值，未变化的流、成员和块连续共享。
+struct ClientStateBlockTable final {
+  StateRoute route;
+  std::array<ClientShadowStateRef,2> streams;
+};
+using ClientStateBlockTableRef=std::shared_ptr<const ClientStateBlockTable>;
 enum class ClientShadowChangeKind : std::uint8_t { Join, Reshape, Leave, Remap };
 struct ClientShadowMemberChange {
   ClientShadowChangeKind kind=ClientShadowChangeKind::Join;
@@ -78,6 +117,7 @@ public:
 private:
   friend struct ClientShadowStorage;
   friend class ClientStateShadow;
+  friend class ClientStateEvents;
   std::shared_ptr<const ClientShadowPacket> packet_;
   std::array<ClientShadowStateRef,2> states_{};
   ClientStateVector<ClientShadowMemberChange> changes_;
@@ -89,18 +129,12 @@ public:
   // 必须包含第4／5项的全部域／来源／必要结果／资源／窄拓扑检查；没有默认Ready实现。
   virtual StateReadiness Inspect(const ClientStateCandidate &) const=0;
 };
-class ClientShadowCommit {
-public:
-  virtual ~ClientShadowCommit()=default;
-  // 第5项提供已预留的结果／事件缓存提升；仅纯值无分配提交，不再执行原生操作。
-  // false表示无法保证完整提交，停止确认并共同恢复；没有默认成功实现。
-  virtual bool Promote(const ClientStateCandidate &,const StateAppliedAck &) noexcept=0;
-};
 struct ClientShadowBuildResult {
   // decision是先定界所得的接受决策。candidate非空表示结构已封存，仍须Assess／Begin。
   StateAcceptDecision decision;
   ClientStateCandidateRef candidate;
 };
+struct ClientShadowBuildWork;
 // 后台唯一owner：构建只读候选、核成功base并驱动接受凭据；不创建线程或调用游戏。
 // registry固定外部借用直到后台Collect。生命周期owner须Close并收回全部借用后销毁。
 class ClientStateShadow final {
@@ -112,19 +146,34 @@ public:
   void Open(const StateRoute &,StateAgreement);
   void Close();
   void Collect();
+  // 显式诊断请求才遍历注册表，并按实际正文 owner 去重；采样失败不改变接纳。
+  void SampleBlockMemory(std::span<const ClientStateCandidateRef> waiting,
+      std::span<const std::shared_ptr<ClientShadowBuildWork>> decoding) noexcept;
   bool Drained() const;
   ClientShadowBuildResult Build(const StateRoute &,StateLane,std::span<const std::byte>,ClientStateTables &,
       BodyCodecLimits={32u<<20,262144,32,true});
+  // 普通 Body 同步消费，World／joint 从原等待位续做；一个成员和一条 wire 记录是最小工作单元。
+  std::optional<ClientShadowBuildResult> BuildStep(const StateRoute &,StateLane,std::span<const std::byte>,ClientStateTables &,
+      std::shared_ptr<ClientShadowBuildWork> &,std::chrono::steady_clock::time_point,
+      BodyCodecLimits={32u<<20,262144,32,true});
   StateAcceptDecision Assess(const ClientStateCandidateRef &,const ClientShadowValidation &) const;
+  // 等待位只使用定界决策筛掉冲突／迟到报文，不把它当作完整候选Ready。
+  StateAcceptDecision AssessEnvelope(const StateTarget &,const ClientStateTables &) const;
   StateApplyTicket Begin(const ClientStateCandidateRef &,const ClientShadowValidation &);
-  // 只有真正的主线程整批完成才能调用；成功提升不分配，失败不发布候选或半个ACK。
-  std::optional<StateAppliedAck> Complete(StateApplyTicket,StateApplyOutcome,ClientShadowCommit &,std::uint8_t affected_streams=0);
-  // 可能写入／取消后必须收到真实清理排空再释放物理busy；逻辑inflight清零不能替代。
+  // 发布回执只推进应用影子。排空回执用于撤销仍占用原生承载的票据。
+  bool CompleteApplication(StateApplyTicket,bool applied,bool drained,class ClientStateEvents &);
+  // 可能写入或取消后须收到实际排空回执，才释放用量。
   bool CompleteDrain(StateApplyTicket);
   void RequireRecovery(std::uint8_t streams,StateResyncReason,bool structural=false);
   ClientShadowStateRef Installed(BodyStream) const;
   std::array<std::uint32_t,2> HistoricalVersions() const;
-  std::uint64_t InstalledEvents() const;
+  // 完全解码的纯值根进入接收环后才允许发送 ACK。
+  StateAppliedAck RetainReceived(const ClientStateCandidateRef &);
+  ClientStateCandidateRef ForWorldApplication(const ClientStateCandidateRef &);
+  ClientStateCandidateRef SelectKnownBodyObjects(const ClientStateCandidateRef &);
+  ClientStateCandidateRef DeferUnreadyObjects(const ClientStateCandidateRef &,const ClientStateTables &);
+  std::array<std::uint32_t,2> ReceivedVersions() const;
+  std::uint64_t ReceivedEvents() const;
   std::optional<StateResync> RecoveryRequest() const;
   std::array<std::optional<StateAppliedAck>,2> Reacknowledgements() const;
 private:

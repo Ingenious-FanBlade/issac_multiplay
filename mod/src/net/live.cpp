@@ -10,7 +10,9 @@
 #include "state/budget.h"
 #include "state/client_validation.h"
 #include <algorithm>
+#include <cstdio>
 #include <cstring>
+#include <optional>
 
 namespace cs::net::live {
 namespace r = replica;
@@ -61,6 +63,7 @@ r::Json Capabilities(const s::RuntimeConfig &config,bool binary_host=false,bool 
   // Host要求现行整数布局；Client完整接收／安装接通之前不声明此能力。
   if(binary_host)caps["required"].PushBack(r::Value(binary.c_str(),a),a);
   else if(!binary_client)for(auto i=caps["supported"].Begin();i!=caps["supported"].End();)if(i->IsString()&&binary==i->GetString())i=caps["supported"].Erase(i);else ++i;
+  if(binary_host||binary_client)caps["supported"].PushBack(r::Value(s::kStateTableDeltaCapability,a),a);
   for(const char *name:{"client-scene-entity-v1","client-scene-grid-v1","client-scene-room-v1","client-scene-player-v2"})caps["native_appliers"].PushBack(r::Value(name,a),a);
   auto &l = caps["limits"];
   const auto local = Limits();
@@ -89,12 +92,12 @@ bool Zstd(const r::Value &agreed) {
       return true;
   return false;
 }
-bool WorldBodyZstd(const r::Value &agreed) {
-  if(!Zstd(agreed))return false;
+bool Supports(const r::Value &agreed,const char *name) {
   for(const auto &feature:agreed["supported"].GetArray())
-    if(String(feature)==s::kWorldBodyZstdCapability)return true;
+    if(String(feature)==name)return true;
   return false;
 }
+bool WorldBodyZstd(const r::Value &agreed) {return Zstd(agreed)&&Supports(agreed,s::kWorldBodyZstdCapability);}
 s::WorldScope ReadWorld(const r::Value &v) {
   return {N(v, "session"),   N(v, "run"),  N(v, "floor"),
           N(v, "dimension"), N(v, "room"), N(v, "scene")};
@@ -179,61 +182,183 @@ struct HostPeer::Binary {
   state::StateRoute route;
   s::ReliableSender reliable;
   state::StateTransferEpisode episode;
-  std::shared_ptr<const state::HostStateMessage> message;
+  // 一张可靠目录可与一个动态候选同时在途。联合基线仍独占发送。
+  std::shared_ptr<const state::HostStateMessage> message,context;
   s::SharedBlob blob;
-  std::uint64_t transfer=0,sequence=0,message_sequence=0,message_at=0,next_dynamic=0,last_applied=0,unmatched_acks=0;
-  std::uint32_t cursor=0,ready_member=0,ready_resource=0;
+  std::uint64_t transfer=0,context_transfer=0,sequence=0,message_sequence=0,message_at=0,last_state_ack=0,unmatched_acks=0;
+  BinaryProgress cadence;
+  std::optional<std::uint64_t> tables_sent_us;
+  // World 30Hz 和 Body 60Hz 独立使用高精度本机单调时钟，共享总带宽额度。
+  // GetTickCount64 的15/16ms步长会把17ms间隔量化成约31ms，不能用于这两条流的发帧节奏。
+  std::array<std::uint64_t,2> next_dynamic_us{};
+  std::uint32_t cursor=0;
+  unsigned recovery_reason=0;
   std::array<std::uint64_t,2> dynamic_blocked{};
-  bool opened=false,preparing=false,registered=false;
-  void Clear(){publisher.Stop();message.reset();blob.reset();ordinary.reset();prepared.reset();opened=preparing=registered=false;ready_member=ready_resource=0;last_applied=0;dynamic_blocked={};reliable.Authorize({});episode.Finish();}
+  bool opened=false,preparing=false,registered=false,context_registered=false;
+  void AdvanceDynamic(unsigned stream,std::uint64_t now_us) noexcept {
+    const auto hz=stream?state::StateBudgets().body_hz:state::StateBudgets().world_hz;
+    const auto period=(1'000'000+hz-1)/hz;
+    auto &due=next_dynamic_us[stream];
+    // 完整发出或明确跳过才消费节拍。短误差不累积，错过整周期时从当前重新排。
+    due=due&&now_us>=due&&now_us-due<period?due+period:now_us+period;
+  }
+  // 恢复撤销在途传输和该次目录计时；可靠重传仍保留首次完整发出的起点。
+  void CancelPublication() noexcept {
+    if(context){reliable.Cancel(context_transfer);context.reset();}
+    if(message){reliable.Cancel(transfer);message.reset();blob.reset();}
+    tables_sent_us.reset();
+  }
+  void Clear(){publisher.Stop();CancelPublication();ordinary.reset();prepared.reset();opened=preparing=registered=context_registered=false;recovery_reason=0;last_state_ack=0;next_dynamic_us={};dynamic_blocked={};reliable.Authorize({});episode.Finish();}
+  // 可靠回执推进资源目录；状态 ACK 由客机保留解码快照后发送。
+  unsigned PumpReliable(std::uint64_t now,unsigned budget,const s::ReliableSender::Send &send){
+    const bool table=bool(context);
+    if(!table&&(!message||!blob||!s::Reliable(blob->lane)))return 0;
+    auto &current=table?context:message;
+    auto &sent_complete=table?context_registered:registered;
+    const auto id=table?context_transfer:transfer;
+    const auto sent=reliable.Pump(now,budget,send);
+    if(!sent_complete&&reliable.AllSent(id)){
+      if(!publisher.Sent(current,now,0))Fail("binary_sent_ledger_budget");
+      sent_complete=true;
+      if(table){
+        if(!tables_sent_us)tables_sent_us=s::MetricMicros();
+      }else if(current->target.count==2)++cadence.joint_sent;
+#ifdef ISAACCS_E2E
+      if(!table&&current->target.count==2){
+        const auto &target=current->target;
+        s::E2EStreamProgress("binary_joint_sent",{route.route,target.sections[0].base_version,
+          target.sections[0].target_version,target.sections[1].base_version,target.sections[1].target_version,
+          id,target.sections[0].member_epoch,target.sections[0].resource_epoch});
+        if(recovery_reason==unsigned(state::StateResyncReason::Apply))
+          s::E2EStreamProgress("binary_apply_recovery_baseline",{route.route,target.count,
+            target.sections[0].base_version,target.sections[0].target_version,
+            target.sections[1].base_version,target.sections[1].target_version,id,0});
+      }
+#endif
+    }
+    s::ReliableSender::Result result;
+    while(reliable.Poll(result)){
+      if(result.transfer!=id)continue; // 已取消传输的迟到结果不归新候选。
+      if(!result.complete)Fail(result.reason);
+      if(!sent_complete)Fail("binary_receive_before_complete_send");
+      if(table)publisher.TableReceived(*current);
+      else {
+        if(episode.Status(now)==state::StateEpisodeStatus::Active)episode.Received(now);
+        blob.reset();
+      }
+      current.reset();
+    }
+    return sent;
+  }
   unsigned Pump(std::uint64_t now,std::uint64_t &transfer_sequence,const s::Route &outbound,EncodingCache &cache,const s::ReliableSender::Send &send){
     if(!opened)return 0;
     if(publisher.RecoverExpired(now)){
-      if(message){reliable.Cancel(transfer);message.reset();blob.reset();}
+      recovery_reason=unsigned(state::StateResyncReason::Base);
+      CancelPublication();
       if(episode.Status(now)==state::StateEpisodeStatus::Inactive)episode.Begin(now);else if(!episode.Attempt(now))Fail("binary_recovery_attempts");
     }
-    const bool preparing_world=publisher.Preparing();
-    if(preparing_world&&episode.Status(now)==state::StateEpisodeStatus::Inactive)episode.Begin(now);
-    if(preparing_world&&episode.Status(now)!=state::StateEpisodeStatus::Active)Fail("binary_prepare_budget_or_deadline");
+    bool preparing_world=false;
+    const auto refresh_episode=[&]{
+      preparing_world=publisher.Preparing();
+      if(!preparing_world){episode.Finish();return;}
+      if(episode.Status(now)==state::StateEpisodeStatus::Inactive)episode.Begin(now);
+      switch(episode.Status(now)){
+        case state::StateEpisodeStatus::Active:break;
+        case state::StateEpisodeStatus::SendDeadline:Fail("binary_prepare_receive_deadline");
+        case state::StateEpisodeStatus::TotalDeadline:Fail("binary_prepare_install_deadline");
+        case state::StateEpisodeStatus::NoProgress:{
+          // 诊断记录已确认的帧和最近可用目录，资源目录单独传输。
+          const auto confirmed=publisher.Confirmed();
+          char detail[256];
+          std::snprintf(detail,sizeof(detail),"binary_prepare_no_progress received=%u/%u offered_members=%u offered_resources=%u resync=%u lane=%u",
+            confirmed[0].target,confirmed[1].target,ordinary?ordinary->member_epoch:0,ordinary?ordinary->resource_epoch:0,
+            recovery_reason,context?unsigned(context->lane):message?unsigned(message->lane):0);
+          Fail(detail);
+        }
+        default:Fail("binary_prepare_budget_or_deadline");
+      }
+    };
+    refresh_episode();
     const auto transmit=[&](std::span<const std::uint8_t> bytes){
       const auto cost=state::MeasureStateDatagram(bytes.size());
       // 失败／WouldBlock没有上行，不计为发包；先核剩余额度再调用真实socket。
       if(preparing_world&&episode.Charged()+cost>state::StateBudgets().prepare_wire_bytes)Fail("binary_prepare_wire_budget");
-      const auto result=send(bytes);if(result==s::SendResult::Sent&&preparing_world&&!episode.Charge(cost,now))Fail("binary_prepare_episode");return result;
+      const auto result=send(bytes);
+      if(result==s::SendResult::Sent){
+        if(preparing_world&&!episode.Charge(cost,now))Fail("binary_prepare_episode");
+      }
+      return result;
     };
-    unsigned sent=0;
+    unsigned sent=PumpReliable(now,64,transmit);
+    if(message&&blob&&s::Reliable(blob->lane))return sent;
     if(message&&(message->lane==state::StateLane::World||message->lane==state::StateLane::Body)){
       const auto deadline=message->lane==state::StateLane::World?state::StateBudgets().world_send_ms:state::StateBudgets().body_send_ms;
       if(now<message_at||now-message_at>=deadline){
         // 未完整发送的动态候选没有ACK资格；只撤候选，事件和确认base继续保留。
         const auto n=message->lane==state::StateLane::World?0u:1u;if(!dynamic_blocked[n])dynamic_blocked[n]=now;
-        publisher.AbandonPending(message);message.reset();blob.reset();next_dynamic=now+1;return 0;
+        publisher.AbandonPending(message);message.reset();blob.reset();next_dynamic_us[n]=s::MetricMicros()+1000;return sent;
       }
     }
-    if(!message){
-      if(now<next_dynamic&&publisher.Active())return 0;
-      for(const auto at:dynamic_blocked)if(at&&now>=at&&now-at>=state::StateBudgets().world_stale_ms){publisher.RequireRecovery(state::StateResyncReason::Budget);dynamic_blocked={};break;}
-      message=publisher.Next();if(!message)return 0;
-      message_sequence=Next(sequence);message_at=now;
-    }
-    if(!blob){
-      s::Message value;value.kind=s::Kind(message->kind);value.sequence=message_sequence;value.connection=outbound.connection;value.route=outbound.epoch;
-      value.state_body=message->payload;value.state_lane=s::Lane(message->lane);
-      const bool compressed=outbound.zstd&&(s::Reliable(value.state_lane)||outbound.world_body_zstd);
-      blob=cache.Get(value,compressed,value.state_lane==s::Lane::PlayerFast||value.state_lane==s::Lane::WorldDynamic?outbound.fast_limits:outbound.world_limits);if(!blob)return 0;
-      transfer=Next(transfer_sequence);cursor=0;registered=false;
-      if(s::Reliable(blob->lane))reliable.Start(blob,transfer,now);
-    }
-    if(s::Reliable(blob->lane)){
-      sent=reliable.Pump(now,64,transmit);
-      if(!registered&&reliable.AllSent(transfer)){if(!publisher.Sent(message,now))Fail("binary_sent_ledger_budget");registered=true;}
-      s::ReliableSender::Result result;
-      while(reliable.Poll(result)){if(!result.complete)Fail(result.reason);if(result.transfer==transfer){if(!registered)Fail("binary_receive_before_complete_send");message.reset();blob.reset();}}
-    }else {
-      const auto count=std::uint32_t((blob->bytes.size()+outbound.fast_limits.datagram-65)/(outbound.fast_limits.datagram-64));
-      while(cursor<count&&sent<64){const auto bytes=s::Datagram(*blob,{outbound.connection,outbound.epoch,transfer},cursor,outbound.fast_limits);
-        const auto result=transmit(bytes);if(result==s::SendResult::Failed)Fail("binary_socket_send");if(result==s::SendResult::WouldBlock)break;++cursor;++sent;}
-      if(cursor==count){if(!publisher.Sent(message,now))Fail("binary_sent_ledger_budget");dynamic_blocked[message->lane==state::StateLane::World?0:1]=0;message.reset();blob.reset();next_dynamic=now+1000/state::StateBudgets().body_hz;}
+    // 当目录已交给可靠 sender 时，允许同一轮再选择一个普通帧。
+    std::uint8_t deferred_streams=0;
+    for(unsigned attempt=0;attempt<2&&sent<64;++attempt){
+      if(!message){
+        const auto pacing_now=s::MetricMicros();
+        const auto eligible=std::uint8_t(((pacing_now>=next_dynamic_us[0]?1:0)|(pacing_now>=next_dynamic_us[1]?2:0))&~deferred_streams);
+        if(!eligible&&publisher.Active()&&!preparing_world)return sent;
+        for(const auto at:dynamic_blocked)if(at&&now>=at&&now-at>=state::StateBudgets().world_stale_ms){
+          if(publisher.RequireRecovery(state::StateResyncReason::Budget)){
+            recovery_reason=unsigned(state::StateResyncReason::Budget);CancelPublication();
+          }
+          dynamic_blocked={};break;
+        }
+        state::HostWorldDeferral world_deferral{};
+        message=publisher.Next(now,pacing_now,eligible,world_deferral);
+        if(world_deferral!=state::HostWorldDeferral::None){
+          AdvanceDynamic(0,pacing_now);deferred_streams|=1;
+        }
+        refresh_episode();
+        if(!message){
+          // World 事件预算不足时给 Body 保留本轮独立发送机会。
+          if(world_deferral!=state::HostWorldDeferral::None&&(eligible&2))continue;
+          return sent;
+        }
+        message_sequence=Next(sequence);message_at=now;
+      }
+      if(!blob){
+        s::Message value;value.kind=s::Kind(message->kind);value.sequence=message_sequence;value.connection=outbound.connection;value.route=outbound.epoch;
+        value.state_body=message->payload;value.state_lane=s::Lane(message->lane);
+        const bool compressed=outbound.zstd&&(s::Reliable(value.state_lane)||outbound.world_body_zstd);
+        blob=cache.Get(value,compressed,value.state_lane==s::Lane::PlayerFast||value.state_lane==s::Lane::WorldDynamic?outbound.fast_limits:outbound.world_limits);if(!blob)return sent;
+        transfer=Next(transfer_sequence);cursor=0;registered=false;
+        if(s::Reliable(blob->lane))reliable.Start(blob,transfer,now);
+      }
+      if(message->lane==state::StateLane::Context){
+        if(context||!publisher.StartTable(message))Fail("binary_context_transfer_slot");
+        context=std::move(message);context_transfer=transfer;context_registered=false;blob.reset();
+        sent+=PumpReliable(now,64-sent,transmit);
+        continue;
+      }
+      if(s::Reliable(blob->lane))return sent+PumpReliable(now,64-sent,transmit);
+      {
+        const auto count=std::uint32_t((blob->bytes.size()+outbound.fast_limits.datagram-65)/(outbound.fast_limits.datagram-64));
+        while(cursor<count&&sent<64){const auto bytes=s::Datagram(*blob,{outbound.connection,outbound.epoch,transfer},cursor,outbound.fast_limits);
+          const auto result=transmit(bytes);if(result==s::SendResult::Failed)Fail("binary_socket_send");if(result==s::SendResult::WouldBlock)break;++cursor;++sent;}
+        if(cursor==count){
+          const auto sent_us=s::MetricMicros();
+          if(!publisher.Sent(message,now,sent_us))Fail("binary_sent_ledger_budget");
+#ifdef ISAACCS_E2E
+          // 显式诊断时确认真实单流发送及其目录；默认关闭，不在性能窗口逐帧记录。
+          const auto &section=message->target.sections[0];
+          s::E2EStreamProgress("binary_dynamic_sent",{route.route,unsigned(section.stream),section.base_version,
+            section.target_version,section.member_epoch,section.resource_epoch,section.source_revision,transfer});
+#endif
+          const auto stream=message->lane==state::StateLane::World?0u:1u;dynamic_blocked[stream]=0;
+          ++(stream?cadence.body_sent:cadence.world_sent);
+          AdvanceDynamic(stream,sent_us);
+          message.reset();blob.reset();}
+      }
+      break;
     }
     return sent;
   }
@@ -241,10 +366,17 @@ struct HostPeer::Binary {
 HostPeer::~HostPeer()=default;
 const s::TransferStatistics &HostPeer::TransferStatus() const noexcept{return binary_->reliable.Statistics();}
 bool HostPeer::Initializing() const noexcept{return binary_->publisher.Preparing();}
-bool HostPeer::Stale() const noexcept{return binary_->opened&&binary_->last_applied&&GetTickCount64()-binary_->last_applied>state::StateBudgets().world_stale_ms;}
+bool HostPeer::Stale() const noexcept{return binary_->opened&&binary_->last_state_ack&&GetTickCount64()-binary_->last_state_ack>state::StateBudgets().world_stale_ms;}
 unsigned HostPeer::PublicationPhase() const noexcept{return unsigned(ending_||stopped_?PublicationPhaseValue::Stopped:binary_->publisher.Active()?PublicationPhaseValue::Active:binary_->preparing?PublicationPhaseValue::Preparing:PublicationPhaseValue::WaitingWorld);}
-HostPeer::BinaryProgress HostPeer::StateProgress() const noexcept {const auto confirmed=binary_->publisher.Confirmed();const auto events=binary_->publisher.EventStatistics();
-  return {confirmed[0].target,confirmed[1].target,confirmed[0].event_watermark,events.dropped_capacity,events.dropped_expired,binary_->unmatched_acks};}
+HostPeer::BinaryProgress HostPeer::StateProgress() const noexcept {
+  const auto confirmed=binary_->publisher.Confirmed();const auto events=binary_->publisher.EventStatistics();
+  auto result=binary_->cadence;
+  result.world=confirmed[0].target;result.body=confirmed[1].target;result.events=confirmed[0].event_watermark;
+  result.dropped_capacity=events.dropped_capacity;result.dropped_expired=events.dropped_expired;
+  result.unmatched_acks=binary_->unmatched_acks;
+  result.body_dependency_blocks=binary_->publisher.BodyDependencyBlocks();
+  result.world_window=binary_->publisher.WorldProgress();return result;
+}
 HostPeer::HostPeer(std::uint64_t session, unsigned ordinal, s::RuntimeConfig config) : ordinal_(ordinal),config_(config) {
   if(*config.Validate())Fail(config.Validate());
   operations_.Configure(config_);
@@ -272,6 +404,11 @@ bool HostPeer::Receive(std::span<const std::uint8_t> bytes, std::uint64_t now, R
     return false;
   if (header.kind != s::Kind::Hello &&
       (header.connection != route_.connection || header.route != route_.epoch))
+    return false;
+  // 旧世界已撤销但传输路由要等 ScenePrepared 才递增；期间到达的旧确认没有发布归属。
+  // 首次准备前 route_.world 尚未建立，仍走原来的提前确认拒绝路径。
+  if (route_.world && !binary_->opened &&
+      (header.kind == s::Kind::AppliedAck || header.kind == s::Kind::Resync))
     return false;
   s::Message m;
   if (!assembler_.Receive(bytes, now, m))
@@ -323,22 +460,36 @@ bool HostPeer::Receive(std::span<const std::uint8_t> bytes, std::uint64_t now, R
     return false;
   }
   if(m.state_body){
+    // 正常断开已撤销发布表；在途 UDP 确认没有新确认资格，不能再交给已清空的 owner。
+    if(ending_||stopped_)return false;
     if(!binary_->opened)Fail("binary_confirmation_before_prepare");
     const auto &bytes=m.state_body->bytes;
-    if(m.kind==s::Kind::ContextReady){
-      const auto ready=state::DecodeStateContextReady(binary_->route.scope,bytes);
-      if(!binary_->publisher.ContextReady(binary_->route,ready))Fail("binary_unsent_context_ready");
-      if(ready.member_epoch>binary_->ready_member||ready.resource_epoch>binary_->ready_resource){binary_->ready_member=ready.member_epoch;binary_->ready_resource=ready.resource_epoch;if(binary_->episode.Status(now)==state::StateEpisodeStatus::Active)binary_->episode.Progress(now);}
-    }else if(m.kind==s::Kind::AppliedAck){
+    if(m.kind==s::Kind::AppliedAck){
       const auto ack=state::DecodeStateAppliedAck(binary_->route.scope,bytes);
-      const auto result=binary_->publisher.Applied(binary_->route,ack);
+      const auto result=binary_->publisher.Received(binary_->route,ack);
       // 未知／冲突ACK没有确认资格；旧UDP副本也可能已超出保留回执，不推进版本或事件水位。
       if(result==state::StateAckResult::UnknownOrConflict){++binary_->unmatched_acks;return false;}
-      if(result==state::StateAckResult::Accepted){binary_->last_applied=now;if(binary_->episode.Status(now)==state::StateEpisodeStatus::Active)binary_->episode.Progress(now);if(!binary_->publisher.Preparing())binary_->episode.Finish();}
+      if(result==state::StateAckResult::Accepted){
+#ifdef ISAACCS_E2E
+        // 只采集正在处理 Apply 恢复时的真实已接受凭据，保留原联合条目数。
+        if(binary_->recovery_reason==unsigned(state::StateResyncReason::Apply))s::E2EStreamProgress("binary_apply_recovery_ack",{
+          binary_->route.route,ack.count,ack.entries[0].target,ack.entries[1].target,0,0,0,0});
+#endif
+        binary_->last_state_ack=now;if(binary_->episode.Status(now)==state::StateEpisodeStatus::Active)binary_->episode.Progress(now);
+        // 精确匹配的基线接收回执结束传输计费，原生应用由客机独立推进。
+        if(ack.count==2||!binary_->publisher.Preparing()){
+          binary_->episode.Finish();binary_->recovery_reason=0;}}
     }else if(m.kind==s::Kind::Resync){
       const auto request=state::DecodeStateResync(binary_->route.scope,bytes);
       if(!binary_->publisher.Recover(binary_->route,request))return false;
-      if(binary_->message){binary_->reliable.Cancel(binary_->transfer);binary_->message.reset();binary_->blob.reset();}
+      binary_->recovery_reason=unsigned(request.reason);
+#ifdef ISAACCS_E2E
+      // 使用接收端已解析并接受的原始恢复请求，历史版本只用于明示其来源。
+      s::E2EStreamProgress(request.reason==state::StateResyncReason::Apply?
+        "binary_apply_recovery_request":"binary_recovery_request",{
+        binary_->route.route,request.streams,binary_->recovery_reason,request.installed_world,request.installed_body,0,0,0});
+#endif
+      binary_->CancelPublication();
       if(binary_->episode.Status(now)==state::StateEpisodeStatus::Inactive)binary_->episode.Begin(now);
       else if(!binary_->episode.Attempt(now))Fail("binary_recovery_attempts");
     }else Fail("binary_host_receive_kind");
@@ -349,6 +500,8 @@ bool HostPeer::Receive(std::span<const std::uint8_t> bytes, std::uint64_t now, R
     return false;
   }
   if (m.kind == s::Kind::ReceiveAck) {
+    // 切房已清空旧发送器、尚未激活新route时，旧分片ACK没有归属，直接丢弃。
+    if(ending_||stopped_||!binary_->opened)return false;
     if(binary_->reliable.Acknowledge(m,now)&&binary_->episode.Status(now)==state::StateEpisodeStatus::Active)binary_->episode.Progress(now);
     return false;
   }
@@ -363,7 +516,7 @@ bool HostPeer::Receive(std::span<const std::uint8_t> bytes, std::uint64_t now, R
     auto outbound=route_;outbound.direction=s::Direction::ToClient;binary_->reliable.Authorize(outbound);binary_->opened=true;binary_->preparing=false;
     return false;
   }
-  if(m.kind==s::Kind::AppliedAck||m.kind==s::Kind::ContextReady||m.kind==s::Kind::Resync)
+  if(m.kind==s::Kind::AppliedAck||m.kind==s::Kind::Resync)
     Fail("binary_confirmation_requires_binary_body");
   if (Operations::Reliable(m.kind)) {
     const auto kind = m.kind;
@@ -373,7 +526,8 @@ bool HostPeer::Receive(std::span<const std::uint8_t> bytes, std::uint64_t now, R
       return false;
     if (cancel) {
       assembler_.Cancel(cancel);
-      if(binary_->message&&binary_->transfer==cancel)Fail("binary_cancel_requires_explicit_resync");
+      if((binary_->message&&binary_->transfer==cancel)||(binary_->context&&binary_->context_transfer==cancel))
+        Fail("binary_cancel_requires_explicit_resync");
     }
     if (kind == s::Kind::Stop || kind == s::Kind::Disconnect || kind == s::Kind::Retire) {
       stopped_ = true;
@@ -491,9 +645,9 @@ Packets HostPeer::Reject(const char *reason) {
   r::Put(m.body, "detail", std::string("Client negotiation or connection rejected"), a);
   return Pack(m);
 }
-bool HostPeer::Offer(const Publication &p,std::uint64_t now){
+bool HostPeer::Offer(const Publication &p,const state::HostStatePublication::View &sources,std::uint64_t now){
   if(ending_||stopped_)return true;
-  const auto ordinary=p.binary_ordinary;
+  const auto &ordinary=sources.ordinary;
   if(!ordinary){
     if(!p.source[0]&&binary_->ordinary){binary_->Clear();auto m=Message(s::Kind::Retire,Next(control_));r::Put(m.body,"reason",std::string("binary_host_source_retired"),m.body.GetAllocator());operations_.Queue(std::make_shared<const s::Message>(std::move(m)),now);}
     return !p.source[0];
@@ -507,7 +661,7 @@ bool HostPeer::Offer(const Publication &p,std::uint64_t now){
     binary_->route={route_.connection,route_.epoch+1,scope};binary_->publisher.Open(binary_->route);binary_->episode.Begin(now);
   }
   if(!binary_->publisher.Offer(ordinary))return false;binary_->ordinary=ordinary;
-  if(p.binary&&p.binary->witness.scope==ordinary->witness.scope&&!binary_->publisher.Offer(p.binary))return false;
+  if(sources.latest&&sources.latest!=ordinary&&sources.latest->witness.scope==ordinary->witness.scope&&!binary_->publisher.Offer(sources.latest))return false;
   if(established_&&sent_.generation&&!binary_->opened&&!binary_->preparing){
     binary_->prepared=ordinary;binary_->preparing=true;
     auto m=Message(s::Kind::ScenePrepare,Next(control_));auto &a=m.body.GetAllocator();
@@ -581,11 +735,13 @@ struct Client::State {
   // 工作与反馈各一个SPSC方向。接收owner只在Run线程构造/修改，Scene不跨线程调用它。
   std::shared_ptr<const state::ClientStatePreparation> binary_preparation;
   std::shared_ptr<state::ClientStateMemory> binary_memory;
-  OwnedQueue<state::ClientStateApplyBatchRef,1> binary_apply;
-  OwnedQueue<state::ClientStateResourceJob,1> binary_resources;
-  OwnedQueue<state::ClientStateApplyCompletion,2> binary_completions;
+  // 各通道独立交接一张在途票据，避免 World 收尾阻塞已经就绪的 Body。
+  std::array<OwnedQueue<state::ClientStateApplyBatchRef,1>,2> binary_apply;
+  OwnedQueue<state::ClientStateResourceJob,state::kClientResourceJobsInFlight> binary_resources;
+  // 两张票据各可产生完成及实际排空回执。
+  OwnedQueue<state::ClientStateApplyCompletion,4> binary_completions;
   struct ResourceCompletion {state::ClientResourcePreparationTicket ticket;state::ClientResourceState result;};
-  OwnedQueue<ResourceCompletion,2> binary_resource_completions;
+  OwnedQueue<ResourceCompletion,state::kClientResourceJobsInFlight> binary_resource_completions;
   struct BinaryRecovery {state::StateRoute route;state::StateResyncReason reason=state::StateResyncReason::Apply;};
   OwnedQueue<BinaryRecovery,1> binary_recovery;
   memory::Lease binary_mailbox_memory=memory::Reserve(memory::Pool::Values,
@@ -598,23 +754,35 @@ struct Client::State {
       const auto bindings=state::ClientStateRootBindings();
       receiver=std::make_unique<state::ClientStateReceiver>(s.binary_memory,bindings,*s.binary_preparation,*this);
     }
-    bool Apply(state::ClientStateApplyBatchRef batch)override{return owner.binary_apply.TryPush(std::move(batch));}
+    bool Apply(state::ClientStateApplyBatchRef batch)override{
+      const auto channel=state::StateApplyChannel(batch->target.candidate->Target());
+      return owner.binary_apply[channel].TryPush(std::move(batch));
+    }
     bool Resource(const state::ClientStateResourceJob &job)override{return owner.binary_resources.TryPush(job);}
     bool Control(state::StateMessageKind kind,std::span<const std::byte> bytes)override {
       auto m=Make(s::Kind(unsigned(kind)),Next(owner.control),owner.route.connection,owner.route.epoch);
+      // Make 为旧控制消息创建对象正文；二进制确认只能保留 state_body，不能混入旧壳。
+      m.body.SetNull();
       m.state_body=std::make_shared<const state::HostStateBytes>(bytes);m.state_lane=s::Lane::Control;
       // 二进制AppliedAck自身按规定周期补发；不能交给只理解compact OperationAck的旧控制事务。
       owner.SendMessage(m);return true;
     }
     void Close(){if(active){receiver->Close();active=false;}}
-    void Pump(std::uint64_t now) {
+    // socket等待期间主线程可能已完成安装；处理新数据前先消费真实完成反馈，
+    // 避免把仍未取出的Success误当成busy而丢弃零等待Body。
+    void CollectFeedback() {
       state::ClientStateApplyCompletion completion;
       while(owner.binary_completions.TryPop(completion))receiver->Complete(completion);
       ResourceCompletion resource;while(owner.binary_resource_completions.TryPop(resource))receiver->CompleteResource(resource.ticket,resource.result);
       BinaryRecovery recovery;
       while(owner.binary_recovery.TryPop(recovery))if(active&&recovery.route.connection==owner.route.connection&&recovery.route.route==owner.route.epoch)
         receiver->RequireRecovery(3,recovery.reason,true);
-      if(active)receiver->Pump(now);
+    }
+    void Pump(std::uint64_t now,bool allow_waiting=true) {
+      CollectFeedback();
+      // Close 后主线程仍会归还批次；Pump 的 Collect 必须继续回收这些退休租约。
+      // receiver 自身在非 active 时只做 Collect，不再交付目标或发送网络确认。
+      receiver->Pump(now,allow_waiting);
     }
   };
   std::unique_ptr<Binary> binary;
@@ -789,8 +957,11 @@ struct Client::State {
     e.received_ms = now;
     if(m.state_body) {
       if(!accept_world||!binary||!binary->active)return;
-      if(m.kind!=s::Kind::StateFrame&&m.kind!=s::Kind::StateMembers&&m.kind!=s::Kind::StateResources)Fail("binary_client_receive_kind");
-      binary->receiver->Receive(state::StateMessageKind(unsigned(m.kind)),state::StateLane(unsigned(m.state_lane)),m.state_body->bytes,now);return;
+      if(m.kind!=s::Kind::StateFrame&&m.kind!=s::Kind::StateResources)Fail("binary_client_receive_kind");
+      binary->CollectFeedback();
+      binary->receiver->Receive(state::StateMessageKind(unsigned(m.kind)),state::StateLane(unsigned(m.state_lane)),
+        m.state_body->bytes,m.sequence,now,true);
+      return;
     }
     if (m.kind == s::Kind::Roster) {
       if (m.sequence <= roster_sequence ||
@@ -863,9 +1034,12 @@ struct Client::State {
       if (generation < input_ack_generation ||
           (generation == input_ack_generation && sequence < input_ack_sequence))
         return;
-      if (generation == input_ack_generation && sequence == input_ack_sequence &&
-          tick != input_ack_tick)
-        Fail("live_input_ack_conflict");
+      if(generation==input_ack_generation){
+        // processed 是累计消费水位；中性帧仍推进 processed_tick，不要求同一序号永远绑定首次 tick。
+        // 同水位的旧／重复回执可直接忽略，新水位却倒退 tick 才属于真实冲突。
+        if(sequence==input_ack_sequence&&tick<=input_ack_tick)return;
+        if(tick<input_ack_tick)Fail("live_input_ack_conflict");
+      }
       input_ack_generation = generation;
       input_ack_sequence = sequence;
       input_ack_tick = tick;
@@ -969,7 +1143,8 @@ struct Client::State {
         }
         Flush();
         Commands(now);
-        if(binary)binary->Pump(now);
+        // 先释放已完成的应用槽，再读本轮已到达的UDP；等待world不能在读取新body之前反复抢占。
+        if(binary)binary->Pump(now,false);
         if(prepared_response&&now>=prepare_due){
           if(now<prepare_started||now-prepare_started>=config.progress_timeout_ms)Fail("live_prepare_no_confirmation");
           // 旧路由的本机回执和最后一份计划必须由 receiver 消费后才授权新路由。
@@ -1037,7 +1212,9 @@ struct Client::State {
         FD_SET(socket, &reads);
         const auto wake =
             (std::min)(now + config.bundle_wait_ms, (std::min)(operations.NextWake(now), assembler.NextWake(now)));
-        timeval wait{0, long((wake > now ? wake - now : 1) * 1000)};
+        // 重工作片已经让出。先轮询可达 Body／反馈，再续做，避免固定等待一个 bundle 周期。
+        const bool resume=binary&&binary->receiver->HasRunnableSlice();
+        timeval wait{0, resume?0:long((wake > now ? wake - now : 1) * 1000)};
         if (select(0, &reads, nullptr, nullptr, &wait) == SOCKET_ERROR)
           Fail("live_client_select");
         for (unsigned n = 0; n < 64; ++n) {
@@ -1063,6 +1240,7 @@ struct Client::State {
             ReceivePacket(packet);
           }
         }
+        if(binary)binary->Pump(GetTickCount64());
       }
       Revoke();
       pending_send.clear();
@@ -1210,8 +1388,8 @@ bool Client::PollWorld(Event &e) noexcept {
   }
   return false;
 }
-bool Client::PollBinary(state::ClientStateApplyBatchRef &batch) noexcept {
-  return state_&&state_->binary_apply.TryPop(batch);
+bool Client::PollBinary(unsigned channel,state::ClientStateApplyBatchRef &batch) noexcept {
+  return state_&&channel<state_->binary_apply.size()&&state_->binary_apply[channel].TryPop(batch);
 }
 bool Client::PollBinaryResource(state::ClientStateResourceJob &job) noexcept {
   return state_&&state_->binary_resources.TryPop(job);

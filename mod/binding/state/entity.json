@@ -35,7 +35,8 @@
             "type": "i8",
             "host": "entity_plus_flying_to_value",
             "client": "entity_plus_flying_from_value"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": 6,
@@ -62,7 +63,8 @@
             "host": "entity_plus_water_to_value",
             "client": "entity_plus_water_from_value",
             "value_rule": "nullable-water"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": 13,
@@ -73,17 +75,6 @@
           "semantics": "optional内部尾部对齐区未对已安装REP二进制核定；不复制",
           "status": "未知",
           "evidence": "MSVC optional与EntityPlus Win32 ABI"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "EntityPlus 公共可选覆盖",
-          "sequence": "world",
-          "fields": [
-            "flying_override",
-            "water_override"
-          ]
         }
       ],
       "conversions": {
@@ -171,7 +162,8 @@
             "type": "u32",
             "host": "entity_index_to_draw_order",
             "client": "entity_draw_order_to_description"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x24",
@@ -197,7 +189,8 @@
             "kind": "copy",
             "type": "u32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x2c",
@@ -213,7 +206,8 @@
             "kind": "copy",
             "type": "u32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x30",
@@ -229,7 +223,8 @@
             "kind": "copy",
             "type": "u32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x34",
@@ -245,7 +240,8 @@
             "kind": "copy",
             "type": "u32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x38",
@@ -261,7 +257,8 @@
             "kind": "copy",
             "type": "u32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x3c",
@@ -285,13 +282,9 @@
           "read_requires": "entity-current-window",
           "wire": {
             "kind": "nested",
-            "type": "ANM2",
-            "projections": [
-              0,
-              1,
-              2
-            ]
-          }
+            "type": "ANM2"
+          },
+          "sequence": "world-or-player-body"
         },
         {
           "offset": "0x15c",
@@ -306,7 +299,8 @@
             "kind": "copy",
             "type": "f32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world-or-player-body"
         },
         {
           "offset": "0x160",
@@ -331,7 +325,8 @@
             "kind": "copy",
             "type": "u64"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x170",
@@ -356,7 +351,8 @@
             "kind": "copy",
             "type": "u8"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x172",
@@ -371,7 +367,8 @@
             "kind": "copy",
             "type": "u8"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x173",
@@ -386,7 +383,8 @@
             "kind": "copy",
             "type": "u8"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x174",
@@ -451,7 +449,8 @@
             "kind": "copy",
             "type": "i32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x188",
@@ -466,7 +465,8 @@
             "kind": "copy",
             "type": "i32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x18c",
@@ -561,7 +561,8 @@
           "wire": {
             "kind": "nested",
             "type": "ColorMod"
-          }
+          },
+          "sequence": "world-or-player-body"
         },
         {
           "offset": "0x1e4",
@@ -576,7 +577,8 @@
           "wire": {
             "kind": "nested",
             "type": "ColorMod"
-          }
+          },
+          "sequence": "world-or-player-body"
         },
         {
           "offset": "0x210",
@@ -921,7 +923,8 @@
             "kind": "copy",
             "type": "u32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x32c",
@@ -936,7 +939,8 @@
             "kind": "copy",
             "type": "i32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x330",
@@ -954,7 +958,8 @@
             "client": "entity_selected_config_from_resource",
             "target": "entity-configs"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x334",
@@ -969,7 +974,8 @@
           "wire": {
             "kind": "nested",
             "type": "Vector"
-          }
+          },
+          "sequence": "world-or-player-body"
         },
         {
           "offset": "0x33c",
@@ -984,7 +990,8 @@
           "wire": {
             "kind": "nested",
             "type": "Vector"
-          }
+          },
+          "sequence": "world-or-player-body"
         },
         {
           "offset": "0x344",
@@ -1009,7 +1016,8 @@
           "wire": {
             "kind": "nested",
             "type": "Vector"
-          }
+          },
+          "sequence": "world-or-player-body"
         },
         {
           "offset": "0x354",
@@ -1024,7 +1032,8 @@
             "kind": "copy",
             "type": "i32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world-or-player-body"
         },
         {
           "offset": "0x358",
@@ -1039,7 +1048,8 @@
             "kind": "copy",
             "type": "f32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world-or-player-body"
         },
         {
           "offset": "0x35c",
@@ -1054,7 +1064,8 @@
             "kind": "copy",
             "type": "i32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world-or-player-body"
         },
         {
           "offset": "0x360",
@@ -1069,7 +1080,8 @@
           "wire": {
             "kind": "nested",
             "type": "Vector"
-          }
+          },
+          "sequence": "world-or-player-body"
         },
         {
           "offset": "0x368",
@@ -1104,7 +1116,8 @@
             "kind": "copy",
             "type": "f32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x374",
@@ -1119,7 +1132,8 @@
           "wire": {
             "kind": "nested",
             "type": "Vector"
-          }
+          },
+          "sequence": "world-or-player-body"
         },
         {
           "offset": "0x37c",
@@ -1144,7 +1158,8 @@
             "kind": "copy",
             "type": "f32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x384",
@@ -1159,7 +1174,8 @@
             "kind": "copy",
             "type": "f32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x388",
@@ -1194,7 +1210,8 @@
             "kind": "copy",
             "type": "f32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world-or-player-body"
         },
         {
           "offset": "0x3a0",
@@ -1239,7 +1256,8 @@
             "kind": "copy",
             "type": "f32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x3b8",
@@ -1254,7 +1272,8 @@
             "kind": "copy",
             "type": "f32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x3bc",
@@ -1272,7 +1291,8 @@
             "host": "entity_reference_to_member",
             "client": "entity_reference_from_member",
             "target": "entities"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x3c0",
@@ -1290,7 +1310,8 @@
             "host": "entity_reference_to_member",
             "client": "entity_reference_from_member",
             "target": "entities"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x3c4",
@@ -1308,7 +1329,8 @@
             "host": "entity_reference_to_member",
             "client": "entity_reference_from_member",
             "target": "entities"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x3c8",
@@ -1326,7 +1348,8 @@
             "host": "entity_reference_to_member",
             "client": "entity_reference_from_member",
             "target": "entities"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x3cc",
@@ -1364,7 +1387,8 @@
             "host": "entity_reference_to_member",
             "client": "entity_reference_from_member",
             "target": "entities"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x3d8",
@@ -1400,7 +1424,8 @@
             "kind": "copy",
             "type": "u32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x3f0",
@@ -1433,120 +1458,6 @@
           "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
         }
       ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "E0 分类与形态",
-          "sequence": "world",
-          "fields": [
-            "authority_order",
-            "type",
-            "variant",
-            "subtype",
-            "spawner_type",
-            "spawner_variant",
-            "spawn_grid_index",
-            "selected_config",
-            "init_seed"
-          ]
-        },
-        {
-          "id": 1,
-          "name": "E1 运动",
-          "sequence": "world-or-player-body",
-          "fields": [
-            "target_position",
-            "position",
-            "position_offset",
-            "velocity",
-            "size_multi",
-            "speed_multiplier"
-          ]
-        },
-        {
-          "id": 2,
-          "name": "E2 生命与碰撞",
-          "sequence": "world",
-          "fields": [
-            "flags",
-            "visible",
-            "exists",
-            "dead",
-            "grid_collision_class",
-            "entity_collision_class",
-            "frame_base",
-            "size",
-            "hit_points",
-            "max_hit_points"
-          ]
-        },
-        {
-          "id": 3,
-          "name": "E3 缩小状态",
-          "sequence": "world",
-          "fields": [
-            "shrink_status_1",
-            "shrink_status_2"
-          ]
-        },
-        {
-          "id": 4,
-          "name": "E4 外观与主Sprite外观",
-          "sequence": "world-or-player-body",
-          "fields": [
-            "shadow_size",
-            "color",
-            "splat_color",
-            "render_z_offset",
-            "depth_offset",
-            "sorting_layer",
-            "sprite#0"
-          ]
-        },
-        {
-          "id": 5,
-          "name": "E5 主Sprite动画",
-          "sequence": "world-or-player-body",
-          "fields": [
-            "sprite#1"
-          ]
-        },
-        {
-          "id": 6,
-          "name": "E6 主Sprite图层",
-          "sequence": "world",
-          "fields": [
-            "sprite#2"
-          ]
-        },
-        {
-          "id": 7,
-          "name": "E7 原颜色参数（预留）",
-          "sequence": "world",
-          "fields": [],
-          "reserved": true
-        },
-        {
-          "id": 8,
-          "name": "E8 实体引用",
-          "sequence": "world",
-          "fields": [
-            "parent",
-            "child",
-            "target",
-            "spawner",
-            "minecart"
-          ]
-        },
-        {
-          "id": 9,
-          "name": "E9 REPENTOGON扩展",
-          "sequence": "world",
-          "fields": [
-            "entity_plus"
-          ]
-        }
-      ],
       "companions": [
         {
           "name": "entity_plus",
@@ -1555,7 +1466,8 @@
           "evidence": "官方repentogon/Patches/EntityPlus.cpp:19-65,75-101,118-120；state/entity_extension.cpp",
           "status": "已核",
           "host": "read_existing_entity_plus",
-          "client": "install_existing_entity_plus"
+          "client": "install_existing_entity_plus",
+          "sequence": "world"
         }
       ],
       "contexts": {
@@ -2337,7 +2249,8 @@
       "public_owners": [
         "Entity"
       ],
-      "notes": "第3步Entity公共目录；未知字节、SDK声明和跨域依赖明确保留。E0含形态元数据，E1/E4/E5在Player切换为body。正式采集与原生应用在第10/13步接线；此处不代表完整同步已运行。 版本30移除33个公共范围的线上职责（32个Host玩法范围、1个本地工厂标志）；保留valid/exists/dead及真实绘制参数，详见entity-common-synchronization-review.md。 版本31进一步撤销公共valid的wire/validator/handler，原生资格归本地owner；exists/dead保留，Player激活资格的结构信息由第5步P7另行接管，见entity-lifecycle-synchronization-review.md。"
+      "notes": "第3步Entity公共目录；未知字节、SDK声明和跨域依赖明确保留。E0含形态元数据，E1/E4/E5在Player切换为body。正式采集与原生应用在第10/13步接线；此处不代表完整同步已运行。 版本30移除33个公共范围的线上职责（32个Host玩法范围、1个本地工厂标志）；保留valid/exists/dead及真实绘制参数，详见entity-common-synchronization-review.md。 版本31进一步撤销公共valid的wire/validator/handler，原生资格归本地owner；exists/dead保留，Player激活资格的结构信息由第5步P7另行接管，见entity-lifecycle-synchronization-review.md。",
+      "flat": true
     }
   ]
 }

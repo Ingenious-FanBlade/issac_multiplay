@@ -1055,6 +1055,17 @@ bool WorldStorage::Ready() const noexcept {
          core_->state.load(std::memory_order_acquire) ==
              static_cast<std::uint32_t>(StorageState::Ready);
 }
+// 旧 reader／队列故障只关闭诊断输出。身份序号和正式二进制 owner 可继续推进。
+bool WorldStorage::DiagnosticReaderFailed() const noexcept {
+  if(!core_||core_->state.load(std::memory_order_acquire)!=unsigned(StorageState::Faulted))return false;
+  const auto source=core_->diag.Fault().source;
+  return source==FailSource::Reader||source==FailSource::Queue||source==FailSource::Writer;
+}
+bool WorldStorage::NativeAvailable() const noexcept {
+  if(!core_)return false;
+  const auto state=StorageState(core_->state.load(std::memory_order_acquire));
+  return state==StorageState::Ready||(state==StorageState::Faulted&&DiagnosticReaderFailed());
+}
 
 BatchWriter WorldStorage::Begin(const BatchBegin &begin) noexcept {
   if (!Ready() || core_->FaultReason() != Reason::None)
@@ -1066,7 +1077,7 @@ BatchWriter WorldStorage::Begin(const BatchBegin &begin) noexcept {
     core_->diag.backpressure.fetch_add(1, std::memory_order_relaxed);
     // 没有数据槽时仍要交付独立 gap 控制记录，保留 attempt 与原因。
     const auto gap = core_->BuildGap(begin, Reason::Backpressure);
-    PublishGap(gap);
+    EnqueueDiagnosticGap(gap);
     return {};
   }
   auto &slot = *core_->slots[index];
@@ -1094,8 +1105,8 @@ BatchWriter WorldStorage::Begin(const BatchBegin &begin) noexcept {
   return BatchWriter(core_, index);
 }
 
-bool WorldStorage::PublishEvent(LifecycleEvent event) noexcept {
-  if (!core_ || !Ready() || core_->FaultReason() != Reason::None)
+bool WorldStorage::StampEvent(LifecycleEvent &event) noexcept {
+  if(!NativeAvailable())
     return false;
   std::uint64_t sequence = 0;
   auto current = core_->event_sequence.load(std::memory_order_relaxed);
@@ -1113,26 +1124,36 @@ bool WorldStorage::PublishEvent(LifecycleEvent event) noexcept {
     }
   }
   event.sequence = sequence;
-  if (!core_->events->TryPush(event)) {
+  core_->last_event.store(sequence,std::memory_order_relaxed);
+  return true;
+}
+bool WorldStorage::EnqueueDiagnosticEvent(const LifecycleEvent &event) noexcept {
+  if(!Ready()||core_->FaultReason()!=Reason::None||!core_->events->TryPush(event))return false;
+  core_->diag.events_produced.fetch_add(1,std::memory_order_relaxed);
+  core_->Notify();
+  return true;
+}
+bool WorldStorage::PublishEvent(LifecycleEvent event) noexcept {
+  if(!Ready()||!StampEvent(event))return false;
+  if(!EnqueueDiagnosticEvent(event)){
     core_->Fail(Reason::EventOverflow, FailSource::Producer,
                 core_->events->Capacity(), "event_ring");
     return false;
   }
-  core_->diag.events_produced.fetch_add(1, std::memory_order_relaxed);
-  core_->last_event.store(sequence, std::memory_order_relaxed);
-  core_->Notify();
   return true;
 }
 
 bool WorldStorage::PublishGap(const GapRecord &record) noexcept {
+  if(EnqueueDiagnosticGap(record))return true;
+  if(core_&&Ready()&&core_->FaultReason()==Reason::None)
+    core_->Fail(Reason::EventOverflow,FailSource::Producer,core_->gaps->Capacity(),"gap_ring");
+  return false;
+}
+bool WorldStorage::EnqueueDiagnosticGap(const GapRecord &record) noexcept {
   if (!core_ || !Ready() || core_->FaultReason() != Reason::None)
     return false;
   core_->diag.gaps.fetch_add(1, std::memory_order_relaxed);
-  if (!core_->gaps->TryPush(record)) {
-    core_->Fail(Reason::EventOverflow, FailSource::Producer,
-                core_->gaps->Capacity(), "gap_ring");
-    return false;
-  }
+  if(!core_->gaps->TryPush(record))return false;
   core_->diag.gaps_produced.fetch_add(1, std::memory_order_relaxed);
   core_->Notify();
   return true;

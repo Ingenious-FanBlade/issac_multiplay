@@ -72,7 +72,7 @@ struct Worker::State {
   std::shared_ptr<const live::Publication> current_publication;
   std::atomic<std::uint64_t> uplink_wire{0},uplink_blocks{0};
   std::atomic<unsigned> publication_phase{0};
-  std::array<std::atomic<std::uint64_t>,6> binary_progress{};
+  std::array<std::atomic<std::uint64_t>,13> binary_progress{};
   std::atomic<bool> stream_stale{false};
   replica::stream::MetricsMailbox stream_metrics,encoder_metrics;
   std::uint64_t metrics_at=0;
@@ -530,7 +530,10 @@ struct Worker::State {
         SendGame(game_peer->Progress(heartbeat),now);
         game_peer->Pump(now,*encoding_cache,[&](auto bytes){Packet packet{};packet.size=bytes.size();std::copy(bytes.begin(),bytes.end(),packet.bytes.begin());if(SendPacket(packet,now))return replica::stream::SendResult::Sent;return terminal.load(std::memory_order_acquire)==TerminalReason::InternalFailure?replica::stream::SendResult::Failed:replica::stream::SendResult::WouldBlock;});
         publication_phase.store(game_peer->PublicationPhase(),std::memory_order_relaxed);
-        const auto binary=game_peer->StateProgress();const std::array<std::uint64_t,6> progress{binary.world,binary.body,binary.events,binary.dropped_capacity,binary.dropped_expired,binary.unmatched_acks};
+        const auto binary=game_peer->StateProgress();
+        const std::array<std::uint64_t,13> progress{binary.world,binary.body,binary.events,binary.dropped_capacity,
+          binary.dropped_expired,binary.unmatched_acks,binary.joint_sent,binary.world_sent,binary.body_sent,
+          binary.body_dependency_blocks,binary.world_window.window_skips,binary.world_window.inflight_max,binary.world_window.retries};
         for(unsigned i=0;i<progress.size();++i)binary_progress[i].store(progress[i],std::memory_order_relaxed);
         stream_stale.store(game_peer->Stale());
         if(now>=metrics_at){stream_metrics.Publish(game_peer->Metrics());encoder_metrics.Publish(encoding_cache->Statistics());metrics_at=now+50;}
@@ -613,12 +616,24 @@ struct Worker::State {
            terminal.load(std::memory_order_acquire) == TerminalReason::None) {
       const auto now = GetTickCount64();
       if(auto update=publications.Take())current_publication=std::move(update);
+      state::HostStatePublication::View sources;
+      if(current_publication&&current_publication->binary){
+        // 一轮所有 Peer 共享同一份读取，且只能借主线程当前授权的 run／room。
+        sources=current_publication->binary->Read();
+        const auto &key=current_publication->source;
+        const auto current=[&](const state::HostStateSnapshotRef &value){
+          return value&&value->witness.scope.session==key[0]&&value->witness.generation==key[1]&&
+            value->witness.scope.run==key[2]&&value->witness.scope.room==key[3];
+        };
+        if(!current(sources.ordinary))sources={};
+        else if(!current(sources.latest))sources.latest.reset();
+      }
       bool binary_transferred=true;
       for (unsigned offset = 0; offset < peers.size()-1; ++offset) {
         const unsigned i=1+(round_robin+offset)%(peers.size()-1);
         auto &p = *peers[i];
         if (p.terminal.load(std::memory_order_acquire) != TerminalReason::None){if(now-p.terminal_at_ms.load(std::memory_order_relaxed)<2000)p.ServiceGameEnd(now);continue;}
-        if(p.game_peer&&current_publication){try{binary_transferred=p.game_peer->Offer(*current_publication,now)&&binary_transferred;}catch(...){binary_transferred=false;p.Finish(ByeReason::InternalFailure,Error::Payload);}}
+        if(p.game_peer&&current_publication){try{binary_transferred=p.game_peer->Offer(*current_publication,sources,now)&&binary_transferred;}catch(...){binary_transferred=false;p.Finish(ByeReason::InternalFailure,Error::Payload);}}
         const auto requested = p.stop.load(std::memory_order_acquire);
         const bool timed_out = p.game_peer ? p.game_peer->LastReceive() && now-p.game_peer->LastReceive()>=config.peer_timeout_ms : p.endpoint.TimedOut(now);
         if (requested || timed_out) {
@@ -641,8 +656,7 @@ struct Worker::State {
         }
       }
       // 当前全部存活游戏Peer均已复制，才归还ordinary采集票据；工具Peer不消费世界事件。
-      if(binary_transferred&&current_publication&&current_publication->binary_ordinary)
-        current_publication->binary_ordinary->events_transferred.store(1,std::memory_order_release);
+      if(binary_transferred&&sources.ordinary)sources.ordinary->events_transferred.store(1,std::memory_order_release);
       round_robin=(round_robin+1)%(peers.size()-1);
       fd_set reads;
       FD_ZERO(&reads);
@@ -915,6 +929,10 @@ WorkerStatus Worker::Status(unsigned ordinal) const noexcept {
   result.publication_phase=s.publication_phase.load(std::memory_order_relaxed);
   result.binary_world_ack=s.binary_progress[0].load();result.binary_body_ack=s.binary_progress[1].load();result.binary_event_ack=s.binary_progress[2].load();
   result.binary_event_dropped_capacity=s.binary_progress[3].load();result.binary_event_dropped_expired=s.binary_progress[4].load();result.binary_unmatched_acks=s.binary_progress[5].load();
+  result.binary_joint_sent=s.binary_progress[6].load();result.binary_world_sent=s.binary_progress[7].load();result.binary_body_sent=s.binary_progress[8].load();
+  result.binary_body_dependency_blocks=s.binary_progress[9].load();
+  result.binary_world_window_skips=s.binary_progress[10].load();result.binary_world_inflight_max=s.binary_progress[11].load();
+  result.binary_world_retries=s.binary_progress[12].load();
   result.operation_retransmissions=s.operation_statistics[0].load(std::memory_order_relaxed);result.operation_cancellations=s.operation_statistics[1].load(std::memory_order_relaxed);result.operation_completed=s.operation_statistics[2].load(std::memory_order_relaxed);result.operation_failed=s.operation_statistics[3].load(std::memory_order_relaxed);
   if(s.have_replication_failure.load(std::memory_order_acquire))result.replication_first_failure=s.replication_first_failure;
   result.uplink_wire_bytes=s.uplink_wire.load(std::memory_order_relaxed);result.uplink_budget_blocks=s.uplink_blocks.load(std::memory_order_relaxed);for(unsigned i=0;i<4;++i){result.uplink_lane_bytes[i]=s.uplink_lanes[i].load(std::memory_order_relaxed);result.uplink_lane_packets[i]=s.uplink_lane_packets[i].load();}

@@ -4,6 +4,7 @@
 #include "world/domains/entity/collect.h"
 #include "world/domains/grid/collect.h"
 #include <algorithm>
+#include <bitset>
 #include <cstring>
 #include <limits>
 #include <windows.h>
@@ -33,8 +34,7 @@ bool Collector::Activate() noexcept {
   return true;
 }
 bool Collector::Recording() const noexcept {
-  return active_ && !stopping_ && storage_.Ready() &&
-         storage_.Diag().FaultReason() == Reason::None;
+  return active_&&!stopping_&&storage_.NativeAvailable();
 }
 bool Collector::Drained() const noexcept {
   return !depth_ && !entity_reconfiguration_depth_ && !join_effect_token_ && !player_child_depth_ && !lifecycle_depth_ && !outer_active_ && !pending_;
@@ -99,7 +99,7 @@ void Collector::EndDeliriumReconfiguration(std::uint32_t token,bool normal) noex
   CloseIfDrained();
 }
 void Collector::CloseIfDrained() noexcept {
-  if ((stopping_ || storage_.Diag().FaultReason() != Reason::None) &&
+  if ((stopping_ || !storage_.NativeAvailable()) &&
       Drained()) {
     active_ = false;
     storage_.RequestStop(storage_.Diag().FaultReason() == Reason::None
@@ -153,6 +153,12 @@ bool Collector::Image(std::uint32_t address, std::size_t bytes) const noexcept {
 }
 bool Collector::ReadRoots(Roots &out) noexcept {
   const auto &c = layout::LayoutConstants();
+  if(memory_.roots){
+    if(GetCurrentThreadId()!=memory_.main_thread)return false;
+    std::array<std::uint32_t,4> values{};
+    if(!memory_.roots(memory_.image_base,{c.game_root_rva,c.game_room_offset,c.game_room_index_offset,c.game_dimension_offset},values))return false;
+    out={values[0],values[1],values[2],values[3]};return out.game!=0;
+  }
   return Value(std::uint64_t(memory_.image_base) + c.game_root_rva, out.game) &&
          out.game &&
          Value(std::uint64_t(out.game) + c.game_room_offset, out.room) &&
@@ -223,14 +229,11 @@ bool Collector::Event(EventKind kind, Reason reason, Identity *id,
     event.slot_before = id->memberships;
     event.slot_after = result;
   }
-  if (!storage_.PublishEvent(event)) {
-    Fault(storage_.Diag().FaultReason() == Reason::None
-              ? Reason::EventOverflow
-              : storage_.Diag().FaultReason(),
-          "lifecycle_event");
+  if (!storage_.StampEvent(event)) {
+    Fault(storage_.Diag().FaultReason() == Reason::None?Reason::SequenceExhausted:storage_.Diag().FaultReason(),"lifecycle_event");
     return false;
   }
-  event.sequence=storage_.EventWatermark();
+  if(LegacyDiagnostics()&&!storage_.EnqueueDiagnosticEvent(event))legacy_output_failed_=true;
   if(sink_.event) sink_.event(sink_.owner,event);
   return true;
 }
@@ -467,12 +470,26 @@ void Collector::RevokePlayer(std::uint32_t ordinal) noexcept {
   identities_.AnchorPlayer(ordinal, 0);
   anchors_[ordinal] = {};
 }
+namespace {
+bool ValidAnchor(const PlayerAnchor &value) noexcept {
+  return value.valid && value.player && value.device && value.key >= 0 &&
+         value.generation && value.session;
+}
+using AnchorSlots = std::array<std::uint16_t, kControlAnchorCapacity>;
+using AnchorChanges = std::bitset<kControlAnchorCapacity>;
+static_assert(kControlAnchorCapacity <= UINT16_MAX);
+}
+
+std::size_t Collector::AnchorRefreshWorkspaceBytes() noexcept {
+  // 调用方目标集、提交时的旧值以及有界判重暂存都计入同一 Workspace。
+  return 2 * sizeof(PlayerAnchorSet) + sizeof(AnchorSlots) + sizeof(AnchorChanges);
+}
+
 void Collector::AnchorPlayer(std::uint32_t ordinal,
                              const PlayerAnchor &value) noexcept {
   if (!Recording() || ordinal >= anchors_.size())
     return;
-  if (!value.valid || !value.player || !value.device || value.key < 0 ||
-      !value.generation || !value.session) {
+  if (!ValidAnchor(value)) {
     RevokePlayer(ordinal);
     return;
   }
@@ -485,11 +502,73 @@ void Collector::AnchorPlayer(std::uint32_t ordinal,
   if (anchors_[ordinal] == value)
     return;
   RevokePlayer(ordinal);
+  InstallPlayerAnchor(ordinal, value);
+}
+
+void Collector::InstallPlayerAnchor(std::uint32_t ordinal, const PlayerAnchor &value) noexcept {
   if (!identities_.AnchorPlayer(ordinal, value.player).valid) {
     Fault(Reason::Budget, "anchor_identity");
     return;
   }
   anchors_[ordinal] = value;
+}
+
+unsigned Collector::ReplacePlayerAnchors(
+    PlayerAnchorSet &desired, void (*retire)(std::uint32_t) noexcept,
+    void (*changed)(unsigned,const PlayerAnchor &,const PlayerAnchor &) noexcept) noexcept {
+  if (!Recording() || anchors_ == desired)
+    return 0;
+
+  // 检查完整目标集，未变化槽也参加判重。相同地址的全部候选一起撤销。
+  AnchorSlots slots;
+  std::size_t used = 0;
+  for (unsigned i = 0; i < desired.size(); ++i) {
+    if (ValidAnchor(desired[i]))
+      slots[used++] = static_cast<std::uint16_t>(i);
+    else
+      desired[i] = {};
+  }
+  const auto end = slots.begin() + used;
+  std::sort(slots.begin(), end, [&](auto a, auto b) { return desired[a].player < desired[b].player; });
+  for (auto first = slots.begin(); first != end;) {
+    const auto address = desired[*first].player;
+    auto after = first + 1;
+    while (after != end && desired[*after].player == address)
+      ++after;
+    if (after - first > 1)
+      for (; first != after; ++first)
+        desired[*first] = {};
+    first = after;
+  }
+
+  const auto previous = anchors_;
+  AnchorChanges changes;
+  // 根切换可重排身体槽，全部旧身份退役后才允许安装，避免撤销清掉已迁移的地址。
+  for (unsigned i = 0; i < previous.size(); ++i)
+    if (previous[i] != desired[i]) {
+      changes.set(i);
+      if (previous[i].valid)
+        retire(previous[i].player);
+      RevokePlayer(i);
+    }
+  for (unsigned i = 0; i < desired.size(); ++i)
+    if (changes[i] && desired[i].valid) {
+      if (!Recording())
+        break;
+      InstallPlayerAnchor(i, desired[i]);
+    }
+  // 身份表耗尽或事件推进失败时回卷本批已安装的槽，稳定槽保留原关联。
+  if (!Recording())
+    for (unsigned i = 0; i < desired.size(); ++i)
+      if (changes[i] && anchors_[i].valid)
+        RevokePlayer(i);
+  unsigned count = 0;
+  for (unsigned i = 0; i < previous.size(); ++i)
+    if (changes[i] && previous[i] != anchors_[i]) {
+      ++count;
+      changed(i, previous[i], anchors_[i]);
+    }
+  return count;
 }
 void Collector::PlayerReturned(std::uint32_t ordinal,
                                const PlayerAnchor &before,
@@ -521,12 +600,17 @@ void Collector::PlayerReturned(std::uint32_t ordinal,
   }
 }
 bool Collector::PlayerPost(std::uint32_t slot,PlayerPostWitness &out) noexcept {
+  Roots now{};
+  if(CurrentPlayerPost(slot,out)&&ReadRoots(now)&&now==roots_)return true;
+  out={};return false;
+}
+bool Collector::CurrentPlayerPost(std::uint32_t slot,PlayerPostWitness &out) noexcept {
   out={};if(slot>=player_posts_.size())return false;
-  const auto &p=player_posts_[slot];Roots roots{};
+  const auto &p=player_posts_[slot];
   if(!Recording()||!outer_active_||!prepared_||polluted_||depth_||lifecycle_depth_||lifecycle_episode_||
      entity_reconfiguration_depth_||outer_reason_!=Reason::None||authority_count_!=1||!p.tick||p.tick!=authority_.tick||
      p.outer!=outer_||p.mutation!=mutation_||p.run!=run_||p.room!=room_||p.anchor!=anchors_[slot]||
-     update_witnesses_[slot]!=p.anchor||!ReadRoots(roots)||roots!=roots_)return false;
+     update_witnesses_[slot]!=p.anchor)return false;
   const auto *id=identities_.Find(ObjectDomain::Entity,p.anchor.player);
   if(!id||id->Retired()||!id->current_public_ready||id->local_id!=p.local||id->use!=p.use||id->revision!=p.shape)return false;
   if(authority_.kind!=AuthorityKind::StandardRoom&&authority_.kind!=AuthorityKind::OddPlayer)return false;
@@ -537,6 +621,43 @@ bool Collector::NativePostMatches(const core::TickPostState &post) const noexcep
   return GetCurrentThreadId()==memory_.main_thread && prepared_ && post.tick==post_.tick &&
     post.outer_token==outer_ && post.recording_generation==generation_ && post.attempt_seq==attempt_ &&
     post.capture_seq==post_.capture_seq && post.status==post_.status && post.reason==post_.reason;
+}
+// 轻量后态的 Complete 只来自实际封存的普通候选，旧诊断保留自己的结果。
+core::TickPostState Collector::NativePrepared(bool complete) noexcept {
+  if(!prepared_||pending_||!post_stable_||complete)return post_;
+  post_.status=core::PostStateStatus::Gap;
+  post_.reason=std::uint32_t(Reason::NotReady);
+  post_stable_=false;
+  storage_.Diag().gaps.fetch_add(1,std::memory_order_relaxed);
+  return post_;
+}
+bool Collector::DiagnosticMembers(const NativeCaptureWindow &w,std::span<RawSource> sources,
+    std::span<std::uint32_t> addresses) noexcept {
+  if(!pending_||!post_stable_||!w.ordinary||sources.size()!=10||!NativeWindowCurrent(w))return false;
+  const auto &h=pending_.Header();
+  std::array<std::uint32_t,10> first{};
+  std::uint32_t total=0;
+  for(unsigned i=0;i<sources.size();++i){
+    first[i]=total;
+    if(i==6){sources[i]={};continue;}
+    sources[i]=h.sources[i];
+    if(sources[i].status||sources[i].count>addresses.size()-total)return false;
+    total+=sources[i].count;
+  }
+  std::fill_n(addresses.begin(),total,0);
+  for(std::uint32_t i=0;i<h.membership_count;++i){const auto &m=pending_.Memberships()[i];
+    if(m.source>=sources.size()||m.source==6)continue;
+    if(m.object>=h.object_count||m.index>=sources[m.source].count)return false;
+    auto &address=addresses[first[m.source]+m.index];
+    if(address)return false;
+    address=pending_.Objects()[m.object].address;
+  }
+  for(unsigned i=0;i<sources.size();++i){
+    const auto *spec=layout::FindSource(i);
+    if(i!=6&&spec&&spec->kind!=layout::SourceKind::FixedArray)
+      for(auto address:addresses.subspan(first[i],sources[i].count))if(!address)return false;
+  }
+  return true;
 }
 // 普通owner资格独立于旧Recorder批次槽；二进制owner自行封存并复核完整成员来源。
 bool Collector::NativeOrdinary(NativeCaptureWindow &out) noexcept {
@@ -557,6 +678,13 @@ bool Collector::NativeBody(std::uint32_t slot,NativeCaptureWindow &out,PlayerPos
   out={generation_,run_,room_,outer_,authority_.scope,authority_.tick,mutation_,attempt_,capture_,roots_.game,roots_.room,frame,slot,false};
   const auto failures=ObservationFailures();out.wrong_thread=failures.wrong_thread;out.native_exception=failures.native_exception;return true;
 }
+// ordinary 已实际核 Game、Room、帧和阶段；每身体只核自身真实返回与当前身份。
+bool Collector::NativeBodyInOrdinary(std::uint32_t slot,const NativeCaptureWindow &ordinary,NativeCaptureWindow &out,
+    PlayerPostWitness &body) noexcept {
+  out={};
+  if(!ordinary.ordinary||!NativeWindowCurrent(ordinary)||!CurrentPlayerPost(slot,body))return false;
+  out=ordinary;out.ordinary=false;out.body_slot=slot;return true;
+}
 bool Collector::NativeProduction(NativeCaptureWindow &out,std::uint64_t owner) noexcept {
   out={};Roots now{};std::uint32_t frame=0;
   if(GetCurrentThreadId()!=memory_.main_thread || !Recording() || !run_active_ || !run_ || !room_ ||
@@ -566,11 +694,12 @@ bool Collector::NativeProduction(NativeCaptureWindow &out,std::uint64_t owner) n
   const auto failures=ObservationFailures();out.wrong_thread=failures.wrong_thread;out.native_exception=failures.native_exception;return true;
 }
 // 当前只读段不调用原生生产器；生命周期／绑定owner使缓存立即失效，不逐字段重扫来源。
-bool Collector::NativeWindowCurrent(const NativeCaptureWindow &w) noexcept {
+bool Collector::NativeWindowCurrent(const NativeCaptureWindow &w,bool recheck_production_roots) noexcept {
   const auto failures=ObservationFailures();if(w.wrong_thread!=failures.wrong_thread || w.native_exception!=failures.native_exception)return false;
   if(w.production){Roots now{};return GetCurrentThreadId()==memory_.main_thread && Recording() && run_active_ && run_ && room_ && w.production_outer==outer_active_ &&
     !lifecycle_depth_ && !lifecycle_episode_ && !entity_reconfiguration_depth_ && w.generation==generation_ && w.run==run_ && w.room==room_ &&
-    w.outer==(outer_active_?outer_:w.owner) && w.mutation==mutation_ && w.owner && ReadRoots(now) && now==roots_ && w.game==now.game && w.room_address==now.room;}
+    w.outer==(outer_active_?outer_:w.owner) && w.mutation==mutation_ && w.owner && w.game==roots_.game && w.room_address==roots_.room &&
+    (!recheck_production_roots||(ReadRoots(now)&&now==roots_));}
   if(GetCurrentThreadId()!=memory_.main_thread || !Recording() || !run_active_ || !run_ || !room_ || !outer_active_ || !prepared_ || polluted_ || depth_ ||
      lifecycle_depth_ || lifecycle_episode_ || entity_reconfiguration_depth_ || w.generation!=generation_ || w.run!=run_ || w.room!=room_ ||
      w.outer!=outer_ || w.owner!=authority_.scope || w.tick!=authority_.tick || w.mutation!=mutation_ || w.attempt!=attempt_ ||
@@ -578,7 +707,42 @@ bool Collector::NativeWindowCurrent(const NativeCaptureWindow &w) noexcept {
   if(w.ordinary && (authority_.kind!=AuthorityKind::StandardRoom || capture_!=w.capture))return false;
   return true;
 }
-bool Collector::NativeCurrent(const NativeCaptureWindow &w,std::uint32_t address,std::uint64_t local,std::uint64_t use,std::uint64_t shape,ObjectDomain domain) noexcept {
+bool Collector::NativeGridReady(const NativeCaptureWindow &w,const Identity &id,const NativeSource *reader,bool already_qualified) noexcept {
+  if(id.Retired())return false;
+  if(!id.candidate)return id.readiness>=1;
+  if(!w.ordinary || id.owner_scope || id.birth_kind!=unsigned(Observation::GridCtor))return false;
+  if(already_qualified)return true;
+  // Grid 构造清零 initialized。公共 Init 和 MakeDoor 都在派生初始化返回后置位。
+  // 回房期间直接构造的对象可以没有 Init 回执，用已知 RTTI 和当前实槽补足读取资格。
+  auto source=reader?*reader:Source();
+  source.image_base=memory_.image_base;
+  source.image_size=memory_.image_size;
+  std::uint8_t initialized=0;
+  if(!source.Value(std::uint64_t(id.address)+0x1c,initialized)||initialized!=1)return false;
+  if(id.readiness==unsigned(Readiness::BaseInitReturned))return true;
+  const auto &constants=layout::LayoutConstants();
+  const auto room=std::uint64_t(w.room_address);
+  std::uint32_t index=0, occupant=0, vtable=0;
+  bool base_known=false;
+  if(!source.Value(std::uint64_t(id.address)+0x24,index)||index>=constants.room_grid_slot_count||
+     !source.Value(room+constants.room_grid_slot_offset+index*4,occupant)||
+     ClassifyNative(source,ObjectDomain::Grid,id.address,vtable,base_known)!=Class::Grid)return false;
+  if(occupant==id.address)return true;
+  // 门也可由原生 Door 槽持有，须同时匹配 Door→Grid 映射和实例地址。
+  constexpr std::uint32_t door_vtable_rva=0x71966c;
+  if(vtable-source.image_base!=door_vtable_rva)return false;
+  const auto *doors=layout::FindSource(12);
+  if(!doors)return false;
+  for(std::uint32_t slot=0;slot<doors->count;++slot){
+    std::uint32_t mapped=0;
+    if(!source.Value(room+doors->offset+slot*4,occupant)||
+       !source.Value(room+doors->index_map_offset+slot*4,mapped))return false;
+    if(occupant==id.address&&mapped==index)return true;
+  }
+  return false;
+}
+bool Collector::NativeCurrent(const NativeCaptureWindow &w,std::uint32_t address,std::uint64_t local,std::uint64_t use,std::uint64_t shape,ObjectDomain domain,
+    const NativeSource *reader,bool grid_already_qualified) noexcept {
   if(!NativeWindowCurrent(w))return false;
   if(!w.ordinary && !w.production){
     if(domain!=ObjectDomain::Entity)return false;
@@ -588,8 +752,8 @@ bool Collector::NativeCurrent(const NativeCaptureWindow &w,std::uint32_t address
        p.local!=local || p.use!=use || p.shape!=shape)return false;
   }
   const auto *id=identities_.Find(domain,address);
-  return id && !id->Retired() && (domain!=ObjectDomain::Grid || !id->candidate) && id->local_id==local && id->use==use && id->revision==shape &&
-    id->readiness>=(domain==ObjectDomain::Grid?1u:2u);
+  return id && id->local_id==local && id->use==use && id->revision==shape &&
+    (domain==ObjectDomain::Grid?NativeGridReady(w,*id,reader,grid_already_qualified):!id->Retired() && id->readiness>=2);
 }
 
 // RTTI 只读分类：验证 COL/CHD/每个 BCD 的地址、签名与非虚单继承形状。
@@ -606,6 +770,8 @@ NativeSource Collector::Source() noexcept {
   result.polluted=polluted_; result.faults=storage_.Faults(); return result;
 }
 Class Collector::Classify(ObjectDomain domain,std::uint32_t address,std::uint32_t &vptr,bool &base_known) noexcept {
+  if(memory_.classify&&GetCurrentThreadId()==memory_.main_thread)
+    return memory_.classify(domain,address,memory_.image_base,memory_.image_size,vptr,base_known);
   return ClassifyNative(Source(),domain,address,vptr,base_known);
 }
 
@@ -691,11 +857,8 @@ void Collector::CopySources() noexcept {
 // 随后的 CopySources 会从头重新读取所有来源；两次集合差异一律不可确认。
 void Collector::BeginRngWindow() noexcept {
   auto &h = pending_.Header();
-  const auto baseline = h;
-  CopySources();
   rng_count_ = h.object_count;
   const auto inventory_complete = h.complete;
-  const auto inventory_reason = h.reason;
   LARGE_INTEGER now{}, frequency{};
   QueryPerformanceFrequency(&frequency);
   QueryPerformanceCounter(&now);
@@ -743,20 +906,6 @@ void Collector::BeginRngWindow() noexcept {
               return a.domain < b.domain ||
                      (a.domain == b.domain && a.address < b.address);
             });
-  // 丢弃预枚举的临时去重/成员位；历史 committed 位与身份/出生不变。
-  identities_.ForEach([&](Identity &id) {
-    if (id.batch_attempt == attempt_) {
-      id.batch_attempt = 0;
-      id.batch_index = -1;
-    }
-    if (id.pending_attempt == attempt_) {
-      id.pending_attempt = 0;
-      id.pending_memberships = 0;
-    }
-  });
-  h = baseline;
-  h.complete = inventory_complete;
-  h.reason = inventory_reason;
   h.rng_inventory = rng_count_;
   h.rng_thread_before = GetCurrentThreadId();
   h.copy_started_qpc = static_cast<std::uint64_t>(now.QuadPart);
@@ -872,6 +1021,7 @@ void Collector::Memberships(bool commit) noexcept {
 }
 
 void Collector::Gap(Reason reason, bool authority) noexcept {
+  if(!LegacyDiagnostics()){storage_.Diag().gaps.fetch_add(1,std::memory_order_relaxed);return;}
   GapRecord gap{};
   gap.attempt = attempt_;
   gap.run = run_;
@@ -887,8 +1037,7 @@ void Collector::Gap(Reason reason, bool authority) noexcept {
   gap.authority_kind =
       authority ? static_cast<std::uint32_t>(authority_.kind) : 0;
   if(sink_.gap) sink_.gap(sink_.owner,gap);
-  if (!storage_.PublishGap(gap))
-    Fault(Reason::EventOverflow, "gap_publish");
+  if(!storage_.EnqueueDiagnosticGap(gap))legacy_output_failed_=true;
 }
 core::TickPostState Collector::PreparePostState(bool normal) noexcept {
   if (!active_ || !outer_active_)
@@ -898,6 +1047,7 @@ core::TickPostState Collector::PreparePostState(bool normal) noexcept {
     return post_;
   }
   prepared_ = true;
+  post_notified_=false;
   if (attempt_ == UINT64_MAX) {
     Fault(Reason::SequenceExhausted, "attempt");
     return {};
@@ -930,7 +1080,7 @@ core::TickPostState Collector::PreparePostState(bool normal) noexcept {
     if (authority_.scope != phases_[1].scope)
       reason = Reason::UnpairedScope;
   }
-  post_.status = storage_.Diag().FaultReason() != Reason::None
+  post_.status = !storage_.NativeAvailable()&&storage_.Diag().FaultReason()!=Reason::None
                      ? core::PostStateStatus::Faulted
                  : stopping_ ? core::PostStateStatus::Unavailable
                              : core::PostStateStatus::Gap;
@@ -941,6 +1091,16 @@ core::TickPostState Collector::PreparePostState(bool normal) noexcept {
     Gap(reason, authority);
     return post_;
   }
+  if(capture_==UINT64_MAX){Fault(Reason::SequenceExhausted,"capture");post_.status=core::PostStateStatus::Faulted;return post_;}
+  const auto capture_sequence=++capture_;
+  if(!LegacyDiagnostics()){
+    auto &diag=storage_.Diag();
+    diag.attempts.fetch_add(1,std::memory_order_relaxed);diag.last_attempt.store(attempt_,std::memory_order_relaxed);
+    diag.captures.fetch_add(1,std::memory_order_relaxed);diag.last_capture.store(capture_sequence,std::memory_order_relaxed);
+    post_.capture_seq=capture_sequence;post_.status=core::PostStateStatus::Complete;post_stable_=true;
+    return post_;
+  }
+  ++legacy_attempts_;
   BatchBegin begin{};
   begin.attempt = attempt_;
   begin.run = run_;
@@ -969,19 +1129,15 @@ core::TickPostState Collector::PreparePostState(bool normal) noexcept {
     h.phase_entered[i - 1] = phases_[i].entered;
     h.phase_returned[i - 1] = phases_[i].returned;
   }
-  if (capture_ == UINT64_MAX) {
-    Fault(Reason::SequenceExhausted, "capture");
-    Incomplete(Reason::SequenceExhausted);
-  } else
-    h.capture = ++capture_;
+  h.capture=capture_sequence;
   identities_.BeginBatch(attempt_);
   const auto &c = layout::LayoutConstants();
   if (!Value(std::uint64_t(roots_.game) + c.game_frame_offset, game_frame_) ||
       !Value(std::uint64_t(roots_.room) + c.room_grid_width_offset,
              grid_width_))
     Incomplete(Reason::ReadFailed);
-  BeginRngWindow();
   CopySources();
+  BeginRngWindow();
   bool stable_sources = true;
   for (std::size_t i=0;i<h.sources.size();++i) {
     const auto &source=h.sources[i];
@@ -1000,6 +1156,7 @@ core::TickPostState Collector::PreparePostState(bool normal) noexcept {
   }
   ResolveReferences();
   if(sink_.lua) sink_.lua(sink_.owner,h,pending_.Objects(),pending_.Memberships());
+  bool native_changed=false;
   // 在整个复制尾部再复读所有动态 descriptor 和固定槽/door 映射。
   // 源内的两遍指针检查之外，再覆盖复制其他来源/字段期间的描述变化。
   for (std::uint32_t source = 0; source < kSourceCount && Recording();
@@ -1026,6 +1183,7 @@ core::TickPostState Collector::PreparePostState(bool normal) noexcept {
       }
       if (!Read(std::uint64_t(base) + spec->offset, descriptor, bytes) ||
           std::memcmp(descriptor, expected.data(), bytes)) {
+        native_changed=true;
         stable_sources = false;
         Incomplete(Reason::SourceChanged);
       }
@@ -1042,6 +1200,7 @@ core::TickPostState Collector::PreparePostState(bool normal) noexcept {
         if (!Value(std::uint64_t(data) + std::uint64_t(membership.index) * 4,
                    now) ||
             now != pending_.Objects()[membership.object].address) {
+          native_changed=true;
           stable_sources = false;
           Incomplete(Reason::SourceChanged);
         }
@@ -1056,6 +1215,7 @@ core::TickPostState Collector::PreparePostState(bool normal) noexcept {
         }
         const auto original = fixed_addresses_[(grid::OwnsSource(source)?grid::FixedSourceOffset(source):entity::FixedSourceOffset(source))+i];
         if (original != now) {
+          native_changed=true;
           stable_sources = false;
           Incomplete(Reason::SourceChanged);
         }
@@ -1066,6 +1226,7 @@ core::TickPostState Collector::PreparePostState(bool normal) noexcept {
           if (!Value(std::uint64_t(base) + spec->index_map_offset + i * 4,
                      index) ||
               slot < 0 || pending_.Objects()[slot].grid_index != index) {
+            native_changed=true;
             stable_sources = false;
             Incomplete(Reason::SourceChanged);
           }
@@ -1083,10 +1244,13 @@ core::TickPostState Collector::PreparePostState(bool normal) noexcept {
     f->applied.store(1);
   }
   if (!ReadRoots(after) || after != expected || polluted_) {
+    native_changed=true;
     stable_sources = false;
     Incomplete(Reason::RootChanged);
   }
-  if (!stable_sources) {
+  if (native_changed) {
+    // 旧正文容量／诊断输出失败只影响录制；已核到原生来源变化则撤销正式窗口。
+    polluted_=true;
     // 前后复核拒绝时撤销本批 +177 的当前值资格，原始读取不冒充可用字段。
     for(std::uint32_t slot=0;slot<anchors_.size();++slot) RevokePlayer(slot);
     for (std::uint32_t i = 0; i < h.object_count; ++i) {
@@ -1104,18 +1268,19 @@ core::TickPostState Collector::PreparePostState(bool normal) noexcept {
   EndRngWindow(stable_sources);
   Memberships(false);
   h.event_watermark = storage_.EventWatermark();
-  if (!Recording())
+  if (!Recording()||storage_.DiagnosticReaderFailed())
     Incomplete(storage_.Diag().FaultReason());
   post_.reason = h.reason;
   post_.capture_seq = h.capture;
-  post_.status = storage_.Diag().FaultReason() != Reason::None
+  post_.status = !storage_.NativeAvailable()&&storage_.Diag().FaultReason()!=Reason::None
                      ? core::PostStateStatus::Faulted
                  : h.complete ? core::PostStateStatus::Complete
                               : core::PostStateStatus::Gap;
   if(sink_.native) sink_.native(sink_.owner,h,pending_.Objects(),pending_.Memberships());
   if (!pending_.Prepare()) {
-    Fault(Reason::UnpairedScope, "batch_prepare");
-    post_.status = core::PostStateStatus::Faulted;
+    legacy_output_failed_=true;
+    post_.status=core::PostStateStatus::Backpressure;
+    post_.reason=static_cast<std::uint32_t>(Reason::NotificationFailed);
   } else {
     storage_.Diag().captures.fetch_add(1, std::memory_order_relaxed);
     storage_.Diag().last_capture.store(h.capture, std::memory_order_relaxed);
@@ -1124,10 +1289,11 @@ core::TickPostState Collector::PreparePostState(bool normal) noexcept {
 }
 void Collector::PublishPostState(bool committed,
                                  const core::TickPostState &post) noexcept {
-  if (!pending_)
-    return;
+  if(!prepared_||post_notified_)return;
+  post_notified_=true;
   const bool match = NativePostMatches(post);
   if(sink_.commit) sink_.commit(sink_.owner,committed&&match,post_stable_);
+  if(!pending_)return;
   if (!committed || !match) {
     // 析构租约会产生 UNPAIRED_SCOPE gap，不静默退回空槽。
     pending_ = {};
@@ -1141,7 +1307,7 @@ void Collector::PublishPostState(bool committed,
     Incomplete(storage_.Diag().FaultReason());
   const bool complete = pending_.Header().complete != 0;
   if (!pending_.Release(true))
-    Fault(Reason::NotificationFailed, "batch_publish");
+    legacy_output_failed_=true;
   else if (complete)
     storage_.Diag().complete_captures.fetch_add(1, std::memory_order_relaxed);
   else
@@ -1152,12 +1318,34 @@ void Collector::EndOuter() noexcept {
     CloseIfDrained();
     return;
   }
-  if (pending_) {
+  if(prepared_&&!post_notified_){
     if(sink_.commit) sink_.commit(sink_.owner,false,false);
-    pending_ = {};
+    post_notified_=true;
   }
+  pending_={};
   outer_active_ = false;
   CloseIfDrained();
+}
+
+// 仅在完整 ordinary 结构通过提交后替换成员位；缺读、停用或快槽均不产生退出。
+void Collector::CommitNativeMemberships(const NativeCaptureWindow &w,std::span<const RawSource> sources,
+    std::span<const std::uint32_t> addresses,std::span<const std::uint32_t> grids) noexcept {
+  if(pending_||!w.ordinary||!NativeWindowCurrent(w))return;
+  identities_.BeginBatch(w.attempt);
+  std::size_t first=0;
+  for(std::uint32_t source=0;source<sources.size();++source){
+    for(auto address:addresses.subspan(first,sources[source].count))
+      if(auto *id=identities_.Find(ObjectDomain::Entity,address))identities_.AddMembership(*id,source);
+    first+=sources[source].count;
+  }
+  for(std::uint32_t i=0;i<grids.size();++i)if(grids[i])
+    if(auto *id=identities_.Find(ObjectDomain::Grid,grids[i]))identities_.AddMembership(*id,i<448?11:12);
+  identities_.ForEach([&](Identity &id) noexcept {
+    // 旧私有关系位只由旧关系枚举更新；本段没有该来源证据，不能制造退出。
+    const auto mask=identities_.MembershipMask(id)|(id.memberships&(1u<<10));
+    if(identities_.MembershipChanged(id,mask))identities_.CommitMembership(id,mask);
+  });
+  storage_.Diag().complete_captures.fetch_add(1,std::memory_order_relaxed);
 }
 
 std::uint32_t Collector::CreationOwner(ObjectDomain domain) const noexcept {
@@ -1276,11 +1464,20 @@ std::uint32_t Collector::ObserveEnter(Observation kind, std::uint32_t object,
       kind == Observation::Init || kind == Observation::Remove ||
       kind == Observation::ClearReferences || kind == Observation::Destroy ||
       kind == Observation::PlayerCtor || kind == Observation::PlayerRestore ||
-      kind == Observation::GridInit || kind == Observation::GridCtor || entity::Morph(kind);
+      kind == Observation::GridInit || kind == Observation::GridCtor || kind == Observation::EffectInit || entity::Morph(kind);
   if (direct)
     id = Find(domain, object);
   if (kind == Observation::Publish && count)
     id = Find(ObjectDomain::Entity, args[0]);
+  if (id && kind == Observation::EffectInit) {
+    id->direct_effect_init_returned = false;
+    if (!join_effect_token_ && count == 4 && args[0] == 1000 && !id->Retired() &&
+        id->candidate && !id->owner_scope && !id->published && !id->revision &&
+        id->birth_kind == unsigned(Observation::Factory)) {
+      call.effect_local = id->local_id;
+      call.effect_use = id->use;
+    }
+  }
   if (kind == Observation::GridSpawn || kind == Observation::GridFree ||
       kind == Observation::Door) {
     const auto &c = layout::LayoutConstants();
@@ -1317,6 +1514,7 @@ std::uint32_t Collector::ObserveEnter(Observation kind, std::uint32_t object,
         return;
       }
       ++value.revision;
+      value.native_shape_known = false;
       value.readiness = 0;
       value.birth = 0;
       value.born = false;
@@ -1421,6 +1619,10 @@ std::uint32_t Collector::NativeEnter(Observation kind, std::uint32_t object,
         Fault(Reason::SequenceExhausted, "native_revision");
       else
         ++id->revision;
+      // ClearReferences 撤销引用及当前读取资格，但不改变 Type/Variant/SubType。
+      // 保留同一 use 已观察的形态，供紧随其后的 Destroy 识别短生命周期实体退休；
+      // Morph 与后续 Acquire 仍撤销形态，不能沿用到新类型或复用实例。
+      if (entity::Morph(kind)) id->native_shape_known = false;
       id->RevokeCurrentWitness();
     }
     if (kind == Observation::Remove)
@@ -1478,7 +1680,7 @@ void Collector::ObserveLeave(std::uint32_t call_id, std::uint32_t result,
       grid::ObservationFor(kind) ? ObjectDomain::Grid : ObjectDomain::Entity;
   Identity *id = nullptr;
   const bool completed = normal && call.body_reached && call.body_returned;
-  if (completed && !stopping_ && storage_.Ready()) {
+  if(completed&&Recording()){
     if(kind==Observation::Replace&&result&&call.body_result)CompletePlayerReplaceState(call);
     // 703 helper本身不检查Replace的AL；只记录真实内层替换成功，外层还要核对roster/槽。
     if(kind==Observation::Replace&&call.count==2&&result&&call.body_result){
@@ -1513,10 +1715,34 @@ void Collector::ObserveLeave(std::uint32_t call_id, std::uint32_t result,
           else join_effect_witnesses_[join_effect_count_++]={id->address,id->local_id,id->use,false};
         }
       }
+    } else if (kind == Observation::EffectInit) {
+      id = identities_.Find(domain, call.object);
+      if (call.effect_use && id && id->local_id == call.effect_local && id->use == call.effect_use &&
+          !id->Retired() && id->candidate && !id->published && !id->owner_scope &&
+          id->readiness == unsigned(Readiness::BaseInitReturned))
+        id->direct_effect_init_returned = true;
     } else if (kind == Observation::Publish) {
       id = Find(ObjectDomain::Entity, call.args[0]);
-      if (id)
+      if (id) {
+        // J273 内联生成路径先完成派生 Init，再将同一对象登记到当前 Room 的 EntityList。
+        // 读取资格只用于当前值，沿用 Factory 的 local/use，不伪造 Spawn 出生记录。
+        const auto &constants = layout::LayoutConstants();
+        std::uint8_t valid = 0;
+        std::uint32_t vptr = 0;
+        bool base_known = false;
+        if (id->direct_effect_init_returned && !id->published && !id->Retired() && id->candidate &&
+            id->readiness == unsigned(Readiness::BaseInitReturned) && roots_.room &&
+            call.object == std::uint64_t(roots_.room) + constants.room_entity_list_offset &&
+            Value(std::uint64_t(id->address) + 0x170, valid) && valid == 1 &&
+            Classify(domain, id->address, vptr, base_known) == Class::Effect) {
+          id->readiness = unsigned(Readiness::NativeDirectEffectPublished);
+          id->current_public_ready = true;
+          id->candidate = false;
+          Event(EventKind::CurrentEntityReadWitness, Reason::None, id, &call);
+        }
+        id->direct_effect_init_returned = false;
         id->MarkPublished();
+      }
     } else if (kind == Observation::Init || kind == Observation::GridInit ||
                entity::Morph(kind) || kind == Observation::Remove ||
                kind == Observation::ClearReferences ||

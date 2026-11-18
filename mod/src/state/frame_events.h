@@ -32,7 +32,7 @@ struct PresentationMember {
   std::uint64_t id=0, use=0, shape=0;
   auto operator<=>(const PresentationMember &) const = default;
 };
-// 帧分段只携带有序事件；旧 group_count 槽仍按保留零值读写。
+// 帧分段中的有序事件在成员记录与沿用编号之后独立定界。
 struct StateFrameEventView {
   std::span<const PresentationAudioEvent> events;
   std::uint32_t consumed=0;

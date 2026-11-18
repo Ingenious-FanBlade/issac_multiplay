@@ -3,10 +3,11 @@
 #include "state/events.h"
 #include <atomic>
 #include <memory>
+#include <mutex>
 #include <vector>
 
 namespace cs::state {
-// 来源快照只拥有规范字节；成员号在一个run内只追加，不把地址、来源修订当成Peer目标号。
+// 来源快照只拥有规范字节。成员号由实际在途或已收到的快照和事件保留。
 struct HostStateBytes {
   memory::Lease memory;
   std::vector<std::byte> bytes;
@@ -22,14 +23,32 @@ struct HostStateRecord {
   std::uint64_t topology=0,binding=0;
   std::vector<HostStateBlock> blocks;
   std::vector<ProjectionFact> projections;
+  // 编码真正读到的成员号及所需资源前缀，用于跨代表的 Body 闭包判定。
+  std::vector<std::uint16_t> member_refs;
+  std::uint32_t resource_prefix=0;
 };
 struct HostStateEvent {StateEventView value;HostStateBytesRef payload;};
+class HostStateMemberIndices;
+// 首次采集便失败的根可能尚无线上编号，仍按物理身份保留首因和连续次数。
+struct HostRetainedRoot {
+  std::uint16_t member=kNullIndex;
+  std::uint32_t count=0;
+  CaptureFailure first=CaptureFailure::None;
+  std::uint16_t space=0;
+  std::uint64_t local=0,use=0;
+};
 struct HostStateSnapshot {
   memory::Lease memory;
   CaptureWitness witness,ordinary;
   std::uint32_t member_epoch=0,resource_epoch=0;
   std::uint64_t structure_revision=0;
   std::vector<StateMemberEntry> members;
+  std::vector<HostRetainedRoot> retained_members; // 对象仍在，保留连续失败次数及首因。
+  // 普通快照中值与引用均齐全的可复用根，按完整成员键排序。
+  std::vector<PresentationMember> reusable_roots;
+  std::uint64_t baseline_request_revision=0;
+  // 普通快照持有目录租约，Body 共享它。后台和网络仍可能使用的成员号不会回到空闲池。
+  std::shared_ptr<const HostStateMemberIndices> member_indices;
   std::vector<HostStateResource> resources;
   std::vector<std::shared_ptr<const HostStateRecord>> records;
   std::uint64_t event_first=0,event_watermark=0;
@@ -39,15 +58,42 @@ struct HostStateSnapshot {
 };
 using HostStateSnapshotRef=std::shared_ptr<const HostStateSnapshot>;
 
+// 采集后台直接向网络线程交接已经封存的纯值。主线程只授权当前来源及撤销水位。
+class HostStatePublication final {
+public:
+  struct View { HostStateSnapshotRef latest,ordinary; };
+  HostStatePublication();
+  View Read() const noexcept;
+  void Publish(const HostStateSnapshotRef &,bool ordinary) noexcept;
+  void InvalidateBefore(std::uint64_t revision) noexcept;
+  void DiscardBody() noexcept;
+  void Clear() noexcept;
+private:
+  memory::Lease memory_;
+  mutable std::mutex mutex_;
+  View published_;
+  std::uint64_t floor_=0;
+};
+
+struct HostMemberIndexStats {std::uint32_t high_water=0,reused=0;};
+
+// 工作线程提供计量回调，状态库只报告纯值索引和编码的边界。
+enum class HostCapturePhase : std::uint8_t { Index, Encode };
+struct HostCaptureTiming {
+  void *owner=nullptr;
+  void (*sample)(void *,HostCapturePhase,bool entering) noexcept=nullptr;
+};
 // 唯一采集consumer调用；失败不替换已封存状态或污染下一次memcmp基线。
 class HostStateCapture final {
 public:
   HostStateCapture();
   ~HostStateCapture();
   void Reset() noexcept;
+  void DiscardBody() noexcept;
   HostStateSnapshotRef Capture(const CapturePacket &,std::span<const HostStateResource>,void *qualification=nullptr,
-      bool (*current)(void *) noexcept=nullptr);
+      bool (*current)(void *) noexcept=nullptr,HostCaptureTiming={});
   HostStateSnapshotRef Latest() const noexcept;
+  HostMemberIndexStats MemberIndexStats() const noexcept;
 private:
   struct Impl;std::unique_ptr<Impl> impl_;
 };
@@ -57,9 +103,15 @@ struct HostStateMessage {
   StateLane lane=StateLane::World;
   HostStateBytesRef payload;
   StateTarget target;
-  // 对正文所用成员／资源快照的强引用，ACK之前不可因latest替换释放。
-  HostStateSnapshotRef source;
+  // Body 的值可以比实际使用的目录更新，两份见证都保留到真实 ACK。
+  HostStateSnapshotRef source,tables;
 };
+// 普通 World 的每 Peer 聚合读数，峰值包含暂时越过窗口的重试。
+struct HostWorldProgress {
+  std::uint64_t window_skips=0,inflight_max=0,retries=0;
+};
+// 交给网络节拍 owner 消费当前 World 机会，Body 仍可独立发送。
+enum class HostWorldDeferral : std::uint8_t {None, WindowFull, EventBudget};
 // 每个网络Peer单独持有；只在网络线程访问，所有ACK都核对真实完整发送凭据。
 class HostStatePublisher final {
 public:
@@ -67,18 +119,24 @@ public:
   void Open(const StateRoute &);
   void Stop() noexcept;
   bool Offer(HostStateSnapshotRef);
-  // 表先发、ContextReady后组帧；返回值由发送owner保存到实际发完／确认。
-  std::shared_ptr<const HostStateMessage> Next();
+  // 两条普通流独立组帧；可靠资源目录和 base=0 不受普通流时钟阻断。
+  std::shared_ptr<const HostStateMessage> Next(std::uint64_t now_ms,std::uint64_t now_us,
+      std::uint8_t dynamic_streams,HostWorldDeferral &);
+  // 可靠资源目录使用独立发送槽。
+  bool StartTable(const std::shared_ptr<const HostStateMessage> &) noexcept;
   void AbandonPending(const std::shared_ptr<const HostStateMessage> &) noexcept;
-  bool Sent(const std::shared_ptr<const HostStateMessage> &,std::uint64_t now_ms);
-  bool ContextReady(const StateRoute &,const StateContextReady &);
-  StateAckResult Applied(const StateRoute &,const StateAppliedAck &);
+  bool Sent(const std::shared_ptr<const HostStateMessage> &,std::uint64_t now_ms,std::uint64_t now_us);
+  // 只有可靠传输完整回执能把表变成下一次增量的基准。
+  void TableReceived(const HostStateMessage &);
+  StateAckResult Received(const StateRoute &,const StateAppliedAck &);
   bool Recover(const StateRoute &,const StateResync &);
   bool RequireRecovery(StateResyncReason);
-  // 已发目标超龄时使用保留的恢复槽重建，不清除尚未确认的事件／旧目标凭据。
+  // 回收超龄发送凭据；连续全局采集失败后，有新来源时发完整基线。
   bool RecoverExpired(std::uint64_t now_ms);
   bool Active() const noexcept;
   bool Preparing() const noexcept;
+  std::uint64_t BodyDependencyBlocks() const noexcept;
+  HostWorldProgress WorldProgress() const noexcept;
   std::uint64_t EventWatermark() const noexcept;
   StateEventQueueStats EventStatistics() const noexcept;
   std::array<StateAckEntry,2> Confirmed() const noexcept;

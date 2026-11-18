@@ -33,6 +33,7 @@ bool ClientNativeDisplayCallbacks() noexcept;
 void ClientBinaryRenderOverlays(const void *global) noexcept;
 void ClientDisplaySfxRefreshed(void *owner) noexcept;
 bool ClientDisplayMapRandom(const void *site,unsigned maximum,unsigned &result) noexcept;
+bool ClientDisplayFxRandom(const void *site,unsigned &result) noexcept;
 bool ClientDisplayBossAudioSuppressed(const void *site) noexcept;
 bool ClientDisplayDealChance(const void *room,float &) noexcept;
 bool ClientDisplayAngelShare(float &) noexcept;

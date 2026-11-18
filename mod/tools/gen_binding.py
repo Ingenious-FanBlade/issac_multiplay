@@ -43,7 +43,7 @@ OBSERVATION_ORDER = [
     'Factory', 'Init', 'Publish', 'Remove', 'ClearReferences', 'Destroy',
     'PlayerCtor', 'PlayerCreate', 'ManagerRestore', 'Replace', 'PlayerRestore',
     'NpcMorph', 'PickupMorph', 'GridFactory', 'GridInit', 'GridSpawn', 'Door',
-    'GridFree', 'Spawn', 'GridCtor',
+    'GridFree', 'Spawn', 'GridCtor', 'EffectInit',
 ]
 # world/model.cpp 的 kClassNames（含 UnknownEntity）。
 CLASS_ORDER = ['Player', 'NPC', 'Tear', 'Projectile', 'Pickup', 'Familiar',
@@ -334,7 +334,7 @@ def parse_world_rows(doc, problems):
         where = 'world_observations[%d](%s)' % (index, ident)
         observation = row.get('observation')
         if observation not in OBSERVATION_ORDER:
-            problems.add(where, 'observation 必须是 20 项观察语义之一: %r'
+            problems.add(where, 'observation 必须是已登记的观察语义: %r'
                          % (observation,))
             continue
         seen_observations.append(observation)
@@ -472,7 +472,7 @@ def parse_world_rows(doc, problems):
             nargs=len(arg_specs), flags=derived_flags, name=definition,
             shared_control=bool(row.get('shared_control', False))))
     if sorted(seen_observations) != sorted(OBSERVATION_ORDER):
-        problems.add('world_observations', '必须恰好覆盖 20 项观察语义，当前 %r'
+        problems.add('world_observations', '必须恰好覆盖全部观察语义，当前 %r'
                      % (seen_observations,))
     return parsed
 
@@ -520,7 +520,7 @@ GENERATED_HEADER = """// 由 gen_binding.py 生成，请修改 binding/hooks.jso
 #include "game/observation/world_entity_owner.h"
 #include "game/client/isolation/client_player_isolation.h"
 #include <intrin.h>
-// tx-04-08 world 观察入口的专用作用域与 20 项观察编号（C++17 兼容头）。
+// world 观察入口的专用作用域与观察编号（C++17 兼容头）。
 #include "world/observe.h"
 // 自有定义仅借用类型表达 ABI，不构造这些对象。
 struct CsStatic {};
@@ -775,7 +775,8 @@ def legacy_body(row):
             if ident=='native_rng_int':out+=['    cs::game::BinaryDisplayRandomObserved(result,_ReturnAddress());']
         return out+['    record.completed.fetch_add(1, std::memory_order_relaxed);']+([] if ret=='void' else ['    return result;'])
     if ident in ('native_global_random','native_global_seed'):
-        return ['    if(cs::game::ClientPlayerRandomDenied()) return 0;']+( ['    unsigned initialization_value=0;',
+        return (['    unsigned fx_value=0;',
+                 '    if(cs::game::ClientDisplayFxRandom(_ReturnAddress(),fx_value)) return fx_value;'] if ident=='native_global_random' else [])+['    if(cs::game::ClientPlayerRandomDenied()) return 0;']+( ['    unsigned initialization_value=0;',
                  '    // Client类别构造只安装Source结果；此窄分支主动不调用原随机源，不计入观察完成。',
                  '    if(cs::game::ClientEntityInitializationRandom(initialization_value)) return initialization_value;'] if ident=='native_global_random' else [])+['    cs::game::GlobalRandomCall observation(%s, _AddressOfReturnAddress());' % ('true, std::uint32_t(reinterpret_cast<uintptr_t>(this))' if ident=='native_global_seed' else 'false, 0'),
                 '    record.calls.fetch_add(1, std::memory_order_relaxed);',
@@ -797,6 +798,16 @@ def legacy_body(row):
                 '    record.calls.fetch_add(1, std::memory_order_relaxed);',
                 '    super(id, volume, delay, loop, pitch, pan);',
                 '    record.completed.fetch_add(1, std::memory_order_relaxed);']
+    if ident.startswith('client_morph_'):
+        guard = {
+            'client_morph_pickup_init': 'if(cs::game::ClientMorphPickupInit(this,type,variant,subtype,seed)) return;',
+            'client_morph_pickup_modifiers': 'if(cs::game::ClientMorphPickupModifiers(_ReturnAddress())) return false;',
+            'client_morph_pickup_alternates': 'if(cs::game::ClientMorphScopedEntity(this,7)) return;',
+            'client_morph_npc_effects': 'if(cs::game::ClientMorphScopedEntity(entity,1)) return;',
+        }
+        # 主线程同一原生 Morph 的子调用才拦截。其他用途保持原链及观测。
+        return ['    ' + guard[ident], '    cs::CallScope scope(record);',
+                '    %ssuper(%s);' % ('return ' if ret != 'void' else '', call)]
     if ident == 'client_entity_retire_sound':
         return ['    // Client准备至安全退休全窗口不重演Stop；Host/Off仍透传。',
                 '    if(cs::game::ClientBusy()) return;',
@@ -1669,6 +1680,16 @@ def main():
     problems.finish()
 
     # --- hooks_generated.cpp ---------------------------------------------
+    display_memory = document.get('client_display_memory_imports', [])
+    if sorted((r.get('source'), r.get('symbol')) for r in display_memory) != [
+            (0, 'malloc'), (1, 'calloc'), (2, 'realloc'), (3, 'free')]:
+        raise ValueError('client_display_memory_imports必须明确列出四个原生CRT入口')
+    (args.out / 'client_display_memory_imports.inc').write_text(
+        '// 由唯一 Hook 清单生成，勿手改。\n'
+        'struct ClientDisplayMemoryImport { const char *id,*module,*symbol; unsigned source; };\n'
+        'constexpr ClientDisplayMemoryImport ClientDisplayMemoryImports[] = {\n' + ''.join(
+            '  {%s,%s,%s,%du},\n' % (c_string(r['id']), c_string(r['module']), c_string(r['symbol']), r['source'])
+            for r in display_memory) + '};\n', encoding='utf-8')
     runtime=document.get('runtime_random_hooks',[])
     if {r.get('source') for r in runtime} != set(range(5)):
         raise ValueError('runtime_random_hooks必须明确列出五个来源，不从代码外猜测Hook')
@@ -1817,6 +1838,7 @@ def main():
         pointer_hooks=document['pointer_hooks'],
         native_dependencies=document.get('native_dependencies', []),
         runtime_random_hooks=document.get('runtime_random_hooks', []),
+        client_display_memory_imports=document.get('client_display_memory_imports', []),
         byte_patches=document['byte_patches'])
     (args.out / 'hook-manifest.json').write_text(
         json.dumps(total, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
@@ -1860,6 +1882,12 @@ def main():
                   % (row['id'], row['rva'], row['expected'], row['resume']))
     md.append('World exit: %s @ %s, expected %s, shutdown %s, loop %s. Permanent.'
               % (exit_patch['id'], exit_patch['rva'], exit_patch['expected'], exit_patch['resume'], exit_patch['alternate']))
+    md += ['', '## Client 显示原生分配 IAT', '',
+           '| id | module | symbol | ABI | IAT RVA |',
+           '|---|---|---|---|---|']
+    md += ['| %s | %s | %s | %s | %s |' %
+           (r['id'], r['module'], r['symbol'], r['abi'], r['iat_rva']) for r in display_memory]
+    md += ['', '启动安装后常驻；Client 显示作用域只归属新分配，已登记块跟随真实释放销账。']
     (args.out / 'hook-manifest.md').write_text('\n'.join(md) + '\n',
                                                encoding='utf-8')
 

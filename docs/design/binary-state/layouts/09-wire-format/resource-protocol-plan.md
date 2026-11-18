@@ -1,6 +1,6 @@
 # 资源协议数字合同
 
-布局版本 75；同源生成，不是测试报告。
+布局版本 84；同源生成，不是测试报告。
 
 | table | kind | typed布局 | 编码 |
 |---|---|---|---|
@@ -13,6 +13,7 @@
 | 3 | 7 | 431 ResourceItemConfig | 完整值 |
 | 4 | 8 | 432 ResourceEntityConfig | 完整值 |
 | 7 | 9 | 433 ResourceAudio | 完整值 |
+| 1 | 10 | 425 ResourcePath | 完整值 |
 
 blend_profiles：
 

@@ -1,5 +1,11 @@
 # 第9步第一项：公共报文结构定稿
 
+**2026-11-18 平铺记录 L8（用户已决定，尚未实施）**：[设计文档](10-flat-record-encoding.md) 3.2 节、[规范第17节](../../refactor/project-conventions.md#17-原生二进制状态同步重构)。已迁移布局取消块：记录头改为 `member u16 | layout u16 | record_bytes u32 | set_mode u8` 加字段集合，按字段增量上线，撤销下文 2026-11-11“保留 u32 块掩码和 12B 记录头”；协议版本 85。本文旧合同按时点保留，实施后以设计为准。
+
+**2026-11-17 最终一致修订（E1—E9 已同意，尚未实施）**：[设计文档](eventual-consistency-revision.md)、[规范第17节](../../refactor/project-conventions.md#17-原生二进制状态同步重构)。成员身份随帧携带，成员表不再可靠先行、ContextReady 等待与 `member_floor` 退役，普通帧取消 joint（E4）；AppliedAck 改为接收确认（E1）；窗口改为 N=8／B=64KiB（E2）。本文下列旧合同按时点保留，实施后以修订为准。
+
+**2026-11-16 布局 83**。普通 World 发送窗口常量为 2，Client 保留一代成功前代解码根。公共头中的整数布局版本用于握手和逐帧兼容性检查，布局 82 与 83 混用时拒绝连接，线上字段形状保持原合同。[发送和接受语义](13-client-world-cadence.md)
+
 **2026-11-11 版本66补充**：仅新增[world/body独立zstd](9-world-body-zstd.md)的可选共同协商及收发支持；固定头、状态字段与ACK／恢复均保持，普通64KiB同时保护压后及解压完整消息。其余布局／资源／动画／音频／预算不改。
 
 **2026-11-11 第9步收尾，版本65**：[现行预算／容量／时间](9-budget-capacity.md)覆盖原75%额度和“后续核算”表述：用户允许模组占90%，持续9Mbps，三端各375000B/s。准确成本含ICSR／ICRF／IP／UDP与实际中继，初建／恢复只借本Peer停用流；64KiB／32MiB完整消息先扣40B信封。公共头尺寸保持，细化等待、episode、账本／事件／缓存／池配额，静态设计负载不等于实机通过。
@@ -122,7 +128,7 @@ Baseline以当前world音频状态恢复仍有用途的voice，水位明确建�
 
 ## 8. 确认、基线、回绕与接受边界
 
-ContextReady为公共头＋418的8B，仅确认相应元数据可解析，不能推导所有资源已物化。AppliedAck为公共头＋419的2B＋1或2个420的21B条目：`stream:u8 + target_version:u32 + member_epoch:u32 + resource_epoch:u32 + event_watermark:u64`。双分段成功后一次回报world、body两项及joint标志；不回报半个共同目标。
+布局82的 ContextReady 为公共头 50B 加布局 418 的 12B，依次为 `member_epoch:u32 + resource_epoch:u32 + member_floor:u32`。`member_floor` 在 1 到 `member_epoch` 之间，用于释放编号租约。资源代次只确认元数据可解析。AppliedAck为公共头＋419的2B＋1或2个420的21B条目：`stream:u8 + target_version:u32 + member_epoch:u32 + resource_epoch:u32 + event_watermark:u64`。双分段成功后一次回报world、body两项及joint标志；不回报半个共同目标。
 
 Host只接受当前connection/route、完整scope和实际已发送目标的确认，表epoch、事件水位须与该目标一致；不能用Peer回报任意大版本退休未发送内容。重复确认幂等，已确认版本只前进。接收完成／解码接受／表安装／资源ready／原生提交分别计状态；原生提交失败不ACK，也不把已接受影子当继续差分的已安装基线。
 

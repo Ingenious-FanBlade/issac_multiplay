@@ -1,5 +1,9 @@
 # 12：Client 解码、校验与影子状态
 
+**2026-11-15 用户采纳，版本79**：普通Body新增一个可替换等待位及一个成功前代解码基线，完整重建后相对当前状态应用；实际应用基线仍锁定。详见[第13步10.4](13-client-incremental-apply.md#104-普通body单槽等待与前代解码基线2026-11-15用户采纳)，覆盖本文冲突的零等待／旧base必拒绝描述。其他完整检查、真实成功ACK与失败恢复原则保持，同一步实机续验尚未通过。
+
+**2026-11-15 设计修订，尚未实施**：[增量应用与双通道](13-client-incremental-apply.md)规定稳定承载、不可变块引用表、变化块解码与依赖事实复用，并同步拆分Receiver／Shadow／Acceptance的普通World／Body在途状态。重复检查仅在明确有效范围内合并；未变块的依赖失效仍须传播。新设计覆盖下方冲突的全局单批约束，历史实现状态不变；本次未改运行代码、未构建、未测试。
+
 **2026-11-13 原生 owner 续接**：[原生原子安装器](implementation-12-atomic-install.md)已有具体 `ClientAtomicInstallBindings`。默认构造接入实体 Init、Plus／ANM2 等特殊字段和真实 Room、Player、EntityList、Grid 成员发布，容器租约及失败排空由同一事务管理。完整显示、事件播放器和正式 Manager／Start 仍需接线。布局74不变，第15步唯一验收。下方同日较早交付范围保留原时点。
 
 **2026-11-13 安装计划、资源准备、根对象与字段暂存已入源，正式原生串联未完成**：[接收／事务组件](implementation-12-client-receive.md)已有网络receiver、公共校验、事件账本、邮箱和事务协调器；随后补齐[完整数字计划及Scene描述](implementation-12-install-plan.md)，实现[主线程资源物化／反馈与根对象暂存](implementation-12-main-preparation.md)，并补齐[StageFields嵌套容器／共享对象／Weapon暂存](implementation-12-stage-fields.md)。完整字段安装／发布、真实原生资格owner、事件播放器及Client episode计费仍未接入；正式Start未提供完整准备owner，Client仍不声明二进制能力。不能标为第12步全部完成或整条原生链已运行。未运行测试，第15步唯一统一验收。

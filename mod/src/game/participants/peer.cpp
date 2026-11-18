@@ -226,12 +226,8 @@ void PublishPeer(SessionRuntime &r) noexcept {
   try {
     auto publication=std::make_shared<net::live::Publication>();
     publication->source=CurrentLiveSource();
-    if(const auto capture=CurrentWorldRecording();capture&&capture->binary_entities){
-      publication->binary=capture->binary_entities->Publication();publication->binary_ordinary=capture->binary_entities->OrdinaryPublication();
-      const auto current=[&](const state::HostStateSnapshotRef &value){return value&&value->witness.scope.session==publication->source[0]&&value->witness.generation==publication->source[1]&&
-        value->witness.scope.run==publication->source[2]&&value->witness.scope.room==publication->source[3];};
-      if(!current(publication->binary))publication->binary.reset();if(!current(publication->binary_ordinary))publication->binary_ordinary.reset();
-    }
+    if(const auto capture=CurrentWorldRecording();publication->source[0]&&capture&&capture->binary_entities)
+      publication->binary=capture->binary_entities->Publication();
     r.network.PublishWorld(std::move(publication));
   }catch(...){r.network.PublishWorld({});}
   std::uint32_t roster = 0;

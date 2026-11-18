@@ -25,6 +25,7 @@ thread_local OddMarker odd;
 Owner TopOwner() noexcept {
   return depth ? stack[depth - 1].owner : Owner::None;
 }
+uint64_t OwnerSequence() noexcept { return next_token; }
 uint64_t OwnerToken(Owner owner) noexcept {
   for (unsigned i = depth; i; --i)
     if (stack[i - 1].owner == owner)

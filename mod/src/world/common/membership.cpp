@@ -2,7 +2,7 @@
 #include "binding/world_layout.h"
 #include <cstring>
 namespace cs::world {
-void EnumerateSource(const NativeSource &reader,std::uint32_t source,RawSource &out,std::span<std::uint32_t> scratch,std::span<std::uint32_t> fixed,void *owner,MembershipSink sink) noexcept {
+void EnumerateSource(const NativeSource &reader,std::uint32_t source,RawSource &out,std::span<std::uint32_t> scratch,std::span<std::uint32_t> fixed,void *owner,MembershipSink sink,bool final_review_elsewhere) noexcept {
   const auto *spec = layout::FindSource(source);
   if (!spec) {
     out.status = static_cast<std::uint32_t>(Reason::NotReady);
@@ -64,9 +64,13 @@ void EnumerateSource(const NativeSource &reader,std::uint32_t source,RawSource &
     fail(Reason::Budget);
     return;
   }
+  // 正式采集已安排段尾整表复核；两次各复制一次连续指针区。
+  if(final_review_elsewhere&&count&&!reader.Read(data,scratch.data(),std::size_t(count)*4)){
+    fail(Reason::ReadFailed);return;
+  }
   for (std::uint32_t i = 0; i < count; ++i) {
-    std::uint32_t address = 0;
-    if (!reader.Value(std::uint64_t(data) + i * 4, address)) {
+    std::uint32_t address = final_review_elsewhere?scratch[i]:0;
+    if (!final_review_elsewhere&&!reader.Value(std::uint64_t(data) + i * 4, address)) {
       fail(Reason::ReadFailed);
       return;
     }
@@ -79,6 +83,7 @@ void EnumerateSource(const NativeSource &reader,std::uint32_t source,RawSource &
     }
     sink(owner,address,i);
   }
+  if(final_review_elsewhere)return;
   for (std::uint32_t i = 0; i < count; ++i) {
     std::uint32_t value = 0;
     if (!reader.Value(std::uint64_t(data) + i * 4, value) ||

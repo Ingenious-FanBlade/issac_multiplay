@@ -3,6 +3,7 @@
 #include "state/wire_scope.h"
 #include "core/replication_memory.h"
 #include <thread>
+#include <source_location>
 
 namespace cs::state {
 // 采集身份只含自有句柄；原生地址仅存在于下面的当前主线程CaptureRoot中。
@@ -28,7 +29,7 @@ enum class CaptureFailure : std::uint8_t {
   SelectorFailed, MissingQualification, QualificationFailed, MissingHandler, UnsafeCopy,
   ValueBudget, PathBudget, RecordBudget, InvalidValue, DuplicateValue, MissingValue,
   InvalidTransaction, Incomplete, ReferencePending, ResourcePending, QueueFull, ControlOverflow,
-  Revoked, SequenceExhausted, NeedsOrdinaryJoint, CountMismatch, TraversalBudget, SourceChanged, Reentrant
+  Revoked, SequenceExhausted, CountMismatch, TraversalBudget, SourceChanged, Reentrant
 };
 struct CaptureDiagnostic {
   CaptureFailure reason=CaptureFailure::None;
@@ -36,6 +37,9 @@ struct CaptureDiagnostic {
   std::uint16_t layout=0,field=kNullIndex;
   std::uint8_t depth=0;
   std::array<CodecPathStep,kCodecMaxDepth> parents{};
+  // 静态源码位置辅助定位资源和容器失败，不进入状态协议。
+  std::source_location origin{};
+  std::array<char,128> detail{};
 };
 // 根只借用到同步调用返回；extent由实际owner核定，不能拿base_prefix当动态分配大小。
 struct CaptureRoot {
@@ -50,6 +54,9 @@ struct CaptureWindow {
   void *context=nullptr;
   bool (*current)(void *,const CaptureWitness &,const CaptureRoot &) noexcept=nullptr;
   bool (*read)(void *,std::uint32_t,std::span<std::byte>) noexcept=nullptr;
+  // 仅已核纯内存reader可声明：不改变根／线程／证言，并在复制前后核外部writer水位。
+  // 该reader成功时已完成复制后的动态检查；其他reader仍由Copy再次完整Check。
+  bool read_preserves_scope=false;
   bool Check(const CaptureRoot &,CaptureDiagnostic &) const noexcept;
   bool Copy(const CaptureRoot &,std::uint32_t offset,std::span<std::byte>,CaptureDiagnostic &) const noexcept;
 };
@@ -67,17 +74,21 @@ struct CaptureFieldAccess {
 };
 using CaptureQualifier=bool (*)(const CaptureFieldAccess &) noexcept;
 using CaptureFieldHandler=bool (*)(const CaptureFieldAccess &,CaptureValueWriter &,CaptureDiagnostic &) noexcept;
-struct CaptureQualificationBinding { std::string_view name;CaptureQualifier check=nullptr; };
+// root_stable 仅用于当前读段内不变的根事实；读取动态来源的资格沿用字段检查。
+struct CaptureQualificationBinding { std::string_view name;CaptureQualifier check=nullptr;bool root_stable=false; };
 // 名称只在冷注册时匹配生成表；逐字段通过稳定数字索引分派。
 struct CaptureHandlerBinding { std::string_view name;Operation operation;CaptureFieldHandler capture=nullptr; };
 struct CaptureVtableBinding { std::uint32_t vtable=0;std::uint16_t layout=0; };
 // 一根对象的一次同步遍历独占此缓存；不得跨窗口或跨线程保存scratch里的原生暂存。
 struct CaptureCopyScratch {
   std::span<std::byte> bytes;
+  std::span<const std::byte> copied;
+  const CaptureValueWriter *writer=nullptr;
+  std::uint32_t record=UINT32_MAX;
   std::uint32_t range=UINT32_MAX,address=0;
   CaptureSubject subject;
   CaptureWitness witness;
-  void Reset() noexcept {range=UINT32_MAX;address=0;}
+  void Reset() noexcept {range=UINT32_MAX;address=0;copied={};writer=nullptr;record=UINT32_MAX;}
 };
 // 冷准备的不可变绑定表。缺绑定可保留到对应域实施，但真正访问时一律具名失败。
 // 本类不建立读取资格，不扫描游戏对象，也不向快照写入任何原生地址。
@@ -88,7 +99,7 @@ public:
   CapturePlan(const CapturePlan &)=delete;
   CapturePlan &operator=(const CapturePlan &)=delete;
   // 仅真实RTTI对象调用Identify；无RTTI／协议视图由具名owner直接提供layout。
-  bool Identify(const CaptureWindow &,CaptureRoot &,CaptureDiagnostic &) const noexcept;
+  bool Identify(const CaptureWindow &,CaptureRoot &,CaptureDiagnostic &,std::uint32_t *observed_vtable=nullptr) const noexcept;
   // 读取失败不回退基础臂；当前root必须已经退出临时改型owner。
   bool SelectArm(const CaptureWindow &,CaptureRoot &,CaptureDiagnostic &) const noexcept;
   // 分派一个已选中的字段；复杂条件／递归由具名处理器负责，不冒充完整域遍历器。
@@ -105,16 +116,22 @@ public:
 private:
   friend class CaptureExecutor;
   friend class CaptureExecution;
-  bool DispatchSelected(const CaptureWindow &,const CaptureRoot &,std::uint16_t,
-      std::span<const CodecPathStep>,CaptureValueWriter &,CaptureCopyScratch &,CaptureDiagnostic &,bool,
-      const CaptureTraversalSource *source=nullptr) const noexcept;
-  struct Binding {CaptureQualifier qualify=nullptr;CaptureFieldHandler handler=nullptr;BodySourceFieldInfo format;bool required=false,direct=false;std::uint32_t copy=UINT32_MAX;};
+  // 份额按同一资格函数合并；只允许已显式声明为根事实的来源复用成功结果。
+  struct Binding {
+    CaptureQualifier qualify=nullptr;
+    CaptureFieldHandler handler=nullptr;
+    BodySourceFieldInfo format;
+    const CopyRange *copy=nullptr;
+    std::uint8_t width=0,qualification_slot=64;
+    bool required=false,direct=false,valid=false;
+  };
   memory::Lease memory_;
   std::vector<Binding> fields_;
   std::vector<CaptureVtableBinding> vtables_;
 };
 // 首次失败保留具体位置；热路径不格式化日志，也不覆盖导致整根失败的最初原因。
 bool FailCapture(CaptureDiagnostic &,CaptureFailure,const CaptureRoot &,
-                 std::uint16_t field=kNullIndex,std::span<const CodecPathStep> parents={}) noexcept;
+                 std::uint16_t field=kNullIndex,std::span<const CodecPathStep> parents={},
+                 std::source_location origin=std::source_location::current()) noexcept;
 std::uint32_t CaptureScalarWidth(ScalarKind) noexcept;
 }

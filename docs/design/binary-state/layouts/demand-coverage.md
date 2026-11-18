@@ -1,8 +1,8 @@
 # 需求清单覆盖
 
-布局版本 75；唯一输入为 `mod/binding/state/demand.json`。
+布局版本 84；唯一输入为 `mod/binding/state/demand.json`。
 
-域源参照含 2992 个展开字段；需求计划保留 2644 个。未列入的 wire 仅在生成内存中剥离，原生字节与成员映射保留全量参照。
+域源参照含 2999 个展开字段；需求计划保留 2649 个。未列入的 wire 仅在生成内存中剥离，原生字节与成员映射保留全量参照。
 
 整类型选择包含该展开类型的继承字段；按字段选择使用投影前名称。空块保留原编号并视为 reserved；空子块投影省略。resource_protocol 保留正式资源的编解码表；旧 presentation_envelope、hud_local 专用表已退役。
 
@@ -2033,22 +2033,6 @@
 | [RunSeeds (230)](08-run-presentation/RunSeeds.md) | effect_tree_head | 2（块1） | Q14既有Run显示输入；D5完整种子效果供诅咒F/P和音乐41—44的原生内联树读取 |
 | [RunSeeds (230)](08-run-presentation/RunSeeds.md) | start_seed | 0（块0） | Q14既有Run显示输入；D5完整种子效果供诅咒F/P和音乐41—44的原生内联树读取 |
 | [RunDailyChallenge (233)](08-run-presentation/RunDailyChallenge.md) | is_daily | 0（块0） | Q14既有Run显示输入；D5完整种子效果供诅咒F/P和音乐41—44的原生内联树读取 |
-| [RunScoreSheet (234)](08-run-presentation/RunScoreSheet.md) | beast_bonus | 7（块0） | Q14既有Run显示输入；D5完整种子效果供诅咒F/P和音乐41—44的原生内联树读取 |
-| [RunScoreSheet (234)](08-run-presentation/RunScoreSheet.md) | blue_baby_bonus | 2（块0） | Q14既有Run显示输入；D5完整种子效果供诅咒F/P和音乐41—44的原生内联树读取 |
-| [RunScoreSheet (234)](08-run-presentation/RunScoreSheet.md) | damage_penalty | 10（块0） | Q14既有Run显示输入；D5完整种子效果供诅咒F/P和音乐41—44的原生内联树读取 |
-| [RunScoreSheet (234)](08-run-presentation/RunScoreSheet.md) | delirium_bonus | 6（块0） | Q14既有Run显示输入；D5完整种子效果供诅咒F/P和音乐41—44的原生内联树读取 |
-| [RunScoreSheet (234)](08-run-presentation/RunScoreSheet.md) | exploration_bonus | 9（块0） | Q14既有Run显示输入；D5完整种子效果供诅咒F/P和音乐41—44的原生内联树读取 |
-| [RunScoreSheet (234)](08-run-presentation/RunScoreSheet.md) | finished_stage | 14（块0） | Q14既有Run显示输入；D5完整种子效果供诅咒F/P和音乐41—44的原生内联树读取 |
-| [RunScoreSheet (234)](08-run-presentation/RunScoreSheet.md) | finished_time | 15（块0） | Q14既有Run显示输入；D5完整种子效果供诅咒F/P和音乐41—44的原生内联树读取 |
-| [RunScoreSheet (234)](08-run-presentation/RunScoreSheet.md) | item_penalty | 12（块0） | Q14既有Run显示输入；D5完整种子效果供诅咒F/P和音乐41—44的原生内联树读取 |
-| [RunScoreSheet (234)](08-run-presentation/RunScoreSheet.md) | lamb_bonus | 3（块0） | Q14既有Run显示输入；D5完整种子效果供诅咒F/P和音乐41—44的原生内联树读取 |
-| [RunScoreSheet (234)](08-run-presentation/RunScoreSheet.md) | mega_satan_bonus | 4（块0） | Q14既有Run显示输入；D5完整种子效果供诅咒F/P和音乐41—44的原生内联树读取 |
-| [RunScoreSheet (234)](08-run-presentation/RunScoreSheet.md) | mother_bonus | 5（块0） | Q14既有Run显示输入；D5完整种子效果供诅咒F/P和音乐41—44的原生内联树读取 |
-| [RunScoreSheet (234)](08-run-presentation/RunScoreSheet.md) | rush_bonus | 8（块0） | Q14既有Run显示输入；D5完整种子效果供诅咒F/P和音乐41—44的原生内联树读取 |
-| [RunScoreSheet (234)](08-run-presentation/RunScoreSheet.md) | schwag_bonus | 1（块0） | Q14既有Run显示输入；D5完整种子效果供诅咒F/P和音乐41—44的原生内联树读取 |
-| [RunScoreSheet (234)](08-run-presentation/RunScoreSheet.md) | stage_bonus | 0（块0） | Q14既有Run显示输入；D5完整种子效果供诅咒F/P和音乐41—44的原生内联树读取 |
-| [RunScoreSheet (234)](08-run-presentation/RunScoreSheet.md) | time_penalty | 11（块0） | Q14既有Run显示输入；D5完整种子效果供诅咒F/P和音乐41—44的原生内联树读取 |
-| [RunScoreSheet (234)](08-run-presentation/RunScoreSheet.md) | total_score | 13（块0） | Q14既有Run显示输入；D5完整种子效果供诅咒F/P和音乐41—44的原生内联树读取 |
 | [RunColorModState (235)](08-run-presentation/RunColorModState.md) | a | 3（块0） | Q14既有Run显示输入；D5完整种子效果供诅咒F/P和音乐41—44的原生内联树读取 |
 | [RunColorModState (235)](08-run-presentation/RunColorModState.md) | b | 2（块0） | Q14既有Run显示输入；D5完整种子效果供诅咒F/P和音乐41—44的原生内联树读取 |
 | [RunColorModState (235)](08-run-presentation/RunColorModState.md) | brightness | 4（块0） | Q14既有Run显示输入；D5完整种子效果供诅咒F/P和音乐41—44的原生内联树读取 |
@@ -2056,48 +2040,47 @@
 | [RunColorModState (235)](08-run-presentation/RunColorModState.md) | g | 1（块0） | Q14既有Run显示输入；D5完整种子效果供诅咒F/P和音乐41—44的原生内联树读取 |
 | [RunColorModState (235)](08-run-presentation/RunColorModState.md) | r | 0（块0） | Q14既有Run显示输入；D5完整种子效果供诅咒F/P和音乐41—44的原生内联树读取 |
 | [RunGameStateFlags (236)](08-run-presentation/RunGameStateFlags.md) | ascent_display | 0（块0） | Q14既有Run显示输入；D5完整种子效果供诅咒F/P和音乐41—44的原生内联树读取 |
-| [GameRun (237)](08-run-presentation/GameRun.md) | transition_mode | 24（块4） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
-| [GameRun (237)](08-run-presentation/GameRun.md) | transition_counter | 25（块4） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
-| [GameRun (237)](08-run-presentation/GameRun.md) | transition_duration | 26（块4） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
-| [GameRun (237)](08-run-presentation/GameRun.md) | transition_progress | 27（块4） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
-| [GameRun (237)](08-run-presentation/GameRun.md) | transition_direction | 28（块4） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
-| [GameRun (237)](08-run-presentation/GameRun.md) | transition_room_index | 29（块4） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
-| [GameRun (237)](08-run-presentation/GameRun.md) | transition_dimension | 30（块4） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
-| [GameRun (237)](08-run-presentation/GameRun.md) | transition_animation | 31（块4） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
-| [GameRun (237)](08-run-presentation/GameRun.md) | transition_boss_marker | 32（块4） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
+| [GameRun (237)](08-run-presentation/GameRun.md) | transition_mode | 23（块4） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
+| [GameRun (237)](08-run-presentation/GameRun.md) | transition_counter | 24（块4） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
+| [GameRun (237)](08-run-presentation/GameRun.md) | transition_duration | 25（块4） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
+| [GameRun (237)](08-run-presentation/GameRun.md) | transition_progress | 26（块4） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
+| [GameRun (237)](08-run-presentation/GameRun.md) | transition_direction | 27（块4） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
+| [GameRun (237)](08-run-presentation/GameRun.md) | transition_room_index | 28（块4） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
+| [GameRun (237)](08-run-presentation/GameRun.md) | transition_dimension | 29（块4） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
+| [GameRun (237)](08-run-presentation/GameRun.md) | transition_animation | 30（块4） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
+| [GameRun (237)](08-run-presentation/GameRun.md) | transition_boss_marker | 31（块4） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
 | [GameRun (237)](08-run-presentation/GameRun.md) | seeds | 0（块0） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
-| [GameRun (237)](08-run-presentation/GameRun.md) | hud_visible | 23（块4） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
+| [GameRun (237)](08-run-presentation/GameRun.md) | hud_visible | 22（块4） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
 | [GameRun (237)](08-run-presentation/GameRun.md) | time_counter_base | 1（块0） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
-| [GameRun (237)](08-run-presentation/GameRun.md) | shake_countdown | 12（块3） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
+| [GameRun (237)](08-run-presentation/GameRun.md) | shake_countdown | 11（块3） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
 | [GameRun (237)](08-run-presentation/GameRun.md) | darkness | 6（块1） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
 | [GameRun (237)](08-run-presentation/GameRun.md) | darkness_scale | 7（块1） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
-| [GameRun (237)](08-run-presentation/GameRun.md) | bloom_countdown | 13（块3） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
-| [GameRun (237)](08-run-presentation/GameRun.md) | bloom_duration | 14（块3） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
-| [GameRun (237)](08-run-presentation/GameRun.md) | bloom_strength | 15（块3） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
-| [GameRun (237)](08-run-presentation/GameRun.md) | hallucination_countdown | 16（块3） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
-| [GameRun (237)](08-run-presentation/GameRun.md) | hallucination_duration | 17（块3） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
+| [GameRun (237)](08-run-presentation/GameRun.md) | bloom_countdown | 12（块3） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
+| [GameRun (237)](08-run-presentation/GameRun.md) | bloom_duration | 13（块3） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
+| [GameRun (237)](08-run-presentation/GameRun.md) | bloom_strength | 14（块3） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
+| [GameRun (237)](08-run-presentation/GameRun.md) | hallucination_countdown | 15（块3） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
+| [GameRun (237)](08-run-presentation/GameRun.md) | hallucination_duration | 16（块3） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
 | [GameRun (237)](08-run-presentation/GameRun.md) | game_flags | 2（块0） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
-| [GameRun (237)](08-run-presentation/GameRun.md) | temporary_curses | 35（块5） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
+| [GameRun (237)](08-run-presentation/GameRun.md) | temporary_curses | 34（块5） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
 | [GameRun (237)](08-run-presentation/GameRun.md) | challenge | 3（块0） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
-| [GameRun (237)](08-run-presentation/GameRun.md) | secondary_fade_alpha | 20（块3） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
-| [GameRun (237)](08-run-presentation/GameRun.md) | primary_fade_alpha | 21（块3） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
+| [GameRun (237)](08-run-presentation/GameRun.md) | secondary_fade_alpha | 19（块3） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
+| [GameRun (237)](08-run-presentation/GameRun.md) | primary_fade_alpha | 20（块3） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
 | [GameRun (237)](08-run-presentation/GameRun.md) | daily | 4（块0） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
-| [GameRun (237)](08-run-presentation/GameRun.md) | score | 11（块2） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
 | [GameRun (237)](08-run-presentation/GameRun.md) | difficulty | 5（块0） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
-| [GameRun (237)](08-run-presentation/GameRun.md) | retrovision_countdown | 18（块3） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
-| [GameRun (237)](08-run-presentation/GameRun.md) | retrovision_duration | 19（块3） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
-| [GameRun (237)](08-run-presentation/GameRun.md) | color_lerp_enabled | 22（块3） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
+| [GameRun (237)](08-run-presentation/GameRun.md) | retrovision_countdown | 17（块3） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
+| [GameRun (237)](08-run-presentation/GameRun.md) | retrovision_duration | 18（块3） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
+| [GameRun (237)](08-run-presentation/GameRun.md) | color_lerp_enabled | 21（块3） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
 | [GameRun (237)](08-run-presentation/GameRun.md) | current_color | 8（块1） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
 | [GameRun (237)](08-run-presentation/GameRun.md) | lightning | 9（块1） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
 | [GameRun (237)](08-run-presentation/GameRun.md) | dizzy | 10（块1） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
-| [GameRun (237)](08-run-presentation/GameRun.md) | host_paused | 33（块5） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
-| [GameRun (237)](08-run-presentation/GameRun.md) | display_branch | 34（块5） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
-| [GameRun (237)](08-run-presentation/GameRun.md) | display_injections | 36（块6） | 第二批6.3／6.4显示需求；同world事务，不恢复显示结果批次 |
-| [GameRun (237)](08-run-presentation/GameRun.md) | music_request | 37（块7） | 第二批6.3／6.4显示需求；同world事务，不恢复显示结果批次 |
-| [GameRun (237)](08-run-presentation/GameRun.md) | loop_sounds | 38（块8） | 第二批6.3／6.4显示需求；同world事务，不恢复显示结果批次 |
-| [GameRun (237)](08-run-presentation/GameRun.md) | item_overlays | 39（块9） | 第二批6.3／6.4显示需求；同world事务，不恢复显示结果批次 |
-| [GameRun (237)](08-run-presentation/GameRun.md) | procedural_display | 40（块10） | 第二批6.3／6.4显示需求；同world事务，不恢复显示结果批次 |
-| [GameRun (237)](08-run-presentation/GameRun.md) | boss_display | 41（块11） | 正在演出的本地资源恢复与同world姿态 |
+| [GameRun (237)](08-run-presentation/GameRun.md) | host_paused | 32（块5） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
+| [GameRun (237)](08-run-presentation/GameRun.md) | display_branch | 33（块5） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
+| [GameRun (237)](08-run-presentation/GameRun.md) | display_injections | 35（块6） | 第二批6.3／6.4显示需求；同world事务，不恢复显示结果批次 |
+| [GameRun (237)](08-run-presentation/GameRun.md) | music_request | 36（块7） | 第二批6.3／6.4显示需求；同world事务，不恢复显示结果批次 |
+| [GameRun (237)](08-run-presentation/GameRun.md) | loop_sounds | 37（块8） | 第二批6.3／6.4显示需求；同world事务，不恢复显示结果批次 |
+| [GameRun (237)](08-run-presentation/GameRun.md) | item_overlays | 38（块9） | 第二批6.3／6.4显示需求；同world事务，不恢复显示结果批次 |
+| [GameRun (237)](08-run-presentation/GameRun.md) | procedural_display | 39（块10） | 第二批6.3／6.4显示需求；同world事务，不恢复显示结果批次 |
+| [GameRun (237)](08-run-presentation/GameRun.md) | boss_display | 40（块11） | 正在演出的本地资源恢复与同world姿态 |
 | [RunSeedEffectNode (238)](08-run-presentation/RunSeedEffectNode.md) | key | 0（块0） | Q14既有Run显示输入；D5完整种子效果供诅咒F/P和音乐41—44的原生内联树读取 |
 | [Room (239)](07-room-level/Room.md) | descriptor | 0（块0） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
 | [Room (239)](07-room-level/Room.md) | room_type | 2（块0） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
@@ -2108,25 +2091,24 @@
 | [Room (239)](07-room-level/Room.md) | door_grid_positions | 14（块3） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
 | [Room (239)](07-room-level/Room.md) | frame_baseline | 6（块1） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
 | [Room (239)](07-room-level/Room.md) | render_scroll | 12（块2） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
-| [Room (239)](07-room-level/Room.md) | fx_layers | 16（块5） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
 | [Room (239)](07-room-level/Room.md) | backdrop | 15（块4） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
-| [Room (239)](07-room-level/Room.md) | shockwave_a | 26（块13） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
-| [Room (239)](07-room-level/Room.md) | shockwave_b | 27（块13） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
-| [Room (239)](07-room-level/Room.md) | shockwave_overlay_sprite | 20（块12） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
+| [Room (239)](07-room-level/Room.md) | shockwave_a | 25（块13） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
+| [Room (239)](07-room-level/Room.md) | shockwave_b | 26（块13） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
+| [Room (239)](07-room-level/Room.md) | shockwave_overlay_sprite | 19（块12） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
 | [Room (239)](07-room-level/Room.md) | greed_wave_timer | 7（块1） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
 | [Room (239)](07-room-level/Room.md) | water_amount | 10（块2） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
-| [Room (239)](07-room-level/Room.md) | water_start | 21（块13） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
-| [Room (239)](07-room-level/Room.md) | water_multiplier_start | 22（块13） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
-| [Room (239)](07-room-level/Room.md) | water_target | 23（块13） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
-| [Room (239)](07-room-level/Room.md) | water_multiplier_target | 24（块13） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
-| [Room (239)](07-room-level/Room.md) | water_lerp_duration_countdown | 25（块13） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
+| [Room (239)](07-room-level/Room.md) | water_start | 20（块13） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
+| [Room (239)](07-room-level/Room.md) | water_multiplier_start | 21（块13） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
+| [Room (239)](07-room-level/Room.md) | water_target | 22（块13） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
+| [Room (239)](07-room-level/Room.md) | water_multiplier_target | 23（块13） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
+| [Room (239)](07-room-level/Room.md) | water_lerp_duration_countdown | 24（块13） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
 | [Room (239)](07-room-level/Room.md) | floor_color | 8（块2） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
 | [Room (239)](07-room-level/Room.md) | wall_color | 9（块2） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
-| [Room (239)](07-room-level/Room.md) | rails | 17（块10） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
+| [Room (239)](07-room-level/Room.md) | rails | 16（块10） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
 | [Room (239)](07-room-level/Room.md) | lava_intensity | 11（块2） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
-| [Room (239)](07-room-level/Room.md) | hell_backdrop | 18（块11） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
+| [Room (239)](07-room-level/Room.md) | hell_backdrop | 17（块11） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
 | [Room (239)](07-room-level/Room.md) | dimension | 1（块0） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
-| [Room (239)](07-room-level/Room.md) | wave_sprite_present | 19（块12） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
+| [Room (239)](07-room-level/Room.md) | wave_sprite_present | 18（块12） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
 | [Backdrop (240)](07-room-level/Backdrop.md) | floor_sprite | 4（块0） | Q14背景id与原生Sprite／边界照旧；表面binding结果由本地原生冷构建，不发送旧资源配方 |
 | [Backdrop (240)](07-room-level/Backdrop.md) | backdrop_id | 0（块0） | Q14背景id与原生Sprite／边界照旧；表面binding结果由本地原生冷构建，不发送旧资源配方 |
 | [Backdrop (240)](07-room-level/Backdrop.md) | surface_min | 1（块0） | Q14背景id与原生Sprite／边界照旧；表面binding结果由本地原生冷构建，不发送旧资源配方 |
@@ -2135,7 +2117,6 @@
 | [Backdrop (240)](07-room-level/Backdrop.md) | controls_sprite | 6（块0） | Q14背景id与原生Sprite／边界照旧；表面binding结果由本地原生冷构建，不发送旧资源配方 |
 | [Backdrop (240)](07-room-level/Backdrop.md) | controls_buttons_sprite | 7（块0） | Q14背景id与原生Sprite／边界照旧；表面binding结果由本地原生冷构建，不发送旧资源配方 |
 | [Backdrop (240)](07-room-level/Backdrop.md) | sprite_mask | 3（块0） | Q14背景id与原生Sprite／边界照旧；表面binding结果由本地原生冷构建，不发送旧资源配方 |
-| [FXLayers (242)](07-room-level/FXLayers.md) | loaded | 0（块0） | Q14保留FXLayers当前资格；旧FXScenePayload结果退役，图与pose由Client原生显示推进 |
 | [FXPose (244)](07-room-level/FXPose.md) | flip_x_y | 1（块0） | Q14 Room显示子结构默认保留，D1补当前冲击波／横移累计值；第15步按差异驱动删减 |
 | [FXPose (244)](07-room-level/FXPose.md) | position | 0（块0） | Q14 Room显示子结构默认保留，D1补当前冲击波／横移累计值；第15步按差异驱动删减 |
 | [FX (245)](07-room-level/FX.md) | blend_mode | 6（块0） | Q14 Room显示子结构默认保留，D1补当前冲击波／横移累计值；第15步按差异驱动删减 |
@@ -2233,6 +2214,23 @@
 | [SavedMapIconPayload (297)](07-room-level/SavedMapIconPayload.md) | icon_mask | 0（块0） | Q13地图结构、红房显示位、保存图标摘要；Q9含SpawnSeed，缓存构建时提供本地临时镜像 |
 | [FinalSavedMapIcons (298)](07-room-level/FinalSavedMapIcons.md) | payload | 1（块0） | Q13地图结构、红房显示位、保存图标摘要；Q9含SpawnSeed，缓存构建时提供本地临时镜像 |
 | [FinalSavedMapIcons (298)](07-room-level/FinalSavedMapIcons.md) | present | 0（块0） | Q13地图结构、红房显示位、保存图标摘要；Q9含SpawnSeed，缓存构建时提供本地临时镜像 |
+| [ResourceEntryHeader (304)](07-room-level/ResourceEntryHeader.md) | index | 1（块0） | 资源目录编码和解码必需的8字节条目头；不属于可裁剪的显示结果 |
+| [ResourceEntryHeader (304)](07-room-level/ResourceEntryHeader.md) | kind | 2（块0） | 资源目录编码和解码必需的8字节条目头；不属于可裁剪的显示结果 |
+| [ResourceEntryHeader (304)](07-room-level/ResourceEntryHeader.md) | payload_bytes | 3（块0） | 资源目录编码和解码必需的8字节条目头；不属于可裁剪的显示结果 |
+| [ResourceEntryHeader (304)](07-room-level/ResourceEntryHeader.md) | table | 0（块0） | 资源目录编码和解码必需的8字节条目头；不属于可裁剪的显示结果 |
+| [SurfaceRecipeHeader (307)](07-room-level/SurfaceRecipeHeader.md) | alpha_encoding | 7（块0） | 本地白图／程序图集一次Clear分配描述的固定头，资源协议仍保留此用途 |
+| [SurfaceRecipeHeader (307)](07-room-level/SurfaceRecipeHeader.md) | color_encoding | 8（块0） | 本地白图／程序图集一次Clear分配描述的固定头，资源协议仍保留此用途 |
+| [SurfaceRecipeHeader (307)](07-room-level/SurfaceRecipeHeader.md) | format | 5（块0） | 本地白图／程序图集一次Clear分配描述的固定头，资源协议仍保留此用途 |
+| [SurfaceRecipeHeader (307)](07-room-level/SurfaceRecipeHeader.md) | logical_h | 2（块0） | 本地白图／程序图集一次Clear分配描述的固定头，资源协议仍保留此用途 |
+| [SurfaceRecipeHeader (307)](07-room-level/SurfaceRecipeHeader.md) | logical_w | 1（块0） | 本地白图／程序图集一次Clear分配描述的固定头，资源协议仍保留此用途 |
+| [SurfaceRecipeHeader (307)](07-room-level/SurfaceRecipeHeader.md) | operation_count | 9（块0） | 本地白图／程序图集一次Clear分配描述的固定头，资源协议仍保留此用途 |
+| [SurfaceRecipeHeader (307)](07-room-level/SurfaceRecipeHeader.md) | origin | 6（块0） | 本地白图／程序图集一次Clear分配描述的固定头，资源协议仍保留此用途 |
+| [SurfaceRecipeHeader (307)](07-room-level/SurfaceRecipeHeader.md) | recipe_layout | 0（块0） | 本地白图／程序图集一次Clear分配描述的固定头，资源协议仍保留此用途 |
+| [SurfaceRecipeHeader (307)](07-room-level/SurfaceRecipeHeader.md) | stored_h | 4（块0） | 本地白图／程序图集一次Clear分配描述的固定头，资源协议仍保留此用途 |
+| [SurfaceRecipeHeader (307)](07-room-level/SurfaceRecipeHeader.md) | stored_w | 3（块0） | 本地白图／程序图集一次Clear分配描述的固定头，资源协议仍保留此用途 |
+| [SurfaceRecipeClear (308)](07-room-level/SurfaceRecipeClear.md) | color_space | 2（块0） | 本地白图／程序图集一次Clear的颜色值，不恢复通用绘制recipe |
+| [SurfaceRecipeClear (308)](07-room-level/SurfaceRecipeClear.md) | op | 0（块0） | 本地白图／程序图集一次Clear的颜色值，不恢复通用绘制recipe |
+| [SurfaceRecipeClear (308)](07-room-level/SurfaceRecipeClear.md) | rgba | 1（块0） | 本地白图／程序图集一次Clear的颜色值，不恢复通用绘制recipe |
 | [StateCommonHeader (408)](09-wire-format/StateCommonHeader.md) | dimension | 4（块0） | Q14过渡期保留公共报文与资源引用结构；414—417及425—433随第二批接线收窄，当前不改变固定头 |
 | [StateCommonHeader (408)](09-wire-format/StateCommonHeader.md) | floor | 3（块0） | Q14过渡期保留公共报文与资源引用结构；414—417及425—433随第二批接线收窄，当前不改变固定头 |
 | [StateCommonHeader (408)](09-wire-format/StateCommonHeader.md) | layout_version | 0（块0） | Q14过渡期保留公共报文与资源引用结构；414—417及425—433随第二批接线收窄，当前不改变固定头 |
@@ -2305,8 +2303,6 @@
 | [StateAudioEventHeader (417)](09-wire-format/StateAudioEventHeader.md) | purpose | 3（块0） | Q14过渡期保留公共报文与资源引用结构；414—417及425—433随第二批接线收窄，当前不改变固定头 |
 | [StateAudioEventHeader (417)](09-wire-format/StateAudioEventHeader.md) | voice_generation | 5（块0） | Q14过渡期保留公共报文与资源引用结构；414—417及425—433随第二批接线收窄，当前不改变固定头 |
 | [StateAudioEventHeader (417)](09-wire-format/StateAudioEventHeader.md) | voice_id | 4（块0） | Q14过渡期保留公共报文与资源引用结构；414—417及425—433随第二批接线收窄，当前不改变固定头 |
-| [StateContextReady (418)](09-wire-format/StateContextReady.md) | member_epoch | 0（块0） | Q14过渡期保留公共报文与资源引用结构；414—417及425—433随第二批接线收窄，当前不改变固定头 |
-| [StateContextReady (418)](09-wire-format/StateContextReady.md) | resource_epoch | 1（块0） | Q14过渡期保留公共报文与资源引用结构；414—417及425—433随第二批接线收窄，当前不改变固定头 |
 | [StateAppliedAckHeader (419)](09-wire-format/StateAppliedAckHeader.md) | entry_count | 0（块0） | Q14过渡期保留公共报文与资源引用结构；414—417及425—433随第二批接线收窄，当前不改变固定头 |
 | [StateAppliedAckHeader (419)](09-wire-format/StateAppliedAckHeader.md) | flags | 1（块0） | Q14过渡期保留公共报文与资源引用结构；414—417及425—433随第二批接线收窄，当前不改变固定头 |
 | [StateAppliedAckEntry (420)](09-wire-format/StateAppliedAckEntry.md) | event_watermark | 4（块0） | Q14过渡期保留公共报文与资源引用结构；414—417及425—433随第二批接线收窄，当前不改变固定头 |
@@ -2364,6 +2360,12 @@
 | [RoomWaveSprite (434)](07-room-level/RoomWaveSprite.md) | scale | 3（块0） | Q14 Room显示子结构默认保留，D1补当前冲击波／横移累计值；第15步按差异驱动删减 |
 | [SFXVolumeState (437)](08-run-presentation/SFXVolumeState.md) | volume_modifier | 0（块0） | D8／RE-10原生Play／AdjustVolume／Clear读取的当前全局乘数；负数合法，只同步有限f32 |
 | [DisplayInjectionState (438)](08-run-presentation/DisplayInjectionState.md) | angel_share | 1（块0） | 版本73事件队列／表现状态／注入值；RE-7／RE-8／RE-9实际来源 |
+| [DisplayInjectionState (438)](08-run-presentation/DisplayInjectionState.md) | backdrop_tutorial | 11（块0） | 版本73事件队列／表现状态／注入值；RE-7／RE-8／RE-9实际来源 |
+| [DisplayInjectionState (438)](08-run-presentation/DisplayInjectionState.md) | backdrop_wall_style | 10（块0） | 版本73事件队列／表现状态／注入值；RE-7／RE-8／RE-9实际来源 |
+| [DisplayInjectionState (438)](08-run-presentation/DisplayInjectionState.md) | camera_entry_door | 13（块0） | 版本73事件队列／表现状态／注入值；RE-7／RE-8／RE-9实际来源 |
+| [DisplayInjectionState (438)](08-run-presentation/DisplayInjectionState.md) | camera_previous_entry | 14（块0） | 版本73事件队列／表现状态／注入值；RE-7／RE-8／RE-9实际来源 |
+| [DisplayInjectionState (438)](08-run-presentation/DisplayInjectionState.md) | camera_return_focus | 15（块0） | 版本73事件队列／表现状态／注入值；RE-7／RE-8／RE-9实际来源 |
+| [DisplayInjectionState (438)](08-run-presentation/DisplayInjectionState.md) | camera_return_position | 16（块0） | 版本73事件队列／表现状态／注入值；RE-7／RE-8／RE-9实际来源 |
 | [DisplayInjectionState (438)](08-run-presentation/DisplayInjectionState.md) | deal_qualified | 2（块0） | 版本73事件队列／表现状态／注入值；RE-7／RE-8／RE-9实际来源 |
 | [DisplayInjectionState (438)](08-run-presentation/DisplayInjectionState.md) | devil_total | 0（块0） | 版本73事件队列／表现状态／注入值；RE-7／RE-8／RE-9实际来源 |
 | [DisplayInjectionState (438)](08-run-presentation/DisplayInjectionState.md) | map_focus | 8（块0） | 版本73事件队列／表现状态／注入值；RE-7／RE-8／RE-9实际来源 |
@@ -2371,7 +2373,10 @@
 | [DisplayInjectionState (438)](08-run-presentation/DisplayInjectionState.md) | pill_effects | 5（块0） | 版本73事件队列／表现状态／注入值；RE-7／RE-8／RE-9实际来源 |
 | [DisplayInjectionState (438)](08-run-presentation/DisplayInjectionState.md) | pill_identified | 6（块0） | 版本73事件队列／表现状态／注入值；RE-7／RE-8／RE-9实际来源 |
 | [DisplayInjectionState (438)](08-run-presentation/DisplayInjectionState.md) | planetarium | 3（块0） | 版本73事件队列／表现状态／注入值；RE-7／RE-8／RE-9实际来源 |
+| [DisplayInjectionState (438)](08-run-presentation/DisplayInjectionState.md) | poop_fx_color | 18（块0） | 版本73事件队列／表现状态／注入值；RE-7／RE-8／RE-9实际来源 |
+| [DisplayInjectionState (438)](08-run-presentation/DisplayInjectionState.md) | poop_fx_countdown | 17（块0） | 版本73事件队列／表现状态／注入值；RE-7／RE-8／RE-9实际来源 |
 | [DisplayInjectionState (438)](08-run-presentation/DisplayInjectionState.md) | progress_blocked | 4（块0） | 版本73事件队列／表现状态／注入值；RE-7／RE-8／RE-9实际来源 |
+| [DisplayInjectionState (438)](08-run-presentation/DisplayInjectionState.md) | room_graphics_flags | 12（块0） | 版本73事件队列／表现状态／注入值；RE-7／RE-8／RE-9实际来源 |
 | [DisplayInjectionState (438)](08-run-presentation/DisplayInjectionState.md) | water_current | 7（块0） | 版本73事件队列／表现状态／注入值；RE-7／RE-8／RE-9实际来源 |
 | [MusicRequestState (439)](08-run-presentation/MusicRequestState.md) | enabled | 10（块0） | 版本73事件队列／表现状态／注入值；RE-7／RE-8／RE-9实际来源 |
 | [MusicRequestState (439)](08-run-presentation/MusicRequestState.md) | fade_rate | 5（块0） | 版本73事件队列／表现状态／注入值；RE-7／RE-8／RE-9实际来源 |

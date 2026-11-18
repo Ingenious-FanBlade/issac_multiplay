@@ -39,61 +39,31 @@ bool ReferenceTarget(const Field &field,const PresentationMember &member) {
     default:return false;
   }
 }
-class Context final:public BodyCodecContext {
+// 此处只验不可变目录的绑定语义。实际物化在已就绪队列和 Begin 时重核。
+class DeclaredResource final:public ResourceReadyContext {
 public:
-  Context(ClientResourceSnapshotRef r,ClientShadowRecordView own,std::optional<ClientShadowRecordView> paired)
-    :resources(std::move(r)),record(own),other(paired) {}
-  std::optional<CodecItemConfig> Item(std::uint8_t table,std::uint16_t index)const override{return ResourceBodyContext(resources->Directory()).Item(table,index);}
-  std::optional<bool> SharedPresence(const CodecLocation &location)const override {
-    const auto read=[&](ClientShadowRecordView r)->std::optional<bool>{for(const auto &f:r.Projections())if(f.kind==ProjectionFactKind::SharedPresence&&
-      f.layout==location.layout&&f.group==location.canonical_field&&f.depth==location.parents.size()&&std::equal(location.parents.begin(),location.parents.end(),f.parents.begin()))return f.value!=0;return {};};
-    if(const auto value=read(record))return value;return other?read(*other):std::nullopt;
-  }
-  ClientResourceSnapshotRef resources;ClientShadowRecordView record;std::optional<ClientShadowRecordView> other;
+  bool Materialized(const ResourceDirectoryView &,const ResourceEntryView &)const override{return true;}
 };
 class Links final:public BodyNodeObserver {
 public:
   Links(const ClientStateTables &t,ClientMemberSnapshotRef m,ClientResourceSnapshotRef r)
-    :tables(t),members(std::move(m)),resources(std::move(r)),roots(ClientStateAllocator<ResourceKey>(t.Memory(),memory::Pool::Workspace)) {}
+    :members(std::move(m)),resources(std::move(r)),roots(ClientStateAllocator<ResourceKey>(t.Memory(),memory::Pool::Workspace)) {}
   void Node(const BodyNodeView &node)override {
-    if(node.layout||(node.operation!=Operation::Reference&&node.operation!=Operation::Resource))return;
-    if(node.path.empty())Fail(StateReadiness::InvalidEncoding,"client_validation_reference_path");
-    const auto index=Exact<std::uint16_t>(node.bytes);if(index==kNullIndex)return;
-    const auto &path=node.path.back();const auto *field=FindField(path.layout,path.field);
-    if(!field)Fail(StateReadiness::InvalidEncoding,"client_validation_reference_field");
-    if(node.operation==Operation::Reference) {
-      const auto *member=FindStateMember(members->Directory(),index);
-      if(!member||!ReferenceTarget(*field,member->identity))Fail(StateReadiness::InvalidReference,"client_validation_reference_type");
-    }else {
-      ResourceKey key{node.resource_table,index};if(!FindResource(resources->Directory(),key))Fail(StateReadiness::MissingClosure,"client_validation_resource_missing");
-      roots.push_back(key);
-    }
+    if(const auto key=ValidateClientDeclaredNode(node,members->Directory(),resources->Directory()))roots.push_back(*key);
   }
-  const ClientStateTables &tables;ClientMemberSnapshotRef members;ClientResourceSnapshotRef resources;
+  ClientMemberSnapshotRef members;ClientResourceSnapshotRef resources;
   ClientStateVector<ResourceKey> roots;
 };
-class Ready final:public ResourceReadyContext {
-public:
-  explicit Ready(const ClientStateTables &t):tables(t) {}
-  bool Materialized(const ResourceDirectoryView &directory,const ResourceEntryView &entry)const override {
-    const auto state=tables.ResourceState(directory.epoch,entry.key);
-    if(state==ClientResourceState::MissingLocalResource)Fail(StateReadiness::MissingLocalResource,"client_validation_resource_file_missing");
-    if(state==ClientResourceState::Failed)Fail(StateReadiness::Lifecycle,"client_validation_resource_prepare_failed");
-    if(state!=ClientResourceState::Ready)Fail(StateReadiness::ResourcePending,"client_validation_resource_pending");return true;
-  }
-  const ClientStateTables &tables;
-};
 struct Scratch {
-  ClientStateVector<std::byte> bytes;
   ClientStateVector<ProjectionFact> facts;
   ClientStateVector<BodyFieldView> fields;
   ClientStateVector<std::uint32_t> order;
   ClientStateVector<std::uint8_t> state,heights;
   explicit Scratch(const std::shared_ptr<ClientStateMemory> &m)
-    :bytes(ClientStateAllocator<std::byte>(m,memory::Pool::Workspace)),facts(ClientStateAllocator<ProjectionFact>(m,memory::Pool::Workspace)),
+    :facts(ClientStateAllocator<ProjectionFact>(m,memory::Pool::Workspace)),
      fields(ClientStateAllocator<BodyFieldView>(m,memory::Pool::Workspace)),order(ClientStateAllocator<std::uint32_t>(m,memory::Pool::Workspace)),
      state(ClientStateAllocator<std::uint8_t>(m,memory::Pool::Workspace)),heights(ClientStateAllocator<std::uint8_t>(m,memory::Pool::Workspace)) {
-    fields.resize(BodySourceMaximumFields());facts.resize(16);
+    fields.resize(BodySourceMaximumFields());facts.resize(128);
   }
   BodyCodecScratch Body(BodyNodeObserver *observer=nullptr){return {facts,0,fields,0,observer};}
   template<class Fn>void Decode(Fn &&fn) {
@@ -102,17 +72,26 @@ struct Scratch {
       facts.resize(std::max<std::size_t>(e.Requested(),facts.size()*2));
     }
   }
-  void Closure(const ClientStateTables &tables,const ClientResourceSnapshotRef &resources,Links &links,const ClientStateWorkspace &workspace) {
-    std::sort(links.roots.begin(),links.roots.end());links.roots.erase(std::unique(links.roots.begin(),links.roots.end()),links.roots.end());
-    const auto size=resources->Directory().entries.size();order.resize(size);state.resize(size);heights.resize(size);
-    ResourceGraphScratch graph{{},{},order,state,heights};const auto result=tables.Prepare(resources,links.roots,graph,workspace);
-    if(!result.closed)Fail(StateReadiness::MissingClosure,"client_validation_resource_closure");
-    if(!result.materialized) {
-      for(const auto n:result.materialization_order){const auto &entry=resources->Directory().entries[n];Ready(tables).Materialized(resources->Directory(),entry);}
-      Fail(StateReadiness::ResourcePending,"client_validation_resource_closure_pending");
-    }
-  }
+
 };
+}
+std::optional<ResourceKey> ValidateClientDeclaredNode(const BodyNodeView &node,StateMemberDirectory members,
+    ResourceDirectoryView resources) {
+  if(node.layout){const DeclaredResource declared;ValidateResourceBindingNode(node,resources,declared);return {};}
+  if(node.operation!=Operation::Reference&&node.operation!=Operation::Resource)return {};
+  if(node.path.empty())Fail(StateReadiness::InvalidEncoding,"client_validation_reference_path");
+  const auto index=Exact<std::uint16_t>(node.bytes);
+  if(index==kNullIndex)return {};
+  const auto &path=node.path.back();const auto *field=FindField(path.layout,path.field);
+  if(!field)Fail(StateReadiness::InvalidEncoding,"client_validation_reference_field");
+  if(node.operation==Operation::Reference){
+    const auto *member=FindStateMember(members,index);
+    if(!member||!ReferenceTarget(*field,member->identity))Fail(StateReadiness::InvalidReference,"client_validation_reference_type");
+    return {};
+  }
+  const ResourceKey key{node.resource_table,index};
+  if(!FindResource(resources,key))Fail(StateReadiness::InvalidReference,"client_validation_resource_missing");
+  return key;
 }
 std::vector<ClientShadowLayoutBinding> ClientStateRootBindings() {
   std::vector<ClientShadowLayoutBinding> out;
@@ -124,84 +103,104 @@ std::vector<ClientShadowLayoutBinding> ClientStateRootBindings() {
       std::pair{9u,195u},std::pair{10u,196u},std::pair{12u,437u}})out.push_back({space,std::uint16_t(layout),layout==195});
   return out;
 }
-ClientStateVector<ClientStateResourceNeed> ClientStateRequiredResources(const ClientStatePreparedTarget &target,const ClientStateTables &tables) {
-  ClientStateWorkspace workspace;return ClientStateRequiredResources(target,tables,workspace);
-}
-ClientStateVector<ClientStateResourceNeed> ClientStateRequiredResources(const ClientStatePreparedTarget &target,const ClientStateTables &tables,const ClientStateWorkspace &workspace) {
-  workspace.RequireCurrentThread();
-  if(!target.candidate)Fail(StateReadiness::InvalidEncoding,"client_resource_target_missing");
-  ClientStateVector<ClientStateResourceNeed> out{ClientStateAllocator<ClientStateResourceNeed>(tables.Memory())};Scratch scratch(tables.Memory());
-  std::set<std::uint64_t,std::less<std::uint64_t>,ClientStateAllocator<std::uint64_t>> seen{ClientStateAllocator<std::uint64_t>(tables.Memory(),memory::Pool::Workspace)};
+// 纯值检查按节点批次推进；事件和资源闭包保留原有有界原子单元。
+struct ClientTargetCheckWork final {
+  const ClientStatePreparedTarget &target;
+  const ClientStateTables &tables;
+  Scratch scratch;
+  std::shared_ptr<ClientTargetFacts> facts;
+  std::set<std::uint64_t,std::less<std::uint64_t>,ClientStateAllocator<std::uint64_t>> seen;
+  std::optional<Links> links;
+  ClientShadowVisitCursor cursor;
+  unsigned stream=0;
+  std::size_t member=0,event=0;
   std::uint32_t visits=0;
-  const auto append=[&](const ClientResourceSnapshotRef &resources,Links &links) {
-    std::sort(links.roots.begin(),links.roots.end());links.roots.erase(std::unique(links.roots.begin(),links.roots.end()),links.roots.end());
-    const auto count=resources->Directory().entries.size();scratch.order.resize(count);scratch.state.resize(count);scratch.heights.resize(count);
-    ResourceGraphScratch graph{{},{},scratch.order,scratch.state,scratch.heights};const auto closure=tables.Prepare(resources,links.roots,graph,workspace);
+  std::uint32_t affected=0;
+  bool started_record=false;
+  ClientTargetCheckWork(const ClientStatePreparedTarget &t,const ClientStateTables &s):
+    target(t),tables(s),scratch(s.Memory()),
+    facts(std::allocate_shared<ClientTargetFacts>(ClientStateAllocator<ClientTargetFacts>(s.Memory()),s.Memory())),
+    seen(ClientStateAllocator<std::uint64_t>(s.Memory(),memory::Pool::Workspace)) {}
+
+  void Append(const ClientStateWorkspace &workspace) {
+    if(links->roots.empty())return;
+    auto &roots=links->roots;
+    std::sort(roots.begin(),roots.end());roots.erase(std::unique(roots.begin(),roots.end()),roots.end());
+    const auto directory=links->resources->Directory();const auto count=directory.entries.size();
+    scratch.order.resize(count);scratch.state.resize(count);scratch.heights.resize(count);
+    ResourceGraphScratch graph{{},{},scratch.order,scratch.state,scratch.heights};
+    const auto closure=tables.Prepare(links->resources,roots,graph,workspace);
     if(!closure.closed)Fail(StateReadiness::MissingClosure,"client_resource_target_not_closed");
-    for(const auto n:closure.materialization_order) {
-      const auto key=resources->Directory().entries[n].key;
-      const auto identity=(std::uint64_t(resources->Directory().epoch)<<24)|(std::uint64_t(key.table)<<16)|key.index;
-      if(seen.insert(identity).second)out.push_back({resources,key});
+    for(const auto n:closure.materialization_order){
+      const auto key=directory.entries[n].key;
+      const auto identity=(std::uint64_t(directory.epoch)<<24)|(std::uint64_t(key.table)<<16)|key.index;
+      if(seen.insert(identity).second)facts->resources.push_back({links->resources,key});
     }
-  };
-  for(unsigned stream=0;stream<2;++stream)if(const auto own=target.candidate->State(BodyStream(stream))) {
-    const auto other=target.effective[1-stream];Links links(tables,own->Members(),own->Resources());
-    for(std::size_t i=0;i<own->RecordCount();++i) {
-      const auto record=own->Record(i);const auto paired=other?other->Find(record.Identity()):std::nullopt;Context context(own->Resources(),record,paired);
-      scratch.bytes.clear();for(unsigned b=0;b<32;++b)if(const auto block=record.Block(std::uint8_t(b)))scratch.bytes.insert(scratch.bytes.end(),block->bytes.begin(),block->bytes.end());
-      // 每条根单独解码，保留此前根已收集的引用；scratch扩容重试先撤本根未完成的追加。
-      const auto before=links.roots.size();scratch.Decode([&]{links.roots.resize(before);auto body=scratch.Body(&links);
-        const auto value=DecodeBody(record.Identity().layout,record.Mask(),BodyStream(stream),scratch.bytes,body,&context,{32u<<20,262144-visits,32,true});visits+=value.field_visits;});
-    }
-    append(own->Resources(),links);
   }
-  for(const auto &event:target.events) {
-    Links links(tables,event.members,event.resources);ResourceBodyContext context(event.resources->Directory());
-    scratch.Decode([&]{links.roots.clear();auto body=scratch.Body(&links);const auto value=DecodeValue(event.value.layout,event.value.payload,body,&context,{256u<<10,262144-visits,32,true});visits+=value.field_visits;});
-    append(event.resources,links);
-  }
-  return out;
-}
-StateReadiness ValidateClientStateTarget(const ClientStatePreparedTarget &target,const ClientStateTables &tables) {
-  try {ClientStateWorkspace workspace;return ValidateClientStateTarget(target,tables,workspace);}
-  catch(const ClientTableError &e){return e.Failure()==ClientTableFailure::WorkspaceBusy?StateReadiness::Budget:StateReadiness::Lifecycle;}
-}
-StateReadiness ValidateClientStateTarget(const ClientStatePreparedTarget &target,const ClientStateTables &tables,const ClientStateWorkspace &workspace) {
-  try {
-    workspace.RequireCurrentThread();
-    if(!target.candidate||!target.candidate->Frame().decoded)Fail(StateReadiness::InvalidEncoding,"client_validation_undecoded");
-    Scratch scratch(tables.Memory());const auto &candidate=*target.candidate;
-    std::uint32_t visits=0;
-    for(unsigned stream=0;stream<2;++stream)if(const auto own=candidate.State(BodyStream(stream))) {
-      const auto other=target.effective[1-stream];
-      for(std::size_t i=0;i<own->RecordCount();++i) {
-        const auto record=own->Record(i);const auto paired=other?other->Find(record.Identity()):std::nullopt;
-        if(record.Identity().layout==197) {
-          if(!paired)Fail(StateReadiness::SourcePending,"client_validation_player_paired_state");
-          const auto &body=stream==1?record:*paired;const auto &world=stream==0?record:*paired;
-          if(Number(body,F::EntityPlayer::render_topology_revision)!=Number(world,F::EntityPlayer::costume_topology_revision))
-            Fail(StateReadiness::SourcePending,"client_validation_player_render_topology");
+  bool Step(const ClientStateWorkspace &workspace) {
+    const auto &candidate=*target.candidate;
+    if(stream<2){
+      const auto own=candidate.State(BodyStream(stream));
+      if(own&&member<own->RecordCount()){
+        const auto record=own->Record(member);
+        if(!links)links.emplace(tables,own->Members(),own->Resources());
+        if(!started_record){
+          if(record.Identity().layout==197&&candidate.Target().count==2){
+            const auto &other=target.effective[1-stream];
+            const auto paired=other?other->Find(record.Identity()):std::nullopt;
+            if(!paired)Fail(StateReadiness::MissingClosure,"client_validation_player_paired_state");
+            const auto &body=stream==1?record:*paired;const auto &world=stream==0?record:*paired;
+            if(Number(body,F::EntityPlayer::render_topology_revision)!=Number(world,F::EntityPlayer::costume_topology_revision))
+              Fail(StateReadiness::MissingClosure,"client_validation_player_render_topology");
+          }
+          if(record.FieldVisits()>262144-visits)Fail(StateReadiness::Budget,"client_validation_target_visit_budget");
+          visits+=record.FieldVisits();started_record=true;
+          affected=record.Mask();
+          // 仅以相同影子块及同资源快照复用已接受的引用检查；实际本机就绪仍在交票前核验。
+          const auto &base=target.previous[stream];
+          if(base&&base->Resources()==own->Resources())if(const auto before=base->Find(record.Identity()))
+            for(unsigned block=0;block<32;++block){
+              const auto bit=std::uint32_t(1)<<block;
+              if((affected&bit)&&record.SameBlock(*before,std::uint8_t(block))){
+                record.AppendResourceKeys(std::uint8_t(block),links->roots);affected&=~bit;
+              }
+            }
         }
-        scratch.bytes.clear();for(unsigned b=0;b<32;++b)if(const auto block=record.Block(std::uint8_t(b)))scratch.bytes.insert(scratch.bytes.end(),block->bytes.begin(),block->bytes.end());
-        Context context(own->Resources(),record,paired);Links links(tables,own->Members(),own->Resources());
-        scratch.Decode([&]{links.roots.clear();auto body=scratch.Body(&links);
-          const auto value=DecodeBody(record.Identity().layout,record.Mask(),BodyStream(stream),scratch.bytes,body,&context,{32u<<20,262144,32,true});
-          if(value.field_visits>262144-visits)Fail(StateReadiness::Budget,"client_validation_target_visit_budget");visits+=value.field_visits;});
-        scratch.Closure(tables,own->Resources(),links,workspace);
-        Ready ready(tables);scratch.Decode([&]{auto body=scratch.Body();ValidateResourceBindings(record.Identity().layout,record.Mask(),BodyStream(stream),scratch.bytes,own->Resources()->Directory(),ready,body,&context,{32u<<20,262144,32,true});});
+        if(record.VisitSome(affected,*links,cursor,128)){
+          started_record=false;cursor={};++member;
+        }
+      }else{
+        if(links)Append(workspace);
+        links.reset();member=0;++stream;
       }
+      return false;
     }
-    for(const auto &event:target.events) {
-      if(!event.members||!event.resources||event.members->Route()!=candidate.Target().route)Fail(StateReadiness::Lifecycle,"client_validation_event_snapshot");
-      Links links(tables,event.members,event.resources);ResourceBodyContext context(event.resources->Directory());
-      scratch.Decode([&]{links.roots.clear();auto body=scratch.Body(&links);const auto value=DecodeValue(event.value.layout,event.value.payload,body,&context,{256u<<10,262144-visits,32,true});visits+=value.field_visits;});
-      scratch.Closure(tables,event.resources,links,workspace);Ready ready(tables);
-      scratch.Decode([&]{auto body=scratch.Body();ValidateResourceBindings(event.value.layout,1,BodyStream::Value,event.value.payload,event.resources->Directory(),ready,body,&context,{256u<<10,262144,32,true});});
-    }
-    return StateReadiness::Ready;
-  }catch(const ClientShadowError &e){return e.Readiness();}
-   catch(const ClientTableError &e){return e.Failure()==ClientTableFailure::Budget||e.Failure()==ClientTableFailure::WorkspaceBusy?StateReadiness::Budget:StateReadiness::Lifecycle;}
-   catch(const BodyVisitError &){return StateReadiness::Budget;}
-   catch(const Gap &){return StateReadiness::InvalidEncoding;}
+    if(event==target.events.size())return true;
+    const auto &source=target.events[event];
+    if(!source.members||!source.resources||source.members->Route()!=candidate.Target().route)
+      Fail(StateReadiness::Lifecycle,"client_validation_event_snapshot");
+    links.emplace(tables,source.members,source.resources);
+    ResourceBodyContext context(source.resources->Directory());
+    scratch.Decode([&]{
+      links->roots.clear();auto body=scratch.Body(&*links);
+      const auto value=DecodeValue(source.value.layout,source.value.payload,body,&context,{256u<<10,262144-visits,32,true});
+      visits+=value.field_visits;
+    });
+    Append(workspace);links.reset();++event;return false;
+  }
+};
+std::shared_ptr<const ClientTargetFacts> InspectClientStateTargetStep(const ClientStatePreparedTarget &target,
+    const ClientStateTables &tables,std::shared_ptr<ClientTargetCheckWork> &work,std::chrono::steady_clock::time_point stop) {
+  if(!target.candidate||!target.candidate->Frame().decoded)Fail(StateReadiness::InvalidEncoding,"client_validation_undecoded");
+  ClientStateWorkspace workspace;
+  if(!work)work=std::allocate_shared<ClientTargetCheckWork>(ClientStateAllocator<ClientTargetCheckWork>(tables.Memory()),target,tables);
+  try{
+    do{if(work->Step(workspace)){auto result=work->facts;work.reset();return result;}}
+    while(std::chrono::steady_clock::now()<stop);
+    return {};
+  }catch(const BodyVisitError &){work.reset();Fail(StateReadiness::Budget,"client_validation_target_visit_budget");}
+   catch(const Gap &){work.reset();Fail(StateReadiness::InvalidEncoding,"client_validation_target_encoding");}
+   catch(...){work.reset();throw;}
 }
+
 } // namespace cs::state

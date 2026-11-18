@@ -1,6 +1,8 @@
 #pragma once
 #include "game/client/scene/client_preparation_native.h"
+#include "game/client/scene/client_read_window.h"
 #include <array>
+#include <bitset>
 #include <string_view>
 
 namespace cs::game {
@@ -37,25 +39,38 @@ struct ClientBinaryRoomPrevious {
   float sfx_volume=1.f;
   void *offsets=nullptr;
 };
-bool ClientBinaryInitCheck(ClientBinaryInit &) noexcept;
+const char *ClientBinaryInitFailure(ClientBinaryInit &,ClientNativeReadWindow *reads=nullptr) noexcept;
 bool ClientBinaryInitApply(ClientBinaryInit &,const char *&) noexcept;
+// Init 窗口前后的池位差集。仅处理该窗口内新增且未被权威目标占用的池对象。
+struct ClientBinaryInitPoolSnapshot {
+  const void *factory=nullptr;
+  std::bitset<4096> used;
+};
+bool ClientBinaryRememberInitPools(const ClientNativeRoots &,ClientBinaryInitPoolSnapshot &) noexcept;
+bool ClientBinaryCleanupInitPools(const ClientNativeRoots &,const ClientBinaryInitPoolSnapshot &,
+    const void *context,bool (*target)(const void *,const void *) noexcept,bool &changed) noexcept;
 bool ClientBinaryGridInit(void *,unsigned) noexcept;
 unsigned ClientBinaryLocalIndex(void *) noexcept;
 unsigned ClientBinaryRetireCategory(void *) noexcept;
-bool ClientBinaryEntityRetire(void *,unsigned) noexcept;
+bool ClientBinaryEntityRetire(const ClientNativeRoots &,void *,unsigned) noexcept;
+bool ClientBinaryRetireLiveMember(const ClientNativeRoots &,void *,bool grid,bool player,
+    const std::array<std::uint32_t,3> *registered_shape=nullptr) noexcept;
+bool ClientBinaryEntityMorph(void *,unsigned category,unsigned type,unsigned variant,unsigned subtype,unsigned seed,int champion) noexcept;
 bool ClientBinaryInstallFrame(const ClientNativeRoots &,std::uint32_t,std::uint32_t &) noexcept;
 bool ClientBinaryRestoreFrame(const ClientNativeRoots &,std::uint32_t) noexcept;
-bool ClientBinaryCheckMembers(const ClientNativeRoots &,void *const *,std::size_t,
+const char *ClientBinaryMemberFailure(const ClientNativeRoots &,void *const *,std::size_t,
     const ClientBinaryEntityMember *,std::size_t,const ClientBinaryRoomMembers *,const ClientBinaryRoomMembers *) noexcept;
 bool ClientBinaryCaptureRoom(const ClientNativeRoots &,ClientBinaryRoomPrevious &) noexcept;
 bool ClientBinarySetRoom(const ClientNativeRoots &,const ClientBinaryRoomMembers &) noexcept;
+bool ClientBinaryRoomGeometryCurrent(const ClientNativeRoots &,const ClientBinaryRoomMembers &) noexcept;
+// render_members 按地址排列。只有普通 World 可忽略实际 render 列表的绘制顺序。
+bool ClientBinaryMemberSetsCurrent(const ClientNativeRoots &,const ClientBinaryEntityMember *,std::size_t,
+    const ClientBinaryRoomMembers &,void *const *render_members,std::size_t render_count) noexcept;
 bool ClientBinarySetMembers(const ClientNativeRoots &,const ClientBinaryEntityMember *,std::size_t,
     ClientBinaryEntityMember *,std::size_t,const ClientBinaryRoomMembers &) noexcept;
 bool ClientBinaryRestoreRoom(const ClientNativeRoots &,const ClientBinaryRoomPrevious &) noexcept;
 bool ClientBinaryDetachMember(const ClientNativeRoots &,void *,bool grid) noexcept;
 bool ClientBinaryUnpublishWorld(const ClientNativeRoots &,const ClientBinaryEntityMember *,std::size_t,
-    const ClientBinaryRoomMembers &) noexcept;
-bool ClientBinaryCheckPublished(const ClientNativeRoots &,const ClientBinaryEntityMember *,std::size_t,
     const ClientBinaryRoomMembers &) noexcept;
 void *ClientBinaryRunClock(const ClientNativeRoots &) noexcept;
 // 每个 Overlay 的 Player 槽具有原生反向登记；额外承载仅构造 Render 读取的两个 Sprite。
@@ -94,6 +109,8 @@ struct ClientBinarySpecialWrite {
   const std::byte *bytes=nullptr;
   std::size_t length=0;
   std::uint32_t frame=0;
+  // Player 主 Sprite 的图层归 World。普通 Body 只接管本次动画状态。
+  bool shared_player_sprite=false;
 };
 struct ClientBinarySpecialUndo {
   // 原生Sprite、图像引用及字符串需按其自身的构造／析构规则保管。
@@ -104,11 +121,14 @@ struct ClientBinarySpecialUndo {
   bool entered=false,applied=false,uncertain=false,committed=false;
 };
 bool ClientBinaryApplySpecial(const ClientNativeRoots &,const ClientBinarySpecialWrite &,ClientBinarySpecialUndo &) noexcept;
+// 供滚动漂移和 E2E 抽样使用，只读当前原生值。
 // 0为无投影，1为相等，2为差异，3为承载已失效。
-unsigned ClientBinaryReadSpecial(const ClientNativeRoots &,const ClientBinarySpecialWrite &,bool repair) noexcept;
+unsigned ClientBinaryReadSpecial(const ClientNativeRoots &,const ClientBinarySpecialWrite &) noexcept;
 bool ClientBinaryRetireSpecial(const ClientBinarySpecialWrite &,ClientBinarySpecialUndo &) noexcept;
 std::size_t ClientBinarySpecialCharge(const ClientBinarySpecialWrite &) noexcept;
 void *ClientBinaryLayer(void *,unsigned) noexcept;
-void *ClientBinaryPlus(void *,unsigned) noexcept;
+// 按最终 Sprite／Layer flags 配置本地图像顶点格式，并清理不兼容的原生空闲批次。
+bool ClientBinaryLayerGraphics(void *layer,bool repair,bool &written) noexcept;
+void *ClientBinaryPlus(void *,unsigned,ClientNativeReadWindow *reads=nullptr) noexcept;
 bool ClientBinaryGridClip(const ClientNativeRoots &,const ClientBinaryRoomMembers &,const void *,std::uint32_t &) noexcept;
 } // namespace cs::game

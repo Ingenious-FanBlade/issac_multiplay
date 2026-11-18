@@ -1,5 +1,9 @@
 # 原生二进制布局源
 
+**2026-11-18 平铺布局，包129**。[实施记录](../../../docs/design/binary-state/10-flat-record-encoding.md#91-包129布局源与生成器)。首批域源在原生 range、合成字段或伴随字段上声明 `sequence`。实体和 Grid 的根声明 `flat: true`，派生类和变体继承该标记。Player 控制组也声明平铺根标记。
+
+`write_groups` 以字段名或内嵌叶路径登记联写依赖，具名情况附 `handler`。`conversions` 可以用 `{semantics, fields}` 声明跨字段输入，`validators` 可以用 `fields` 登记参与联写的其他字段。生成器据此生成 `state_flat.inc`。版本 84 的现有 codec 兼容定义在 [legacy-block-layout.json](legacy-block-layout.json)，未迁移域继续使用块。下方记录保留原版本时点。
+
 **2026-11-13 当前版本74**：版本73已加入438—453的第二批状态／事件；74将MusicRequestState.mode限定为0—5，5表示Queue自然接续，不能当外部静音Play。音乐布尔和六位layer约束同源生成；来源、主线程事件范围／worker接管及未接通的正式运行链见[Host实施记录](../../../docs/design/binary-state/implementation-10-host-display-capture.md)。第15步仍唯一整体验收，未运行测试。
 
 **2026-11-12 版本72：按需收缩与D1—D8入源**：`demand.json` 是独立需求输入，不加入 `version.json.domains`。生成器先保留完整域源参照，再在内存中剥离未选wire；发送计划、正文编解码和校验器只包含需求字段，空块保留编号、空投影省略。原生字节账本、公开成员回映射与所有类型文档仍全量生成。`Layout.complete` 改为需求覆盖，不表示原生未知已清零或运行已完成。覆盖入口见[生成需求表](../../../docs/design/binary-state/layouts/demand-coverage.md)。Release／Win32产品DLL纯编译与链接通过，没有运行测试。

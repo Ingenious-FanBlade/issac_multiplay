@@ -7,6 +7,7 @@
 namespace cs::game {
 struct SessionRuntime;
 SessionRuntime *Runtime() noexcept;
+bool ForeignCallPending() noexcept;
 uint64_t ManagerLoop() noexcept;
 bool SoloBusy() noexcept;
 bool Busy() noexcept;

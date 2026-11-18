@@ -18,7 +18,8 @@ void Positive(const Value &v,std::initializer_list<const char *> keys){for(auto 
 void WorldValue(const Value &v){Members(v,{"session","run","floor","dimension","room","scene"});Positive(v,{"session","run","floor","dimension","room","scene"});}
 void U(std::vector<std::uint8_t> &b,std::uint64_t n,unsigned width){for(unsigned i=0;i<width;++i)b.push_back(std::uint8_t(n>>(8*i)));}
 struct Reader {std::span<const std::uint8_t> b;std::size_t p=0;std::uint64_t U(unsigned n){if(n>b.size()-p)Fail("stream_truncated");std::uint64_t x=0;for(unsigned i=0;i<n;++i)x|=std::uint64_t(b[p++])<<(8*i);return x;}};
-bool KnownKind(Kind k){return unsigned(k)>=1&&unsigned(k)<=23&&unsigned(k)!=6;}
+// 6、8、22 为已经退役的报文编号，不再作为传输候选解析。
+bool KnownKind(Kind k){const auto n=unsigned(k);return n>=1&&n<=23&&n!=6&&n!=8&&n!=22;}
 void Scope(const Value &b){WorldValue(At(b,"world"));}
 }
 Lane MessageLane(const Message &m){
@@ -40,11 +41,10 @@ void ValidateMessage(const Message &m){
     const state::StateScope scope{n(2,8),n(10,8),n(18,8),n(26,8),n(34,8),n(42,8)};
     if(!scope.session||!scope.run||!scope.scene)Fail("binary_state_scope");
     switch(m.kind){
-    case Kind::ContextReady:state::DecodeStateContextReady(scope,b);break;
     case Kind::AppliedAck:state::DecodeStateAppliedAck(scope,b);break;
     case Kind::Resync:state::DecodeStateResync(scope,b);break;
     case Kind::StateFrame:if(m.state_lane<Lane::Baseline||m.state_lane>Lane::PlayerFast)Fail("binary_frame_lane");return;
-    case Kind::StateMembers:case Kind::StateResources:if(m.state_lane!=Lane::Context)Fail("binary_table_lane");return;
+    case Kind::StateResources:if(m.state_lane!=Lane::Context)Fail("binary_table_lane");return;
     default:Fail("binary_state_kind");}
     if(m.state_lane!=Lane::Control)Fail("binary_control_lane");return;
   }
@@ -73,11 +73,11 @@ void ValidateMessage(const Message &m){
 }
 void ValidateReceive(const Message &m,Direction dir,State state){
   ValidateMessage(m);if(state==State::Stopped)Fail("stream_stopped");
-  const bool to_host=m.kind==Kind::Hello||m.kind==Kind::Ready||m.kind==Kind::ScenePrepared||m.kind==Kind::ReceiveAck||m.kind==Kind::ContextReady||m.kind==Kind::AppliedAck||m.kind==Kind::Resync||m.kind==Kind::Input||m.kind==Kind::Disconnect;
+  const bool to_host=m.kind==Kind::Hello||m.kind==Kind::Ready||m.kind==Kind::ScenePrepared||m.kind==Kind::ReceiveAck||m.kind==Kind::AppliedAck||m.kind==Kind::Resync||m.kind==Kind::Input||m.kind==Kind::Disconnect;
   const bool both=m.kind==Kind::Stop||m.kind==Kind::Disconnect||m.kind==Kind::Error||m.kind==Kind::Cancel||m.kind==Kind::Retire||m.kind==Kind::OperationAck;
   if(!both&&m.kind!=Kind::ScenePrepared&&(to_host!=(dir==Direction::ToAuthority)))Fail("stream_wrong_direction");
   if(state==State::Handshake&&m.kind!=Kind::Hello&&m.kind!=Kind::Welcome&&m.kind!=Kind::Error&&m.kind!=Kind::Stop&&m.kind!=Kind::Disconnect)Fail("stream_handshake_state");
-  if((m.kind==Kind::StateFrame||m.kind==Kind::StateMembers||m.kind==Kind::StateResources||m.kind==Kind::ContextReady||m.kind==Kind::AppliedAck||m.kind==Kind::Resync)&&state!=State::Preparing&&state!=State::Active)Fail("stream_world_state");
+  if((m.kind==Kind::StateFrame||m.kind==Kind::StateResources||m.kind==Kind::AppliedAck||m.kind==Kind::Resync)&&state!=State::Preparing&&state!=State::Active)Fail("stream_world_state");
   if(state==State::Retiring&&m.kind!=Kind::Stop&&m.kind!=Kind::Disconnect&&m.kind!=Kind::Cancel&&m.kind!=Kind::Error&&m.kind!=Kind::ReceiveAck&&m.kind!=Kind::OperationAck&&m.kind!=Kind::Retire)Fail("stream_retiring_state");
 }
 Json Capabilities(){
@@ -98,8 +98,15 @@ Json Negotiate(const Value &a,const Value &b){
   auto x=Copy(a),y=Copy(b);for(auto *v:{&x,&y}){v->RemoveMember("framing");v->RemoveMember("stream_schema");v->RemoveMember("compression");v->RemoveMember("world_limits");v->RemoveMember("fast_limits");}
   auto c=replica::Negotiate(x,y);auto &alloc=c.GetAllocator();
   // 只保留双方共同声明的新增可选能力；不将本端supported误当远端已接受。
-  const auto supports=[](const Value &caps){for(const auto &v:caps["supported"].GetArray())if(S(v)==kWorldBodyZstdCapability)return true;return false;};
-  if(!supports(a)||!supports(b))for(auto i=c["supported"].Begin();i!=c["supported"].End();){if(S(*i)==kWorldBodyZstdCapability)i=c["supported"].Erase(i);else ++i;}
+  const auto supports=[](const Value &caps,const char *feature){
+    for(const auto &v:caps["supported"].GetArray())if(S(v)==feature)return true;
+    return false;
+  };
+  for(const auto *feature:{kWorldBodyZstdCapability,kStateTableDeltaCapability})
+    if(!supports(a,feature)||!supports(b,feature))
+      for(auto i=c["supported"].Begin();i!=c["supported"].End();){
+        if(S(*i)==feature)i=c["supported"].Erase(i);else ++i;
+      }
   Put(c,"framing",Value(kFraming),alloc);Put(c,"stream_schema",Value(kSchema),alloc);Value codecs(rapidjson::kArrayType);for(const auto &l:a["compression"].GetArray())for(const auto &r:b["compression"].GetArray())if(l==r){Value v;v.CopyFrom(l,alloc);codecs.PushBack(v,alloc);}Put(c,"compression",std::move(codecs),alloc);Value world(rapidjson::kObjectType);for(auto i=a["world_limits"].MemberBegin();i!=a["world_limits"].MemberEnd();++i){const auto key=S(i->name);Put(world,key.c_str(),Value((std::min)(Unsigned(i->value),N(b["world_limits"],key.c_str()))),alloc);}Put(c,"world_limits",std::move(world),alloc);Value fast(rapidjson::kObjectType);for(auto i=a["fast_limits"].MemberBegin();i!=a["fast_limits"].MemberEnd();++i){const auto key=S(i->name);Put(fast,key.c_str(),Value((std::min)(Unsigned(i->value),N(b["fast_limits"],key.c_str()))),alloc);}Put(c,"fast_limits",std::move(fast),alloc);return c;
 }
 std::vector<std::uint8_t> Encode(const Message &m,Limits l,memory::Lease workspace){CheckValue(m.body,l);ValidateMessage(m);
@@ -111,11 +118,11 @@ std::vector<std::uint8_t> Encode(const Message &m,Limits l,memory::Lease workspa
 if(!E2EWirePayload(m,l,payload))
 #endif
 payload=EncodePayload(m,l,measured);if(payload.size()>l.bytes||payload.size()+40>l.bytes)Fail("stream_wire_budget");workspace->Resize(payload.capacity()+payload.size()+40);std::vector<std::uint8_t> b;b.reserve(payload.size()+40);b.insert(b.end(),{'I','C','S','R'});U(b,kFraming,2);U(b,40,2);U(b,unsigned(m.kind),2);U(b,unsigned(MessageLane(m)),1);U(b,m.state_body?state::StateBinaryEnvelopeFlag():0,1);U(b,payload.size(),4);U(b,m.sequence,8);U(b,m.connection,8);U(b,m.route,8);b.insert(b.end(),payload.begin(),payload.end());return b;}
-Message Decode(std::span<const std::uint8_t> b,Limits l){if(b.size()<40||b.size()>l.bytes||std::memcmp(b.data(),"ICSR",4))Fail("stream_wire_header");Reader r{b,4};if(r.U(2)!=kFraming||r.U(2)!=40)Fail("stream_wire_version");Message m;m.kind=Kind(r.U(2));const auto lane=r.U(1);const auto flags=r.U(1);if(flags&&flags!=state::StateBinaryEnvelopeFlag())Fail("stream_wire_flags");const auto n=r.U(4);m.sequence=r.U(8);m.connection=r.U(8);m.route=r.U(8);if(n!=b.size()-40)Fail("stream_wire_length");if(flags){m.state_lane=Lane(lane);m.state_body=std::make_shared<const state::HostStateBytes>(std::as_bytes(b.subspan(40)));}else {if(m.kind==Kind::ContextReady||m.kind==Kind::AppliedAck||m.kind==Kind::Resync)Fail("binary_confirmation_requires_binary_body");DecodePayload(b.subspan(40),m,l);}ValidateMessage(m);if(lane!=unsigned(MessageLane(m)))Fail("stream_wire_lane");return m;}
+Message Decode(std::span<const std::uint8_t> b,Limits l){if(b.size()<40||b.size()>l.bytes||std::memcmp(b.data(),"ICSR",4))Fail("stream_wire_header");Reader r{b,4};if(r.U(2)!=kFraming||r.U(2)!=40)Fail("stream_wire_version");Message m;m.kind=Kind(r.U(2));const auto lane=r.U(1);const auto flags=r.U(1);if(flags&&flags!=state::StateBinaryEnvelopeFlag())Fail("stream_wire_flags");const auto n=r.U(4);m.sequence=r.U(8);m.connection=r.U(8);m.route=r.U(8);if(n!=b.size()-40)Fail("stream_wire_length");if(flags){m.state_lane=Lane(lane);m.state_body=std::make_shared<const state::HostStateBytes>(std::as_bytes(b.subspan(40)));}else {if(m.kind==Kind::AppliedAck||m.kind==Kind::Resync)Fail("binary_confirmation_requires_binary_body");DecodePayload(b.subspan(40),m,l);}ValidateMessage(m);if(lane!=unsigned(MessageLane(m)))Fail("stream_wire_lane");return m;}
 Header ReadHeader(std::span<const std::uint8_t> b,Limits l){
   if(b.size()<64||b.size()>l.datagram||std::memcmp(b.data(),"ICRF",4))Fail("stream_fragment_header");Reader r{b,4};if(r.U(2)!=kFraming||r.U(2)!=64)Fail("stream_fragment_version");Header h;h.connection=r.U(8);h.route=r.U(8);h.transfer=r.U(8);h.wire_bytes=unsigned(r.U(4));h.decoded_bytes=unsigned(r.U(4));h.index=unsigned(r.U(4));h.count=unsigned(r.U(4));h.kind=Kind(r.U(2));h.lane=Lane(r.U(1));h.codec=Codec(r.U(1));h.payload=std::uint16_t(r.U(2));if(r.U(2)||r.U(8))Fail("stream_fragment_reserved");
   if(!KnownKind(h.kind)||!h.transfer||h.transfer==UINT64_MAX||!h.count||h.count>l.fragments||h.index>=h.count||!h.wire_bytes||h.wire_bytes>l.bytes||h.decoded_bytes<40||h.decoded_bytes>l.bytes||unsigned(h.codec)>1||unsigned(h.lane)<1||unsigned(h.lane)>6||!h.payload||h.payload!=b.size()-64||l.datagram<=64||l.datagram>1200)Fail("stream_fragment_range");
-  if((h.kind==Kind::StateFrame)?(h.lane<Lane::Baseline||h.lane>Lane::PlayerFast):(h.kind==Kind::StateMembers||h.kind==Kind::StateResources)?h.lane!=Lane::Context:h.lane!=((h.kind==Kind::Input||h.kind==Kind::InputAck)?Lane::Input:Lane::Control))Fail("stream_fragment_lane");
+  if((h.kind==Kind::StateFrame)?(h.lane<Lane::Baseline||h.lane>Lane::PlayerFast):(h.kind==Kind::StateResources)?h.lane!=Lane::Context:h.lane!=((h.kind==Kind::Input||h.kind==Kind::InputAck)?Lane::Input:Lane::Control))Fail("stream_fragment_lane");
   if(h.kind==Kind::Hello?(h.connection||h.route):(!h.connection||!h.route))Fail("stream_fragment_route");
   const auto chunk=l.datagram-64;if(h.count!=(std::uint64_t(h.wire_bytes)+chunk-1)/chunk||h.payload!=(h.index+1<h.count?chunk:h.wire_bytes-std::uint64_t(h.index)*chunk))Fail("stream_fragment_geometry");if(h.codec==Codec::None&&h.wire_bytes!=h.decoded_bytes)Fail("stream_fragment_decoded_size");return h;
 }

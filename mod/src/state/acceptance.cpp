@@ -27,7 +27,7 @@ void Target(const StateTarget &target) {
   }
   if (target.count==2) {
     const auto &a=target.sections[0],&b=target.sections[1];const std::array<std::uint32_t,2> pair{a.target_version,b.target_version};
-    if (a.paired_targets!=pair || b.paired_targets!=pair || bool(a.base_version)!=bool(b.base_version) || a.source_revision!=b.source_revision ||
+    if (a.paired_targets!=pair || b.paired_targets!=pair || a.base_version || b.base_version || a.source_revision!=b.source_revision ||
         a.presentation_batch!=b.presentation_batch || a.game_frame!=b.game_frame || a.member_epoch!=b.member_epoch || a.resource_epoch!=b.resource_epoch) Fail("invalid_joint_target");
   } else if (target.sections[0].paired_targets!=std::array<std::uint32_t,2>{}) Fail("invalid_single_target");
 }
@@ -65,38 +65,25 @@ bool StateTargetsConflict(const StateTarget &a,const StateTarget &b) {
 
 void ClientStateAcceptance::Open(const StateRoute &route,StateAgreement agreement) {
   Route(route);if (active_ || (route.connection==route_.connection && route.route<=route_.route) || !CompatibleStateAgreement(agreement)) Fail("open_active_reused_or_incompatible_route");
-  route_=route;active_=true;events_=0;versions_={};needs_full_=3;needs_joint_=true;reason_=StateResyncReason::Lifecycle;inflight_.reset();committed_={};
+  route_=route;active_=true;events_=0;versions_={};needs_full_=3;needs_joint_=true;reason_=StateResyncReason::Lifecycle;
 }
-void ClientStateAcceptance::Retire() noexcept { active_=false;inflight_.reset();committed_={};needs_full_=3; }
+void ClientStateAcceptance::Retire() noexcept { active_=false;needs_full_=3; }
 StateAcceptDecision ClientStateAcceptance::Assess(const StateTarget &target,const StateCandidateContext &context) const {
   if (!active_ || target.route!=route_) return Decision(StateAcceptAction::Drop,0);
   if (target.layout_version!=LayoutVersion()) return Decision(StateAcceptAction::Terminal,0);
   Target(target);const auto mask=StateTargetStreams(target);
-  for (const auto &known:committed_) if (known) {
-    if (StateTargetsConflict(*known,target)) return Decision(StateAcceptAction::Terminal,mask);
-    if (Same(*known,target)) return Decision(needs_full_&mask?StateAcceptAction::Resync:StateAcceptAction::Reack,mask,reason_);
-  }
-  if (inflight_) {
-    if (StateTargetsConflict(*inflight_,target)) return Decision(StateAcceptAction::Terminal,mask);
-    if (Same(*inflight_,target)) return Decision(StateAcceptAction::Wait,mask);
-  }
-  unsigned stale=0;bool old_base=false,future_base=false;
+  unsigned stale=0;
   for (unsigned i=0;i<target.count;++i) {
     const auto &s=target.sections[i];const auto installed=versions_[unsigned(s.stream)];
     stale+=s.target_version<=installed;
     if ((needs_full_&(1u<<unsigned(s.stream))) && s.base_version) return Decision(StateAcceptAction::Resync,mask,reason_);
-    if (s.base_version) {old_base|=s.base_version<installed;future_base|=s.base_version>installed;}
   }
-  if (stale==target.count) return Decision(needs_full_&mask?StateAcceptAction::Drop:StateAcceptAction::Reack,mask);
+  if (stale==target.count) return Decision(StateAcceptAction::Drop,mask);
   if (stale) return Decision(StateAcceptAction::Resync,mask,StateResyncReason::Base);
   if (needs_joint_ && (needs_full_&mask) && target.count!=2) return Decision(StateAcceptAction::Resync,3,reason_);
   if (!versions_[0] && !versions_[1] && target.count!=2) return Decision(StateAcceptAction::Resync,3,StateResyncReason::Lifecycle);
-  if (old_base) return Decision(needs_full_&mask?StateAcceptAction::Resync:StateAcceptAction::Reack,mask,reason_);
   for (unsigned i=0;i<target.count;++i) if (target.sections[i].stream==BodyStream::World && target.sections[i].event_watermark<events_)
     return Decision(StateAcceptAction::Resync,mask,StateResyncReason::Event);
-  if (future_base && !inflight_) return Decision(StateAcceptAction::Resync,mask,StateResyncReason::Base);
-  if (inflight_) return Decision(target.count==1 && target.sections[0].stream==BodyStream::Body && target.sections[0].base_version?
-      StateAcceptAction::Drop:StateAcceptAction::Wait,mask);
   if (!target.decoded) return Decision(StateAcceptAction::Decode,mask);
   const auto ready=context.Inspect(target);
   switch (ready) {
@@ -115,48 +102,32 @@ StateAcceptDecision ClientStateAcceptance::Assess(const StateTarget &target,cons
 }
 StateApplyTicket ClientStateAcceptance::Begin(const StateTarget &target,const StateCandidateContext &context) {
   if (Assess(target,context).action!=StateAcceptAction::Apply || serial_==UINT64_MAX) Fail("apply_not_ready_or_ticket_exhausted");
-  inflight_=target;return {route_,++serial_};
+  return {route_,++serial_};
 }
-std::optional<StateAppliedAck> ClientStateAcceptance::Finish(StateApplyTicket ticket,StateApplyOutcome outcome,std::uint8_t affected) {
-  if (!active_ || ticket.route!=route_ || ticket.serial!=serial_ || !inflight_) return {};
-  const auto target=*inflight_;const auto mask=StateTargetStreams(target);
-  if (outcome==StateApplyOutcome::FailedBeforeWrites) {if (affected) Fail("prewrite_failure_has_affected_streams");inflight_.reset();return {};}
-  if (outcome==StateApplyOutcome::FailedAfterWrites) {
-    Streams(std::uint8_t(mask|affected));inflight_.reset();RequireRecovery(std::uint8_t(mask|affected),StateResyncReason::Apply,(mask|affected)==3);return {};
+bool ClientStateAcceptance::MarkApplied(const StateTarget &target) {
+  if(!active_||target.route!=route_)return false;
+  const auto mask=StateTargetStreams(target);
+  for(unsigned i=0;i<target.count;++i){
+    const auto &section=target.sections[i];const auto stream=unsigned(section.stream);
+    if(section.target_version<=versions_[stream]||(section.base_version&&(needs_full_&(1u<<stream))))return false;
   }
-  if (outcome!=StateApplyOutcome::Success || affected) Fail("invalid_apply_completion");
-  for (unsigned i=0;i<target.count;++i) {
-    const auto &s=target.sections[i];const auto stream=unsigned(s.stream);
-    if (s.target_version<=versions_[stream] || (s.base_version && s.base_version!=versions_[stream]) ||
-        ((needs_full_&(1u<<stream)) && s.base_version)) Fail("apply_completion_base_changed");
+  for(unsigned i=0;i<target.count;++i){
+    const auto &section=target.sections[i];versions_[unsigned(section.stream)]=section.target_version;
+    if(section.stream==BodyStream::World)events_=section.event_watermark;
   }
-  // 只有整批Success才一次推进两个序列和事件水位。没有原生对象回滚或半个ACK。
-  const auto ack=StateTargetAck(target);
-  for (unsigned i=0;i<target.count;++i) {
-    const auto &s=target.sections[i];const auto stream=unsigned(s.stream);versions_[stream]=s.target_version;
-    if (s.stream==BodyStream::World) events_=s.event_watermark;committed_[stream]=target;
-  }
-  needs_full_&=std::uint8_t(~mask);if (!needs_full_) {reason_=StateResyncReason::Base;needs_joint_=false;}inflight_.reset();return ack;
+  needs_full_&=std::uint8_t(~mask);
+  if(!needs_full_){reason_=StateResyncReason::Base;needs_joint_=false;}
+  return true;
 }
 void ClientStateAcceptance::RequireRecovery(std::uint8_t streams,StateResyncReason reason,bool structural) {
   Streams(streams);if (unsigned(reason)<1 || unsigned(reason)>7) Fail("invalid_recovery_reason");
   if (!active_) return;if (structural) {streams=3;needs_joint_=true;}
-  // 如owner在应用期间发现失效，回调已无成功资格；其实际native清理仍由主线程owner负责。
-  if (inflight_ && (StateTargetStreams(*inflight_)&streams)) {streams|=StateTargetStreams(*inflight_);inflight_.reset();}
   if (streams==3) needs_joint_=true;
   needs_full_|=streams;if (reason_!=StateResyncReason::Apply || reason==StateResyncReason::Apply) reason_=reason;
 }
 std::optional<StateResync> ClientStateAcceptance::RecoveryRequest() const {
   if (!active_ || !needs_full_) return {};return StateResync{route_.scope,needs_full_,reason_,versions_[0],versions_[1]};
 }
-std::array<std::optional<StateAppliedAck>,2> ClientStateAcceptance::Reacknowledgements() const {
-  std::array<std::optional<StateAppliedAck>,2> out{};if (!active_) return out;unsigned count=0;
-  for (const auto &target:committed_) if (target && !(StateTargetStreams(*target)&needs_full_)) {
-    const auto ack=StateTargetAck(*target);if (!count || *out[0]!=ack) out[count++]=ack;
-  }
-  return out;
-}
-
 HostStateAcknowledgements::HostStateAcknowledgements(const StateRoute &route,std::span<StateTarget> ledger,StateEventQueue *events):route_(route),events_(events),ledger_(ledger) {
   Route(route);if (ledger.empty() || ledger.size()>StateBudgets().sent_targets) Fail("sent_ledger_capacity");
   for (auto &entry:ledger_) entry={};confirmed_[1].stream=BodyStream::Body;
@@ -236,11 +207,6 @@ StateRecoveryPlan HostStateAcknowledgements::Recover(const StateRoute &route,con
   if (structural && pending) {recovering_|=3;pending=3;recovery_joint_=true;}
   plan.streams=pending;
   return plan;
-}
-bool AcceptStateContextReady(const StateRoute &expected,const StateRoute &received,const StateContextReady &ready,
-    std::span<const StateContextReady> sent) noexcept {
-  if (expected!=received || ready.scope!=expected.scope || !ready.member_epoch || !ready.resource_epoch) return false;
-  return std::any_of(sent.begin(),sent.end(),[&](const auto &e){return e.scope==ready.scope && e.member_epoch==ready.member_epoch && e.resource_epoch==ready.resource_epoch;});
 }
 StateRecoveryPlan PlanStateRecovery(const StateRoute &expected,const StateRoute &received,const StateResync &request,bool structural) {
   Route(expected);if (expected!=received || request.scope!=expected.scope) Fail("recovery_wrong_route");Streams(request.streams);

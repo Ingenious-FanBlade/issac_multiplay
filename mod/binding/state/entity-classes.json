@@ -31,7 +31,6 @@
           "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
         }
       ],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "members": [],
@@ -56,15 +55,6 @@
           "semantics": "官方ASMEntityKnife.cpp只在近战hitbox生成后写入，LuaEntityKnife.cpp仅供Get/SetHitboxParentKnife；原生及官方当前展示不消费。不采集、预约身份、传输或安装；本地旧绑定经EntityPtr owner正常撤销。",
           "status": "已核",
           "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md；docs/design/binary-state/player-equipment-plus-synchronization-review.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 1,
-          "name": "KnifePlus原hitbox来源（Host，预留）",
-          "sequence": "world",
-          "fields": [],
-          "reserved": true
         }
       ],
       "conversions": {},
@@ -104,14 +94,10 @@
           "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
           "wire": {
             "kind": "nested",
-            "type": "ANM2",
-            "projections": [
-              0,
-              1,
-              2
-            ]
+            "type": "ANM2"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x118",
@@ -124,14 +110,10 @@
           "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
           "wire": {
             "kind": "nested",
-            "type": "ANM2",
-            "projections": [
-              0,
-              1,
-              2
-            ]
+            "type": "ANM2"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x22c",
@@ -144,14 +126,10 @@
           "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
           "wire": {
             "kind": "nested",
-            "type": "ANM2",
-            "projections": [
-              0,
-              1,
-              2
-            ]
+            "type": "ANM2"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x340",
@@ -164,14 +142,10 @@
           "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
           "wire": {
             "kind": "nested",
-            "type": "ANM2",
-            "projections": [
-              0,
-              1,
-              2
-            ]
+            "type": "ANM2"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x454",
@@ -184,14 +158,10 @@
           "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
           "wire": {
             "kind": "nested",
-            "type": "ANM2",
-            "projections": [
-              0,
-              1,
-              2
-            ]
+            "type": "ANM2"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x568",
@@ -206,7 +176,8 @@
             "kind": "copy",
             "type": "i32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x56c",
@@ -221,7 +192,8 @@
             "kind": "copy",
             "type": "i32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x570",
@@ -236,7 +208,8 @@
             "kind": "copy",
             "type": "i32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x574",
@@ -251,49 +224,8 @@
             "kind": "copy",
             "type": "i32"
           },
-          "read_requires": "entity-current-window"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "身体payload外观与索引",
-          "sequence": "world",
-          "fields": [
-            "body_index_0",
-            "body_index_1",
-            "body_index_2",
-            "body_index_3",
-            "body_sprite_0#0",
-            "body_sprite_1#0",
-            "body_sprite_2#0",
-            "body_sprite_3#0",
-            "body_sprite_4#0"
-          ]
-        },
-        {
-          "id": 1,
-          "name": "身体payload动画",
-          "sequence": "world",
-          "fields": [
-            "body_sprite_0#1",
-            "body_sprite_1#1",
-            "body_sprite_2#1",
-            "body_sprite_3#1",
-            "body_sprite_4#1"
-          ]
-        },
-        {
-          "id": 2,
-          "name": "身体payload图层",
-          "sequence": "world",
-          "fields": [
-            "body_sprite_0#2",
-            "body_sprite_1#2",
-            "body_sprite_2#2",
-            "body_sprite_3#2",
-            "body_sprite_4#2"
-          ]
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         }
       ],
       "conversions": {},
@@ -358,14 +290,10 @@
             "storage": "vector",
             "host": "read_native_vector",
             "client": "install_locust_sprites_a",
-            "projections": [
-              0,
-              1,
-              2
-            ],
             "max_bytes": 134217728
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x30",
@@ -384,14 +312,10 @@
             "storage": "vector",
             "host": "read_native_vector",
             "client": "install_locust_sprites_b",
-            "projections": [
-              0,
-              1,
-              2
-            ],
             "max_bytes": 134217728
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x3c",
@@ -444,35 +368,6 @@
           "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
         }
       ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "蝗虫Sprite外观",
-          "sequence": "world",
-          "fields": [
-            "locust_sprites_a#0",
-            "locust_sprites_b#0"
-          ]
-        },
-        {
-          "id": 1,
-          "name": "蝗虫Sprite动画",
-          "sequence": "world",
-          "fields": [
-            "locust_sprites_a#1",
-            "locust_sprites_b#1"
-          ]
-        },
-        {
-          "id": 2,
-          "name": "蝗虫Sprite图层",
-          "sequence": "world",
-          "fields": [
-            "locust_sprites_a#2",
-            "locust_sprites_b#2"
-          ]
-        }
-      ],
       "conversions": {},
       "validators": {},
       "members": [],
@@ -511,7 +406,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x4",
@@ -525,7 +421,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x8",
@@ -539,7 +436,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0xc",
@@ -550,18 +448,6 @@
           "semantics": "模拟临时／历史等未逐字段解释；只确认节点总大小，不复制，不当填充",
           "status": "未知",
           "evidence": "J273 430C30分配及memset0x78；42D6F0访问节点后续多组分量；docs/design/binary-state/familiar-synchronization-review.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "绳索最终节点坐标",
-          "sequence": "world",
-          "fields": [
-            "x",
-            "y",
-            "z"
-          ]
         }
       ],
       "conversions": {},
@@ -621,8 +507,10 @@
             "storage": "array",
             "count_from": "umbilical_rope_logical_count",
             "host": "read_umbilical_rope_nodes",
-            "client": "install_umbilical_rope_nodes"
-          }
+            "client": "install_umbilical_rope_nodes",
+            "flat_storage": "deque"
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x18",
@@ -635,13 +523,9 @@
           "evidence": "J273 42D7DB—42D7E2构造ANM2；42D84F—42D89E加载主Sprite文件并选择Cord；4308D0将payload+18作为绳索绘制输入；docs/design/binary-state/familiar-synchronization-review.md",
           "wire": {
             "kind": "nested",
-            "type": "ANM2",
-            "projections": [
-              0,
-              1,
-              2
-            ]
-          }
+            "type": "ANM2"
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x12c",
@@ -652,40 +536,6 @@
           "semantics": "分配范围内尾部未逐字段解释；更新写入130—14C等位置，不声称ColorMod或填充；绘制未消费",
           "status": "未知",
           "evidence": "J273 42D778分配0x158，42D7E7—42D935写多个尾部标量；4308D0仅消费deque与+18Sprite；docs/design/binary-state/familiar-synchronization-review.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "绳索Sprite外观",
-          "sequence": "world",
-          "fields": [
-            "rope_sprite#0"
-          ]
-        },
-        {
-          "id": 1,
-          "name": "绳索Sprite动画",
-          "sequence": "world",
-          "fields": [
-            "rope_sprite#1"
-          ]
-        },
-        {
-          "id": 2,
-          "name": "绳索Sprite图层",
-          "sequence": "world",
-          "fields": [
-            "rope_sprite#2"
-          ]
-        },
-        {
-          "id": 3,
-          "name": "绳索节点几何",
-          "sequence": "world",
-          "fields": [
-            "rope_nodes"
-          ]
         }
       ],
       "conversions": {
@@ -723,7 +573,8 @@
             "host": "familiar_player_to_member",
             "client": "install_familiar_player_borrow"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x414",
@@ -758,7 +609,8 @@
             "kind": "copy",
             "type": "i32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x5fc",
@@ -783,7 +635,8 @@
             "kind": "copy",
             "type": "i32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0xd50",
@@ -878,7 +731,8 @@
             "kind": "copy",
             "type": "u8"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0xd75",
@@ -893,7 +747,8 @@
             "kind": "copy",
             "type": "u8"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0xd76",
@@ -908,7 +763,8 @@
             "kind": "copy",
             "type": "u8"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0xd77",
@@ -933,7 +789,8 @@
             "kind": "copy",
             "type": "i32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0xd80",
@@ -968,7 +825,8 @@
             "kind": "copy",
             "type": "i32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0xd8c",
@@ -1023,7 +881,8 @@
             "kind": "copy",
             "type": "u8"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0xdb5",
@@ -1046,14 +905,10 @@
           "evidence": "J273 ctor606F00：VA606FCB调用ANM2 ctor，ECX=this+DB8；Render61E360",
           "wire": {
             "kind": "nested",
-            "type": "ANM2",
-            "projections": [
-              0,
-              1,
-              2
-            ]
+            "type": "ANM2"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0xecc",
@@ -1081,7 +936,8 @@
             "host": "item_config_to_resource",
             "client": "item_config_from_resource"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0xed8",
@@ -1106,7 +962,8 @@
             "kind": "copy",
             "type": "ColorMod"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0xf08",
@@ -1131,7 +988,8 @@
             "kind": "copy",
             "type": "i32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0xf10",
@@ -1162,72 +1020,6 @@
           "semantics": "与目标Index树实现相邻的控制字，精确语义未闭合，不以模板符号推定",
           "status": "未知",
           "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 10,
-          "name": "F0 展示计时与状态",
-          "sequence": "world",
-          "fields": [
-            "fire_cooldown",
-            "familiar_state"
-          ]
-        },
-        {
-          "id": 11,
-          "name": "F1 保留的跟班展示参数",
-          "sequence": "world",
-          "fields": [
-            "move_delay_num",
-            "is_follower",
-            "is_delayed",
-            "whip_draw_suppressed",
-            "coins",
-            "is_lil_delirium",
-            "wisp_collectible_type"
-          ]
-        },
-        {
-          "id": 12,
-          "name": "F2 所属关系与配置",
-          "sequence": "world",
-          "fields": [
-            "familiar_player",
-            "item_config"
-          ]
-        },
-        {
-          "id": 13,
-          "name": "F3 颜色",
-          "sequence": "world",
-          "fields": [
-            "dirt_color"
-          ]
-        },
-        {
-          "id": 14,
-          "name": "F4 附加Sprite外观",
-          "sequence": "world",
-          "fields": [
-            "familiar_sprite#0"
-          ]
-        },
-        {
-          "id": 15,
-          "name": "F5 附加Sprite动画",
-          "sequence": "world",
-          "fields": [
-            "familiar_sprite#1"
-          ]
-        },
-        {
-          "id": 16,
-          "name": "F6 附加Sprite图层",
-          "sequence": "world",
-          "fields": [
-            "familiar_sprite#2"
-          ]
         }
       ],
       "conversions": {
@@ -1489,7 +1281,8 @@
           "evidence": "官方EntityPlus.h/.cpp；CustomCache.cpp；ASMEntityKnife.cpp",
           "status": "已核",
           "host": "read_existing_EntityFamiliarPlus",
-          "client": "install_existing_EntityFamiliarPlus"
+          "client": "install_existing_EntityFamiliarPlus",
+          "sequence": "world"
         }
       ],
       "variants": {
@@ -1520,39 +1313,10 @@
                   "host": "read_familiar_IsaacsBody",
                   "client": "install_familiar_IsaacsBody",
                   "count_from": "typed_shared_owner_present",
-                  "projections": [
-                    0,
-                    1,
-                    2
-                  ]
+                  "flat_storage": "owner"
                 },
-                "read_requires": "entity-current-window"
-              }
-            ],
-            "blocks": [
-              {
-                "id": 17,
-                "name": "F7 IsaacsBody 身体payload外观与索引",
-                "sequence": "world",
-                "fields": [
-                  "familiar_extra#0"
-                ]
-              },
-              {
-                "id": 18,
-                "name": "F8 IsaacsBody 身体payload动画",
-                "sequence": "world",
-                "fields": [
-                  "familiar_extra#1"
-                ]
-              },
-              {
-                "id": 19,
-                "name": "F9 IsaacsBody 身体payload图层",
-                "sequence": "world",
-                "fields": [
-                  "familiar_extra#2"
-                ]
+                "read_requires": "entity-current-window",
+                "sequence": "world"
               }
             ]
           },
@@ -1581,39 +1345,10 @@
                   "host": "read_familiar_AbyssLocust",
                   "client": "install_familiar_AbyssLocust",
                   "count_from": "typed_shared_owner_present",
-                  "projections": [
-                    0,
-                    1,
-                    2
-                  ]
+                  "flat_storage": "owner"
                 },
-                "read_requires": "entity-current-window"
-              }
-            ],
-            "blocks": [
-              {
-                "id": 17,
-                "name": "F7 AbyssLocust 蝗虫Sprite外观",
-                "sequence": "world",
-                "fields": [
-                  "familiar_extra#0"
-                ]
-              },
-              {
-                "id": 18,
-                "name": "F8 AbyssLocust 蝗虫Sprite动画",
-                "sequence": "world",
-                "fields": [
-                  "familiar_extra#1"
-                ]
-              },
-              {
-                "id": 19,
-                "name": "F9 AbyssLocust 蝗虫Sprite图层",
-                "sequence": "world",
-                "fields": [
-                  "familiar_extra#2"
-                ]
+                "read_requires": "entity-current-window",
+                "sequence": "world"
               }
             ]
           },
@@ -1640,7 +1375,8 @@
                   "target": "entities",
                   "host": "entity_reference_to_identity",
                   "client": "entity_reference_from_member"
-                }
+                },
+                "sequence": "world"
               },
               {
                 "offset": "0xecc",
@@ -1661,57 +1397,9 @@
                   "count_from": "typed_shared_owner_present",
                   "host": "read_familiar_UmbilicalBaby",
                   "client": "install_familiar_UmbilicalBaby",
-                  "projections": [
-                    0,
-                    1,
-                    2,
-                    3
-                  ]
-                }
-              }
-            ],
-            "blocks": [
-              {
-                "id": 12,
-                "name": "F2 所属关系、配置与variant240绳索关系",
-                "sequence": "world",
-                "fields": [
-                  "familiar_player",
-                  "item_config",
-                  "familiar_related"
-                ]
-              },
-              {
-                "id": 17,
-                "name": "F7 UmbilicalBaby 外观",
-                "sequence": "world",
-                "fields": [
-                  "familiar_extra#0"
-                ]
-              },
-              {
-                "id": 18,
-                "name": "F8 UmbilicalBaby 动画",
-                "sequence": "world",
-                "fields": [
-                  "familiar_extra#1"
-                ]
-              },
-              {
-                "id": 19,
-                "name": "F9 UmbilicalBaby 图层",
-                "sequence": "world",
-                "fields": [
-                  "familiar_extra#2"
-                ]
-              },
-              {
-                "id": 20,
-                "name": "F10 UmbilicalBaby 节点几何",
-                "sequence": "world",
-                "fields": [
-                  "familiar_extra#3"
-                ]
+                  "flat_storage": "owner"
+                },
+                "sequence": "world"
               }
             ],
             "members": [
@@ -1747,17 +1435,8 @@
                   "type": "i32",
                   "host": "incubus_weapon_to_charge_bar_amount",
                   "client": "install_incubus_charge_bar_amount"
-                }
-              }
-            ],
-            "blocks": [
-              {
-                "id": 17,
-                "name": "F7 Incubus最终充能条",
-                "sequence": "world",
-                "fields": [
-                  "incubus_charge_bar_amount"
-                ]
+                },
+                "sequence": "world"
               }
             ],
             "conversions": {
@@ -1799,7 +1478,8 @@
             "kind": "copy",
             "type": "BitSet128"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x420",
@@ -1854,7 +1534,8 @@
             "kind": "copy",
             "type": "f32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x440",
@@ -1879,7 +1560,8 @@
             "kind": "copy",
             "type": "f32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x448",
@@ -1894,7 +1576,8 @@
             "kind": "copy",
             "type": "f32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x44c",
@@ -1939,7 +1622,8 @@
             "kind": "copy",
             "type": "u8"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x465",
@@ -2202,48 +1886,6 @@
           "evidence": "docs/design/binary-state/step4-first-four-evidence.md"
         }
       ],
-      "blocks": [
-        {
-          "id": 10,
-          "name": "K0 拖影距离／速度与飞行状态",
-          "sequence": "world",
-          "fields": [
-            "knife_distance",
-            "knife_velocity",
-            "knife_is_flying"
-          ]
-        },
-        {
-          "id": 11,
-          "name": "K1 效果位与旋转偏移",
-          "sequence": "world",
-          "fields": [
-            "knife_tear_flags",
-            "rotation_offset"
-          ]
-        },
-        {
-          "id": 12,
-          "name": "K2 本体Host命中集合（玩法权威，不发送，保留空块号）",
-          "sequence": "world",
-          "fields": [],
-          "reserved": true
-        },
-        {
-          "id": 13,
-          "name": "K3 Host内部关系（预留，不发送）",
-          "sequence": "world",
-          "fields": [],
-          "reserved": true
-        },
-        {
-          "id": 14,
-          "name": "K4 分裂与碰撞参数（玩法权威，不发送，保留空块号）",
-          "sequence": "world",
-          "fields": [],
-          "reserved": true
-        }
-      ],
       "conversions": {},
       "validators": {
         "rotation_offset": {
@@ -2420,7 +2062,8 @@
           "evidence": "官方EntityPlus.h/.cpp；CustomCache.cpp；ASMEntityKnife.cpp",
           "status": "已核",
           "host": "read_existing_EntityKnifePlus",
-          "client": "install_existing_EntityKnifePlus"
+          "client": "install_existing_EntityKnifePlus",
+          "sequence": "world"
         }
       ]
     },
@@ -2617,7 +2260,8 @@
             "kind": "copy",
             "type": "u8"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x463",
@@ -2640,14 +2284,10 @@
           "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
           "wire": {
             "kind": "nested",
-            "type": "ANM2",
-            "projections": [
-              0,
-              1,
-              2
-            ]
+            "type": "ANM2"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x578",
@@ -2660,14 +2300,10 @@
           "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
           "wire": {
             "kind": "nested",
-            "type": "ANM2",
-            "projections": [
-              0,
-              1,
-              2
-            ]
+            "type": "ANM2"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x68c",
@@ -2680,14 +2316,10 @@
           "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
           "wire": {
             "kind": "nested",
-            "type": "ANM2",
-            "projections": [
-              0,
-              1,
-              2
-            ]
+            "type": "ANM2"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x7a0",
@@ -2700,14 +2332,10 @@
           "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
           "wire": {
             "kind": "nested",
-            "type": "ANM2",
-            "projections": [
-              0,
-              1,
-              2
-            ]
+            "type": "ANM2"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x8b4",
@@ -2720,14 +2348,10 @@
           "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
           "wire": {
             "kind": "nested",
-            "type": "ANM2",
-            "projections": [
-              0,
-              1,
-              2
-            ]
+            "type": "ANM2"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x9c8",
@@ -2748,66 +2372,6 @@
           "semantics": "尚未核定的原生尾部；池步长不证明填充",
           "status": "未知",
           "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 10,
-          "name": "B0 Host运动与爆炸计时（预留，不发送）",
-          "sequence": "world",
-          "fields": [],
-          "reserved": true
-        },
-        {
-          "id": 11,
-          "name": "B1 costume绘制开关",
-          "sequence": "world",
-          "fields": [
-            "costume_draw_enabled"
-          ]
-        },
-        {
-          "id": 12,
-          "name": "B2 costume外观",
-          "sequence": "world",
-          "fields": [
-            "costume_0#0",
-            "costume_1#0",
-            "costume_2#0",
-            "costume_3#0",
-            "costume_4#0"
-          ]
-        },
-        {
-          "id": 13,
-          "name": "B3 costume动画",
-          "sequence": "world",
-          "fields": [
-            "costume_0#1",
-            "costume_1#1",
-            "costume_2#1",
-            "costume_3#1",
-            "costume_4#1"
-          ]
-        },
-        {
-          "id": 14,
-          "name": "B4 costume图层",
-          "sequence": "world",
-          "fields": [
-            "costume_0#2",
-            "costume_1#2",
-            "costume_2#2",
-            "costume_3#2",
-            "costume_4#2"
-          ]
-        },
-        {
-          "id": 15,
-          "name": "B5 Host命中列表（玩法权威，不发送，保留空块号）",
-          "sequence": "world",
-          "fields": [],
-          "reserved": true
         }
       ],
       "conversions": {},
@@ -2945,7 +2509,6 @@
           "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
         }
       ],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "members": [],
@@ -2982,7 +2545,6 @@
           "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
         }
       ],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "members": [],
@@ -3029,7 +2591,6 @@
           "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
         }
       ],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "members": [],
@@ -3054,15 +2615,6 @@
           "semantics": "CalculateSamples按24B步长使用六f32系数槽；具体控制点成员名未知。Host采样输入，无展示消费者，不传输",
           "status": "已核",
           "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md；docs/design/binary-state/laser-homing-synchronization-review.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "Bezier六浮点原值（Host输入，不发送，保留空块号）",
-          "sequence": "world",
-          "fields": [],
-          "reserved": true
         }
       ],
       "conversions": {},
@@ -3148,7 +2700,8 @@
             "host": "read_native_vector",
             "client": "install_laser_optimized"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x28",
@@ -3168,7 +2721,8 @@
             "host": "read_native_vector",
             "client": "install_laser_unoptimized"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x34",
@@ -3209,45 +2763,6 @@
           "semantics": "Host路径／采样输入，24B六f32记录的vector；没有展示消费者，不传输。Client保留正常构造的本地空vector，不运行CalculateSamples",
           "status": "已核",
           "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md；docs/design/binary-state/laser-homing-synchronization-review.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "几何标量（Host输入，不发送，保留空块号）",
-          "sequence": "world",
-          "fields": [],
-          "reserved": true
-        },
-        {
-          "id": 1,
-          "name": "几何容器 optimized",
-          "sequence": "world",
-          "fields": [
-            "optimized"
-          ]
-        },
-        {
-          "id": 2,
-          "name": "几何容器 unoptimized",
-          "sequence": "world",
-          "fields": [
-            "unoptimized"
-          ]
-        },
-        {
-          "id": 3,
-          "name": "Host中间点缓存（历史别名indices，不发送，保留空块号）",
-          "sequence": "world",
-          "fields": [],
-          "reserved": true
-        },
-        {
-          "id": 4,
-          "name": "几何容器 bezier（Host输入，不发送，保留空块号）",
-          "sequence": "world",
-          "fields": [],
-          "reserved": true
         }
       ],
       "conversions": {},
@@ -3338,7 +2853,8 @@
             "kind": "copy",
             "type": "BitSet128"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x438",
@@ -3433,7 +2949,8 @@
             "kind": "copy",
             "type": "f32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x468",
@@ -3481,7 +2998,8 @@
             "host": "entity_reference_to_identity",
             "client": "entity_reference_from_member"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x47c",
@@ -3584,14 +3102,10 @@
           "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
           "wire": {
             "kind": "nested",
-            "type": "ANM2",
-            "projections": [
-              0,
-              1,
-              2
-            ]
+            "type": "ANM2"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x5c0",
@@ -3604,14 +3118,10 @@
           "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
           "wire": {
             "kind": "nested",
-            "type": "ANM2",
-            "projections": [
-              0,
-              1,
-              2
-            ]
+            "type": "ANM2"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x6d4",
@@ -3624,14 +3134,10 @@
           "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
           "wire": {
             "kind": "nested",
-            "type": "ANM2",
-            "projections": [
-              0,
-              1,
-              2
-            ]
+            "type": "ANM2"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x7e8",
@@ -3702,76 +3208,6 @@
           "semantics": "尚未核定语义的原生尾部；池步长不是填充证据",
           "status": "未知",
           "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 10,
-          "name": "T0 Host运动输入（预留，不发送）",
-          "sequence": "world",
-          "fields": [],
-          "reserved": true
-        },
-        {
-          "id": 11,
-          "name": "T1 效果位与DeadEye强度",
-          "sequence": "world",
-          "fields": [
-            "tear_flags",
-            "dead_eye_intensity"
-          ]
-        },
-        {
-          "id": 12,
-          "name": "T2 Host等待／粘附计时（预留，不发送）",
-          "sequence": "world",
-          "fields": [],
-          "reserved": true
-        },
-        {
-          "id": 13,
-          "name": "T3 独立引用",
-          "sequence": "world",
-          "fields": [
-            "stick_target"
-          ]
-        },
-        {
-          "id": 14,
-          "name": "T4 Host命中集合（玩法权威，不发送，保留空块号）",
-          "sequence": "world",
-          "fields": [],
-          "reserved": true
-        },
-        {
-          "id": 15,
-          "name": "T5 辅助Sprite外观",
-          "sequence": "world",
-          "fields": [
-            "tear_halo_sprite#0",
-            "tear_effect_sprite#0",
-            "dead_eye_sprite#0"
-          ]
-        },
-        {
-          "id": 16,
-          "name": "T6 辅助Sprite动画",
-          "sequence": "world",
-          "fields": [
-            "tear_halo_sprite#1",
-            "tear_effect_sprite#1",
-            "dead_eye_sprite#1"
-          ]
-        },
-        {
-          "id": 17,
-          "name": "T7 辅助Sprite图层",
-          "sequence": "world",
-          "fields": [
-            "tear_halo_sprite#2",
-            "tear_effect_sprite#2",
-            "dead_eye_sprite#2"
-          ]
         }
       ],
       "conversions": {},
@@ -4010,7 +3446,8 @@
           "evidence": "repentogon/Patches/EntityPlus.h/.cpp；docs/design/binary-state/tear-pickup-laser-evidence.md",
           "status": "已核",
           "host": "read_existing_EntityTearPlus",
-          "client": "install_existing_EntityTearPlus"
+          "client": "install_existing_EntityTearPlus",
+          "sequence": "world"
         }
       ],
       "sdk_size": "0x848",
@@ -4037,14 +3474,10 @@
           "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
           "wire": {
             "kind": "nested",
-            "type": "ANM2",
-            "projections": [
-              0,
-              1,
-              2
-            ]
+            "type": "ANM2"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x524",
@@ -4119,7 +3552,8 @@
             "kind": "copy",
             "type": "i32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x538",
@@ -4194,7 +3628,8 @@
             "kind": "copy",
             "type": "i32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x558",
@@ -4252,7 +3687,8 @@
             "host": "entity_reference_to_identity",
             "client": "entity_reference_from_member"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x594",
@@ -4270,7 +3706,8 @@
             "host": "entity_reference_to_identity",
             "client": "entity_reference_from_member"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x598",
@@ -4288,7 +3725,8 @@
             "host": "entity_reference_to_identity",
             "client": "entity_reference_from_member"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x59c",
@@ -4351,14 +3789,10 @@
           "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
           "wire": {
             "kind": "nested",
-            "type": "ANM2",
-            "projections": [
-              0,
-              1,
-              2
-            ]
+            "type": "ANM2"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x6e4",
@@ -4369,68 +3803,6 @@
           "semantics": "尚未核定语义的原生尾部；池步长不是填充证据",
           "status": "未知",
           "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 10,
-          "name": "P0 DropDelay展示计时",
-          "sequence": "world",
-          "fields": [
-            "pickup_drop_delay"
-          ]
-        },
-        {
-          "id": 11,
-          "name": "P1 最终价格",
-          "sequence": "world",
-          "fields": [
-            "price"
-          ]
-        },
-        {
-          "id": 12,
-          "name": "P2 独立引用",
-          "sequence": "world",
-          "fields": [
-            "pickup_ghost",
-            "mega_chest_left",
-            "mega_chest_right"
-          ]
-        },
-        {
-          "id": 13,
-          "name": "P3 Host未来循环道具（预留，不发送）",
-          "sequence": "world",
-          "fields": [],
-          "reserved": true
-        },
-        {
-          "id": 14,
-          "name": "P4 辅助Sprite外观",
-          "sequence": "world",
-          "fields": [
-            "price_sprite#0",
-            "alternate_sprite#0"
-          ]
-        },
-        {
-          "id": 15,
-          "name": "P5 辅助Sprite动画",
-          "sequence": "world",
-          "fields": [
-            "price_sprite#1",
-            "alternate_sprite#1"
-          ]
-        },
-        {
-          "id": 16,
-          "name": "P6 辅助Sprite图层",
-          "sequence": "world",
-          "fields": [
-            "price_sprite#2",
-            "alternate_sprite#2"
-          ]
         }
       ],
       "conversions": {
@@ -4608,7 +3980,8 @@
           "evidence": "repentogon/Patches/EntityPlus.h/.cpp；docs/design/binary-state/tear-pickup-laser-evidence.md",
           "status": "已核",
           "host": "read_existing_EntityPickupPlus",
-          "client": "install_existing_EntityPickupPlus"
+          "client": "install_existing_EntityPickupPlus",
+          "sequence": "world"
         }
       ],
       "sdk_size": "0x6f0",
@@ -4657,7 +4030,8 @@
             "kind": "copy",
             "type": "f32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x420",
@@ -4692,7 +4066,8 @@
             "kind": "copy",
             "type": "BitSet128"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x438",
@@ -4737,7 +4112,8 @@
             "kind": "copy",
             "type": "i8"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x45e",
@@ -4772,7 +4148,8 @@
             "kind": "copy",
             "type": "f32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x464",
@@ -4785,13 +4162,10 @@
           "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md；docs/design/binary-state/laser-homing-synchronization-review.md",
           "wire": {
             "kind": "nested",
-            "type": "HomingLaser",
-            "projections": [
-              1,
-              2
-            ]
+            "type": "HomingLaser"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x4b8",
@@ -4876,7 +4250,8 @@
             "kind": "copy",
             "type": "f32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x4d4",
@@ -4901,7 +4276,8 @@
             "kind": "copy",
             "type": "Vector"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x4e0",
@@ -4949,7 +4325,8 @@
             "host": "entity_reference_to_identity",
             "client": "entity_reference_from_member"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x4ec",
@@ -4974,7 +4351,8 @@
             "kind": "copy",
             "type": "i32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x4f4",
@@ -5099,7 +4477,8 @@
             "kind": "copy",
             "type": "u8"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x517",
@@ -5230,89 +4609,6 @@
           "semantics": "尚未核定语义的原生尾部；池步长不是填充证据",
           "status": "未知",
           "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 10,
-          "name": "L0 当前角度、长度与公开端点",
-          "sequence": "world",
-          "fields": [
-            "laser_angle",
-            "laser_length",
-            "laser_end_point"
-          ]
-        },
-        {
-          "id": 11,
-          "name": "L1 实际展示参数",
-          "sequence": "world",
-          "fields": [
-            "laser_tear_flags",
-            "sample_mode_raw",
-            "laser_max_distance",
-            "start_offset_mode_opaque32",
-            "grid_hit"
-          ]
-        },
-        {
-          "id": 12,
-          "name": "L2 计时（Host输入，不发送，保留空块号）",
-          "sequence": "world",
-          "fields": [],
-          "reserved": true
-        },
-        {
-          "id": 13,
-          "name": "L3 独立引用",
-          "sequence": "world",
-          "fields": [
-            "bounce_laser"
-          ]
-        },
-        {
-          "id": 14,
-          "name": "L4 Host采样标量（不发送，保留空块号）",
-          "sequence": "world",
-          "fields": [],
-          "reserved": true
-        },
-        {
-          "id": 15,
-          "name": "L5 HomingLaser 优化采样点",
-          "sequence": "world",
-          "fields": [
-            "homing_geometry#1"
-          ]
-        },
-        {
-          "id": 16,
-          "name": "L6 HomingLaser 未优化采样点",
-          "sequence": "world",
-          "fields": [
-            "homing_geometry#2"
-          ]
-        },
-        {
-          "id": 17,
-          "name": "L7 Host中间点缓存（历史别名indices）（不发送，保留空块号）",
-          "sequence": "world",
-          "fields": [],
-          "reserved": true
-        },
-        {
-          "id": 18,
-          "name": "L8 Host Bezier输入（不发送，保留空块号）",
-          "sequence": "world",
-          "fields": [],
-          "reserved": true
-        },
-        {
-          "id": 19,
-          "name": "L9 Host命中集合（玩法权威，不发送，保留空块号）",
-          "sequence": "world",
-          "fields": [],
-          "reserved": true
         }
       ],
       "conversions": {},
@@ -5726,7 +5022,8 @@
           "evidence": "repentogon/Patches/EntityPlus.h/.cpp；docs/design/binary-state/tear-pickup-laser-evidence.md",
           "status": "已核",
           "host": "read_existing_EntityLaserPlus",
-          "client": "install_existing_EntityLaserPlus"
+          "client": "install_existing_EntityLaserPlus",
+          "sequence": "world"
         }
       ],
       "sdk_size": "0x568",
@@ -5853,14 +5150,10 @@
           "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
           "wire": {
             "kind": "nested",
-            "type": "ANM2",
-            "projections": [
-              0,
-              1,
-              2
-            ]
+            "type": "ANM2"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x540",
@@ -5911,46 +5204,6 @@
           "semantics": "对象大小由数组构造及删除析构共同核定为0x550；末字全映像25条MEM/18函数均落在其他类型或存储，+0x548的4B进度指针止于54B。支持尾部填充假设，未升级已核；不读取、不复制",
           "status": "未知",
           "evidence": "docs/design/binary-state/step4-first-four-evidence.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 10,
-          "name": "S0 Host状态／交互与奖励选择（预留，不发送）",
-          "sequence": "world",
-          "fields": [],
-          "reserved": true
-        },
-        {
-          "id": 11,
-          "name": "S1 Host开奖计数（预留，不发送）",
-          "sequence": "world",
-          "fields": [],
-          "reserved": true
-        },
-        {
-          "id": 12,
-          "name": "S2 奖励Sprite外观",
-          "sequence": "world",
-          "fields": [
-            "prize_sprite#0"
-          ]
-        },
-        {
-          "id": 13,
-          "name": "S3 奖励Sprite动画",
-          "sequence": "world",
-          "fields": [
-            "prize_sprite#1"
-          ]
-        },
-        {
-          "id": 14,
-          "name": "S4 奖励Sprite图层",
-          "sequence": "world",
-          "fields": [
-            "prize_sprite#2"
-          ]
         }
       ],
       "conversions": {},
@@ -6044,7 +5297,8 @@
             "kind": "copy",
             "type": "f32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x414",
@@ -6159,7 +5413,8 @@
             "kind": "copy",
             "type": "u8"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x441",
@@ -6244,7 +5499,8 @@
             "kind": "copy",
             "type": "Vector"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x468",
@@ -6275,32 +5531,6 @@
           "semantics": "对象大小由数组构造及删除析构共同核定为0x478；末字全映像235条MEM/91函数候选已核对象来源，主要为生成的Effect Rotation；+0x468向量仅8B、+0x470回调仅4B。支持尾部填充假设，未证明任意间接访问均不涉及，保留未知且不复制",
           "status": "未知",
           "evidence": "docs/design/binary-state/step4-first-four-evidence.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 10,
-          "name": "PR0 绘制高度",
-          "sequence": "world",
-          "fields": [
-            "projectile_height"
-          ]
-        },
-        {
-          "id": 11,
-          "name": "PR1 Host运动效果与摆动参数（预留，不发送）",
-          "sequence": "world",
-          "fields": [],
-          "reserved": true
-        },
-        {
-          "id": 12,
-          "name": "PR2 高度开关与冻结绘制锚点",
-          "sequence": "world",
-          "fields": [
-            "height_render_mode",
-            "freeze_render_position"
-          ]
         }
       ],
       "conversions": {},
@@ -6453,7 +5683,8 @@
             "kind": "copy",
             "type": "i32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0xb68",
@@ -6488,7 +5719,8 @@
             "kind": "copy",
             "type": "i32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0xba8",
@@ -6513,7 +5745,8 @@
             "kind": "copy",
             "type": "Vector"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0xbb8",
@@ -6548,7 +5781,8 @@
             "kind": "copy",
             "type": "i32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0xbc8",
@@ -6576,7 +5810,8 @@
             "host": "entity_reference_to_identity",
             "client": "entity_reference_from_member"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0xbf0",
@@ -6596,7 +5831,8 @@
             "host": "read_npc_composite_references",
             "client": "install_npc_composite_references"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0xc04",
@@ -6616,7 +5852,8 @@
             "host": "read_npc_secondary_path",
             "client": "install_npc_secondary_path"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0xc18",
@@ -6636,7 +5873,8 @@
             "host": "read_npc_primary_path",
             "client": "install_npc_primary_path"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0xc2c",
@@ -6731,7 +5969,8 @@
             "kind": "copy",
             "type": "i32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0xc68",
@@ -6814,14 +6053,10 @@
           "evidence": "docs/design/binary-state/npc-synchronization-review.md",
           "wire": {
             "kind": "nested",
-            "type": "NpcOverlaySprite",
-            "projections": [
-              0,
-              1,
-              2
-            ]
+            "type": "NpcOverlaySprite"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0xdec",
@@ -6834,14 +6069,10 @@
           "evidence": "docs/design/binary-state/npc-evidence.md",
           "wire": {
             "kind": "nested",
-            "type": "ANM2",
-            "projections": [
-              0,
-              1,
-              2
-            ]
+            "type": "ANM2"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0xf00",
@@ -6878,7 +6109,8 @@
             "host": "npc_controller_to_ui_mode",
             "client": "install_npc_control_ui_mode"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0xf20",
@@ -6999,87 +6231,6 @@
           "status": "未知",
           "evidence": "docs/design/binary-state/npc-evidence.md",
           "semantics": "对象尾部未核字节；sizeof不是填充证据"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 10,
-          "name": "N0 原生绘制标量与受控UI表现",
-          "sequence": "world",
-          "fields": [
-            "npc_state",
-            "projectile_delay",
-            "npc_v1",
-            "npc_i2",
-            "champion_color_index",
-            "controlled_ui_mode"
-          ]
-        },
-        {
-          "id": 11,
-          "name": "N1 复合绘制真实引用",
-          "sequence": "world",
-          "fields": [
-            "npc_entity_ref",
-            "composite_references"
-          ]
-        },
-        {
-          "id": 12,
-          "name": "N2 次路径点",
-          "sequence": "world",
-          "fields": [
-            "secondary_path"
-          ]
-        },
-        {
-          "id": 13,
-          "name": "N3 主路径点",
-          "sequence": "world",
-          "fields": [
-            "primary_path"
-          ]
-        },
-        {
-          "id": 14,
-          "name": "N4 双辅助Sprite外观",
-          "sequence": "world",
-          "fields": [
-            "npc_overlay_sprite#0",
-            "npc_effect_sprite#0"
-          ]
-        },
-        {
-          "id": 15,
-          "name": "N5 双辅助Sprite动画",
-          "sequence": "world",
-          "fields": [
-            "npc_overlay_sprite#1",
-            "npc_effect_sprite#1"
-          ]
-        },
-        {
-          "id": 16,
-          "name": "N6 双辅助Sprite图层",
-          "sequence": "world",
-          "fields": [
-            "npc_overlay_sprite#2",
-            "npc_effect_sprite#2"
-          ]
-        },
-        {
-          "id": 17,
-          "name": "DL0 原BossType/Variant（Host，预留）",
-          "sequence": "world",
-          "fields": [],
-          "reserved": true
-        },
-        {
-          "id": 18,
-          "name": "DL1 Host AI计数（预留，不发送）",
-          "sequence": "world",
-          "fields": [],
-          "reserved": true
         }
       ],
       "conversions": {
@@ -7485,15 +6636,6 @@
                 "evidence": "J273 VA 0x4A0165—0x4A0196、0x4A14F1—0x4A1522、0x4A1140—0x4A11D8；docs/design/binary-state/delirium-residual-evidence.md"
               }
             ],
-            "blocks": [
-              {
-                "id": 17,
-                "name": "DL0 原BossType/Variant（Host，预留）",
-                "sequence": "world",
-                "fields": [],
-                "reserved": true
-              }
-            ],
             "members": [
               {
                 "id": "EntityDelirium.Angle",
@@ -7593,7 +6735,8 @@
             "host": "anm2_selected_file_to_resource",
             "client": "anm2_selected_file_from_resource",
             "target": "anm2-files"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x18",
@@ -7612,7 +6755,8 @@
             "storage": "string",
             "host": "read_anm2_default_name",
             "client": "assign_anm2_default_name"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x30",
@@ -7626,7 +6770,8 @@
           "wire": {
             "kind": "nested",
             "type": "AnimationState"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x50",
@@ -7640,7 +6785,8 @@
           "wire": {
             "kind": "nested",
             "type": "AnimationState"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x70",
@@ -7654,7 +6800,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x71",
@@ -7704,7 +6851,8 @@
             "host": "read_anm2_layer_states",
             "client": "rebuild_anm2_layer_states",
             "count_field": "layer_count"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x80",
@@ -7768,7 +6916,8 @@
           "wire": {
             "kind": "nested",
             "type": "Vector"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x9C",
@@ -7792,7 +6941,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xA8",
@@ -7806,7 +6956,8 @@
           "wire": {
             "kind": "nested",
             "type": "ColorMod"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xD4",
@@ -7820,7 +6971,8 @@
           "wire": {
             "kind": "nested",
             "type": "ColorMod"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x100",
@@ -7834,7 +6986,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x101",
@@ -7848,7 +7001,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x102",
@@ -7872,7 +7026,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x108",
@@ -7926,44 +7081,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "外观与资源",
-          "sequence": "body",
-          "fields": [
-            "file_name",
-            "overlay_render_first",
-            "offset",
-            "rotation",
-            "color",
-            "champion_color",
-            "flip_x",
-            "flip_y",
-            "playback_speed",
-            "render_flags",
-            "default_animation_name"
-          ]
-        },
-        {
-          "id": 1,
-          "name": "动画与独立选择器",
-          "sequence": "body",
-          "fields": [
-            "main_state",
-            "overlay_state"
-          ]
-        },
-        {
-          "id": 2,
-          "name": "图层状态",
-          "sequence": "body",
-          "fields": [
-            "layer_states"
-          ]
+          },
+          "sequence": "body"
         }
       ],
       "conversions": {
@@ -7994,7 +7113,28 @@
       },
       "members": [],
       "public_owners": [],
-      "notes": "仅EntityNPC+CD8的OverlayEffect场景视图。+9C Scale由主Sprite当前OverlayEffect null-frame+10/+14在6CFFD1/6CFFDA完全覆写；不传宿主原Scale，draw scope精确恢复。其他ANM2及NPC+DEC保持通用布局。"
+      "notes": "仅EntityNPC+CD8的OverlayEffect场景视图。+9C Scale由主Sprite当前OverlayEffect null-frame+10/+14在6CFFD1/6CFFDA完全覆写；不传宿主原Scale，draw scope精确恢复。其他ANM2及NPC+DEC保持通用布局。",
+      "write_groups": [
+        {
+          "fields": [
+            "file_name",
+            "default_animation_name",
+            "main_state",
+            "overlay_state",
+            "overlay_render_first",
+            "layer_states",
+            "offset",
+            "rotation",
+            "color",
+            "champion_color",
+            "flip_x",
+            "flip_y",
+            "playback_speed",
+            "render_flags"
+          ],
+          "handler": "anm2_selected_file_from_resource"
+        }
+      ]
     }
   ]
 }

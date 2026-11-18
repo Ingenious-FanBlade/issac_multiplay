@@ -153,5 +153,9 @@ bool ClientObjectStagedPoolNotification(void *,bool execute,bool creating,const 
 // 主动类别Init中的临时随机输入不推进本地全局RNG；Off/Host和其它调用原样透传。
 bool ClientEntityInitializationRandom(unsigned &value) noexcept;
 bool ClientEntityInitIsolationInstalled() noexcept;
+bool ClientMorphIsolationInstalled() noexcept;
+bool ClientMorphScopedEntity(const void *,unsigned category) noexcept;
+bool ClientMorphPickupModifiers(const void *return_address) noexcept;
+bool ClientMorphPickupInit(void *,unsigned,int,int,unsigned);
 bool ClientEntitySuppressRetireSound() noexcept;
 } // namespace cs::game

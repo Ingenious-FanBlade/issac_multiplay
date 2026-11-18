@@ -151,20 +151,6 @@ impl Node {
    let save=PathBuf::from(string(&self.config,"save_directory")?);
    for relative in ["options.ini","Repentogon/vanilla_options.ini"]{let path=save.join(relative);if path.is_file(){let text=read(&path)?;let mut found=false;let patched=text.split_inclusive('\n').map(|line|{if line.trim().starts_with("PauseOnFocusLost="){found=true;format!("PauseOnFocusLost=0{}",if line.ends_with("\r\n"){"\r\n"}else if line.ends_with('\n'){"\n"}else{""})}else{line.to_owned()}}).collect::<String>();if !found{return Err("PauseOnFocusLost_missing_no_guessed_option".into())}self.setting(&path,Some(patched.as_bytes()))?;}}
   }
-  // REPENTOGON的SkipIntro会跳过原始Cutscene::Show；实机已出现queued索引无效的过场结束越界读取。
-  // 验收临时走正常开场初始化，再由实际画面确认后跳过动画；只改公开选项，退出时还原原文件。
-  // Host与VM均实际命中相同原生越界；仅本轮临时覆盖，两端用户原始SkipIntro偏好随设置日志恢复。
-  let intro_options=PathBuf::from(string(&self.config,"save_directory")?).join("Repentogon/options.ini");
-  if intro_options.is_file(){
-   let text=read(&intro_options)?;let mut tweaks=false;let mut changed=false;
-   let patched=text.split_inclusive('\n').map(|line|{
-    let trimmed=line.trim();if trimmed.starts_with('[')&&trimmed.ends_with(']'){tweaks=trimmed=="[VanillaTweaks]";}
-    if tweaks&&line.split_once('=').is_some_and(|(key,value)|key.trim()=="SkipIntro"&&value.trim()!="0"){
-     changed=true;format!("SkipIntro = 0{}",if line.ends_with("\r\n"){"\r\n"}else if line.ends_with('\n'){"\n"}else{""})
-    }else{line.to_owned()}
-   }).collect::<String>();
-   if changed{self.setting(&intro_options,Some(patched.as_bytes()))?;}
-  }
   let mut roots=saves::SaveRoots::discover(PathBuf::from(string(&self.config,"save_directory")?))?;
   let data=game.join("data");if !data.exists(){mkdir(&data)?;write_json(&self.attempt.join("created-mod-data.json"),&json!({"path":data,"created_empty_for_observation":true}))?;}roots.mod_data=Some(data);
   roots.snapshot(&self.attempt.join("save-before"))?;self.saves=Some(roots);

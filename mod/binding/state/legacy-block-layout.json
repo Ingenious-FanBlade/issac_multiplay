@@ -1,0 +1,3249 @@
+{
+  "format": "isaac.cs.binary-state-legacy-block-layout",
+  "types": {
+    "Vector": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "二维向量",
+          "sequence": "body",
+          "fields": [
+            "x",
+            "y"
+          ]
+        }
+      ]
+    },
+    "ColorMod": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "颜色变换",
+          "sequence": "body",
+          "fields": [
+            "tint_r",
+            "tint_g",
+            "tint_b",
+            "tint_a",
+            "colorize_r",
+            "colorize_g",
+            "colorize_b",
+            "colorize_a",
+            "offset_r",
+            "offset_g",
+            "offset_b"
+          ]
+        }
+      ]
+    },
+    "KColor": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "颜色分量与颜色空间",
+          "sequence": "body",
+          "fields": [
+            "red",
+            "green",
+            "blue",
+            "alpha",
+            "color_space"
+          ]
+        }
+      ]
+    },
+    "BlendMode": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "混合模式",
+          "sequence": "body",
+          "fields": [
+            "equation",
+            "rgb_source_factor",
+            "rgb_destination_factor",
+            "alpha_source_factor",
+            "alpha_destination_factor"
+          ]
+        }
+      ]
+    },
+    "AnimationState": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "动画选择",
+          "sequence": "body",
+          "fields": [
+            "active_animation"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "帧选择器",
+          "sequence": "body",
+          "fields": [
+            "layer_frames",
+            "null_layer_frames"
+          ]
+        },
+        {
+          "id": 2,
+          "name": "播放位置",
+          "sequence": "body",
+          "fields": [
+            "anim_frame",
+            "is_playing"
+          ]
+        },
+        {
+          "id": 3,
+          "name": "原事件掩码（预留）",
+          "sequence": "body",
+          "fields": [],
+          "reserved": true
+        }
+      ]
+    },
+    "LayerState": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "贴图资源",
+          "sequence": "body",
+          "fields": [
+            "spritesheet_path",
+            "image_selection"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "图层外观",
+          "sequence": "body",
+          "fields": [
+            "min_filter_mode",
+            "mag_filter_mode",
+            "wrap_s_mode",
+            "wrap_t_mode",
+            "flip_x",
+            "flip_y",
+            "size",
+            "rotation",
+            "position",
+            "color",
+            "visible",
+            "blend_mode",
+            "render_flags",
+            "crop_offset"
+          ]
+        }
+      ]
+    },
+    "ANM2": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "外观与资源",
+          "sequence": "body",
+          "fields": [
+            "file_name",
+            "overlay_render_first",
+            "offset",
+            "scale",
+            "rotation",
+            "color",
+            "champion_color",
+            "flip_x",
+            "flip_y",
+            "playback_speed",
+            "render_flags",
+            "default_animation_name"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "动画与独立选择器",
+          "sequence": "body",
+          "fields": [
+            "main_state",
+            "overlay_state"
+          ]
+        },
+        {
+          "id": 2,
+          "name": "图层状态",
+          "sequence": "body",
+          "fields": [
+            "layer_states"
+          ]
+        }
+      ]
+    },
+    "RNG": {
+      "blocks": []
+    },
+    "BitSet128": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "128 位位集",
+          "sequence": "body",
+          "fields": [
+            "ll",
+            "lh",
+            "hl",
+            "hh"
+          ]
+        }
+      ]
+    },
+    "EntityPtr": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "实体引用",
+          "sequence": "body",
+          "fields": [
+            "entity"
+          ]
+        }
+      ]
+    },
+    "ColorParams": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "原颜色参数（预留）",
+          "sequence": "body",
+          "fields": [],
+          "reserved": true
+        }
+      ]
+    },
+    "ActiveItemDesc": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "主动道具描述",
+          "sequence": "body",
+          "fields": [
+            "item_id",
+            "charge",
+            "battery_charge",
+            "sub_charge",
+            "partial_charge",
+            "var_data"
+          ]
+        }
+      ]
+    },
+    "Weapon": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "武器基础状态",
+          "sequence": "body",
+          "fields": [
+            "max_fire_delay",
+            "charge",
+            "weapon_type",
+            "modifiers"
+          ]
+        }
+      ]
+    },
+    "TemporaryEffect": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "临时效果",
+          "sequence": "body",
+          "fields": [
+            "item",
+            "count",
+            "cooldown"
+          ]
+        }
+      ]
+    },
+    "WeaponUmbilicalWhip": {
+      "blocks": [
+        {
+          "id": 1,
+          "name": "UmbilicalWhip展示主实体",
+          "sequence": "body",
+          "fields": [
+            "whip_main_entity"
+          ]
+        }
+      ]
+    },
+    "TemporaryEffects": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "临时效果展示开关",
+          "sequence": "body",
+          "fields": [
+            "effects_disabled"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "有序临时效果",
+          "sequence": "body",
+          "fields": [
+            "effect_entries"
+          ]
+        }
+      ]
+    },
+    "EntityPlus": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "EntityPlus 公共可选覆盖",
+          "sequence": "world",
+          "fields": [
+            "flying_override",
+            "water_override"
+          ]
+        }
+      ]
+    },
+    "Entity": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "E0 分类与形态",
+          "sequence": "world",
+          "fields": [
+            "authority_order",
+            "type",
+            "variant",
+            "subtype",
+            "spawner_type",
+            "spawner_variant",
+            "spawn_grid_index",
+            "selected_config",
+            "init_seed"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "E1 运动",
+          "sequence": "world-or-player-body",
+          "fields": [
+            "target_position",
+            "position",
+            "position_offset",
+            "velocity",
+            "size_multi",
+            "speed_multiplier"
+          ]
+        },
+        {
+          "id": 2,
+          "name": "E2 生命与碰撞",
+          "sequence": "world",
+          "fields": [
+            "flags",
+            "visible",
+            "exists",
+            "dead",
+            "grid_collision_class",
+            "entity_collision_class",
+            "frame_base",
+            "size",
+            "hit_points",
+            "max_hit_points"
+          ]
+        },
+        {
+          "id": 3,
+          "name": "E3 缩小状态",
+          "sequence": "world",
+          "fields": [
+            "shrink_status_1",
+            "shrink_status_2"
+          ]
+        },
+        {
+          "id": 4,
+          "name": "E4 外观与主Sprite外观",
+          "sequence": "world-or-player-body",
+          "fields": [
+            "shadow_size",
+            "color",
+            "splat_color",
+            "render_z_offset",
+            "depth_offset",
+            "sorting_layer",
+            "sprite#0"
+          ]
+        },
+        {
+          "id": 5,
+          "name": "E5 主Sprite动画",
+          "sequence": "world-or-player-body",
+          "fields": [
+            "sprite#1"
+          ]
+        },
+        {
+          "id": 6,
+          "name": "E6 主Sprite图层",
+          "sequence": "world",
+          "fields": [
+            "sprite#2"
+          ]
+        },
+        {
+          "id": 7,
+          "name": "E7 原颜色参数（预留）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        },
+        {
+          "id": 8,
+          "name": "E8 实体引用",
+          "sequence": "world",
+          "fields": [
+            "parent",
+            "child",
+            "target",
+            "spawner",
+            "minecart"
+          ]
+        },
+        {
+          "id": 9,
+          "name": "E9 REPENTOGON扩展",
+          "sequence": "world",
+          "fields": [
+            "entity_plus"
+          ]
+        }
+      ],
+      "projections": {
+        "sprite": [
+          0,
+          1,
+          2
+        ]
+      }
+    },
+    "EffectMrMeData": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "MrMe 外观",
+          "sequence": "world",
+          "fields": [
+            "mr_sprite#0"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "MrMe 动画",
+          "sequence": "world",
+          "fields": [
+            "mr_sprite#1"
+          ]
+        },
+        {
+          "id": 2,
+          "name": "MrMe 图层",
+          "sequence": "world",
+          "fields": [
+            "mr_sprite#2"
+          ]
+        }
+      ],
+      "projections": {
+        "mr_sprite": [
+          0,
+          1,
+          2
+        ]
+      }
+    },
+    "EffectTrailNode": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "轨迹节点",
+          "sequence": "world",
+          "fields": [
+            "trail_position",
+            "trail_color",
+            "trail_scale",
+            "trail_render_word",
+            "trail_alpha"
+          ]
+        }
+      ]
+    },
+    "EffectSpriteTrailData": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "轨迹头（仅根投影的present）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        },
+        {
+          "id": 1,
+          "name": "轨迹节点",
+          "sequence": "world",
+          "fields": [
+            "trail_nodes"
+          ]
+        }
+      ]
+    },
+    "EffectPickupGhostSprite": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "外观与资源",
+          "sequence": "body",
+          "fields": [
+            "file_name",
+            "overlay_render_first",
+            "rotation",
+            "color",
+            "champion_color",
+            "flip_x",
+            "flip_y",
+            "playback_speed",
+            "render_flags",
+            "default_animation_name"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "动画与独立选择器",
+          "sequence": "body",
+          "fields": [
+            "main_state",
+            "overlay_state"
+          ]
+        },
+        {
+          "id": 2,
+          "name": "图层状态",
+          "sequence": "body",
+          "fields": [
+            "layer_states"
+          ]
+        }
+      ]
+    },
+    "EffectPickupGhostData": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "幽影有效Sprite外观",
+          "sequence": "world",
+          "fields": [
+            "ghost_sprites#0"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "幽影有效Sprite动画",
+          "sequence": "world",
+          "fields": [
+            "ghost_sprites#1"
+          ]
+        },
+        {
+          "id": 2,
+          "name": "幽影有效Sprite图层",
+          "sequence": "world",
+          "fields": [
+            "ghost_sprites#2"
+          ]
+        }
+      ],
+      "projections": {
+        "ghost_sprites": [
+          0,
+          1,
+          2
+        ]
+      }
+    },
+    "EntityEffect": {
+      "blocks": [
+        {
+          "id": 10,
+          "name": "FX0 动态展示状态、Timeout与旋转缩放",
+          "sequence": "world",
+          "fields": [
+            "state",
+            "expire_frame",
+            "rotation",
+            "scale"
+          ]
+        },
+        {
+          "id": 11,
+          "name": "FX1 展示生命期与跟随几何",
+          "sequence": "world",
+          "fields": [
+            "lifespan",
+            "following",
+            "parent_offset"
+          ]
+        },
+        {
+          "id": 12,
+          "name": "FX2 变体数据（基础臂未知，预留）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        }
+      ],
+      "variants": {
+        "TearFlags": {
+          "blocks": [
+            {
+              "id": 12,
+              "name": "FX2 TearFlags（Host专用，预留）",
+              "sequence": "world",
+              "fields": [],
+              "reserved": true
+            }
+          ]
+        },
+        "GridDesc": {
+          "blocks": [
+            {
+              "id": 12,
+              "name": "FX2 GridDesc（Host专用，预留）",
+              "sequence": "world",
+              "fields": [],
+              "reserved": true
+            }
+          ]
+        },
+        "MrMe": {
+          "blocks": [
+            {
+              "id": 13,
+              "name": "FX3 附属存在与外观",
+              "sequence": "world",
+              "fields": [
+                "extra_data#0"
+              ]
+            },
+            {
+              "id": 14,
+              "name": "FX4 附属动态",
+              "sequence": "world",
+              "fields": [
+                "extra_data#1"
+              ]
+            },
+            {
+              "id": 15,
+              "name": "FX5 附属图层",
+              "sequence": "world",
+              "fields": [
+                "extra_data#2"
+              ]
+            }
+          ],
+          "projections": {
+            "extra_data": [
+              0,
+              1,
+              2
+            ]
+          }
+        },
+        "SpriteTrail": {
+          "blocks": [
+            {
+              "id": 13,
+              "name": "FX3 附属存在与外观",
+              "sequence": "world",
+              "fields": [
+                "extra_data#0"
+              ]
+            },
+            {
+              "id": 14,
+              "name": "FX4 附属动态",
+              "sequence": "world",
+              "fields": [
+                "extra_data#1"
+              ]
+            }
+          ],
+          "projections": {
+            "extra_data": [
+              0,
+              1
+            ]
+          }
+        },
+        "PickupGhost": {
+          "blocks": [
+            {
+              "id": 13,
+              "name": "FX3 附属存在与外观",
+              "sequence": "world",
+              "fields": [
+                "extra_data#0"
+              ]
+            },
+            {
+              "id": 14,
+              "name": "FX4 附属动态",
+              "sequence": "world",
+              "fields": [
+                "extra_data#1"
+              ]
+            },
+            {
+              "id": 15,
+              "name": "FX5 附属图层",
+              "sequence": "world",
+              "fields": [
+                "extra_data#2"
+              ]
+            }
+          ],
+          "projections": {
+            "extra_data": [
+              0,
+              1,
+              2
+            ]
+          }
+        },
+        "Propagation": {
+          "blocks": [
+            {
+              "id": 12,
+              "name": "FX2 Propagation（Host／本地及未知，预留）",
+              "sequence": "world",
+              "fields": [],
+              "reserved": true
+            }
+          ]
+        },
+        "Timer": {
+          "blocks": [
+            {
+              "id": 12,
+              "name": "FX2 Timer（Host／本地及未知，预留）",
+              "sequence": "world",
+              "fields": [],
+              "reserved": true
+            }
+          ]
+        },
+        "SpawnRequest": {
+          "blocks": [
+            {
+              "id": 12,
+              "name": "FX2 SpawnRequest（Host／本地及未知，预留）",
+              "sequence": "world",
+              "fields": [],
+              "reserved": true
+            }
+          ]
+        },
+        "DustCountdown": {
+          "blocks": [
+            {
+              "id": 12,
+              "name": "FX2 DustCountdown（Host／本地及未知，预留）",
+              "sequence": "world",
+              "fields": [],
+              "reserved": true
+            }
+          ]
+        },
+        "TearFlags113": {
+          "blocks": [
+            {
+              "id": 12,
+              "name": "FX2 TearFlags113（Host／本地及未知，预留）",
+              "sequence": "world",
+              "fields": [],
+              "reserved": true
+            }
+          ]
+        },
+        "ChainLightning": {
+          "blocks": [
+            {
+              "id": 12,
+              "name": "FX2 ChainLightning（Host及未知，预留）",
+              "sequence": "world",
+              "fields": [],
+              "reserved": true
+            }
+          ]
+        },
+        "InternalTearFlags": {
+          "blocks": [
+            {
+              "id": 12,
+              "name": "FX2 内部效果位（Host及未知，预留）",
+              "sequence": "world",
+              "fields": [],
+              "reserved": true
+            }
+          ]
+        }
+      }
+    },
+    "EntityFamiliarPlus": {
+      "blocks": []
+    },
+    "EntityKnifePlus": {
+      "blocks": [
+        {
+          "id": 1,
+          "name": "KnifePlus原hitbox来源（Host，预留）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        }
+      ]
+    },
+    "FamiliarIsaacsBodyData": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "身体payload外观与索引",
+          "sequence": "world",
+          "fields": [
+            "body_index_0",
+            "body_index_1",
+            "body_index_2",
+            "body_index_3",
+            "body_sprite_0#0",
+            "body_sprite_1#0",
+            "body_sprite_2#0",
+            "body_sprite_3#0",
+            "body_sprite_4#0"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "身体payload动画",
+          "sequence": "world",
+          "fields": [
+            "body_sprite_0#1",
+            "body_sprite_1#1",
+            "body_sprite_2#1",
+            "body_sprite_3#1",
+            "body_sprite_4#1"
+          ]
+        },
+        {
+          "id": 2,
+          "name": "身体payload图层",
+          "sequence": "world",
+          "fields": [
+            "body_sprite_0#2",
+            "body_sprite_1#2",
+            "body_sprite_2#2",
+            "body_sprite_3#2",
+            "body_sprite_4#2"
+          ]
+        }
+      ],
+      "projections": {
+        "body_sprite_0": [
+          0,
+          1,
+          2
+        ],
+        "body_sprite_1": [
+          0,
+          1,
+          2
+        ],
+        "body_sprite_2": [
+          0,
+          1,
+          2
+        ],
+        "body_sprite_3": [
+          0,
+          1,
+          2
+        ],
+        "body_sprite_4": [
+          0,
+          1,
+          2
+        ]
+      }
+    },
+    "FamiliarAbyssLocustData": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "蝗虫Sprite外观",
+          "sequence": "world",
+          "fields": [
+            "locust_sprites_a#0",
+            "locust_sprites_b#0"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "蝗虫Sprite动画",
+          "sequence": "world",
+          "fields": [
+            "locust_sprites_a#1",
+            "locust_sprites_b#1"
+          ]
+        },
+        {
+          "id": 2,
+          "name": "蝗虫Sprite图层",
+          "sequence": "world",
+          "fields": [
+            "locust_sprites_a#2",
+            "locust_sprites_b#2"
+          ]
+        }
+      ],
+      "projections": {
+        "locust_sprites_a": [
+          0,
+          1,
+          2
+        ],
+        "locust_sprites_b": [
+          0,
+          1,
+          2
+        ]
+      }
+    },
+    "UmbilicalRopeNode": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "绳索最终节点坐标",
+          "sequence": "world",
+          "fields": [
+            "x",
+            "y",
+            "z"
+          ]
+        }
+      ]
+    },
+    "FamiliarUmbilicalBabyData": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "绳索Sprite外观",
+          "sequence": "world",
+          "fields": [
+            "rope_sprite#0"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "绳索Sprite动画",
+          "sequence": "world",
+          "fields": [
+            "rope_sprite#1"
+          ]
+        },
+        {
+          "id": 2,
+          "name": "绳索Sprite图层",
+          "sequence": "world",
+          "fields": [
+            "rope_sprite#2"
+          ]
+        },
+        {
+          "id": 3,
+          "name": "绳索节点几何",
+          "sequence": "world",
+          "fields": [
+            "rope_nodes"
+          ]
+        }
+      ],
+      "projections": {
+        "rope_sprite": [
+          0,
+          1,
+          2
+        ]
+      }
+    },
+    "EntityFamiliar": {
+      "blocks": [
+        {
+          "id": 10,
+          "name": "F0 展示计时与状态",
+          "sequence": "world",
+          "fields": [
+            "fire_cooldown",
+            "familiar_state"
+          ]
+        },
+        {
+          "id": 11,
+          "name": "F1 保留的跟班展示参数",
+          "sequence": "world",
+          "fields": [
+            "move_delay_num",
+            "is_follower",
+            "is_delayed",
+            "whip_draw_suppressed",
+            "coins",
+            "is_lil_delirium",
+            "wisp_collectible_type"
+          ]
+        },
+        {
+          "id": 12,
+          "name": "F2 所属关系与配置",
+          "sequence": "world",
+          "fields": [
+            "familiar_player",
+            "item_config"
+          ]
+        },
+        {
+          "id": 13,
+          "name": "F3 颜色",
+          "sequence": "world",
+          "fields": [
+            "dirt_color"
+          ]
+        },
+        {
+          "id": 14,
+          "name": "F4 附加Sprite外观",
+          "sequence": "world",
+          "fields": [
+            "familiar_sprite#0"
+          ]
+        },
+        {
+          "id": 15,
+          "name": "F5 附加Sprite动画",
+          "sequence": "world",
+          "fields": [
+            "familiar_sprite#1"
+          ]
+        },
+        {
+          "id": 16,
+          "name": "F6 附加Sprite图层",
+          "sequence": "world",
+          "fields": [
+            "familiar_sprite#2"
+          ]
+        }
+      ],
+      "projections": {
+        "familiar_sprite": [
+          0,
+          1,
+          2
+        ]
+      },
+      "variants": {
+        "IsaacsBody": {
+          "blocks": [
+            {
+              "id": 17,
+              "name": "F7 IsaacsBody 身体payload外观与索引",
+              "sequence": "world",
+              "fields": [
+                "familiar_extra#0"
+              ]
+            },
+            {
+              "id": 18,
+              "name": "F8 IsaacsBody 身体payload动画",
+              "sequence": "world",
+              "fields": [
+                "familiar_extra#1"
+              ]
+            },
+            {
+              "id": 19,
+              "name": "F9 IsaacsBody 身体payload图层",
+              "sequence": "world",
+              "fields": [
+                "familiar_extra#2"
+              ]
+            }
+          ],
+          "projections": {
+            "familiar_extra": [
+              0,
+              1,
+              2
+            ]
+          }
+        },
+        "AbyssLocust": {
+          "blocks": [
+            {
+              "id": 17,
+              "name": "F7 AbyssLocust 蝗虫Sprite外观",
+              "sequence": "world",
+              "fields": [
+                "familiar_extra#0"
+              ]
+            },
+            {
+              "id": 18,
+              "name": "F8 AbyssLocust 蝗虫Sprite动画",
+              "sequence": "world",
+              "fields": [
+                "familiar_extra#1"
+              ]
+            },
+            {
+              "id": 19,
+              "name": "F9 AbyssLocust 蝗虫Sprite图层",
+              "sequence": "world",
+              "fields": [
+                "familiar_extra#2"
+              ]
+            }
+          ],
+          "projections": {
+            "familiar_extra": [
+              0,
+              1,
+              2
+            ]
+          }
+        },
+        "UmbilicalBaby": {
+          "blocks": [
+            {
+              "id": 12,
+              "name": "F2 所属关系、配置与variant240绳索关系",
+              "sequence": "world",
+              "fields": [
+                "familiar_player",
+                "item_config",
+                "familiar_related"
+              ]
+            },
+            {
+              "id": 17,
+              "name": "F7 UmbilicalBaby 外观",
+              "sequence": "world",
+              "fields": [
+                "familiar_extra#0"
+              ]
+            },
+            {
+              "id": 18,
+              "name": "F8 UmbilicalBaby 动画",
+              "sequence": "world",
+              "fields": [
+                "familiar_extra#1"
+              ]
+            },
+            {
+              "id": 19,
+              "name": "F9 UmbilicalBaby 图层",
+              "sequence": "world",
+              "fields": [
+                "familiar_extra#2"
+              ]
+            },
+            {
+              "id": 20,
+              "name": "F10 UmbilicalBaby 节点几何",
+              "sequence": "world",
+              "fields": [
+                "familiar_extra#3"
+              ]
+            }
+          ],
+          "projections": {
+            "familiar_extra": [
+              0,
+              1,
+              2,
+              3
+            ]
+          }
+        },
+        "Incubus": {
+          "blocks": [
+            {
+              "id": 17,
+              "name": "F7 Incubus最终充能条",
+              "sequence": "world",
+              "fields": [
+                "incubus_charge_bar_amount"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "EntityKnife": {
+      "blocks": [
+        {
+          "id": 10,
+          "name": "K0 拖影距离／速度与飞行状态",
+          "sequence": "world",
+          "fields": [
+            "knife_distance",
+            "knife_velocity",
+            "knife_is_flying"
+          ]
+        },
+        {
+          "id": 11,
+          "name": "K1 效果位与旋转偏移",
+          "sequence": "world",
+          "fields": [
+            "knife_tear_flags",
+            "rotation_offset"
+          ]
+        },
+        {
+          "id": 12,
+          "name": "K2 本体Host命中集合（玩法权威，不发送，保留空块号）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        },
+        {
+          "id": 13,
+          "name": "K3 Host内部关系（预留，不发送）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        },
+        {
+          "id": 14,
+          "name": "K4 分裂与碰撞参数（玩法权威，不发送，保留空块号）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        }
+      ]
+    },
+    "EntityBomb": {
+      "blocks": [
+        {
+          "id": 10,
+          "name": "B0 Host运动与爆炸计时（预留，不发送）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        },
+        {
+          "id": 11,
+          "name": "B1 costume绘制开关",
+          "sequence": "world",
+          "fields": [
+            "costume_draw_enabled"
+          ]
+        },
+        {
+          "id": 12,
+          "name": "B2 costume外观",
+          "sequence": "world",
+          "fields": [
+            "costume_0#0",
+            "costume_1#0",
+            "costume_2#0",
+            "costume_3#0",
+            "costume_4#0"
+          ]
+        },
+        {
+          "id": 13,
+          "name": "B3 costume动画",
+          "sequence": "world",
+          "fields": [
+            "costume_0#1",
+            "costume_1#1",
+            "costume_2#1",
+            "costume_3#1",
+            "costume_4#1"
+          ]
+        },
+        {
+          "id": 14,
+          "name": "B4 costume图层",
+          "sequence": "world",
+          "fields": [
+            "costume_0#2",
+            "costume_1#2",
+            "costume_2#2",
+            "costume_3#2",
+            "costume_4#2"
+          ]
+        },
+        {
+          "id": 15,
+          "name": "B5 Host命中列表（玩法权威，不发送，保留空块号）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        }
+      ],
+      "projections": {
+        "costume_0": [
+          0,
+          1,
+          2
+        ],
+        "costume_1": [
+          0,
+          1,
+          2
+        ],
+        "costume_2": [
+          0,
+          1,
+          2
+        ],
+        "costume_3": [
+          0,
+          1,
+          2
+        ],
+        "costume_4": [
+          0,
+          1,
+          2
+        ]
+      }
+    },
+    "EntityTearPlus": {
+      "blocks": []
+    },
+    "EntityPickupPlus": {
+      "blocks": []
+    },
+    "EntityLaserPlus": {
+      "blocks": []
+    },
+    "HomingLaserBezier": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "Bezier六浮点原值（Host输入，不发送，保留空块号）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        }
+      ]
+    },
+    "HomingLaser": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "几何标量（Host输入，不发送，保留空块号）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        },
+        {
+          "id": 1,
+          "name": "几何容器 optimized",
+          "sequence": "world",
+          "fields": [
+            "optimized"
+          ]
+        },
+        {
+          "id": 2,
+          "name": "几何容器 unoptimized",
+          "sequence": "world",
+          "fields": [
+            "unoptimized"
+          ]
+        },
+        {
+          "id": 3,
+          "name": "Host中间点缓存（历史别名indices，不发送，保留空块号）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        },
+        {
+          "id": 4,
+          "name": "几何容器 bezier（Host输入，不发送，保留空块号）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        }
+      ]
+    },
+    "EntityTear": {
+      "blocks": [
+        {
+          "id": 10,
+          "name": "T0 Host运动输入（预留，不发送）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        },
+        {
+          "id": 11,
+          "name": "T1 效果位与DeadEye强度",
+          "sequence": "world",
+          "fields": [
+            "tear_flags",
+            "dead_eye_intensity"
+          ]
+        },
+        {
+          "id": 12,
+          "name": "T2 Host等待／粘附计时（预留，不发送）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        },
+        {
+          "id": 13,
+          "name": "T3 独立引用",
+          "sequence": "world",
+          "fields": [
+            "stick_target"
+          ]
+        },
+        {
+          "id": 14,
+          "name": "T4 Host命中集合（玩法权威，不发送，保留空块号）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        },
+        {
+          "id": 15,
+          "name": "T5 辅助Sprite外观",
+          "sequence": "world",
+          "fields": [
+            "tear_halo_sprite#0",
+            "tear_effect_sprite#0",
+            "dead_eye_sprite#0"
+          ]
+        },
+        {
+          "id": 16,
+          "name": "T6 辅助Sprite动画",
+          "sequence": "world",
+          "fields": [
+            "tear_halo_sprite#1",
+            "tear_effect_sprite#1",
+            "dead_eye_sprite#1"
+          ]
+        },
+        {
+          "id": 17,
+          "name": "T7 辅助Sprite图层",
+          "sequence": "world",
+          "fields": [
+            "tear_halo_sprite#2",
+            "tear_effect_sprite#2",
+            "dead_eye_sprite#2"
+          ]
+        }
+      ],
+      "projections": {
+        "tear_halo_sprite": [
+          0,
+          1,
+          2
+        ],
+        "tear_effect_sprite": [
+          0,
+          1,
+          2
+        ],
+        "dead_eye_sprite": [
+          0,
+          1,
+          2
+        ]
+      }
+    },
+    "EntityPickup": {
+      "blocks": [
+        {
+          "id": 10,
+          "name": "P0 DropDelay展示计时",
+          "sequence": "world",
+          "fields": [
+            "pickup_drop_delay"
+          ]
+        },
+        {
+          "id": 11,
+          "name": "P1 最终价格",
+          "sequence": "world",
+          "fields": [
+            "price"
+          ]
+        },
+        {
+          "id": 12,
+          "name": "P2 独立引用",
+          "sequence": "world",
+          "fields": [
+            "pickup_ghost",
+            "mega_chest_left",
+            "mega_chest_right"
+          ]
+        },
+        {
+          "id": 13,
+          "name": "P3 Host未来循环道具（预留，不发送）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        },
+        {
+          "id": 14,
+          "name": "P4 辅助Sprite外观",
+          "sequence": "world",
+          "fields": [
+            "price_sprite#0",
+            "alternate_sprite#0"
+          ]
+        },
+        {
+          "id": 15,
+          "name": "P5 辅助Sprite动画",
+          "sequence": "world",
+          "fields": [
+            "price_sprite#1",
+            "alternate_sprite#1"
+          ]
+        },
+        {
+          "id": 16,
+          "name": "P6 辅助Sprite图层",
+          "sequence": "world",
+          "fields": [
+            "price_sprite#2",
+            "alternate_sprite#2"
+          ]
+        }
+      ],
+      "projections": {
+        "price_sprite": [
+          0,
+          1,
+          2
+        ],
+        "alternate_sprite": [
+          0,
+          1,
+          2
+        ]
+      }
+    },
+    "EntityLaser": {
+      "blocks": [
+        {
+          "id": 10,
+          "name": "L0 当前角度、长度与公开端点",
+          "sequence": "world",
+          "fields": [
+            "laser_angle",
+            "laser_length",
+            "laser_end_point"
+          ]
+        },
+        {
+          "id": 11,
+          "name": "L1 实际展示参数",
+          "sequence": "world",
+          "fields": [
+            "laser_tear_flags",
+            "sample_mode_raw",
+            "laser_max_distance",
+            "start_offset_mode_opaque32",
+            "grid_hit"
+          ]
+        },
+        {
+          "id": 12,
+          "name": "L2 计时（Host输入，不发送，保留空块号）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        },
+        {
+          "id": 13,
+          "name": "L3 独立引用",
+          "sequence": "world",
+          "fields": [
+            "bounce_laser"
+          ]
+        },
+        {
+          "id": 14,
+          "name": "L4 Host采样标量（不发送，保留空块号）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        },
+        {
+          "id": 15,
+          "name": "L5 HomingLaser 优化采样点",
+          "sequence": "world",
+          "fields": [
+            "homing_geometry#1"
+          ]
+        },
+        {
+          "id": 16,
+          "name": "L6 HomingLaser 未优化采样点",
+          "sequence": "world",
+          "fields": [
+            "homing_geometry#2"
+          ]
+        },
+        {
+          "id": 17,
+          "name": "L7 Host中间点缓存（历史别名indices）（不发送，保留空块号）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        },
+        {
+          "id": 18,
+          "name": "L8 Host Bezier输入（不发送，保留空块号）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        },
+        {
+          "id": 19,
+          "name": "L9 Host命中集合（玩法权威，不发送，保留空块号）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        }
+      ],
+      "projections": {
+        "homing_geometry": [
+          1,
+          2
+        ]
+      }
+    },
+    "EntitySlot": {
+      "blocks": [
+        {
+          "id": 10,
+          "name": "S0 Host状态／交互与奖励选择（预留，不发送）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        },
+        {
+          "id": 11,
+          "name": "S1 Host开奖计数（预留，不发送）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        },
+        {
+          "id": 12,
+          "name": "S2 奖励Sprite外观",
+          "sequence": "world",
+          "fields": [
+            "prize_sprite#0"
+          ]
+        },
+        {
+          "id": 13,
+          "name": "S3 奖励Sprite动画",
+          "sequence": "world",
+          "fields": [
+            "prize_sprite#1"
+          ]
+        },
+        {
+          "id": 14,
+          "name": "S4 奖励Sprite图层",
+          "sequence": "world",
+          "fields": [
+            "prize_sprite#2"
+          ]
+        }
+      ],
+      "projections": {
+        "prize_sprite": [
+          0,
+          1,
+          2
+        ]
+      }
+    },
+    "EntityProjectile": {
+      "blocks": [
+        {
+          "id": 10,
+          "name": "PR0 绘制高度",
+          "sequence": "world",
+          "fields": [
+            "projectile_height"
+          ]
+        },
+        {
+          "id": 11,
+          "name": "PR1 Host运动效果与摆动参数（预留，不发送）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        },
+        {
+          "id": 12,
+          "name": "PR2 高度开关与冻结绘制锚点",
+          "sequence": "world",
+          "fields": [
+            "height_render_mode",
+            "freeze_render_position"
+          ]
+        }
+      ]
+    },
+    "EntityNPC": {
+      "blocks": [
+        {
+          "id": 10,
+          "name": "N0 原生绘制标量与受控UI表现",
+          "sequence": "world",
+          "fields": [
+            "npc_state",
+            "projectile_delay",
+            "npc_v1",
+            "npc_i2",
+            "champion_color_index",
+            "controlled_ui_mode"
+          ]
+        },
+        {
+          "id": 11,
+          "name": "N1 复合绘制真实引用",
+          "sequence": "world",
+          "fields": [
+            "npc_entity_ref",
+            "composite_references"
+          ]
+        },
+        {
+          "id": 12,
+          "name": "N2 次路径点",
+          "sequence": "world",
+          "fields": [
+            "secondary_path"
+          ]
+        },
+        {
+          "id": 13,
+          "name": "N3 主路径点",
+          "sequence": "world",
+          "fields": [
+            "primary_path"
+          ]
+        },
+        {
+          "id": 14,
+          "name": "N4 双辅助Sprite外观",
+          "sequence": "world",
+          "fields": [
+            "npc_overlay_sprite#0",
+            "npc_effect_sprite#0"
+          ]
+        },
+        {
+          "id": 15,
+          "name": "N5 双辅助Sprite动画",
+          "sequence": "world",
+          "fields": [
+            "npc_overlay_sprite#1",
+            "npc_effect_sprite#1"
+          ]
+        },
+        {
+          "id": 16,
+          "name": "N6 双辅助Sprite图层",
+          "sequence": "world",
+          "fields": [
+            "npc_overlay_sprite#2",
+            "npc_effect_sprite#2"
+          ]
+        },
+        {
+          "id": 17,
+          "name": "DL0 原BossType/Variant（Host，预留）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        },
+        {
+          "id": 18,
+          "name": "DL1 Host AI计数（预留，不发送）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        }
+      ],
+      "projections": {
+        "npc_overlay_sprite": [
+          0,
+          1,
+          2
+        ],
+        "npc_effect_sprite": [
+          0,
+          1,
+          2
+        ]
+      },
+      "variants": {
+        "Delirium": {
+          "blocks": [
+            {
+              "id": 17,
+              "name": "DL0 原BossType/Variant（Host，预留）",
+              "sequence": "world",
+              "fields": [],
+              "reserved": true
+            }
+          ]
+        }
+      }
+    },
+    "NpcOverlaySprite": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "外观与资源",
+          "sequence": "body",
+          "fields": [
+            "file_name",
+            "overlay_render_first",
+            "offset",
+            "rotation",
+            "color",
+            "champion_color",
+            "flip_x",
+            "flip_y",
+            "playback_speed",
+            "render_flags",
+            "default_animation_name"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "动画与独立选择器",
+          "sequence": "body",
+          "fields": [
+            "main_state",
+            "overlay_state"
+          ]
+        },
+        {
+          "id": 2,
+          "name": "图层状态",
+          "sequence": "body",
+          "fields": [
+            "layer_states"
+          ]
+        }
+      ]
+    },
+    "EntityText": {
+      "blocks": [
+        {
+          "id": 10,
+          "name": "TX0 最终文本颜色",
+          "sequence": "world",
+          "fields": [
+            "text_rgba"
+          ]
+        },
+        {
+          "id": 11,
+          "name": "TX1 有效文本字节",
+          "sequence": "world",
+          "fields": [
+            "text_bytes"
+          ]
+        },
+        {
+          "id": 12,
+          "name": "TX2 variant2绘制计数（基础臂预留）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        }
+      ],
+      "variants": {
+        "Scaled": {
+          "blocks": [
+            {
+              "id": 12,
+              "name": "TX2 variant2绘制计数",
+              "sequence": "world",
+              "fields": [
+                "text_counter"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "EntityDummy": {
+      "blocks": []
+    },
+    "PlayerTemporaryEffects": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "展示值",
+          "sequence": "world",
+          "fields": [
+            "disabled",
+            "entries"
+          ]
+        }
+      ]
+    },
+    "PlayerCostumeMap": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "展示值",
+          "sequence": "world",
+          "fields": [
+            "index",
+            "layer_id",
+            "body"
+          ]
+        }
+      ]
+    },
+    "CostumeSpriteDesc": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "P6有序目录元数据",
+          "sequence": "world",
+          "fields": [
+            "item",
+            "flying",
+            "overlay"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "P0 costume Sprite投影0",
+          "sequence": "body",
+          "fields": [
+            "sprite#0"
+          ]
+        },
+        {
+          "id": 2,
+          "name": "P0 costume Sprite投影1",
+          "sequence": "body",
+          "fields": [
+            "sprite#1"
+          ]
+        },
+        {
+          "id": 3,
+          "name": "P0 costume Sprite投影2",
+          "sequence": "body",
+          "fields": [
+            "sprite#2"
+          ]
+        }
+      ],
+      "projections": {
+        "sprite": [
+          0,
+          1,
+          2
+        ]
+      }
+    },
+    "PocketItem": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "展示值",
+          "sequence": "world",
+          "fields": [
+            "id",
+            "type"
+          ]
+        }
+      ]
+    },
+    "QueueItemData": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "展示值",
+          "sequence": "world",
+          "fields": [
+            "item",
+            "flags"
+          ]
+        }
+      ]
+    },
+    "SmeltedTrinketDesc": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "展示值",
+          "sequence": "world",
+          "fields": [
+            "normal",
+            "golden"
+          ]
+        }
+      ]
+    },
+    "AfterImageFrame": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "展示值",
+          "sequence": "world",
+          "fields": [
+            "duration",
+            "position"
+          ]
+        }
+      ]
+    },
+    "History": {
+      "blocks": []
+    },
+    "HistoryItem": {
+      "blocks": []
+    },
+    "BagOfCraftingOutput": {
+      "blocks": []
+    },
+    "EntityDescHost": {
+      "blocks": []
+    },
+    "ConsumableData": {
+      "blocks": []
+    },
+    "ImageStrongPair": {
+      "blocks": []
+    },
+    "PlayerHUDStrongPair": {
+      "blocks": []
+    },
+    "OptionalDrawSequence": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "展示值",
+          "sequence": "world",
+          "fields": [
+            "has_draw_record",
+            "current_node",
+            "sprite"
+          ]
+        }
+      ]
+    },
+    "DrawRecordNode": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "展示值",
+          "sequence": "world",
+          "fields": [
+            "position",
+            "main_animation_frame",
+            "second_animation_frame"
+          ]
+        }
+      ]
+    },
+    "SavedHistory": {
+      "blocks": []
+    },
+    "GameStatePlayer": {
+      "blocks": []
+    },
+    "FamiliarData": {
+      "blocks": []
+    },
+    "NativeCommunicationDisplay": {
+      "blocks": []
+    },
+    "ItemSpoof": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "展示值",
+          "sequence": "world",
+          "fields": [
+            "blocked",
+            "innate_groups"
+          ]
+        }
+      ]
+    },
+    "InnateItems": {
+      "blocks": []
+    },
+    "TemporaryInnateItem": {
+      "blocks": []
+    },
+    "PlayerItemSpoofs": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "展示值",
+          "sequence": "world",
+          "fields": [
+            "collectible",
+            "trinket"
+          ]
+        }
+      ]
+    },
+    "EntityPlayerPlus": {
+      "blocks": [
+        {
+          "id": 1,
+          "name": "P3官方成员投影",
+          "sequence": "world",
+          "fields": [
+            "item_spoofs"
+          ]
+        }
+      ]
+    },
+    "EntitySaveStateStrongPair": {
+      "blocks": []
+    },
+    "EntitySaveState": {
+      "blocks": []
+    },
+    "PlayerItemCount": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "展示值",
+          "sequence": "world",
+          "fields": [
+            "id",
+            "count"
+          ]
+        }
+      ]
+    },
+    "PlayerInnateCount": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "展示值",
+          "sequence": "world",
+          "fields": [
+            "id",
+            "count"
+          ]
+        }
+      ]
+    },
+    "PlayerActiveItemDesc": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "展示值",
+          "sequence": "world",
+          "fields": [
+            "item_id",
+            "charge",
+            "battery_charge",
+            "sub_charge",
+            "partial_charge",
+            "var_data"
+          ]
+        }
+      ]
+    },
+    "PlayerTemporaryEffect": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "展示值",
+          "sequence": "world",
+          "fields": [
+            "item",
+            "count",
+            "cooldown"
+          ]
+        }
+      ]
+    },
+    "PlayerWeaponTears": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "展示值",
+          "sequence": "world",
+          "fields": [
+            "weapon_type",
+            "max_fire_delay",
+            "charge",
+            "modifiers"
+          ]
+        }
+      ]
+    },
+    "PlayerWeaponBrimstone": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "展示值",
+          "sequence": "world",
+          "fields": [
+            "weapon_type",
+            "max_fire_delay",
+            "charge",
+            "modifiers"
+          ]
+        }
+      ]
+    },
+    "PlayerWeaponLaser": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "展示值",
+          "sequence": "world",
+          "fields": [
+            "weapon_type",
+            "max_fire_delay",
+            "charge",
+            "modifiers"
+          ]
+        }
+      ]
+    },
+    "PlayerWeaponKnife": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "展示值",
+          "sequence": "world",
+          "fields": [
+            "weapon_type",
+            "max_fire_delay",
+            "charge",
+            "modifiers"
+          ]
+        }
+      ]
+    },
+    "PlayerWeaponBombs": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "展示值",
+          "sequence": "world",
+          "fields": [
+            "weapon_type"
+          ]
+        }
+      ]
+    },
+    "PlayerWeaponRockets": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "展示值",
+          "sequence": "world",
+          "fields": [
+            "weapon_type"
+          ]
+        }
+      ]
+    },
+    "PlayerWeaponMonstrosLung": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "展示值",
+          "sequence": "world",
+          "fields": [
+            "weapon_type",
+            "max_fire_delay",
+            "charge",
+            "modifiers"
+          ]
+        }
+      ]
+    },
+    "PlayerWeaponLudovico": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "展示值",
+          "sequence": "world",
+          "fields": [
+            "weapon_type"
+          ]
+        }
+      ]
+    },
+    "PlayerWeaponTechX": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "展示值",
+          "sequence": "world",
+          "fields": [
+            "weapon_type",
+            "max_fire_delay",
+            "charge",
+            "modifiers"
+          ]
+        }
+      ]
+    },
+    "PlayerWeaponBoneAxe": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "展示值",
+          "sequence": "world",
+          "fields": [
+            "weapon_type",
+            "max_fire_delay",
+            "charge",
+            "modifiers"
+          ]
+        }
+      ]
+    },
+    "PlayerWeaponUrn": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "展示值",
+          "sequence": "world",
+          "fields": [
+            "weapon_type"
+          ]
+        }
+      ]
+    },
+    "PlayerWeaponSpiritSword": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "展示值",
+          "sequence": "world",
+          "fields": [
+            "weapon_type",
+            "max_fire_delay",
+            "charge",
+            "modifiers"
+          ]
+        }
+      ]
+    },
+    "PlayerWeaponFetus": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "展示值",
+          "sequence": "world",
+          "fields": [
+            "weapon_type",
+            "max_fire_delay",
+            "charge",
+            "modifiers"
+          ]
+        }
+      ]
+    },
+    "PlayerWeaponWhip": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "展示值",
+          "sequence": "world",
+          "fields": [
+            "weapon_type",
+            "tail_44"
+          ]
+        }
+      ]
+    },
+    "PlayerParticipant": {
+      "blocks": []
+    },
+    "PlayerControlGroup": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "展示值",
+          "sequence": "world",
+          "fields": [
+            "participant",
+            "ordinal",
+            "control_session",
+            "binding_revision",
+            "active_anchors"
+          ]
+        }
+      ]
+    },
+    "EntityPlayer": {
+      "blocks": [
+        {
+          "id": 10,
+          "name": "P0身体标量与headAnim",
+          "sequence": "body",
+          "fields": [
+            "render_topology_revision",
+            "_damageCooldown",
+            "full_sprite_a",
+            "full_sprite_b",
+            "render_scales",
+            "item_state",
+            "_suplexState",
+            "crafting_use_charge",
+            "_eveSumptoriumCharge",
+            "_mawOfTheVoidChargeTimer",
+            "_revelationChargeTimer",
+            "_montezumaChargeTimer",
+            "_headAnim"
+          ]
+        },
+        {
+          "id": 11,
+          "name": "P1展示属性",
+          "sequence": "world",
+          "fields": [
+            "_canFly"
+          ]
+        },
+        {
+          "id": 12,
+          "name": "P2生命与资源",
+          "sequence": "world",
+          "fields": [
+            "_maxHearts",
+            "_redHearts",
+            "_soulHearts",
+            "_blackHearts",
+            "jar_hearts",
+            "jar_flies",
+            "_numKeys",
+            "_hasGoldenKey",
+            "_hasGoldenBomb",
+            "_numBombs",
+            "_numCoins",
+            "extra_lives_adjustment",
+            "_goldenHearts",
+            "_boneHearts",
+            "_brokenHearts",
+            "_rottenHearts",
+            "soul_charge",
+            "blood_charge",
+            "_urnSouls",
+            "_numGigaBombs",
+            "_poopMana",
+            "_isCoopGhost"
+          ]
+        },
+        {
+          "id": 13,
+          "name": "P3库存与口袋",
+          "sequence": "world",
+          "fields": [
+            "_trinketsID",
+            "pocket_items",
+            "queued_item",
+            "_bagOfCraftingContent",
+            "_poopSpellQueue",
+            "inventory_suppressed",
+            "_metronomeCollectibleID",
+            "current_effect_191_id",
+            "_modelingClayEffect",
+            "_collectibleCounts",
+            "_smeltedTrinkets",
+            "_itemWispsList",
+            "extra_collectible_counts",
+            "extra_trinket_counts",
+            "player_item_spoofs"
+          ]
+        },
+        {
+          "id": 14,
+          "name": "P4四主动槽",
+          "sequence": "world",
+          "fields": [
+            "_activeDesc"
+          ]
+        },
+        {
+          "id": 15,
+          "name": "P5五动态Weapon槽",
+          "sequence": "world",
+          "fields": [
+            "_weapon"
+          ]
+        },
+        {
+          "id": 16,
+          "name": "P6服装目录与绘制拓扑",
+          "sequence": "world",
+          "fields": [
+            "costume_topology_revision",
+            "_costumeSpriteDescs#0",
+            "_playerCostumeMap"
+          ]
+        },
+        {
+          "id": 17,
+          "name": "P7关系与身体结构",
+          "sequence": "world",
+          "fields": [
+            "_playerType",
+            "_playerIndex",
+            "_twinPlayer",
+            "_backupPlayer",
+            "_heldEntity",
+            "native_membership",
+            "roster_rank",
+            "control_group",
+            "body_role",
+            "control_flags"
+          ]
+        },
+        {
+          "id": 18,
+          "name": "P8效果残影与当前绘制记录",
+          "sequence": "world",
+          "fields": [
+            "_temporaryeffects",
+            "_afterImageFrames",
+            "current_draw_sequence"
+          ]
+        },
+        {
+          "id": 19,
+          "name": "P0固定13 Sprite投影0",
+          "sequence": "body",
+          "fields": [
+            "inline_sprites#0"
+          ]
+        },
+        {
+          "id": 20,
+          "name": "P0固定13 Sprite投影1",
+          "sequence": "body",
+          "fields": [
+            "inline_sprites#1"
+          ]
+        },
+        {
+          "id": 21,
+          "name": "P0固定13 Sprite投影2",
+          "sequence": "body",
+          "fields": [
+            "inline_sprites#2"
+          ]
+        },
+        {
+          "id": 22,
+          "name": "P0 costume Sprite投影0",
+          "sequence": "body",
+          "fields": [
+            "_costumeSpriteDescs#1"
+          ]
+        },
+        {
+          "id": 23,
+          "name": "P0 costume Sprite投影1",
+          "sequence": "body",
+          "fields": [
+            "_costumeSpriteDescs#2"
+          ]
+        },
+        {
+          "id": 24,
+          "name": "P0 costume Sprite投影2",
+          "sequence": "body",
+          "fields": [
+            "_costumeSpriteDescs#3"
+          ]
+        }
+      ],
+      "block_sequences": {
+        "1": "body",
+        "4": "body",
+        "5": "body",
+        "6": "body"
+      },
+      "projections": {
+        "inline_sprites": [
+          0,
+          1,
+          2
+        ],
+        "_costumeSpriteDescs": [
+          0,
+          1,
+          2,
+          3
+        ]
+      }
+    },
+    "GridEntityDesc": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "GD0 描述的实际展示输入",
+          "sequence": "world",
+          "fields": [
+            "type",
+            "variant",
+            "state",
+            "spawn_seed"
+          ]
+        }
+      ]
+    },
+    "GridEntity": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "G0 公共描述/位置与最终水面结果",
+          "sequence": "world",
+          "fields": [
+            "desc",
+            "grid_index",
+            "water_clip_flags"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "G1 主Sprite外观",
+          "sequence": "world",
+          "fields": [
+            "sprite#0"
+          ]
+        },
+        {
+          "id": 2,
+          "name": "G2 主Sprite动画",
+          "sequence": "world",
+          "fields": [
+            "sprite#1"
+          ]
+        },
+        {
+          "id": 3,
+          "name": "G3 主Sprite图层",
+          "sequence": "world",
+          "fields": [
+            "sprite#2"
+          ]
+        }
+      ],
+      "projections": {
+        "sprite": [
+          0,
+          1,
+          2
+        ]
+      }
+    },
+    "GridLayerState": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "贴图资源",
+          "sequence": "body",
+          "fields": [
+            "image_selection"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "图层外观",
+          "sequence": "body",
+          "fields": [
+            "min_filter_mode",
+            "mag_filter_mode",
+            "wrap_s_mode",
+            "wrap_t_mode",
+            "flip_x",
+            "flip_y",
+            "size",
+            "rotation",
+            "position",
+            "color",
+            "visible",
+            "blend_mode",
+            "render_flags",
+            "crop_offset"
+          ]
+        }
+      ]
+    },
+    "GridSprite": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "外观与资源",
+          "sequence": "body",
+          "fields": [
+            "file_name",
+            "overlay_render_first",
+            "offset",
+            "scale",
+            "rotation",
+            "color",
+            "champion_color",
+            "flip_x",
+            "flip_y",
+            "playback_speed",
+            "render_flags",
+            "glitch_draw_bits"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "动画与独立选择器",
+          "sequence": "body",
+          "fields": [
+            "main_state",
+            "overlay_state"
+          ]
+        },
+        {
+          "id": 2,
+          "name": "图层状态",
+          "sequence": "body",
+          "fields": [
+            "layer_states"
+          ]
+        }
+      ]
+    },
+    "GridEntityPlus": {
+      "blocks": []
+    },
+    "GridFloorSprite": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "外观与资源",
+          "sequence": "body",
+          "fields": [
+            "file_name",
+            "overlay_render_first",
+            "offset",
+            "scale",
+            "rotation",
+            "champion_color",
+            "flip_x",
+            "flip_y",
+            "playback_speed",
+            "render_flags",
+            "glitch_draw_bits"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "动画与独立选择器",
+          "sequence": "body",
+          "fields": [
+            "main_state",
+            "overlay_state"
+          ]
+        },
+        {
+          "id": 2,
+          "name": "图层状态",
+          "sequence": "body",
+          "fields": [
+            "layer_states"
+          ]
+        }
+      ]
+    },
+    "GridFireEmberAnimation": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "粒子模板主动画资源与插值开关",
+          "sequence": "body",
+          "fields": [
+            "active_animation",
+            "is_playing"
+          ]
+        }
+      ]
+    },
+    "GridFireEmberSprite": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "外观与资源",
+          "sequence": "body",
+          "fields": [
+            "file_name",
+            "overlay_render_first",
+            "offset",
+            "scale",
+            "rotation",
+            "color",
+            "champion_color",
+            "flip_x",
+            "flip_y",
+            "playback_speed",
+            "render_flags",
+            "glitch_draw_bits"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "动画与独立选择器",
+          "sequence": "body",
+          "fields": [
+            "main_state",
+            "overlay_state"
+          ]
+        },
+        {
+          "id": 2,
+          "name": "图层状态",
+          "sequence": "body",
+          "fields": [
+            "layer_states"
+          ]
+        }
+      ]
+    },
+    "GridFireEmber": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "当前粒子位置与绘制寿命输入",
+          "sequence": "world",
+          "fields": [
+            "position",
+            "age",
+            "max_life"
+          ]
+        }
+      ]
+    },
+    "GridEntityDecoration": {
+      "blocks": []
+    },
+    "GridEntityGravity": {
+      "blocks": []
+    },
+    "GridEntityStairs": {
+      "blocks": []
+    },
+    "GridEntityTeleporter": {
+      "blocks": []
+    },
+    "GridEntityWall": {
+      "blocks": []
+    },
+    "GridEntityWeb": {
+      "blocks": []
+    },
+    "GridEntityTrapDoor": {
+      "blocks": []
+    },
+    "GridEntityFire": {
+      "blocks": [
+        {
+          "id": 4,
+          "name": "GF0 第二Sprite 外观",
+          "sequence": "world",
+          "fields": [
+            "fire_sprite#0"
+          ]
+        },
+        {
+          "id": 5,
+          "name": "GF1 第二Sprite 动画",
+          "sequence": "world",
+          "fields": [
+            "fire_sprite#1"
+          ]
+        },
+        {
+          "id": 6,
+          "name": "GF2 第二Sprite 图层",
+          "sequence": "world",
+          "fields": [
+            "fire_sprite#2"
+          ]
+        },
+        {
+          "id": 7,
+          "name": "GF3 Ember模板 外观",
+          "sequence": "world",
+          "fields": [
+            "ember_sprite#0"
+          ]
+        },
+        {
+          "id": 8,
+          "name": "GF4 Ember模板 动画",
+          "sequence": "world",
+          "fields": [
+            "ember_sprite#1"
+          ]
+        },
+        {
+          "id": 9,
+          "name": "GF5 Ember模板 图层",
+          "sequence": "world",
+          "fields": [
+            "ember_sprite#2"
+          ]
+        },
+        {
+          "id": 10,
+          "name": "GF6 当前可绘粒子列表",
+          "sequence": "world",
+          "fields": [
+            "embers"
+          ]
+        }
+      ],
+      "projections": {
+        "fire_sprite": [
+          0,
+          1,
+          2
+        ],
+        "ember_sprite": [
+          0,
+          1,
+          2
+        ]
+      }
+    },
+    "GridRockLayerState": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "贴图资源",
+          "sequence": "body",
+          "fields": [
+            "image_selection"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "图层外观",
+          "sequence": "body",
+          "fields": [
+            "min_filter_mode",
+            "mag_filter_mode",
+            "wrap_s_mode",
+            "wrap_t_mode",
+            "flip_x",
+            "flip_y",
+            "size",
+            "rotation",
+            "has_position",
+            "position",
+            "color",
+            "visible",
+            "blend_mode",
+            "render_flags",
+            "crop_offset"
+          ]
+        }
+      ]
+    },
+    "GridRockSprite": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "外观与资源",
+          "sequence": "body",
+          "fields": [
+            "file_name",
+            "overlay_render_first",
+            "offset",
+            "scale",
+            "rotation",
+            "color",
+            "champion_color",
+            "flip_x",
+            "flip_y",
+            "playback_speed",
+            "render_flags",
+            "glitch_draw_bits"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "动画与独立选择器",
+          "sequence": "body",
+          "fields": [
+            "has_main_pose",
+            "main_state",
+            "overlay_state"
+          ]
+        },
+        {
+          "id": 2,
+          "name": "图层状态",
+          "sequence": "body",
+          "fields": [
+            "layer_states"
+          ]
+        }
+      ]
+    },
+    "GridStatueUnusedSprite": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "Statue无Sprite展示负载",
+          "sequence": "body",
+          "fields": [],
+          "reserved": true
+        },
+        {
+          "id": 1,
+          "name": "Statue无Sprite展示负载",
+          "sequence": "body",
+          "fields": [],
+          "reserved": true
+        },
+        {
+          "id": 2,
+          "name": "Statue无Sprite展示负载",
+          "sequence": "body",
+          "fields": [],
+          "reserved": true
+        }
+      ]
+    },
+    "GridEntityLock": {
+      "blocks": []
+    },
+    "GridEntityPit": {
+      "blocks": []
+    },
+    "GridEntitySpikes": {
+      "blocks": []
+    },
+    "GridEntityStatue": {
+      "blocks": []
+    },
+    "GridEntityTNT": {
+      "blocks": []
+    },
+    "GridEntityPoop": {
+      "blocks": []
+    },
+    "GridEntityRock": {
+      "blocks": [
+        {
+          "id": 4,
+          "name": "GR0 当前可绘碎块资源与有序偏移",
+          "sequence": "world",
+          "fields": [
+            "rubble_animation",
+            "rubble_offsets"
+          ]
+        }
+      ]
+    },
+    "GridNonrandomLightDesc": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "GD0 确定性Light类型的描述展示输入",
+          "sequence": "world",
+          "fields": [
+            "type",
+            "variant",
+            "state"
+          ]
+        }
+      ]
+    },
+    "GridDoorTint": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "Door主体与附属绘制入口",
+          "sequence": "body",
+          "fields": [
+            "tint_a"
+          ]
+        }
+      ]
+    },
+    "GridDoorSprite": {
+      "blocks": [
+        {
+          "id": 0,
+          "name": "外观与资源",
+          "sequence": "body",
+          "fields": [
+            "file_name",
+            "overlay_render_first",
+            "offset",
+            "scale",
+            "rotation",
+            "color",
+            "champion_color",
+            "flip_x",
+            "flip_y",
+            "playback_speed",
+            "render_flags",
+            "glitch_draw_bits"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "动画与独立选择器",
+          "sequence": "body",
+          "fields": [
+            "main_state",
+            "overlay_state"
+          ]
+        },
+        {
+          "id": 2,
+          "name": "图层状态",
+          "sequence": "body",
+          "fields": [
+            "layer_states"
+          ]
+        }
+      ]
+    },
+    "GridEntityPressurePlate": {
+      "blocks": [
+        {
+          "id": 4,
+          "name": "GP0 TimerPlate 外观",
+          "sequence": "world",
+          "fields": [
+            "timer_plate#0"
+          ]
+        },
+        {
+          "id": 5,
+          "name": "GP1 TimerPlate 动画",
+          "sequence": "world",
+          "fields": [
+            "timer_plate#1"
+          ]
+        },
+        {
+          "id": 6,
+          "name": "GP2 TimerPlate 图层",
+          "sequence": "world",
+          "fields": [
+            "timer_plate#2"
+          ]
+        }
+      ],
+      "projections": {
+        "timer_plate": [
+          0,
+          1,
+          2
+        ]
+      }
+    },
+    "GridEntityDoor": {
+      "blocks": [
+        {
+          "id": 4,
+          "name": "GD4 Door实际绘制与Light输入",
+          "sequence": "world",
+          "fields": [
+            "target_room_type",
+            "extra_visible",
+            "target_room_index",
+            "door_flags"
+          ]
+        },
+        {
+          "id": 5,
+          "name": "GD5 ExtraSprite 外观",
+          "sequence": "world",
+          "fields": [
+            "extra_sprite#0"
+          ]
+        },
+        {
+          "id": 6,
+          "name": "GD6 ExtraSprite 动画",
+          "sequence": "world",
+          "fields": [
+            "extra_sprite#1"
+          ]
+        },
+        {
+          "id": 7,
+          "name": "GD7 ExtraSprite 图层",
+          "sequence": "world",
+          "fields": [
+            "extra_sprite#2"
+          ]
+        }
+      ],
+      "projections": {
+        "extra_sprite": [
+          0,
+          1,
+          2
+        ]
+      }
+    }
+  }
+}

@@ -2,6 +2,7 @@
 #include "core/replication_memory.h"
 #include "state/nested.h"
 #include "state/client_description_memory.h"
+#include "state/client_shadow.h"
 #include "world/common/contracts.h"
 #include <algorithm>
 #include <cmath>
@@ -34,7 +35,7 @@ bool Key(const ClientObjectKey &key,Space space,std::uint64_t run) noexcept {
 }
 bool PhysicalSlot(std::uint16_t slot) noexcept {return slot<kDescriptorSlots&&slot!=525;}
 // Slice仅指向描述拥有的连续字节；版本保留最后变化时刻，而非强行改成target_version。
-struct Slice final {const state::Field *field=nullptr;std::uint32_t offset=0,size=0,version=0;};
+struct Slice final {const state::Field *field=nullptr;std::uint32_t offset=0,size=0,version=0;const std::uint8_t *borrowed=nullptr;};
 struct OwnedRecord final {
   ClientWorldShadowIdentity identity;
   const WorldDescriptionPlan *plan=nullptr;
@@ -49,6 +50,7 @@ struct OwnedDescriptor final {
 struct ClientRoomLevelStorage final {
   ClientRoomLevelContext context;
   OwnedRecord room,level;
+  std::shared_ptr<const state::ClientShadowState> backing;
   std::vector<OwnedDescriptor,state::ClientDescriptionAllocator<OwnedDescriptor>> descriptors;
   std::vector<ClientRoomConfiguration,state::ClientDescriptionAllocator<ClientRoomConfiguration>> configurations;
   std::vector<std::uint8_t,state::ClientDescriptionAllocator<std::uint8_t>> bytes;
@@ -75,7 +77,7 @@ const Slice &Required(const OwnedRecord &r,ClientRoomFieldRole role) {
   const auto *slice=FindSlice(r,role);if(!slice||!slice->field)Fail("field_not_applicable");return *slice;
 }
 ClientWorldBytes Bytes(const ClientRoomLevelStorage &s,const Slice &slice) noexcept {
-  return {slice.size?s.bytes.data()+slice.offset:nullptr,slice.size};
+  return {slice.size?(slice.borrowed?slice.borrowed:s.bytes.data()+slice.offset):nullptr,slice.size};
 }
 template<class T> T Exact(ClientWorldBytes b) {
   if(b.size!=sizeof(T)||!b.data)Fail("scalar_or_array_size");
@@ -163,19 +165,28 @@ std::uint32_t RecordSize(const ClientWorldShadowRecordView &source,ClientWorldDe
   for(const auto &limit:state::LayoutBudgets())if(limit.layout==id.layout&&total>limit.record_bytes)Fail("layout_byte_budget");
   return total;
 }
-// 一次性复制根块并按可信固定起点切片；变长内部留在该投影中，由第12/13步递归消费。
+// 正式描述只切片。只有无正式影子租约的独立输入才复制正文。
 OwnedRecord CopyRecord(ClientRoomLevelStorage &s,const ClientWorldShadowRecordView &source,
                         ClientWorldDescriptionKind kind,std::uint32_t &at) {
   OwnedRecord r;r.identity=source.identity;r.plan=&Plan(kind);std::array<std::uint32_t,32> offsets{};
+  const auto shared=s.backing?s.backing->Find({r.identity.key.space,r.identity.layout,r.identity.key.id,r.identity.use,r.identity.shape}):std::nullopt;
+  if(s.backing&&(!shared||shared->Member()!=r.identity.member))Fail("shadow_backing_identity");
   for(unsigned i=0;i<source.blocks.size();++i){const auto &b=source.blocks[i];offsets[i]=at;
-    if(b.present&&b.size){std::memcpy(s.bytes.data()+at,b.data,b.size);at+=b.size;}}
+    if(!b.present)continue;
+    if(shared){
+      const auto block=shared->Block(std::uint8_t(i));
+      if(!block||block->version!=b.version||block->bytes.size()!=b.size||reinterpret_cast<const std::uint8_t *>(block->bytes.data())!=b.data)
+        Fail("shadow_backing_block");
+    }else if(b.size){std::memcpy(s.bytes.data()+at,b.data,b.size);at+=b.size;}
+  }
   const auto *layout=state::FindLayout(r.identity.layout);
   for(std::uint16_t i=0;i<layout->field_count;++i){const auto *f=state::FindField(layout->id,i);
     if(!f||i>=r.fields.size()||f->wire_offset==UINT32_MAX||f->block>=layout->block_count)Fail("field_plan");
     const auto &b=source.blocks[f->block];auto end=b.size;
     if(std::uint32_t(i)+1u<layout->field_count){const auto *next=state::FindField(layout->id,std::uint16_t(i+1));if(next->block==f->block)end=next->wire_offset;}
     if(f->wire_offset>end||end>b.size||end-f->wire_offset<f->min_size||end-f->wire_offset>f->max_size)Fail("field_bounds");
-    r.fields[i]={f,offsets[f->block]+f->wire_offset,end-f->wire_offset,b.version};
+    r.fields[i]={f,offsets[f->block]+f->wire_offset,end-f->wire_offset,b.version,
+      shared&&end>f->wire_offset?b.data+f->wire_offset:nullptr};
   }
   return r;
 }
@@ -215,7 +226,7 @@ void BindWorld(ClientRoomLevelStorage &s,std::span<const ClientRoomGridMember> g
       s.ordinary[d.ordinary_ordinal]=i;++s.ordinary_count;
     }else if(d.ordinary_ordinal!=UINT16_MAX)Fail("off_grid_ordinary_ordinal");
     keys[i]=d.record.identity.key.id;const auto v=DescriptorValues(s,i);
-    if(v.dimension>2||v.display_bits>31)Fail("descriptor_display_value");
+    if(v.dimension>2)Fail("descriptor_display_value");
     (void)SavedIcons(s,i);
     (void)Configuration(s,Value<std::uint16_t>(s,d.record,R::Data));
     (void)Configuration(s,Value<std::uint16_t>(s,d.record,R::OverrideData));
@@ -339,8 +350,9 @@ ClientRoomLevelDescription ClientDescribeRoomLevel(const ClientRoomLevelShadowVi
   auto charge=peer?memory::Lease{}:memory::Reserve(memory::Pool::Values,sizeof(ClientRoomLevelStorage)+64ull+payload_bytes+
     source.descriptors.size()*sizeof(OwnedDescriptor)+source.configurations.size()*sizeof(ClientRoomConfiguration),"room_level_shadow_description");
   auto storage=peer?std::allocate_shared<ClientRoomLevelStorage>(state::ClientStateAllocator<ClientRoomLevelStorage>(peer),peer):std::make_shared<ClientRoomLevelStorage>(peer);
-  storage->charge=std::move(charge);storage->context=context;
-  storage->bytes.resize(payload_bytes);storage->descriptors.resize(source.descriptors.size());storage->configurations.resize(source.configurations.size());
+  storage->charge=std::move(charge);storage->context=context;storage->backing=source.backing;
+  if(!storage->backing)storage->bytes.resize(payload_bytes);
+  storage->descriptors.resize(source.descriptors.size());storage->configurations.resize(source.configurations.size());
   if(storage->charge)storage->charge->Resize(StorageSize(*storage));std::uint32_t at=0;
   storage->room=CopyRecord(*storage,source.room,ClientWorldDescriptionKind::Room,at);
   storage->level=CopyRecord(*storage,source.level,ClientWorldDescriptionKind::Level,at);
@@ -348,7 +360,7 @@ ClientRoomLevelDescription ClientDescribeRoomLevel(const ClientRoomLevelShadowVi
     storage->descriptors[i]={d.source_slot,d.ordinary_ordinal,CopyRecord(*storage,d.record,ClientWorldDescriptionKind::Descriptor,at)};}
   for(std::size_t i=0;i<source.configurations.size();++i)storage->configurations[i]=CopyConfiguration(source.configurations[i],context);
   // 配置已变成具名标量，只计其实际容器；不再复制一份15B原始配置或保留输入指针。
-  if(at!=payload_bytes)Fail("owned_payload_size");
+  if(at!=storage->bytes.size())Fail("owned_payload_size");
   std::sort(storage->configurations.begin(),storage->configurations.end(),[](const auto &a,const auto &b){return a.resource<b.resource;});
   for(std::size_t i=1;i<storage->configurations.size();++i)
     if(storage->configurations[i-1].resource==storage->configurations[i].resource)Fail("duplicate_configuration_resource");

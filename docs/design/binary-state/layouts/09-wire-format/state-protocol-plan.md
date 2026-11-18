@@ -1,6 +1,6 @@
 # 完整消息与接受数字合同
 
-布局版本 75；同源生成，不是测试报告。
+布局版本 84；同源生成，不是测试报告。
 
 | 头 | 布局 | 字节 |
 |---|---|---|
@@ -14,7 +14,6 @@
 | StateDependencyEntry | 415 | 32 |
 | StateContributionEntry | 416 | 16 |
 | StateAudioEventHeader | 417 | 40 |
-| StateContextReady | 418 | 8 |
 | StateAppliedAckHeader | 419 | 2 |
 | StateAppliedAckEntry | 420 | 21 |
 | StateResyncHeader | 421 | 11 |

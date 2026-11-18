@@ -38,7 +38,8 @@
             "host": "playertemporaryeffects_entries_read",
             "client": "playertemporaryeffects_entries_install",
             "max_bytes": 33554432
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x10",
@@ -62,7 +63,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x12",
@@ -83,17 +85,6 @@
           "semantics": "本地承载Player回指",
           "status": "已核",
           "evidence": "5-player-p6-p8.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "展示值",
-          "sequence": "world",
-          "fields": [
-            "disabled",
-            "entries"
-          ]
         }
       ],
       "conversions": {},
@@ -131,7 +122,8 @@
             "type": "u16",
             "host": "playercostumemap_index_read",
             "client": "playercostumemap_index_install"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x4",
@@ -147,7 +139,8 @@
             "type": "i32",
             "host": "playercostumemap_layer_id_read",
             "client": "playercostumemap_layer_id_install"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x8",
@@ -171,7 +164,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0xD",
@@ -182,18 +176,6 @@
           "semantics": "尾部尚未解释；不以对象大小或初始化零值判填充",
           "status": "未知",
           "evidence": "5-player-p6-p8.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "展示值",
-          "sequence": "world",
-          "fields": [
-            "index",
-            "layer_id",
-            "body"
-          ]
         }
       ],
       "conversions": {
@@ -236,13 +218,9 @@
           "native_count": 1,
           "wire": {
             "kind": "nested",
-            "type": "ANM2",
-            "projections": [
-              0,
-              1,
-              2
-            ]
-          }
+            "type": "ANM2"
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x114",
@@ -259,7 +237,8 @@
             "target": "item-config",
             "host": "costumespritedesc_item_resource",
             "client": "costumespritedesc_item_borrow"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x118",
@@ -293,7 +272,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x11E",
@@ -307,7 +287,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x11F",
@@ -360,42 +341,6 @@
           "evidence": "5-player-p6-p8.md"
         }
       ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "P6有序目录元数据",
-          "sequence": "world",
-          "fields": [
-            "item",
-            "flying",
-            "overlay"
-          ]
-        },
-        {
-          "id": 1,
-          "name": "P0 costume Sprite投影0",
-          "sequence": "body",
-          "fields": [
-            "sprite#0"
-          ]
-        },
-        {
-          "id": 2,
-          "name": "P0 costume Sprite投影1",
-          "sequence": "body",
-          "fields": [
-            "sprite#1"
-          ]
-        },
-        {
-          "id": 3,
-          "name": "P0 costume Sprite投影2",
-          "sequence": "body",
-          "fields": [
-            "sprite#2"
-          ]
-        }
-      ],
       "conversions": {},
       "validators": {
         "flying": {
@@ -433,7 +378,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x4",
@@ -447,18 +393,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "展示值",
-          "sequence": "world",
-          "fields": [
-            "id",
-            "type"
-          ]
+          },
+          "sequence": "world"
         }
       ],
       "conversions": {},
@@ -493,7 +429,8 @@
             "host": "queueitemdata_item_read",
             "client": "queueitemdata_item_install",
             "target": "item-config"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x4",
@@ -519,7 +456,8 @@
             "type": "u8",
             "host": "queueitemdata_flags_read",
             "client": "queueitemdata_flags_install"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0xC",
@@ -530,17 +468,6 @@
           "semantics": "未来获得/使用附加数据",
           "status": "已核",
           "evidence": "5-player-p3-p5.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "展示值",
-          "sequence": "world",
-          "fields": [
-            "item",
-            "flags"
-          ]
         }
       ],
       "conversions": {
@@ -581,7 +508,8 @@
           "wire": {
             "kind": "copy",
             "type": "i16"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x2",
@@ -595,18 +523,8 @@
           "wire": {
             "kind": "copy",
             "type": "i16"
-          }
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "展示值",
-          "sequence": "world",
-          "fields": [
-            "normal",
-            "golden"
-          ]
+          },
+          "sequence": "world"
         }
       ],
       "conversions": {},
@@ -638,7 +556,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x4",
@@ -654,18 +573,8 @@
           "wire": {
             "kind": "nested",
             "type": "Vector"
-          }
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "展示值",
-          "sequence": "world",
-          "fields": [
-            "duration",
-            "position"
-          ]
+          },
+          "sequence": "world"
         }
       ],
       "conversions": {},
@@ -726,7 +635,6 @@
           "evidence": "5-player-p6-p8.md"
         }
       ],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "members": [],
@@ -784,7 +692,6 @@
           "evidence": "5-player-p6-p8.md"
         }
       ],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "members": [],
@@ -822,7 +729,6 @@
           "evidence": "5-player-p3-p5.md"
         }
       ],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "members": [],
@@ -870,7 +776,6 @@
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/EntityPlayer.zhl"
         }
       ],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "members": [],
@@ -928,7 +833,6 @@
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/ConsumableData.zhl"
         }
       ],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "members": [],
@@ -966,7 +870,6 @@
           "evidence": "mod/src/game/client/player/client_player_draw_native.cpp"
         }
       ],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "members": [],
@@ -1004,7 +907,6 @@
           "evidence": "mod/src/game/client/player/client_player_hud_native.cpp"
         }
       ],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "members": [],
@@ -1075,7 +977,8 @@
                 "value": 1
               }
             }
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x120",
@@ -1086,18 +989,6 @@
           "semantics": "尾部尚未解释；不以对象大小或初始化零值判填充",
           "status": "未知",
           "evidence": "5-player-p6-p8.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "展示值",
-          "sequence": "world",
-          "fields": [
-            "has_draw_record",
-            "current_node",
-            "sprite"
-          ]
         }
       ],
       "conversions": {
@@ -1121,7 +1012,8 @@
           "semantics": "真实cursor=head或first_animation<0时D=0，不读节点其余负载或Sprite；否则D=1；当前节点必须有界归属见证。",
           "evidence": "5-player-p0-p2.md；5-player-p6-p8.md",
           "host": "optionaldrawsequence_has_draw_record_read",
-          "client": "optionaldrawsequence_has_draw_record_install"
+          "client": "optionaldrawsequence_has_draw_record_install",
+          "sequence": "world"
         }
       ],
       "companions": [
@@ -1140,7 +1032,8 @@
               "kind": "equal",
               "value": 1
             }
-          }
+          },
+          "sequence": "world"
         }
       ]
     },
@@ -1178,7 +1071,8 @@
           "wire": {
             "kind": "nested",
             "type": "Vector"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x10",
@@ -1204,7 +1098,8 @@
             "type": "i32[2]",
             "host": "drawrecordnode_main_animation_frame_read",
             "client": "drawrecordnode_main_animation_frame_install"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x20",
@@ -1220,19 +1115,8 @@
             "type": "i32[2]",
             "host": "drawrecordnode_second_animation_frame_read",
             "client": "drawrecordnode_second_animation_frame_install"
-          }
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "展示值",
-          "sequence": "world",
-          "fields": [
-            "position",
-            "main_animation_frame",
-            "second_animation_frame"
-          ]
+          },
+          "sequence": "world"
         }
       ],
       "conversions": {
@@ -1277,7 +1161,6 @@
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/GameStatePlayer.zhl"
         }
       ],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "members": [],
@@ -1439,7 +1322,6 @@
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/GameStatePlayer.zhl；J273 74E90D/74E917，保存体ctor74E9A0"
         }
       ],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "members": [],
@@ -1507,7 +1389,6 @@
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/GameStatePlayer.zhl"
         }
       ],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "members": [],
@@ -1639,7 +1520,6 @@
           "evidence": "J273 74E920—74E930、78495D—7849D9、42BFB0/42CB40"
         }
       ],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "members": [],
@@ -1683,8 +1563,10 @@
             "limit": 16384,
             "host": "itemspoof_blocked_read",
             "client": "itemspoof_blocked_install",
-            "count_from": "itemspoof_blocked_read_logical_count"
-          }
+            "count_from": "itemspoof_blocked_read_logical_count",
+            "flat_storage": "unordered"
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x24",
@@ -1705,18 +1587,8 @@
             "client": "itemspoof_innate_groups_install",
             "max_bytes": 33554432,
             "count_from": "itemspoof_innate_groups_read_logical_count"
-          }
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "展示值",
-          "sequence": "world",
-          "fields": [
-            "blocked",
-            "innate_groups"
-          ]
+          },
+          "sequence": "world"
         }
       ],
       "conversions": {},
@@ -1766,7 +1638,6 @@
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/repentogon/Patches/ItemSpoofSystem.h；out/repentogon/zhlIsaacCS.pdb: cs::game::player_sdk::{PlusHeader,Spoof,PlusItems,Innate,Timed}"
         }
       ],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "members": [],
@@ -1814,7 +1685,6 @@
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/repentogon/Patches/ItemSpoofSystem.h"
         }
       ],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "members": [],
@@ -1845,7 +1715,8 @@
           "wire": {
             "kind": "nested",
             "type": "ItemSpoof"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x2C",
@@ -1861,7 +1732,8 @@
           "wire": {
             "kind": "nested",
             "type": "ItemSpoof"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x58",
@@ -1872,17 +1744,6 @@
           "semantics": "触发类型变更处理的缓存，不参与有效计数查询",
           "status": "已核",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/repentogon/Patches/ItemSpoofSystem.h；out/repentogon/zhlIsaacCS.pdb: cs::game::player_sdk::{PlusHeader,Spoof,PlusItems,Innate,Timed}"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "展示值",
-          "sequence": "world",
-          "fields": [
-            "collectible",
-            "trinket"
-          ]
         }
       ],
       "conversions": {},
@@ -1915,7 +1776,8 @@
           "wire": {
             "kind": "nested",
             "type": "PlayerItemSpoofs"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x6C",
@@ -2028,16 +1890,6 @@
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/repentogon/Patches/EntityPlus.h；SaveStateManagement/EntitySaveStateEx.cpp；ASMPatches/ASMPlayerManager.cpp:196—214"
         }
       ],
-      "blocks": [
-        {
-          "id": 1,
-          "name": "P3官方成员投影",
-          "sequence": "world",
-          "fields": [
-            "item_spoofs"
-          ]
-        }
-      ],
       "conversions": {},
       "validators": {},
       "members": [],
@@ -2075,7 +1927,6 @@
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SmartPointer.zhl"
         }
       ],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "members": [],
@@ -2265,7 +2116,6 @@
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/EntitySaveState.zhl"
         }
       ],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "members": [],
@@ -2294,7 +2144,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": 4,
@@ -2308,18 +2159,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "展示值",
-          "sequence": "world",
-          "fields": [
-            "id",
-            "count"
-          ]
+          },
+          "sequence": "world"
         }
       ],
       "conversions": {},
@@ -2350,7 +2191,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": 4,
@@ -2364,18 +2206,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "展示值",
-          "sequence": "world",
-          "fields": [
-            "id",
-            "count"
-          ]
+          },
+          "sequence": "world"
         }
       ],
       "conversions": {},
@@ -2413,7 +2245,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x4",
@@ -2439,7 +2272,8 @@
             "type": "i32",
             "host": "playeractiveitemdesc_charge_read",
             "client": "playeractiveitemdesc_charge_install"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0xC",
@@ -2455,7 +2289,8 @@
             "type": "i32",
             "host": "playeractiveitemdesc_battery_charge_read",
             "client": "playeractiveitemdesc_battery_charge_install"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x10",
@@ -2471,7 +2306,8 @@
             "type": "i32",
             "host": "playeractiveitemdesc_sub_charge_read",
             "client": "playeractiveitemdesc_sub_charge_install"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x14",
@@ -2497,7 +2333,8 @@
             "type": "f32",
             "host": "playeractiveitemdesc_partial_charge_read",
             "client": "playeractiveitemdesc_partial_charge_install"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1C",
@@ -2513,22 +2350,8 @@
             "type": "i32",
             "host": "playeractiveitemdesc_var_data_read",
             "client": "playeractiveitemdesc_var_data_install"
-          }
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "展示值",
-          "sequence": "world",
-          "fields": [
-            "item_id",
-            "charge",
-            "battery_charge",
-            "sub_charge",
-            "partial_charge",
-            "var_data"
-          ]
+          },
+          "sequence": "world"
         }
       ],
       "conversions": {
@@ -2580,7 +2403,8 @@
             "host": "playertemporaryeffect_item_resource",
             "client": "playertemporaryeffect_item_borrow",
             "value_rule": "non-null"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x4",
@@ -2594,7 +2418,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x8",
@@ -2623,7 +2448,8 @@
                 ]
               }
             }
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0xC",
@@ -2634,18 +2460,6 @@
           "semantics": "SDK 对象大小 0x10 中未声明的末尾 DWORD；尚未证明可当填充",
           "status": "未知",
           "evidence": "TemporaryEffect.zhl 只命名 +0x00 item、+0x04 count、+0x08 cooldown；J273 +0x0C 用途未核；J273 VA0x90A194把新记录尾字置0，VA0x90A0D0/0x90A0D3按16B复制传入记录；不能仅以常见零值判为padding，主审已复读"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "展示值",
-          "sequence": "world",
-          "fields": [
-            "item",
-            "count",
-            "cooldown"
-          ]
         }
       ],
       "conversions": {
@@ -2720,7 +2534,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x14",
@@ -2734,7 +2549,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x18",
@@ -2778,7 +2594,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x34",
@@ -2795,7 +2612,8 @@
             "host": "playerweapontears_modifiers_read",
             "client": "playerweapontears_modifiers_install",
             "mask": 387
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x38",
@@ -2836,19 +2654,6 @@
           "semantics": "动态factory尾部尚未解释；不当填充",
           "status": "未知",
           "evidence": "5-player-p3-p5.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "展示值",
-          "sequence": "world",
-          "fields": [
-            "weapon_type",
-            "max_fire_delay",
-            "charge",
-            "modifiers"
-          ]
         }
       ],
       "conversions": {
@@ -2938,7 +2743,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x14",
@@ -2952,7 +2758,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x18",
@@ -2996,7 +2803,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x34",
@@ -3013,7 +2821,8 @@
             "host": "playerweaponbrimstone_modifiers_read",
             "client": "playerweaponbrimstone_modifiers_install",
             "mask": 145
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x38",
@@ -3064,19 +2873,6 @@
           "semantics": "动态攻击链接，Host模拟；不作为展示边",
           "status": "已核",
           "evidence": "5-player-p3-p5.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "展示值",
-          "sequence": "world",
-          "fields": [
-            "weapon_type",
-            "max_fire_delay",
-            "charge",
-            "modifiers"
-          ]
         }
       ],
       "conversions": {
@@ -3166,7 +2962,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x14",
@@ -3180,7 +2977,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x18",
@@ -3224,7 +3022,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x34",
@@ -3241,7 +3040,8 @@
             "host": "playerweaponlaser_modifiers_read",
             "client": "playerweaponlaser_modifiers_install",
             "mask": 139
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x38",
@@ -3292,19 +3092,6 @@
           "semantics": "动态factory尾部尚未解释；不当填充",
           "status": "未知",
           "evidence": "5-player-p3-p5.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "展示值",
-          "sequence": "world",
-          "fields": [
-            "weapon_type",
-            "max_fire_delay",
-            "charge",
-            "modifiers"
-          ]
         }
       ],
       "conversions": {
@@ -3394,7 +3181,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x14",
@@ -3408,7 +3196,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x18",
@@ -3452,7 +3241,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x34",
@@ -3469,7 +3259,8 @@
             "host": "playerweaponknife_modifiers_read",
             "client": "playerweaponknife_modifiers_install",
             "mask": 144
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x38",
@@ -3510,19 +3301,6 @@
           "semantics": "动态攻击链接，Host模拟；不作为展示边",
           "status": "已核",
           "evidence": "5-player-p3-p5.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "展示值",
-          "sequence": "world",
-          "fields": [
-            "weapon_type",
-            "max_fire_delay",
-            "charge",
-            "modifiers"
-          ]
         }
       ],
       "conversions": {
@@ -3662,7 +3440,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x34",
@@ -3713,16 +3492,6 @@
           "semantics": "动态攻击链接，Host模拟；不作为展示边",
           "status": "已核",
           "evidence": "5-player-p3-p5.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "展示值",
-          "sequence": "world",
-          "fields": [
-            "weapon_type"
-          ]
         }
       ],
       "conversions": {},
@@ -3851,7 +3620,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x34",
@@ -3902,16 +3672,6 @@
           "semantics": "动态攻击链接，Host模拟；不作为展示边",
           "status": "已核",
           "evidence": "5-player-p3-p5.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "展示值",
-          "sequence": "world",
-          "fields": [
-            "weapon_type"
-          ]
         }
       ],
       "conversions": {},
@@ -3990,7 +3750,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x14",
@@ -4004,7 +3765,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x18",
@@ -4048,7 +3810,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x34",
@@ -4065,7 +3828,8 @@
             "host": "playerweaponmonstroslung_modifiers_read",
             "client": "playerweaponmonstroslung_modifiers_install",
             "mask": 129
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x38",
@@ -4096,19 +3860,6 @@
           "semantics": "J273 Weapon ctor 写入范围超过 SDK sizeof(Weapon)=0x40；+0x40 字节归属未核",
           "status": "未知",
           "evidence": "J273 Weapon ctor VA 0x9C4EB0 写 this+0x40；player-application.json:62582"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "展示值",
-          "sequence": "world",
-          "fields": [
-            "weapon_type",
-            "max_fire_delay",
-            "charge",
-            "modifiers"
-          ]
         }
       ],
       "conversions": {
@@ -4248,7 +3999,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x34",
@@ -4299,16 +4051,6 @@
           "semantics": "动态攻击链接，Host模拟；不作为展示边",
           "status": "已核",
           "evidence": "5-player-p3-p5.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "展示值",
-          "sequence": "world",
-          "fields": [
-            "weapon_type"
-          ]
         }
       ],
       "conversions": {},
@@ -4387,7 +4129,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x14",
@@ -4401,7 +4144,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x18",
@@ -4445,7 +4189,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x34",
@@ -4462,7 +4207,8 @@
             "host": "playerweapontechx_modifiers_read",
             "client": "playerweapontechx_modifiers_install",
             "mask": 128
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x38",
@@ -4493,19 +4239,6 @@
           "semantics": "J273 Weapon ctor 写入范围超过 SDK sizeof(Weapon)=0x40；+0x40 字节归属未核",
           "status": "未知",
           "evidence": "J273 Weapon ctor VA 0x9C4EB0 写 this+0x40；player-application.json:62582"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "展示值",
-          "sequence": "world",
-          "fields": [
-            "weapon_type",
-            "max_fire_delay",
-            "charge",
-            "modifiers"
-          ]
         }
       ],
       "conversions": {
@@ -4595,7 +4328,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x14",
@@ -4609,7 +4343,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x18",
@@ -4653,7 +4388,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x34",
@@ -4670,7 +4406,8 @@
             "host": "playerweaponboneaxe_modifiers_read",
             "client": "playerweaponboneaxe_modifiers_install",
             "mask": 2191
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x38",
@@ -4721,19 +4458,6 @@
           "semantics": "动态factory尾部尚未解释；不当填充",
           "status": "未知",
           "evidence": "5-player-p3-p5.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "展示值",
-          "sequence": "world",
-          "fields": [
-            "weapon_type",
-            "max_fire_delay",
-            "charge",
-            "modifiers"
-          ]
         }
       ],
       "conversions": {
@@ -4874,7 +4598,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x34",
@@ -4935,16 +4660,6 @@
           "semantics": "动态攻击链接，Host模拟；不作为展示边",
           "status": "已核",
           "evidence": "5-player-p3-p5.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "展示值",
-          "sequence": "world",
-          "fields": [
-            "weapon_type"
-          ]
         }
       ],
       "conversions": {},
@@ -5023,7 +4738,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x14",
@@ -5037,7 +4753,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x18",
@@ -5081,7 +4798,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x34",
@@ -5098,7 +4816,8 @@
             "host": "playerweaponspiritsword_modifiers_read",
             "client": "playerweaponspiritsword_modifiers_install",
             "mask": 128
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x38",
@@ -5149,19 +4868,6 @@
           "semantics": "动态factory尾部尚未解释；不当填充",
           "status": "未知",
           "evidence": "5-player-p3-p5.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "展示值",
-          "sequence": "world",
-          "fields": [
-            "weapon_type",
-            "max_fire_delay",
-            "charge",
-            "modifiers"
-          ]
         }
       ],
       "conversions": {
@@ -5251,7 +4957,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x14",
@@ -5265,7 +4972,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x18",
@@ -5309,7 +5017,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x34",
@@ -5326,7 +5035,8 @@
             "host": "playerweaponfetus_modifiers_read",
             "client": "playerweaponfetus_modifiers_install",
             "mask": 128
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x38",
@@ -5357,19 +5067,6 @@
           "semantics": "J273 Weapon ctor 写入范围超过 SDK sizeof(Weapon)=0x40；+0x40 字节归属未核",
           "status": "未知",
           "evidence": "J273 Weapon ctor VA 0x9C4EB0 写 this+0x40；player-application.json:62582"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "展示值",
-          "sequence": "world",
-          "fields": [
-            "weapon_type",
-            "max_fire_delay",
-            "charge",
-            "modifiers"
-          ]
         }
       ],
       "conversions": {
@@ -5509,7 +5206,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x34",
@@ -5566,18 +5264,8 @@
             "target": "entity",
             "host": "player_tail_44_to_member",
             "client": "player_tail_44_bind_owner"
-          }
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "展示值",
-          "sequence": "world",
-          "fields": [
-            "weapon_type",
-            "tail_44"
-          ]
+          },
+          "sequence": "world"
         }
       ],
       "conversions": {},
@@ -5604,7 +5292,6 @@
         "rva": 0
       },
       "ranges": [],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "members": [],
@@ -5622,20 +5309,6 @@
         "rva": 0
       },
       "ranges": [],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "展示值",
-          "sequence": "world",
-          "fields": [
-            "participant",
-            "ordinal",
-            "control_session",
-            "binding_revision",
-            "active_anchors"
-          ]
-        }
-      ],
       "conversions": {
         "playercontrolgroup_participant_read": "非Null成员号，身份空间9；不得跨代冲突",
         "playercontrolgroup_participant_install": "非Null成员号，身份空间9；不得跨代冲突",
@@ -5686,7 +5359,8 @@
             "target": "participant",
             "host": "playercontrolgroup_participant_read",
             "client": "playercontrolgroup_participant_install"
-          }
+          },
+          "sequence": "world"
         },
         {
           "name": "ordinal",
@@ -5694,7 +5368,8 @@
           "semantics": "session内冻结的0—3参与者序号",
           "evidence": "5-player-p0-p2.md；5-player-p6-p8.md",
           "host": "playercontrolgroup_ordinal_read",
-          "client": "playercontrolgroup_ordinal_install"
+          "client": "playercontrolgroup_ordinal_install",
+          "sequence": "world"
         },
         {
           "name": "control_session",
@@ -5702,7 +5377,8 @@
           "semantics": "非零已提交控制session",
           "evidence": "5-player-p0-p2.md；5-player-p6-p8.md",
           "host": "playercontrolgroup_control_session_read",
-          "client": "playercontrolgroup_control_session_install"
+          "client": "playercontrolgroup_control_session_install",
+          "sequence": "world"
         },
         {
           "name": "binding_revision",
@@ -5710,7 +5386,8 @@
           "semantics": "非零绑定代次，不与shape或拓扑revision混同",
           "evidence": "5-player-p0-p2.md；5-player-p6-p8.md",
           "host": "playercontrolgroup_binding_revision_read",
-          "client": "playercontrolgroup_binding_revision_install"
+          "client": "playercontrolgroup_binding_revision_install",
+          "sequence": "world"
         },
         {
           "name": "active_anchors",
@@ -5728,9 +5405,11 @@
             "target": "player",
             "host": "playercontrolgroup_active_anchors_read",
             "client": "playercontrolgroup_active_anchors_install"
-          }
+          },
+          "sequence": "world"
         }
-      ]
+      ],
+      "flat": true
     },
     {
       "type": "EntityPlayer",
@@ -5774,13 +5453,9 @@
             "client": "entityplayer_inline_sprites_install",
             "max_bytes": 33554432,
             "fixed_count": 13,
-            "inline_count": 13,
-            "projections": [
-              0,
-              1,
-              2
-            ]
-          }
+            "inline_count": 13
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x1220",
@@ -5800,14 +5475,9 @@
             "limit": 16384,
             "host": "entityplayer__costumeSpriteDescs_read",
             "client": "entityplayer__costumeSpriteDescs_install",
-            "max_bytes": 33554432,
-            "projections": [
-              0,
-              1,
-              2,
-              3
-            ]
-          }
+            "max_bytes": 33554432
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x122C",
@@ -5832,7 +5502,8 @@
             "max_bytes": 33554432,
             "fixed_count": 15,
             "inline_count": 15
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x131C",
@@ -5862,7 +5533,8 @@
             "limit": 2048,
             "host": "entityplayer__headAnim_read",
             "client": "entityplayer__headAnim_install"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x1338",
@@ -5899,7 +5571,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1344",
@@ -5914,7 +5587,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1348",
@@ -5940,7 +5614,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1350",
@@ -5955,7 +5630,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1354",
@@ -5970,7 +5646,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1358",
@@ -5985,7 +5662,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x135C",
@@ -6000,7 +5678,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1360",
@@ -6015,7 +5694,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1361",
@@ -6030,7 +5710,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1362",
@@ -6055,7 +5736,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1368",
@@ -6070,7 +5752,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x136C",
@@ -6127,7 +5810,8 @@
           "wire": {
             "kind": "copy",
             "type": "i16"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1380",
@@ -6152,7 +5836,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x138C",
@@ -6177,7 +5862,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1394",
@@ -6203,7 +5889,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x1399",
@@ -6228,7 +5915,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x139B",
@@ -6253,7 +5941,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x13BC",
@@ -6269,7 +5958,8 @@
             "kind": "copy",
             "type": "i32"
           },
-          "shape": true
+          "shape": true,
+          "sequence": "world"
         },
         {
           "offset": "0x13C0",
@@ -6313,7 +6003,8 @@
             ],
             "host": "player_weapon_slots_read",
             "client": "player_weapon_slots_install"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x13EC",
@@ -6352,7 +6043,8 @@
             "target": "entity",
             "host": "player__heldEntity_to_member",
             "client": "player__heldEntity_bind_owner"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1410",
@@ -6523,7 +6215,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32[6]"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x1500",
@@ -6540,7 +6233,8 @@
           "wire": {
             "kind": "nested",
             "type": "PlayerTemporaryEffects"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1518",
@@ -6751,7 +6445,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1565",
@@ -6829,7 +6524,8 @@
             "max_bytes": 33554432,
             "fixed_count": 4,
             "inline_count": 4
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x15F4",
@@ -6844,7 +6540,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x15F8",
@@ -6925,7 +6622,8 @@
             "kind": "copy",
             "type": "i32"
           },
-          "shape": true
+          "shape": true,
+          "sequence": "world"
         },
         {
           "offset": "0x1614",
@@ -6982,7 +6680,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32[2]"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x16B8",
@@ -7002,7 +6701,8 @@
             "limit": 16384,
             "host": "entityplayer__collectibleCounts_read",
             "client": "entityplayer__collectibleCounts_install"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x16C4",
@@ -7033,7 +6733,8 @@
             "host": "entityplayer__smeltedTrinkets_read",
             "client": "entityplayer__smeltedTrinkets_install",
             "max_bytes": 33554432
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1744",
@@ -7079,7 +6780,8 @@
             "max_bytes": 33554432,
             "fixed_count": 4,
             "inline_count": 4
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x17B0",
@@ -7107,7 +6809,8 @@
           "wire": {
             "kind": "nested",
             "type": "QueueItemData"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x17C4",
@@ -7306,7 +7009,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x18AC",
@@ -7561,7 +7265,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x193C",
@@ -7622,7 +7327,8 @@
           "wire": {
             "kind": "nested",
             "type": "OptionalDrawSequence"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1D68",
@@ -7648,7 +7354,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1D78",
@@ -7716,7 +7423,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1D90",
@@ -7731,7 +7439,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1D94",
@@ -7746,7 +7455,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1D98",
@@ -7761,7 +7471,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1D9C",
@@ -7808,7 +7519,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1DC0",
@@ -7823,7 +7535,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1DC4",
@@ -7888,7 +7601,8 @@
             "host": "entityplayer__afterImageFrames_read",
             "client": "entityplayer__afterImageFrames_install",
             "max_bytes": 33554432
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1E4C",
@@ -7906,7 +7620,8 @@
             "target": "player",
             "host": "player__twinPlayer_to_member",
             "client": "player__twinPlayer_bind_owner"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1E50",
@@ -7924,7 +7639,8 @@
             "target": "player",
             "host": "player__backupPlayer_to_member",
             "client": "player__backupPlayer_bind_owner"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1E54",
@@ -8097,7 +7813,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x1EC4",
@@ -8112,7 +7829,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x1EC8",
@@ -8169,7 +7887,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x1F0C",
@@ -8217,7 +7936,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8[8]"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1F28",
@@ -8245,7 +7965,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1F34",
@@ -8260,7 +7981,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8[6]"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1F3A",
@@ -8285,7 +8007,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x1F58",
@@ -8300,7 +8023,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x1F5C",
@@ -8322,7 +8046,8 @@
             "client": "entityplayer__itemWispsList_install",
             "max_bytes": 33554432,
             "count_from": "entityplayer__itemWispsList_read_logical_count"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1F64",
@@ -8347,7 +8072,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1F98",
@@ -8388,7 +8114,8 @@
             "limit": 16384,
             "host": "entityplayer_extra_collectible_counts_read",
             "client": "entityplayer_extra_collectible_counts_install"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1FBC",
@@ -8408,7 +8135,8 @@
             "limit": 16384,
             "host": "player_extra_trinket_presence_read",
             "client": "player_extra_trinket_presence_install"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1FC8",
@@ -8482,7 +8210,8 @@
             "type": "u8",
             "host": "entityplayer_inventory_suppressed_read",
             "client": "entityplayer_inventory_suppressed_install"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x2011",
@@ -8593,7 +8322,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x207E",
@@ -8706,188 +8436,6 @@
           "status": "已核",
           "evidence": "J273 7A4EE4—7A4F5B，74F320—74F326",
           "read_requires": "current_body_field_witness_same_use_and_binding"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 10,
-          "name": "P0身体标量与headAnim",
-          "sequence": "body",
-          "fields": [
-            "render_topology_revision",
-            "_damageCooldown",
-            "full_sprite_a",
-            "full_sprite_b",
-            "render_scales",
-            "item_state",
-            "_suplexState",
-            "crafting_use_charge",
-            "_eveSumptoriumCharge",
-            "_mawOfTheVoidChargeTimer",
-            "_revelationChargeTimer",
-            "_montezumaChargeTimer",
-            "_headAnim"
-          ]
-        },
-        {
-          "id": 11,
-          "name": "P1展示属性",
-          "sequence": "world",
-          "fields": [
-            "_canFly"
-          ]
-        },
-        {
-          "id": 12,
-          "name": "P2生命与资源",
-          "sequence": "world",
-          "fields": [
-            "_maxHearts",
-            "_redHearts",
-            "_soulHearts",
-            "_blackHearts",
-            "jar_hearts",
-            "jar_flies",
-            "_numKeys",
-            "_hasGoldenKey",
-            "_hasGoldenBomb",
-            "_numBombs",
-            "_numCoins",
-            "extra_lives_adjustment",
-            "_goldenHearts",
-            "_boneHearts",
-            "_brokenHearts",
-            "_rottenHearts",
-            "soul_charge",
-            "blood_charge",
-            "_urnSouls",
-            "_numGigaBombs",
-            "_poopMana",
-            "_isCoopGhost"
-          ]
-        },
-        {
-          "id": 13,
-          "name": "P3库存与口袋",
-          "sequence": "world",
-          "fields": [
-            "_trinketsID",
-            "pocket_items",
-            "queued_item",
-            "_bagOfCraftingContent",
-            "_poopSpellQueue",
-            "inventory_suppressed",
-            "_metronomeCollectibleID",
-            "current_effect_191_id",
-            "_modelingClayEffect",
-            "_collectibleCounts",
-            "_smeltedTrinkets",
-            "_itemWispsList",
-            "extra_collectible_counts",
-            "extra_trinket_counts",
-            "player_item_spoofs"
-          ]
-        },
-        {
-          "id": 14,
-          "name": "P4四主动槽",
-          "sequence": "world",
-          "fields": [
-            "_activeDesc"
-          ]
-        },
-        {
-          "id": 15,
-          "name": "P5五动态Weapon槽",
-          "sequence": "world",
-          "fields": [
-            "_weapon"
-          ]
-        },
-        {
-          "id": 16,
-          "name": "P6服装目录与绘制拓扑",
-          "sequence": "world",
-          "fields": [
-            "costume_topology_revision",
-            "_costumeSpriteDescs#0",
-            "_playerCostumeMap"
-          ]
-        },
-        {
-          "id": 17,
-          "name": "P7关系与身体结构",
-          "sequence": "world",
-          "fields": [
-            "_playerType",
-            "_playerIndex",
-            "_twinPlayer",
-            "_backupPlayer",
-            "_heldEntity",
-            "native_membership",
-            "roster_rank",
-            "control_group",
-            "body_role",
-            "control_flags"
-          ]
-        },
-        {
-          "id": 18,
-          "name": "P8效果残影与当前绘制记录",
-          "sequence": "world",
-          "fields": [
-            "_temporaryeffects",
-            "_afterImageFrames",
-            "current_draw_sequence"
-          ]
-        },
-        {
-          "id": 19,
-          "name": "P0固定13 Sprite投影0",
-          "sequence": "body",
-          "fields": [
-            "inline_sprites#0"
-          ]
-        },
-        {
-          "id": 20,
-          "name": "P0固定13 Sprite投影1",
-          "sequence": "body",
-          "fields": [
-            "inline_sprites#1"
-          ]
-        },
-        {
-          "id": 21,
-          "name": "P0固定13 Sprite投影2",
-          "sequence": "body",
-          "fields": [
-            "inline_sprites#2"
-          ]
-        },
-        {
-          "id": 22,
-          "name": "P0 costume Sprite投影0",
-          "sequence": "body",
-          "fields": [
-            "_costumeSpriteDescs#1"
-          ]
-        },
-        {
-          "id": 23,
-          "name": "P0 costume Sprite投影1",
-          "sequence": "body",
-          "fields": [
-            "_costumeSpriteDescs#2"
-          ]
-        },
-        {
-          "id": 24,
-          "name": "P0 costume Sprite投影2",
-          "sequence": "body",
-          "fields": [
-            "_costumeSpriteDescs#3"
-          ]
         }
       ],
       "conversions": {
@@ -12634,12 +12182,6 @@
         "EntityPlayer"
       ],
       "notes": "第5步正式P0—P8布局；25个物理块，父E6在本类提升body。根UNKNOWN保持3707B；完整性不代表采集/安装/同步已运行。PlayerPlus后半偏移为静态ABI模型，实际访问必须经官方成员owner。第8步最终HUD/显示决定及第9步批次封装仍待实施；不恢复Captured任意查询表。",
-      "block_sequences": {
-        "1": "body",
-        "4": "body",
-        "5": "body",
-        "6": "body"
-      },
       "record_limit": 33554432,
       "body_limit": 65536,
       "companions": [
@@ -12650,7 +12192,8 @@
           "evidence": "EntityPlus.h；ItemSpoofSystem.h；5-player-p3-p5.md",
           "status": "已核",
           "host": "player_existing_spoofs_members",
-          "client": "player_official_spoofs_members_install"
+          "client": "player_official_spoofs_members_install",
+          "sequence": "world"
         }
       ],
       "synthetic_fields": [
@@ -12660,7 +12203,8 @@
           "semantics": "会话统一非零Player绘制拓扑；与已安装P6相等才收body，不能回绕",
           "evidence": "5-player-p0-p2.md；5-player-p6-p8.md",
           "host": "entityplayer_render_topology_revision_read",
-          "client": "entityplayer_render_topology_revision_install"
+          "client": "entityplayer_render_topology_revision_install",
+          "sequence": "body"
         },
         {
           "name": "costume_topology_revision",
@@ -12669,7 +12213,8 @@
           "evidence": "5-player-p0-p2.md；5-player-p6-p8.md",
           "host": "entityplayer_costume_topology_revision_read",
           "client": "entityplayer_costume_topology_revision_install",
-          "shape": true
+          "shape": true,
+          "sequence": "world"
         },
         {
           "name": "native_membership",
@@ -12678,7 +12223,8 @@
           "evidence": "5-player-p0-p2.md；5-player-p6-p8.md",
           "host": "entityplayer_native_membership_read",
           "client": "entityplayer_native_membership_install",
-          "shape": true
+          "shape": true,
+          "sequence": "world"
         },
         {
           "name": "roster_rank",
@@ -12687,7 +12233,8 @@
           "evidence": "5-player-p0-p2.md；5-player-p6-p8.md",
           "host": "entityplayer_roster_rank_read",
           "client": "entityplayer_roster_rank_install",
-          "shape": true
+          "shape": true,
+          "sequence": "world"
         },
         {
           "name": "control_group",
@@ -12703,7 +12250,8 @@
             "host": "entityplayer_control_group_read",
             "client": "entityplayer_control_group_install"
           },
-          "shape": true
+          "shape": true,
+          "sequence": "world"
         },
         {
           "name": "body_role",
@@ -12712,7 +12260,8 @@
           "evidence": "5-player-p0-p2.md；5-player-p6-p8.md",
           "host": "entityplayer_body_role_read",
           "client": "entityplayer_body_role_install",
-          "shape": true
+          "shape": true,
+          "sequence": "world"
         },
         {
           "name": "control_flags",
@@ -12721,7 +12270,8 @@
           "evidence": "5-player-p0-p2.md；5-player-p6-p8.md",
           "host": "entityplayer_control_flags_read",
           "client": "entityplayer_control_flags_install",
-          "shape": true
+          "shape": true,
+          "sequence": "world"
         }
       ],
       "contexts": {

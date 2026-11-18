@@ -12,7 +12,7 @@
 namespace cs::world {
 
 // 观察范围与统一Hook清单对应，不各自建立安装器。
-inline constexpr std::uint32_t kObservationCount = 20;
+inline constexpr std::uint32_t kObservationCount = 21;
 // 生命周期/成员关系边界事件不属于任何一个原生观察入口。
 inline constexpr std::uint32_t kNoObservation = 0xFFFFFFFFu;
 
@@ -36,7 +36,8 @@ enum class Observation : std::uint32_t {
   Door = 16,
   GridFree = 17,
   Spawn = 18,
-  GridCtor = 19
+  GridCtor = 19,
+  EffectInit = 20
 };
 
 // 名称同时用于 lifecycle-events 的 hook 列与 manifest 图例；越界返回

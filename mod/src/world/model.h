@@ -177,7 +177,9 @@ enum class Readiness : std::uint32_t {
   // 具名换槽owner正常完成后的当前存储依据；独立于输入绑定，真实生命周期仍撤销。
   PlayerStateOwnerCompleted = 5,
   // J273 JoinPass直接Factory/Init/Publish的Effect；完整owner返回后授予，不是基础Init。
-  NativeJoinEffectCompleted = 6
+  NativeJoinEffectCompleted = 6,
+  // 直接 Factory 取得的 Effect 已完整初始化并进入当前 Room 的实体列表。
+  NativeDirectEffectPublished = 7
 };
 // 本轮 Authority tick 的类型；0 表示本轮不是有效 Authority 样本。
 enum class AuthorityKind : std::uint32_t { None = 0, StandardRoom = 1, OddPlayer = 2 };

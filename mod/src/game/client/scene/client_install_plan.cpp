@@ -29,19 +29,18 @@ ClientGridShadowRecordView GridRecord(const S::ClientStateInstallPlan &plan,std:
   value.identity={Key(c.scope.run,id),{c.scope.run,c.scope.room,7},id.use,id.shape,c.member_epoch,c.resource_epoch,c.target_version,c.game_frame,r.Member(),id.layout,c.layout_version};
   for(unsigned b=0;b<32;++b)if(const auto block=r.Block(std::uint8_t(b)))value.blocks[b]={value.identity.key,id.use,id.shape,block->version,
     std::uint32_t(block->bytes.size()),id.layout,reinterpret_cast<const std::uint8_t *>(block->bytes.data()),true};
-  return value;
+  value.backing=plan.Effective(S::BodyStream::World);return value;
 }
 // 已解码实例的字段按 record／父路径索引，保留文字及资源目录的原始寿命。
 class DisplayFields final {
 public:
   using Key=std::tuple<std::uint32_t,std::uint32_t,std::uint16_t,std::uint16_t>;
-  using Row=std::pair<const Key,const S::ClientInstallField *>;
+  using Row=std::pair<const Key,S::ClientInstallField>;
   explicit DisplayFields(const S::ClientStateInstallPlan &p):plan(p),
     fields(S::ClientStateAllocator<Row>(p.Memory(),memory::Pool::Workspace)){
-    for(const auto &f:p.Fields()){
-      const auto &d=S::Fields()[f.definition];
-      if((d.layout>=438&&d.layout<=441)||(d.layout>=448&&d.layout<=455))
-        fields.emplace(Key{f.record,p.Paths()[f.path].parent,d.layout,d.index},&f);
+    for(const auto i:p.PresentationFields()){
+      const auto &f=p.Field(i);const auto &d=S::Fields()[f.definition];
+      fields.emplace(Key{f.record,p.Paths()[f.path].parent,d.layout,d.index},f);
     }
   }
   template<class T> T Number(const S::ClientInstallValue &v,unsigned field)const {
@@ -80,15 +79,15 @@ public:
 private:
   std::span<const std::byte> Bytes(const S::ClientInstallValue &v,unsigned field)const {
     const auto i=fields.find({v.record,v.path,v.layout,std::uint16_t(field)});
-    if(i==fields.end()||!i->second->present)Fail(S::StateReadiness::InvalidEncoding,"binary_display_field_missing");
-    return plan.Bytes(i->second->bytes);
+    if(i==fields.end()||!i->second.present)Fail(S::StateReadiness::InvalidEncoding,"binary_display_field_missing");
+    return plan.Bytes(i->second.bytes);
   }
   const S::ClientStateInstallPlan &plan;
-  std::map<Key,const S::ClientInstallField *,std::less<Key>,S::ClientStateAllocator<Row>> fields;
+  std::map<Key,S::ClientInstallField,std::less<Key>,S::ClientStateAllocator<Row>> fields;
 };
 }
 ClientSceneInstallPlan::ClientSceneInstallPlan(std::shared_ptr<const S::ClientStateInstallPlan> s)
-  :state_(std::move(s)),grids_(S::ClientStateAllocator<ClientGridDescription>(state_->Memory())),
+  :state_(std::move(s)),grids_(S::ClientStateAllocator<ClientSceneGridDisplay>(state_->Memory())),
     sounds_(S::ClientStateAllocator<ClientDisplaySound>(state_->Memory())),
     sound_links_(S::ClientStateAllocator<ClientSceneDisplayLinks>(state_->Memory())),
     event_links_(S::ClientStateAllocator<ClientSceneDisplayLinks>(state_->Memory())),
@@ -98,98 +97,125 @@ bool ClientSceneInstallPlan::Releasable()const noexcept {
   if(state_.use_count()>2||display_.use_count()>1)return false;
   if(display_&&display_->StorageReferences()>1)return false;
   if(rooms_&&rooms_->StorageReferences()>(display_?2:1))return false;
-  for(const auto &grid:grids_)if(grid.StorageReferences()>1)return false;
   return true;
 }
-std::shared_ptr<const ClientSceneInstallPlan> ClientBuildSceneInstallPlan(const S::ClientStatePreparedTarget &target) {
-  if(!target.install||!target.candidate||!target.install->Describes(target.candidate)||target.install->Target().route!=target.candidate->Target().route||
-      target.install->Effective(S::BodyStream::World)!=target.effective[0]||target.install->Effective(S::BodyStream::Body)!=target.effective[1])
-    Fail(S::StateReadiness::Lifecycle,"client_scene_plan_target_mismatch");
-  S::ClientStateWorkspace workspace;
-  const auto &plan=*target.install;const auto account=plan.Memory();
-  auto out=std::allocate_shared<ClientSceneInstallPlan>(S::ClientStateAllocator<ClientSceneInstallPlan>(account),target.install);
-  if(!target.candidate->State(S::BodyStream::World))return out;
-  try {
-    DisplayFields f(plan);
+// World 派生描述只展开具名显示投影；格子和物理房间槽各自按项续做。
+struct ClientSceneDescribeWork final:S::ClientStateNativePlanWork {
+  const S::ClientStateInstallPlan &plan;
+  std::shared_ptr<S::ClientStateMemory> account;
+  std::shared_ptr<ClientSceneInstallPlan> out;
+  S::ClientShadowStateRef world;
+  std::shared_ptr<const ClientSceneInstallPlan> prior;
+  S::ClientShadowStateRef prior_world;
+  const S::PresentationBatchContext &c;
+  ClientRoomLevelContext context;
+  DisplayFields f;
+  S::ClientStateVector<ClientRoomDescriptorShadowView> descriptors;
+  S::ClientStateVector<ClientRoomConfigShadowView> configs;
+  S::ClientStateVector<ClientRoomGridMember> grids;
+  std::size_t value=0,grid=0,descriptor=0;
+  ClientSceneDescribeWork(const S::ClientStatePreparedTarget &t,std::shared_ptr<const ClientSceneInstallPlan> previous):
+    plan(*t.install),account(plan.Memory()),
+    out(std::allocate_shared<ClientSceneInstallPlan>(S::ClientStateAllocator<ClientSceneInstallPlan>(account),t.install)),
+    world(plan.Effective(S::BodyStream::World)),prior(std::move(previous)),
+    prior_world(prior&&prior->State().Target().route==plan.Target().route?prior->State().Effective(S::BodyStream::World):nullptr),
+    c(world->Context()),
+    context{{c.scope.run,c.scope.floor,4},{c.scope.run,c.scope.room,7},c.source_revision,c.presentation_batch,c.member_epoch,c.resource_epoch,c.target_version,c.game_frame,c.layout_version},
+    f(plan),descriptors(S::ClientStateAllocator<ClientRoomDescriptorShadowView>(account,memory::Pool::Workspace)),
+    configs(S::ClientStateAllocator<ClientRoomConfigShadowView>(account,memory::Pool::Workspace)),
+    grids(S::ClientStateAllocator<ClientRoomGridMember>(account,memory::Pool::Workspace)) {
     out->events_.resize(plan.Events().size());out->event_links_.resize(plan.Events().size());
-    for(const auto &v:plan.Values()){
-      const auto &record=plan.Records()[v.record];
-      if(v.layout==F::MusicRequestState::kLayout){
-        using namespace F::MusicRequestState;
-        out->music_={f.Number<std::uint64_t>(v,revision),f.Number<std::uint64_t>(v,generation),f.Number<std::uint64_t>(v,jingle_generation),
-          f.Number<int>(v,id),f.Number<int>(v,queued),f.Number<int>(v,jingle_id),f.Number<float>(v,parameter),f.Number<float>(v,fade_rate),
-          f.Number<float>(v,pitch),f.Number<float>(v,target_pitch),f.Number<std::uint8_t>(v,mode),f.Number<std::uint8_t>(v,layers),
-          bool(f.Number<std::uint8_t>(v,paused)),bool(f.Number<std::uint8_t>(v,enabled)),bool(f.Number<std::uint8_t>(v,jingle_active))};
-      }else if(v.layout==F::LoopSoundState::kLayout){
-        using namespace F::LoopSoundState;
-        const auto key=f.Resource(v,asset);
-        out->sounds_.push_back({f.Number<std::uint64_t>(v,instance),f.Number<std::uint64_t>(v,generation),f.Number<int>(v,id),
-          f.Number<float>(v,volume),f.Number<float>(v,pitch),f.Number<float>(v,pan),nullptr,f.Sample(v,key)});
-        out->sound_links_.push_back({S::kClientPlanNone,key});
-      }else if(v.layout==F::BossDisplayState::kLayout){
-        using namespace F::BossDisplayState;
-        auto &boss=out->boss_;
-        boss.generation=f.Number<std::uint64_t>(v,generation);
-        boss.ids[0]=f.Number<unsigned>(v,boss_id1);boss.ids[1]=f.Number<unsigned>(v,boss_id2);
-        boss.index=f.Number<int>(v,room_index);boss.dimension=f.Number<int>(v,dimension);
-      }else if(v.layout==F::BossDisplayPose::kLayout){
-        using namespace F::BossDisplayPose;
-        auto &boss=out->boss_;
-        boss.poses.at(boss.count++)={f.Number<int>(v,key),f.Number<float>(v,frame),bool(f.Number<std::uint8_t>(v,playing))};
-      }else if(v.layout&&record.event!=S::kClientPlanNone){
-        auto &event=out->events_.at(record.event);auto &links=out->event_links_.at(record.event);
-        event.kind=unsigned(plan.Events()[record.event].kind);
-        switch(v.layout){
-          case F::SfxPlayEvent::kLayout:{
-            using namespace F::SfxPlayEvent;
-            links.resource=f.Resource(v,asset);event.sound={0,0,f.Number<int>(v,id),f.Number<float>(v,volume),f.Number<float>(v,pitch),
-              f.Number<float>(v,pan),nullptr,f.Sample(v,links.resource)};break;
-          }
-          case F::ItemBannerEvent::kLayout:
-            links.player=f.Player(v,F::ItemBannerEvent::player);links.resource=f.Resource(v,F::ItemBannerEvent::configuration);
-            event.title=f.Text(v,F::ItemBannerEvent::title);event.subtitle=f.Text(v,F::ItemBannerEvent::subtitle);break;
-          case F::FortuneEvent::kLayout:
-            event.category=f.Text(v,F::FortuneEvent::category);event.index=f.Number<int>(v,F::FortuneEvent::index);break;
-          case F::FortuneLine::kLayout:{
-            const auto i=plan.Paths()[v.path].step.element;
-            event.lines.at(i)=f.Text(v,F::FortuneLine::text);event.line_count=(std::max)(event.line_count,unsigned(i+1));break;
-          }
-          case F::RoomTransitionEvent::kLayout:
-            event.completed=f.Number<std::uint8_t>(v,F::RoomTransitionEvent::completed)!=0;
-            event.index=f.Number<int>(v,event.completed?F::RoomTransitionEvent::final_index:F::RoomTransitionEvent::requested_index);
-            event.dimension=f.Number<int>(v,event.completed?F::RoomTransitionEvent::final_dimension:F::RoomTransitionEvent::dimension);break;
-        }
-      }
-    }
-    if(!out->music_.revision)Fail(S::StateReadiness::SourcePending,"binary_display_music_missing");
-    const auto world=plan.Effective(S::BodyStream::World);const auto &c=world->Context();const auto &w=plan.World();
-    ClientRoomLevelContext context{{c.scope.run,c.scope.floor,4},{c.scope.run,c.scope.room,7},c.source_revision,c.presentation_batch,c.member_epoch,c.resource_epoch,c.target_version,c.game_frame,c.layout_version};
-    S::ClientStateVector<ClientRoomDescriptorShadowView> descriptors{S::ClientStateAllocator<ClientRoomDescriptorShadowView>(account,memory::Pool::Workspace)};
-    S::ClientStateVector<ClientRoomConfigShadowView> configs{S::ClientStateAllocator<ClientRoomConfigShadowView>(account,memory::Pool::Workspace)};
-    S::ClientStateVector<ClientRoomGridMember> grids{S::ClientStateAllocator<ClientRoomGridMember>(account,memory::Pool::Workspace)};
     out->grids_.reserve(plan.Grids().size());grids.reserve(plan.Grids().size());descriptors.reserve(plan.Descriptors().size());
-    for(const auto &g:plan.Grids()) {
-      const auto r=Record(plan,g.object);const auto &id=r.Identity();
-      grids.push_back({Key(c.scope.run,id),context.room,id.use,id.shape,r.Member(),id.layout,std::uint16_t(g.index)});
-      out->grids_.push_back(ClientDescribeGrid(GridRecord(plan,g.object),32u<<20,account));
-    }
-    for(const auto &d:plan.Descriptors()) {
-      descriptors.push_back({d.source_slot,d.ordinary_ordinal,WorldRecord(plan,d.object,context)});
-      const auto r=Record(plan,d.object);
-      // 资源目标来自可信字段表，只收本目标实际引用的两份配置，不加载历史目录。
-      for(const auto &field:r.Fields()) {
-        const auto *definition=S::FindField(r.Identity().layout,field.field);S::BodySourceFieldInfo info;
-        if(!field.present||!definition||definition->operation!=S::Operation::Resource||
-            !S::DescribeBodySourceField(definition->layout,definition->index,info))continue;
-        if(field.bytes.size()!=2)Fail(S::StateReadiness::InvalidEncoding,"client_scene_plan_config_index");
-        std::uint16_t index;std::memcpy(&index,field.bytes.data(),2);if(index==S::kNullIndex)continue;
-        if(std::any_of(configs.begin(),configs.end(),[&](const auto &v){return v.resource==index;}))continue;
-        const auto *entry=S::FindResource(world->Resources()->Directory(),{info.resource_table,index});
-        if(!entry)Fail(S::StateReadiness::MissingClosure,"client_scene_plan_config_missing");
-        configs.push_back({c.resource_epoch,std::uint32_t(entry->payload.size()),index,263,c.layout_version,reinterpret_cast<const std::uint8_t *>(entry->payload.data())});
+  }
+  void Present(const S::ClientInstallValue &v){
+    const auto &record=plan.Records()[v.record];
+    if(v.layout==F::MusicRequestState::kLayout){
+      using namespace F::MusicRequestState;
+      out->music_={f.Number<std::uint64_t>(v,revision),f.Number<std::uint64_t>(v,generation),f.Number<std::uint64_t>(v,jingle_generation),
+        f.Number<int>(v,id),f.Number<int>(v,queued),f.Number<int>(v,jingle_id),f.Number<float>(v,parameter),f.Number<float>(v,fade_rate),
+        f.Number<float>(v,pitch),f.Number<float>(v,target_pitch),f.Number<std::uint8_t>(v,mode),f.Number<std::uint8_t>(v,layers),
+        bool(f.Number<std::uint8_t>(v,paused)),bool(f.Number<std::uint8_t>(v,enabled)),bool(f.Number<std::uint8_t>(v,jingle_active))};
+    }else if(v.layout==F::LoopSoundState::kLayout){
+      using namespace F::LoopSoundState;
+      const auto key=f.Resource(v,asset);
+      out->sounds_.push_back({f.Number<std::uint64_t>(v,instance),f.Number<std::uint64_t>(v,generation),f.Number<int>(v,id),
+        f.Number<float>(v,volume),f.Number<float>(v,pitch),f.Number<float>(v,pan),nullptr,f.Sample(v,key)});
+      out->sound_links_.push_back({S::kClientPlanNone,key});
+    }else if(v.layout==F::BossDisplayState::kLayout){
+      using namespace F::BossDisplayState;
+      auto &boss=out->boss_;
+      boss.generation=f.Number<std::uint64_t>(v,generation);
+      boss.ids[0]=f.Number<unsigned>(v,boss_id1);boss.ids[1]=f.Number<unsigned>(v,boss_id2);
+      boss.index=f.Number<int>(v,room_index);boss.dimension=f.Number<int>(v,dimension);
+    }else if(v.layout==F::BossDisplayPose::kLayout){
+      using namespace F::BossDisplayPose;
+      auto &boss=out->boss_;
+      boss.poses.at(boss.count++)={f.Number<int>(v,key),f.Number<float>(v,frame),bool(f.Number<std::uint8_t>(v,playing))};
+    }else if(v.layout&&record.event!=S::kClientPlanNone){
+      auto &event=out->events_.at(record.event);auto &links=out->event_links_.at(record.event);
+      event.kind=unsigned(plan.Events()[record.event].kind);
+      switch(v.layout){
+        case F::SfxPlayEvent::kLayout:{
+          using namespace F::SfxPlayEvent;
+          links.resource=f.Resource(v,asset);event.sound={0,0,f.Number<int>(v,id),f.Number<float>(v,volume),f.Number<float>(v,pitch),
+            f.Number<float>(v,pan),nullptr,f.Sample(v,links.resource)};break;
+        }
+        case F::ItemBannerEvent::kLayout:
+          links.player=f.Player(v,F::ItemBannerEvent::player);links.resource=f.Resource(v,F::ItemBannerEvent::configuration);
+          event.title=f.Text(v,F::ItemBannerEvent::title);event.subtitle=f.Text(v,F::ItemBannerEvent::subtitle);break;
+        case F::FortuneEvent::kLayout:
+          event.category=f.Text(v,F::FortuneEvent::category);event.index=f.Number<int>(v,F::FortuneEvent::index);break;
+        case F::FortuneLine::kLayout:{
+          const auto i=plan.Paths()[v.path].step.element;
+          event.lines.at(i)=f.Text(v,F::FortuneLine::text);event.line_count=(std::max)(event.line_count,unsigned(i+1));break;
+        }
+        case F::RoomTransitionEvent::kLayout:
+          event.completed=f.Number<std::uint8_t>(v,F::RoomTransitionEvent::completed)!=0;
+          event.final_room=f.Number<std::uint64_t>(v,F::RoomTransitionEvent::final_room);
+          event.index=f.Number<int>(v,event.completed?F::RoomTransitionEvent::final_index:F::RoomTransitionEvent::requested_index);
+          event.dimension=f.Number<int>(v,event.completed?F::RoomTransitionEvent::final_dimension:F::RoomTransitionEvent::dimension);break;
       }
     }
-    ClientRoomLevelShadowView source{WorldRecord(plan,w.room,context),WorldRecord(plan,w.level,context),descriptors,configs,grids};
+  }
+  void AddGrid(const S::ClientInstallGrid &g){
+    const auto r=Record(plan,g.object);const auto &id=r.Identity();
+    grids.push_back({Key(c.scope.run,id),context.room,id.use,id.shape,r.Member(),id.layout,std::uint16_t(g.index)});
+    // 已验证的格子值只在同路由、同实例和全部实际块一致时沿用。
+    if(prior_world)if(const auto before=prior_world->Find(id)){
+      bool same=before->Mask()==r.Mask();
+      for(unsigned b=0;b<32&&same;++b)if(r.Mask()&(std::uint32_t(1)<<b))same=r.SameBlock(*before,std::uint8_t(b));
+      if(same){
+        const auto values=prior->Grids();
+        const auto old=std::lower_bound(values.begin(),values.end(),id,[](const auto &row,const auto &key){return row.member<key;});
+        if(old!=values.end()&&old->member==id&&old->index==g.index){out->grids_.push_back(*old);return;}
+      }
+    }
+    const auto description=ClientDescribeGrid(GridRecord(plan,g.object),32u<<20,account);
+    out->grids_.push_back({id,g.index,description.WaterClipFlags()});
+  }
+  void AddDescriptor(const S::ClientInstallDescriptor &d){
+    descriptors.push_back({d.source_slot,d.ordinary_ordinal,WorldRecord(plan,d.object,context)});
+    const auto r=Record(plan,d.object);
+    // 资源目标来自可信字段表，只收本目标实际引用的两份配置，不加载历史目录。
+    for(const auto &field:r.Fields()) {
+      const auto *definition=S::FindField(r.Identity().layout,field.field);S::BodySourceFieldInfo info;
+      if(!field.present||!definition||definition->operation!=S::Operation::Resource||
+          !S::DescribeBodySourceField(definition->layout,definition->index,info))continue;
+      if(field.bytes.size()!=2)Fail(S::StateReadiness::InvalidEncoding,"client_scene_plan_config_index");
+      std::uint16_t index;std::memcpy(&index,field.bytes.data(),2);if(index==S::kNullIndex)continue;
+      if(std::any_of(configs.begin(),configs.end(),[&](const auto &v){return v.resource==index;}))continue;
+      const auto *entry=S::FindResource(world->Resources()->Directory(),{info.resource_table,index});
+      if(!entry)Fail(S::StateReadiness::MissingClosure,"client_scene_plan_config_missing");
+      configs.push_back({c.resource_epoch,std::uint32_t(entry->payload.size()),index,263,c.layout_version,reinterpret_cast<const std::uint8_t *>(entry->payload.data())});
+    }
+  }
+  bool Step(){
+    if(value<plan.PresentationValues().size()){Present(plan.Value(plan.PresentationValues()[value++]));return false;}
+    if(grid<plan.Grids().size()){AddGrid(plan.Grids()[grid++]);return false;}
+    if(descriptor<plan.Descriptors().size()){AddDescriptor(plan.Descriptors()[descriptor++]);return false;}
+    if(!out->music_.revision)Fail(S::StateReadiness::SourcePending,"binary_display_music_missing");
+    const auto &w=plan.World();
+    ClientRoomLevelShadowView source{WorldRecord(plan,w.room,context),WorldRecord(plan,w.level,context),descriptors,configs,grids,world};
     out->rooms_=ClientDescribeRoomLevel(source,32u<<20,account);
     const auto identity=[&](std::uint32_t i){return plan.Objects()[i].member.identity;};
     out->display_=ClientDescribeDisplayWorld(world,{identity(w.run),identity(w.level),identity(w.room),identity(w.sfx),identity(w.current_descriptor)},*out->rooms_,account);
@@ -200,9 +226,9 @@ std::shared_ptr<const ClientSceneInstallPlan> ClientBuildSceneInstallPlan(const 
        (!boss.generation&&boss.count))Fail(S::StateReadiness::InvalidReference,"binary_boss_baseline_identity");
     for(unsigned n=1;n<boss.count;++n)if(boss.poses[n].key<=boss.poses[n-1].key)
       Fail(S::StateReadiness::InvalidReference,"binary_boss_baseline_pose_keys");
-    return out;
-  }catch(const S::Gap &){Fail(S::StateReadiness::InvalidReference,"client_scene_plan_domain_description");}
-}
+    return true;
+  }
+};
 ClientSceneStatePreparation::ClientSceneStatePreparation(std::shared_ptr<const ClientSceneInstallReadiness> readiness):readiness_(std::move(readiness)) {}
 bool ClientSceneStatePreparation::Available()const noexcept{return readiness_&&readiness_->Available();}
 S::StateReadiness ClientSceneStatePreparation::Inspect(const S::ClientStatePreparedTarget &target,const S::ClientStateTables &tables)const {
@@ -211,7 +237,21 @@ S::StateReadiness ClientSceneStatePreparation::Inspect(const S::ClientStatePrepa
   if(!plan||&plan->State()!=target.install.get())return S::StateReadiness::InvalidEncoding;
   return readiness_->Inspect(*plan,tables);
 }
-std::shared_ptr<const S::ClientStateNativePlan> ClientSceneStatePreparation::Prepare(const S::ClientStatePreparedTarget &target)const {
-  return ClientBuildSceneInstallPlan(target);
+std::shared_ptr<const S::ClientStateNativePlan> ClientSceneStatePreparation::PrepareStep(const S::ClientStatePreparedTarget &t,
+    std::shared_ptr<S::ClientStateNativePlanWork> &work,std::chrono::steady_clock::time_point stop)const {
+  if(!t.install||!t.candidate||!t.install->Describes(t.candidate)||t.install->Target().route!=t.candidate->Target().route||
+      t.install->Effective(S::BodyStream::World)!=t.effective[0]||t.install->Effective(S::BodyStream::Body)!=t.effective[1])
+    Fail(S::StateReadiness::Lifecycle,"client_scene_plan_target_mismatch");
+  const auto account=t.install->Memory();
+  if(!t.candidate->State(S::BodyStream::World))
+    return std::allocate_shared<ClientSceneInstallPlan>(S::ClientStateAllocator<ClientSceneInstallPlan>(account),t.install);
+  S::ClientStateWorkspace workspace;
+  try{
+    if(!work)work=std::allocate_shared<ClientSceneDescribeWork>(S::ClientStateAllocator<ClientSceneDescribeWork>(account),t,last_world_.lock());
+    auto &w=static_cast<ClientSceneDescribeWork &>(*work);
+    do{if(w.Step()){auto result=w.out;last_world_=result;work.reset();return result;}}while(std::chrono::steady_clock::now()<stop);
+    return {};
+  }catch(const S::Gap &){work.reset();Fail(S::StateReadiness::InvalidReference,"client_scene_plan_domain_description");}
+   catch(...){work.reset();throw;}
 }
 } // namespace cs::game

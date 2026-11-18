@@ -19,4 +19,4 @@
 
 ## 独立工程入口
 
-本工程从原研究仓库复制到 F:\projects_isaac\issac_multiplay，保留 cs-t0 层级。当前资料入口为 docs/README.md；按功能整理的点位见 docs/hooks/README.md；新的状态同步方案见 docs/design/state-synchronization.md；REPENTOGON 适配重构设计见 docs/design/repentogon-refactor.md（目标为官方 REPENTOGON 与 v1.9.7.12.J273，原型点位须重新核对）。2026-11-12 起，二进制状态同步改为“只采客机需要的状态、显示交给客机原生代码、帧号方案B”，见 docs/design/binary-state/client-display-delegation.md 与规范第 17 节。历史资料的旧流程不作为当前要求，所有未知与原始失败保留。
+本工程从原研究仓库复制到 F:\projects_isaac\issac_multiplay，保留 cs-t0 层级。当前资料入口为 docs/README.md；按功能整理的点位见 docs/hooks/README.md；新的状态同步方案见 docs/design/state-synchronization.md；REPENTOGON 适配重构设计见 docs/design/repentogon-refactor.md（目标为官方 REPENTOGON 与 v1.9.7.12.J273，原型点位须重新核对）。2026-11-12 起，二进制状态同步改为“只采客机需要的状态、显示交给客机原生代码、帧号方案B”，见 docs/design/binary-state/client-display-delegation.md 与规范第 17 节。2026-11-17 起改为最终一致：ACK 表示接收，客机在一帧内直接写活对象并按对象隔离失败，见 docs/design/binary-state/eventual-consistency-revision.md。历史资料的旧流程不作为当前要求，所有未知与原始失败保留。

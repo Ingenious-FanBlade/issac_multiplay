@@ -23,7 +23,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x4",
@@ -37,7 +38,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x8",
@@ -51,7 +53,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0xC",
@@ -75,7 +78,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x14",
@@ -116,19 +120,6 @@
           "semantics": "Host玩法随机后保存的种子；不冒充Room Light实际使用的SpawnSeed，也不作为Client新建玩法RNG的输入",
           "status": "已核",
           "evidence": "J273 ctor 0x704FFE；hurt_func 0x7056F1等将对象_rng结果写入对象+20；已核绘制/水面/light不消费本字段；grid-common-evidence.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "GD0 描述的实际展示输入",
-          "sequence": "world",
-          "fields": [
-            "type",
-            "variant",
-            "state",
-            "spawn_seed"
-          ]
         }
       ],
       "conversions": {},
@@ -334,7 +325,8 @@
           "wire": {
             "kind": "nested",
             "type": "GridEntityDesc"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x24",
@@ -349,7 +341,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x28",
@@ -394,49 +387,9 @@
           "read_requires": "grid-current-window",
           "wire": {
             "kind": "nested",
-            "type": "GridSprite",
-            "projections": [
-              0,
-              1,
-              2
-            ]
-          }
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "G0 公共描述/位置与最终水面结果",
-          "sequence": "world",
-          "fields": [
-            "desc",
-            "grid_index",
-            "water_clip_flags"
-          ]
-        },
-        {
-          "id": 1,
-          "name": "G1 主Sprite外观",
-          "sequence": "world",
-          "fields": [
-            "sprite#0"
-          ]
-        },
-        {
-          "id": 2,
-          "name": "G2 主Sprite动画",
-          "sequence": "world",
-          "fields": [
-            "sprite#1"
-          ]
-        },
-        {
-          "id": 3,
-          "name": "G3 主Sprite图层",
-          "sequence": "world",
-          "fields": [
-            "sprite#2"
-          ]
+            "type": "GridSprite"
+          },
+          "sequence": "world"
         }
       ],
       "conversions": {
@@ -670,7 +623,8 @@
           "semantics": "同grid-current-window按实际RTTI族得到最终完整u32：六族应用同index官方Plus nullable覆盖（包括有效0）；Lock忽略旁表、按Host collision合成。没有对象偏移，不发optional原值/engaged/地址或命令。",
           "evidence": "docs/design/binary-state/grid-plus-water-source-evidence.md；J273七个WaterClip族与官方1.1.3 DLL六个hook；既有六个C/S wrapper缺Lock，第13步补齐",
           "host": "read_grid_final_water_clip_flags",
-          "client": "install_grid_final_water_clip_flags"
+          "client": "install_grid_final_water_clip_flags",
+          "sequence": "world"
         }
       ],
       "catalog_rows": [
@@ -1033,7 +987,8 @@
           "route": "对象+18 desc.var_data → Host",
           "reason": "852076/85207B注册读写访问器；不能因公共别名重新把Host玩法VarData发回。 与desc.var_data同一Host玩法字，不因旧字段重复出现而恢复传输。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行45原归属=ReplicatedState，新处置不回写旧事实。"
         }
-      ]
+      ],
+      "flat": true
     },
     {
       "type": "GridLayerState",
@@ -1099,7 +1054,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x24",
@@ -1113,7 +1069,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x28",
@@ -1127,7 +1084,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x2C",
@@ -1141,7 +1099,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x30",
@@ -1175,7 +1134,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x33",
@@ -1189,7 +1149,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x34",
@@ -1203,7 +1164,8 @@
           "wire": {
             "kind": "nested",
             "type": "Vector"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x3C",
@@ -1217,7 +1179,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x40",
@@ -1231,7 +1194,8 @@
           "wire": {
             "kind": "nested",
             "type": "Vector"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x48",
@@ -1245,7 +1209,8 @@
           "wire": {
             "kind": "nested",
             "type": "ColorMod"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x74",
@@ -1259,7 +1224,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x75",
@@ -1283,7 +1249,8 @@
           "wire": {
             "kind": "nested",
             "type": "BlendMode"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x8C",
@@ -1297,7 +1264,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x90",
@@ -1311,7 +1279,8 @@
           "wire": {
             "kind": "nested",
             "type": "Vector"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x98",
@@ -1328,38 +1297,8 @@
             "host": "image_base_name_to_resource",
             "client": "image_base_resource_to_smart_pointer",
             "target": "image-table"
-          }
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "贴图资源",
-          "sequence": "body",
-          "fields": [
-            "image_selection"
-          ]
-        },
-        {
-          "id": 1,
-          "name": "图层外观",
-          "sequence": "body",
-          "fields": [
-            "min_filter_mode",
-            "mag_filter_mode",
-            "wrap_s_mode",
-            "wrap_t_mode",
-            "flip_x",
-            "flip_y",
-            "size",
-            "rotation",
-            "position",
-            "color",
-            "visible",
-            "blend_mode",
-            "render_flags",
-            "crop_offset"
-          ]
+          },
+          "sequence": "body"
         }
       ],
       "conversions": {
@@ -1515,7 +1454,19 @@
         }
       ],
       "public_owners": [],
-      "notes": "版本50仅Grid主Sprite图层展示视图；原生LayerState完整0xA0与4B UNKNOWN保留，证据等级不升级。+08路径元数据归Host，实际Image/filter/wrap及完整颜色/几何/混合/可见/flags保留；不能用旧JSON资源路径回读恢复LoadGraphics。见grid-common-synchronization-review.md，正式资源owner仍待第8/10/13步。"
+      "notes": "版本50仅Grid主Sprite图层展示视图；原生LayerState完整0xA0与4B UNKNOWN保留，证据等级不升级。+08路径元数据归Host，实际Image/filter/wrap及完整颜色/几何/混合/可见/flags保留；不能用旧JSON资源路径回读恢复LoadGraphics。见grid-common-synchronization-review.md，正式资源owner仍待第8/10/13步。",
+      "write_groups": [
+        {
+          "fields": [
+            "image_selection",
+            "min_filter_mode",
+            "mag_filter_mode",
+            "wrap_s_mode",
+            "wrap_t_mode"
+          ],
+          "handler": "image_base_resource_to_smart_pointer"
+        }
+      ]
     },
     {
       "type": "GridSprite",
@@ -1549,7 +1500,8 @@
             "host": "anm2_selected_file_to_resource",
             "client": "anm2_selected_file_from_resource",
             "target": "anm2-files"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x18",
@@ -1573,7 +1525,8 @@
           "wire": {
             "kind": "nested",
             "type": "AnimationState"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x50",
@@ -1587,7 +1540,8 @@
           "wire": {
             "kind": "nested",
             "type": "AnimationState"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x70",
@@ -1601,7 +1555,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x71",
@@ -1651,7 +1606,8 @@
             "host": "read_anm2_layer_states",
             "client": "rebuild_anm2_layer_states",
             "count_field": "layer_count"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x80",
@@ -1715,7 +1671,8 @@
           "wire": {
             "kind": "nested",
             "type": "Vector"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x9C",
@@ -1729,7 +1686,8 @@
           "wire": {
             "kind": "nested",
             "type": "Vector"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xA4",
@@ -1743,7 +1701,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xA8",
@@ -1757,7 +1716,8 @@
           "wire": {
             "kind": "nested",
             "type": "ColorMod"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xD4",
@@ -1771,7 +1731,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32[4]"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xE4",
@@ -1795,7 +1756,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x101",
@@ -1809,7 +1771,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x102",
@@ -1833,7 +1796,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x108",
@@ -1887,45 +1851,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "外观与资源",
-          "sequence": "body",
-          "fields": [
-            "file_name",
-            "overlay_render_first",
-            "offset",
-            "scale",
-            "rotation",
-            "color",
-            "champion_color",
-            "flip_x",
-            "flip_y",
-            "playback_speed",
-            "render_flags",
-            "glitch_draw_bits"
-          ]
-        },
-        {
-          "id": 1,
-          "name": "动画与独立选择器",
-          "sequence": "body",
-          "fields": [
-            "main_state",
-            "overlay_state"
-          ]
-        },
-        {
-          "id": 2,
-          "name": "图层状态",
-          "sequence": "body",
-          "fields": [
-            "layer_states"
-          ]
+          },
+          "sequence": "body"
         }
       ],
       "conversions": {
@@ -2141,7 +2068,30 @@
           "semantics": "按Host当前ANM2地址在自有纯值RNG以shift-index35计算两次RandomInt(2)的最终选择：bit0=0为+90/1为-90，bit1为flipX。只发0..3结果，不发地址/随机种子或游标；绑定subject/use/shape/Sprite角色",
           "evidence": "docs/design/binary-state/grid-common-synchronization-review.md；J273 Room Render804500与RenderFrame404570；官方Utils/ANM2Utils.hpp::GetFrameSourceQuad",
           "host": "read_grid_sprite_glitch_draw_bits",
-          "client": "install_grid_sprite_glitch_draw_bits"
+          "client": "install_grid_sprite_glitch_draw_bits",
+          "sequence": "body"
+        }
+      ],
+      "write_groups": [
+        {
+          "fields": [
+            "file_name",
+            "main_state",
+            "overlay_state",
+            "overlay_render_first",
+            "layer_states",
+            "offset",
+            "scale",
+            "rotation",
+            "color",
+            "champion_color",
+            "flip_x",
+            "flip_y",
+            "playback_speed",
+            "render_flags",
+            "glitch_draw_bits"
+          ],
+          "handler": "anm2_selected_file_from_resource"
         }
       ]
     },
@@ -2196,7 +2146,6 @@
           "evidence": "GridEntityPlus.h只有vptr和optional<uint32_t>；MSVC include/optional:70-75；DLL getter261CA4/261CA7按12B寻址，setter1174AB写DWORD但六消费者只读BYTE+8"
         }
       ],
-      "blocks": [],
       "members": [],
       "public_owners": [],
       "contexts": {

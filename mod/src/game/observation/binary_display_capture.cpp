@@ -48,6 +48,7 @@ struct BinaryDisplayCapture::Impl {
   struct Event {CaptureSubject subject;std::uint16_t layout=0;std::uint64_t sequence=0;std::uint32_t frame=0,bytes=0;bool cosmetic=false;StateScope scope;};
   std::array<Event,512> pending{};unsigned event_count=0;std::uint32_t event_bytes=0;
   std::uint64_t next_event=0,transferred_event=0,dropped=0;bool gap=false;
+  CaptureDiagnostic gap_failure;
   std::array<BinarySfxIntent,64> intentions{};unsigned intention_count=0;
   std::uint32_t event_frame=0;
   explicit Impl(std::thread::id owner):thread(owner),events(owner,2u<<20,512),event_scratch({1,1024,2048,160u<<10,16392}) {
@@ -56,7 +57,18 @@ struct BinaryDisplayCapture::Impl {
       std::uint64_t(field_cap)*sizeof(DisplayFieldValue)+byte_cap+std::uint64_t(link_cap)*sizeof(CaptureLink),"host_display_capture");
     nodes.resize(node_cap);fields.resize(field_cap);bytes.resize(byte_cap);links.resize(link_cap);
   }
-  bool Fail(CaptureFailure reason,std::uint16_t layout=237) noexcept {return FailCapture(*diagnostic,reason,{facts.subject,facts.address,0,layout});}
+  bool Fail(CaptureFailure reason,std::uint16_t layout=237,std::source_location origin=std::source_location::current()) noexcept {
+    return FailCapture(*diagnostic,reason,{facts.subject,facts.address,0,layout},kNullIndex,{},origin);
+  }
+  bool GapFailure() noexcept {
+    if(gap_failure.reason!=CaptureFailure::None){*diagnostic=gap_failure;return false;}
+    return Fail(CaptureFailure::Incomplete);
+  }
+  void MarkGap(CaptureFailure reason,std::uint16_t layout,
+               std::source_location origin=std::source_location::current()) noexcept {
+    gap=true;
+    if(gap_failure.reason==CaptureFailure::None)FailCapture(gap_failure,reason,{{},0,0,layout},kNullIndex,{},origin);
+  }
   bool Read(std::uint64_t address,std::span<std::byte> out) noexcept {
     return (read.read&&address&&address<=UINT32_MAX&&out.size()<=(std::uint64_t{1}<<32)-address&&
       read.read(read.context,address,out))||Fail(CaptureFailure::ReadFailed);
@@ -156,13 +168,42 @@ bool BinaryDisplayCapture::Impl::InjectionSnapshot(std::uint32_t node,const Bina
   if(challenge==32){for(const auto &map:maps)if(map.known&&map.descriptor==facts.scene->current_descriptor){
       if(map.owner==game+0x2545c)focus[0]=std::int32_t(map.focus);if(map.owner==game+0x255bc)focus[1]=std::int32_t(map.focus);}
     if(focus[0]<0||focus[1]<0)return Fail(CaptureFailure::MissingQualification,438);}
+  // 从同一正常采集窗口读构建输入。Poop只取有效相位与颜色，粒子和贴图由客机生成。
+  const auto room=std::uint64_t(facts.scene->room);
+  std::int32_t wall_style=0,entry=0,start=0,door=-1,previous=0,return_room=0,poop=0;
+  std::uint32_t phase_flags=0,stage=0,stage_type=0;
+  std::uint8_t fx_loaded=0;
+  std::array<float,2> return_position{};
+  std::array<float,11> poop_color{};
+  if(!Value(room+0x7068,wall_style)||!Value(game,stage)||!Value(game+4,stage_type)||
+     !Value(game+0x25ac4,phase_flags)||!Value(game+0x182d0,start)||!Value(game+0x18304,entry)||
+     !Value(game+0x18308,previous)||!Value(game+0x1831c,door)||!Value(game+0x18328,return_room)||
+     !Value(room+0x1620,fx_loaded))return false;
+  const auto tutorial=std::uint8_t(stage==1&&stage_type!=4&&stage_type!=5&&entry==((phase_flags&0x10000u)?84:start));
+  const auto graphics_flags=std::uint8_t((phase_flags>>14)&3u);
+  const auto return_focus=std::uint8_t(entry>=0&&entry==return_room);
+  if(return_focus&&!Value(game+0x18320,return_position))return false;
+  if(fx_loaded){
+    if(!Value(room+0x164c,poop))return false;
+    if(poop>0&&!Value(room+0x169c,poop_color))return false;
+    if(poop<0)poop=0;
+  }
   const auto blocked=std::uint8_t(input.progress_blocked),qualified=std::uint8_t(eligible);
   return Scalar(node,F::DisplayInjectionState::devil_total,ScalarKind::F32,input.devil_total)&&
     Scalar(node,F::DisplayInjectionState::angel_share,ScalarKind::F32,input.angel_share)&&Scalar(node,F::DisplayInjectionState::deal_qualified,ScalarKind::U8,qualified)&&
     Scalar(node,F::DisplayInjectionState::planetarium,ScalarKind::F32,input.planetarium)&&Scalar(node,F::DisplayInjectionState::progress_blocked,ScalarKind::U8,blocked)&&
     Scalar(node,F::DisplayInjectionState::pill_effects,ScalarKind::I32,Bytes(pills),15)&&Scalar(node,F::DisplayInjectionState::pill_identified,ScalarKind::U8,Bytes(identified),15)&&
     Scalar(node,F::DisplayInjectionState::water_current,ScalarKind::F32,Bytes(current),2)&&Scalar(node,F::DisplayInjectionState::map_focus,ScalarKind::I32,focus[0])&&
-    Scalar(node,F::DisplayInjectionState::map_focus_large,ScalarKind::I32,focus[1]);
+    Scalar(node,F::DisplayInjectionState::map_focus_large,ScalarKind::I32,focus[1])&&
+    Scalar(node,F::DisplayInjectionState::backdrop_wall_style,ScalarKind::I32,wall_style)&&
+    Scalar(node,F::DisplayInjectionState::backdrop_tutorial,ScalarKind::U8,tutorial)&&
+    Scalar(node,F::DisplayInjectionState::room_graphics_flags,ScalarKind::U8,graphics_flags)&&
+    Scalar(node,F::DisplayInjectionState::camera_entry_door,ScalarKind::I32,door)&&
+    Scalar(node,F::DisplayInjectionState::camera_previous_entry,ScalarKind::I32,previous)&&
+    Scalar(node,F::DisplayInjectionState::camera_return_focus,ScalarKind::U8,return_focus)&&
+    Scalar(node,F::DisplayInjectionState::camera_return_position,ScalarKind::F32,Bytes(return_position),2)&&
+    Scalar(node,F::DisplayInjectionState::poop_fx_countdown,ScalarKind::I32,poop)&&
+    Scalar(node,F::DisplayInjectionState::poop_fx_color,ScalarKind::F32,Bytes(poop_color),11);
 }
 bool BinaryDisplayCapture::Impl::OverlaySnapshot(std::uint32_t node) noexcept {
   const auto global=facts.address+0x1c034;bool found=false;for(const auto &owner:overlays)found|=owner.address==global;
@@ -209,7 +250,8 @@ BinaryDisplayCapture::BinaryDisplayCapture(std::thread::id owner):impl_(std::mak
 BinaryDisplayCapture::~BinaryDisplayCapture()=default;
 // 正常原生调用返回后才接收请求；无效id、节流失败与缺资源不伪造成一次播放。
 bool BinaryDisplayCapture::Observe(BinaryProductionKind kind,std::uint32_t object,std::span<const std::uint32_t> args,const CaptureWitness &w,
-    EntityFacts facts,EntitySource &source,BinaryDisplayRead read,std::span<const CaptureReferenceEntry> references,CaptureDiagnostic &d) noexcept {
+    EntityFacts facts,EntitySource &source,BinaryDisplayRead read,std::span<const CaptureReferenceEntry> references,CaptureDiagnostic &d,
+    const CaptureReferenceEntry *event_player) noexcept {
   auto &s=*impl_;if(std::this_thread::get_id()!=s.thread||args.size()<8)return FailCapture(d,CaptureFailure::InvalidWindow,{facts.subject});
   s.Begin(w,facts,read,d);using K=BinaryProductionKind;
   const auto signed_arg=[&](unsigned n){return std::bit_cast<std::int32_t>(args[n]);};
@@ -241,18 +283,6 @@ bool BinaryDisplayCapture::Observe(BinaryProductionKind kind,std::uint32_t objec
     OverlayShown(object,controller);
     return !s.gap||s.Fail(CaptureFailure::ValueBudget,442);
   }
-  if(kind>=K::SfxVolume&&kind<=K::SfxAmbient){
-    const int id=signed_arg(0);const float volume=float_arg(1),pitch=float_arg(2);
-    bool changed=false;
-    for(auto &loop:s.loops){if(!loop.active)continue;
-      const bool stop_all=kind==K::SfxStopLoops,ambient=kind==K::SfxAmbient;
-      if(!stop_all&&(!ambient||loop.ambient!=id)&&loop.id!=id)continue;
-      if(kind==K::SfxStop||stop_all||(ambient&&volume<=0.009999999776482582f)){loop.active=false;changed=true;continue;}
-      if(kind==K::SfxVolume){if(!std::isfinite(volume))return s.Fail(CaptureFailure::InvalidValue,441);if(loop.volume!=volume){loop.volume=volume;changed=true;}}
-      if(kind==K::SfxPitch){if(!std::isfinite(pitch))return s.Fail(CaptureFailure::InvalidValue,441);if(loop.pitch!=pitch){loop.pitch=pitch;changed=true;}}
-    }
-    return !changed||s.Bump(s.loop_revision);
-  }
   if(kind==K::TransitionStart){std::int32_t mode=0,index=0,animation=0,dimension=0;
     // J273 Start：换层活跃且animation!=15时没有接受请求。
     if(args[5]&&signed_arg(2)!=15)return true;
@@ -261,16 +291,31 @@ bool BinaryDisplayCapture::Observe(BinaryProductionKind kind,std::uint32_t objec
     const auto serial=std::uint64_t(args[6])|(std::uint64_t(args[7])<<32);
     if(!serial||serial>s.next_transition)return s.Fail(CaptureFailure::MissingQualification,453);
     CaptureReferenceEntry player;
-    if(args[3]){const auto link=read.reference(read.context,args[3]);const auto entries=read.references?read.references(read.context):references;
-      if((link.kind!=CapturedReferenceKind::Identity&&link.kind!=CapturedReferenceKind::Pending)||!link.handle||link.handle>entries.size())return s.Fail(CaptureFailure::ReferencePending,453);
-      player=entries[std::size_t(link.handle-1)];}
-    std::copy_n(args.begin(),5,s.transition.args.begin());s.transition.args[3]=0;s.transition.player=player;s.transition.sequence=serial;s.transition.active=true;
+    // Start请求的Player参数只标识事件归属；生命周期可撤销字段读取资格，
+    // 不因此丢弃已在入口取得、返回时复核的存活身份。此处不读Player字段。
+    if(args[3]){
+      if(!event_player||event_player->space!=1||!event_player->local||!event_player->use)
+        return s.Fail(CaptureFailure::ReferencePending,453);
+      player=*event_player;
+    }
+    std::copy_n(args.begin(),5,s.transition.args.begin());
+    s.transition.args[3]=0;
+    // 原生 Start 已把负维度解析为当前维度；开始和完成事件使用同一已接受值。
+    s.transition.args[4]=static_cast<std::uint32_t>(dimension);
+    s.transition.player=player;s.transition.sequence=serial;s.transition.active=true;
     // 接受事件仅关联当前旧房；实际目标由ChangeRoom正常完成后另发同序号关联。
   }else if(kind==K::TransitionFinish){if(!s.transition.active)return true;}
   std::uint16_t layout=0;bool cosmetic=true;
   if(kind==K::ItemBanner||kind==K::CustomBanner){layout=449;const auto root=s.Node(layout,7);if(root==UINT32_MAX)return false;
     CaptureLink config{CapturedReferenceKind::Null,0};if(kind==K::ItemBanner&&!source.DisplayItemResource(w,facts,args[1],config,d))return false;
-    if(!s.Link(root,F::ItemBannerEvent::player,args[0]?read.reference(read.context,args[0]):CaptureLink{CapturedReferenceKind::Null,0})||
+    // 拾取期间角色状态可能变更；横幅只登记入口保存、正常返回时复核的同一玩家身份。
+    CaptureLink player{CapturedReferenceKind::Null,0};
+    if(args[0]){
+      if(!event_player||event_player->space!=1||!read.stable_reference)return s.Fail(CaptureFailure::ReferencePending,layout);
+      player=read.stable_reference(read.context,*event_player);
+      if(player.kind==CapturedReferenceKind::Invalid)return s.Fail(CaptureFailure::ReferencePending,layout);
+    }
+    if(!s.Link(root,F::ItemBannerEvent::player,player)||
        !s.Link(root,F::ItemBannerEvent::configuration,config))return false;
     const auto style=std::uint8_t(kind==K::ItemBanner?0:1);
     if(!s.Scalar(root,F::ItemBannerEvent::style,ScalarKind::U8,style))return false;
@@ -380,13 +425,11 @@ bool BinaryDisplayCapture::Impl::BossSnapshot(std::uint32_t node) noexcept {
 }
 bool BinaryDisplayCapture::Prepare(const CaptureWitness &w,EntityFacts &facts,EntitySource &source,BinaryDisplayRead read,const BinaryDisplayInputs &inputs,CaptureDiagnostic &d) noexcept {
   auto &s=*impl_;if(std::this_thread::get_id()!=s.thread||w.phase!=CapturePhase::Ordinary||!facts.scene)return FailCapture(d,CaptureFailure::InvalidWindow,{facts.subject});
-  s.Begin(w,facts,read,d);if(s.gap)return s.Fail(CaptureFailure::Incomplete);
+  s.Begin(w,facts,read,d);if(s.gap)return s.GapFailure();
   // 生命周期内仅暂存接受意图；此处在真实ordinary窗口登记资源并绑定新world，不读旧原生指针。
   while(s.intention_count){const auto &intent=s.intentions[0];s.Begin(w,facts,read,d);
-    if(intent.kind==BinaryProductionKind::SfxPlay){CaptureLink asset;const auto path=std::as_bytes(std::span(intent.path)).first(intent.path_size);
-      if(!source.DisplayAudioPathResource(w,facts,path,asset,d)||!s.SfxIntent(intent,asset,source,{}))return false;
-    }else {std::array<std::uint32_t,8> args{};args[0]=std::uint32_t(intent.id);args[1]=std::bit_cast<std::uint32_t>(intent.volume);args[2]=std::bit_cast<std::uint32_t>(intent.pitch);
-      if(!Observe(intent.kind,facts.manager+0x2a160,args,w,facts,source,read,{},d))return false;}
+    CaptureLink asset;const auto path=std::as_bytes(std::span(intent.path)).first(intent.path_size);
+    if(!source.DisplayAudioPathResource(w,facts,path,asset,d)||!s.SfxIntent(intent,asset,source,{}))return false;
     std::move(s.intentions.begin()+1,s.intentions.begin()+s.intention_count,s.intentions.begin());--s.intention_count;
   }
   s.Begin(w,facts,read,d);
@@ -395,7 +438,7 @@ bool BinaryDisplayCapture::Prepare(const CaptureWitness &w,EntityFacts &facts,En
     if(!mode){std::array<std::uint32_t,8> args{};
       if(!Observe(BinaryProductionKind::TransitionFinish,facts.address+0x1b83c,args,w,facts,source,read,{},d))return false;
       s.Begin(w,facts,read,d);}}
-  const auto root=s.Node(237,6),injection=s.Node(438,10),music=s.Node(439,15),loops=s.Node(441,2),overlays=s.Node(443,1),procedural=s.Node(445,3),boss=s.Node(454,6);
+  const auto root=s.Node(237,6),injection=s.Node(438,19),music=s.Node(439,15),loops=s.Node(441,2),overlays=s.Node(443,1),procedural=s.Node(445,3),boss=s.Node(454,6);
   if(boss==UINT32_MAX||!s.Children(root,F::GameRun::display_injections,injection,1)||!s.Children(root,F::GameRun::music_request,music,1)||
      !s.Children(root,F::GameRun::loop_sounds,loops,1)||!s.Children(root,F::GameRun::item_overlays,overlays,1)||!s.Children(root,F::GameRun::procedural_display,procedural,1)||
      !s.Children(root,F::GameRun::boss_display,boss,1)||!s.InjectionSnapshot(injection,inputs,source)||!s.MusicSnapshot(music,facts.manager)||
@@ -437,7 +480,7 @@ bool BinaryDisplayCapture::Impl::EventStore(std::uint16_t layout,bool cosmetic,E
   pending[event_count++]={facts.subject,layout,next_event,event_frame,size,cosmetic,witness.scope};event_bytes+=size;return true;
 }
 bool BinaryDisplayCapture::Events(const StateScope &scope,CaptureValueWriter &writer,std::uint32_t &count,CaptureDiagnostic &d,CaptureAppendContext context) noexcept {
-  auto &s=*impl_;s.diagnostic=&d;if(s.gap)return s.Fail(CaptureFailure::Incomplete);
+  auto &s=*impl_;s.diagnostic=&d;if(s.gap)return s.GapFailure();
   // 跨房纯外观不重放，当前房事件仍等Peer确认；非外观关联在最终房间完成后生成。
   for(unsigned i=0;i<s.event_count;){const auto &e=s.pending[i];const auto age=std::uint32_t(writer.Witness().game_frame-e.frame);
     if(e.cosmetic&&(e.scope!=scope||(age<0x80000000u&&age>15u))){s.Drop(i);continue;}++i;}
@@ -449,10 +492,18 @@ void BinaryDisplayCapture::MapFocus(std::uint32_t owner,std::uint32_t descriptor
   if(at!=s.maps.end())*at={owner,descriptor,frame,std::uint32_t(std::clamp(std::int32_t(selected),0,169)),true};else s.gap=true;
 }
 void BinaryDisplayCapture::Reset(bool new_run) noexcept {
-  auto &s=*impl_;if(std::this_thread::get_id()!=s.thread)return;s.events.Clear();s.pending={};s.event_count=s.event_bytes=0;s.transferred_event=s.next_event;s.gap=false;s.maps={};
+  auto &s=*impl_;if(std::this_thread::get_id()!=s.thread)return;s.events.Clear();s.pending={};s.event_count=s.event_bytes=0;s.transferred_event=s.next_event;s.gap=false;s.gap_failure={};s.maps={};
   if(new_run){s.music={};s.loops={};s.overlays={};s.transition={};s.boss={};s.loop_revision=1;s.intention_count=0;}
 }
-void BinaryDisplayCapture::Fault() noexcept {impl_->gap=true;}
+void BinaryDisplayCapture::Fault(const CaptureDiagnostic &diagnostic) noexcept {
+  auto &s=*impl_;
+  if(s.gap_failure.reason==CaptureFailure::None&&diagnostic.reason!=CaptureFailure::Incomplete)s.gap_failure=diagnostic;
+  s.gap=true;
+}
+CaptureDiagnostic BinaryDisplayCapture::FirstFailure() const noexcept {
+  const auto &s=*impl_;
+  return std::this_thread::get_id()==s.thread?s.gap_failure:CaptureDiagnostic{};
+}
 std::uint64_t BinaryDisplayCapture::ReserveTransition() noexcept {
   auto &s=*impl_;if(std::this_thread::get_id()!=s.thread)return 0;
   if(s.next_transition==UINT64_MAX){s.gap=true;return 0;}return ++s.next_transition;
@@ -493,9 +544,42 @@ void BinaryDisplayCapture::BootstrapMusic(const BinaryMusicIntent &intent) noexc
 }
 void BinaryDisplayCapture::BootstrapSfx(const BinarySfxIntent &intent) noexcept {
   auto &s=*impl_;if(std::this_thread::get_id()!=s.thread)return;
+  using K=BinaryProductionKind;
+  if(intent.kind!=K::SfxPlay){
+    // 转场内的停止／混音调用作用于循环声音的当前状态。折入已登记或待登记的循环声，
+    // 让逐声道停止不占用下一帧才能绑定到房间的播放队列，保留一次性声音的顺序。
+    const auto control=[&](auto &loop){
+      if(intent.kind==K::SfxStopLoops||
+         (intent.kind==K::SfxStop&&loop.id==intent.id)||
+         (intent.kind==K::SfxAmbient&&(loop.ambient==intent.id||loop.id==intent.id)&&intent.volume<=0.009999999776482582f))return true;
+      if(loop.id==intent.id&&intent.kind==K::SfxVolume)loop.volume=intent.volume;
+      if(loop.id==intent.id&&intent.kind==K::SfxPitch)loop.pitch=intent.pitch;
+      return false;
+    };
+    bool changed=false;
+    for(auto &loop:s.loops)if(loop.active){
+      const auto volume=loop.volume,pitch=loop.pitch;
+      if(control(loop))loop.active=false;
+      changed|=!loop.active||volume!=loop.volume||pitch!=loop.pitch;
+    }
+    if(changed){
+      if(s.loop_revision==UINT64_MAX)s.MarkGap(CaptureFailure::SequenceExhausted,F::LoopSoundState::kLayout);
+      else ++s.loop_revision;
+    }
+    unsigned kept=0;
+    for(unsigned i=0;i<s.intention_count;++i){
+      auto &queued=s.intentions[i];
+      if(queued.loop&&control(queued))continue;
+      if(kept!=i)s.intentions[kept]=std::move(queued);
+      ++kept;
+    }
+    s.intention_count=kept;
+    return;
+  }
   if(s.intention_count==s.intentions.size()){unsigned oldest=s.intention_count;
-    for(unsigned i=0;i<s.intention_count;++i)if(s.intentions[i].kind==BinaryProductionKind::SfxPlay&&!s.intentions[i].loop){oldest=i;break;}
-    if(oldest==s.intention_count){if(intent.kind==BinaryProductionKind::SfxPlay&&!intent.loop){++s.dropped;return;}s.gap=true;return;}
+    for(unsigned i=0;i<s.intention_count;++i)if(!s.intentions[i].loop){oldest=i;break;}
+    if(oldest==s.intention_count){if(!intent.loop){++s.dropped;return;}
+      s.MarkGap(CaptureFailure::ValueBudget,F::LoopSoundState::kLayout);return;}
     std::move(s.intentions.begin()+oldest+1,s.intentions.end(),s.intentions.begin()+oldest);--s.intention_count;++s.dropped;}
   s.intentions[s.intention_count++]=intent;
 }
@@ -503,7 +587,7 @@ std::uint64_t BinaryDisplayCapture::RetainedBytes() const noexcept {const auto &
 std::uint64_t BinaryDisplayCapture::EventWatermark() const noexcept{return impl_->next_event;}
 void BinaryDisplayCapture::EventsTransferred(std::uint64_t watermark) noexcept {
   auto &s=*impl_;if(std::this_thread::get_id()!=s.thread||watermark<=s.transferred_event)return;
-  if(watermark>s.next_event){s.gap=true;return;}
+  if(watermark>s.next_event){s.MarkGap(CaptureFailure::InvalidValue,0);return;}
   for(unsigned i=0;i<s.event_count;)if(s.pending[i].sequence<=watermark)s.Drop(i,false);else ++i;
   s.transferred_event=watermark;
 }

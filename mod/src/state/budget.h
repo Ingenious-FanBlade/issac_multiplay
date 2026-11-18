@@ -9,9 +9,10 @@ struct StateBudgetPolicy {
   std::uint64_t link_bytes_per_second,host_utilization_percent,host_bytes_per_second,peer_bytes_per_second,control_bytes_per_second,world_bytes_per_second,
       body_bytes_per_second,reliable_bytes_per_second;
   std::uint64_t host_burst_bytes,peer_burst_bytes,control_burst_bytes,world_burst_bytes,body_burst_bytes,reliable_burst_bytes;
-  std::uint64_t world_hz,body_hz,ordinary_message_bytes,reliable_message_bytes,prepare_wire_bytes,
+  std::uint64_t world_hz,world_send_window,dynamic_send_bytes,decode_snapshots,decode_failure_limit,capture_failure_limit,
+      native_object_failure_limit,pool_object_missing_limit,body_hz,ordinary_message_bytes,reliable_message_bytes,prepare_wire_bytes,
       prepare_send_ms,prepare_total_ms,progress_ms,recovery_attempts;
-  std::uint64_t world_wait_ms,joint_wait_ms,baseline_wait_ms,body_send_ms,world_send_ms,body_stale_ms,world_stale_ms,
+  std::uint64_t world_wait_ms,baseline_wait_ms,body_send_ms,world_send_ms,body_stale_ms,world_stale_ms,
       ack_repeat_ms,resync_repeat_ms;
   std::uint64_t sent_targets,sent_recovery_slots,sent_target_bytes,sent_age_ms,event_count,event_bytes,event_age_ms,result_cache_groups,table_snapshots;
   std::uint64_t peer_value_bytes,peer_wire_bytes,workspace_job_bytes,workspace_jobs;
@@ -37,12 +38,14 @@ std::uint64_t StateSendWaitLowerBound(std::uint64_t cost,std::uint64_t available
 bool StateOrdinarySendLowerBoundFits(StateLane,const StateWireCost &,std::uint64_t age_ms,
     std::uint64_t lane_credit,std::uint64_t peer_credit,std::uint64_t total_credit);
 
-// owner自行持有正文租约，本队列仅保存两个有界借用描述。替换不延长首次等待期限，
-// 丢候选不丢Host未确认音频事件。普通单body直接应用或丢弃，不进入等待队列。
+// 正文由调用方持有。两个等待槽分别用于普通 World 和 base=0 的可靠基线，替换不延长首次等待期限。
+// 丢候选不丢 Host 未确认音频事件。普通 Body 由接收器独立计费和过期。
 class StatePendingCandidates {
 public:
   bool Offer(const StateTarget &,std::uint64_t now_ms);
   std::optional<StateTarget> At(unsigned slot) const;
+  // 已从此槽同一正文生成持有式候选，改借其不可变字节，保留原期限与票据。
+  void UseDecodedBytes(unsigned slot,std::span<const std::byte>) noexcept;
   void Remove(unsigned slot) noexcept;
   std::uint8_t Expire(std::uint64_t now_ms);
   void Clear() noexcept;
@@ -61,6 +64,7 @@ public:
   bool Attempt(std::uint64_t now_ms);
   bool Charge(std::uint64_t packet_cost,std::uint64_t now_ms);
   void Progress(std::uint64_t now_ms);
+  // 完整可靠基线已收齐，进入同一绝对期限下的原生安装等待。
   void Received(std::uint64_t now_ms);
   // 只在完整成功或明确退休后结束；不得为同一故障反复Finish／Begin续命。
   void Finish() noexcept { active_=false; }

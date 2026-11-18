@@ -1,11 +1,14 @@
 #include "state/capture_values.h"
+#include "core/capture_cost.h"
 #include <algorithm>
+#include <bit>
+#include <cstdio>
 #include <cstring>
 #include <tuple>
 
 namespace cs::state {
 namespace {
-// 规范父路径按整数逐项比较，不计算内容哈希；每根Finish时排序一次，后台二分查找。
+// 规范父路径按整数逐项比较，后台只排序自身索引。
 int ComparePath(std::span<const CodecPathStep> a,std::span<const CodecPathStep> b) noexcept {
   if(std::lexicographical_compare(a.begin(),a.end(),b.begin(),b.end()))return -1;
   if(std::lexicographical_compare(b.begin(),b.end(),a.begin(),a.end()))return 1;
@@ -18,11 +21,45 @@ bool SameKey(const CaptureCell &a,const CaptureCell &b,std::span<const CodecPath
   return std::tie(a.layout,a.field,a.kind,a.aux)==std::tie(b.layout,b.field,b.kind,b.aux) &&
     !ComparePath(paths.subspan(a.path,a.depth),paths.subspan(b.path,b.depth));
 }
+// canonical父路径的投影关系只由生成布局决定。提前归并“哪些父块授权哪个子块”，
+// 热路径仍与本记录实际mask相交，不把World/Body的部分投影扩成完整对象。
+std::uint32_t ProjectedChildMask(const Layout &parent,std::uint16_t canonical,
+    std::uint32_t selected,const Layout &child) {
+  struct Projection {std::uint32_t all=0;std::array<std::uint32_t,32> blocks{};};
+  struct Index {
+    memory::Lease charge;
+    std::vector<Projection> fields;
+    Index():charge(memory::Reserve(memory::Pool::Values,sizeof(Index)+128+Fields().size()*sizeof(Projection),"capture_projection_index")),fields(Fields().size()) {
+      for(const auto &field:Fields()){
+        BodySourceFieldInfo format;if(!DescribeBodySourceField(field.layout,field.index,format))continue;
+        const auto *layout=FindLayout(field.layout);
+        if(!layout||format.canonical>=layout->field_count)throw std::invalid_argument("capture_projection_canonical");
+        auto &projection=fields[layout->first_field+format.canonical];
+        if(field.nested_block==255)projection.all|=std::uint32_t{1}<<field.block;
+        else if(field.nested_block<32)projection.blocks[field.nested_block]|=std::uint32_t{1}<<field.block;
+      }
+      charge->Resize(sizeof(Index)+128+fields.capacity()*sizeof(Projection));
+    }
+  };
+  static const Index index;
+  const auto &projection=index.fields[parent.first_field+canonical];
+  std::uint32_t mask=0;
+  for(std::uint8_t block=0;block<child.block_count;++block)
+    if(Blocks()[child.first_block+block].max_size&&
+       (selected&(projection.all|projection.blocks[block])))mask|=std::uint32_t{1}<<block;
+  return mask;
+}
 // 只允许生成的嵌套／容器／choice路径，禁止把另一个根的同号字段混入本事务。
-bool ValidLocation(std::uint16_t root,std::uint32_t mask,const CodecLocation &location) noexcept {
+bool ValidLocation(std::uint16_t root,std::uint32_t mask,const CodecLocation &location,
+    std::span<CodecPathStep> cached_path,std::span<std::uint16_t> cached_layout,
+    std::span<std::uint32_t> cached_mask,std::size_t &cached_depth) noexcept {
   if(location.parents.size()>kCodecMaxDepth)return false;
   auto expected=root;
+  std::size_t depth=0;
   for(const auto &step:location.parents){
+    // 同一父路径上的相邻字段复用静态投影结果；路径首次分歧即撤销其后的缓存。
+    if(depth<cached_depth && cached_path[depth]==step){expected=cached_layout[depth];mask=cached_mask[depth++];continue;}
+    cached_depth=depth;
     const auto *field=FindField(step.layout,step.field);BodySourceFieldInfo info;
     if(step.layout!=expected || !field || !DescribeBodySourceField(step.layout,step.field,info) ||
        info.canonical!=step.field)return false;
@@ -41,13 +78,9 @@ bool ValidLocation(std::uint16_t root,std::uint32_t mask,const CodecLocation &lo
     const auto *parent=FindLayout(step.layout),*child=FindLayout(expected);
     if(!parent || !child)return false;
     // 多投影共用canonical父路径，但只允许本记录实际选中投影的子块，不扩成整对象。
-    std::uint32_t child_mask=0;
-    for(std::uint16_t i=0;i<parent->field_count;++i){const auto &projection=Fields()[parent->first_field+i];BodySourceFieldInfo projected;
-      if(!(mask&(std::uint32_t{1}<<projection.block)) || !DescribeBodySourceField(parent->id,i,projected) || projected.canonical!=step.field)continue;
-      for(std::uint8_t block=0;block<child->block_count;++block)if(Blocks()[child->first_block+block].max_size &&
-          (projection.nested_block==255 || projection.nested_block==block))child_mask|=std::uint32_t{1}<<block;
-    }
-    mask=child_mask;
+    // 冷索引分配失败沿原受检失败路径返回，不让noexcept读取终止游戏。
+    try{mask=ProjectedChildMask(*parent,step.field,mask,*child);}catch(...){return false;}
+    cached_path[depth]=step;cached_layout[depth]=expected;cached_mask[depth]=mask;cached_depth=++depth;
   }
   BodySourceFieldInfo info;
   const auto *field=FindField(location.layout,location.field);
@@ -59,17 +92,26 @@ bool Overlap(std::span<const std::byte> a,std::span<const std::byte> b) noexcept
   const auto x=reinterpret_cast<std::uintptr_t>(a.data()),y=reinterpret_cast<std::uintptr_t>(b.data());
   return x<=y ? y-x<a.size() : x-y<b.size();
 }
+std::uint32_t StreamMask(const Layout &layout,BodyStream stream) noexcept {
+  std::uint32_t mask=0;
+  for(std::uint8_t i=0;i<layout.block_count;++i){const auto &block=Blocks()[layout.first_block+i];
+    if(block.max_size&&(stream==BodyStream::Value||block.body==(stream==BodyStream::Body)))mask|=std::uint32_t{1}<<i;}
+  return mask;
+}
 [[noreturn]] void SourceGap(const char *reason){throw Gap("captured_body_source",reason);}
+}
+std::uint64_t CaptureBuffer::EstimatedBytes(CaptureCapacity cap) noexcept {
+  return sizeof(CaptureBuffer)+128+std::uint64_t(cap.records)*(sizeof(CaptureRecord)+(cap.joint_clone_source?sizeof(BodyCloneRange):0))+
+    std::uint64_t(cap.cells)*sizeof(CaptureCell)+std::uint64_t(cap.paths)*sizeof(CodecPathStep)+cap.bytes+std::uint64_t(cap.references)*sizeof(CaptureReferenceEntry);
 }
 CaptureBuffer::CaptureBuffer(CaptureCapacity cap) {
   if(!cap.records || !cap.cells || !cap.paths || !cap.bytes)throw std::invalid_argument("capture_capacity");
-  const auto estimate=sizeof(*this)+128+std::uint64_t(cap.records)*sizeof(CaptureRecord)+
-    std::uint64_t(cap.cells)*sizeof(CaptureCell)+std::uint64_t(cap.paths)*sizeof(CodecPathStep)+cap.bytes+std::uint64_t(cap.references)*sizeof(CaptureReferenceEntry);
-  memory_=memory::Reserve(memory::Pool::Values,estimate,"state_capture_buffers");
+  memory_=memory::Reserve(memory::Pool::Values,EstimatedBytes(cap),"state_capture_buffers");
   records_.resize(cap.records);cells_.resize(cap.cells);paths_.resize(cap.paths);bytes_.resize(cap.bytes);references_.resize(cap.references);
+  if(cap.joint_clone_source)body_clone_ranges_.resize(cap.records);
   memory_->Resize(sizeof(*this)+128+std::uint64_t(records_.capacity())*sizeof(CaptureRecord)+
     std::uint64_t(cells_.capacity())*sizeof(CaptureCell)+std::uint64_t(paths_.capacity())*sizeof(CodecPathStep)+bytes_.capacity()+
-    std::uint64_t(references_.capacity())*sizeof(CaptureReferenceEntry));
+    std::uint64_t(references_.capacity())*sizeof(CaptureReferenceEntry)+std::uint64_t(body_clone_ranges_.capacity())*sizeof(BodyCloneRange));
 }
 CaptureValueWriter::CaptureValueWriter(CaptureBuffer &buffer,CaptureWitness witness) noexcept
     :buffer_(buffer),witness_(witness) {
@@ -92,7 +134,16 @@ bool CaptureValueWriter::Append(const CapturePacket &packet,std::uint32_t index,
     if(cell.path>packet.paths.size() || cell.depth>packet.paths.size()-cell.path ||
        cell.offset>packet.bytes.size() || cell.bytes>packet.bytes.size()-cell.offset)return Fail(CaptureFailure::InvalidValue);
     BodySourceFieldInfo format;if(!DescribeBodySourceField(cell.layout,cell.field,format))return Fail(CaptureFailure::UnknownLayout);
-    const CodecLocation location{packet.paths.subspan(cell.path,cell.depth),cell.layout,cell.field,format.canonical};
+    CodecLocation location{packet.paths.subspan(cell.path,cell.depth),cell.layout,cell.field,format.canonical};
+    // 跨块投影的计数使用 canonical 键，原字段可能属于另一流。找同键的实际选中投影做受检克隆。
+    if(CanonicalKey(cell.kind)&&!Allows(location)){
+      const auto *layout=FindLayout(cell.layout);bool selected=false;
+      for(std::uint16_t f=0;f<layout->field_count;++f){BodySourceFieldInfo other;
+        if(!DescribeBodySourceField(cell.layout,f,other)||other.canonical!=cell.field)continue;
+        location.field=f;location.canonical_field=cell.field;
+        if(Allows(location)){selected=true;break;}}
+      if(!selected)return Fail(CaptureFailure::InvalidTransaction,cell.field,location.parents);
+    }
     if(!Put(location,cell.kind,cell.scalar,cell.count,cell.aux,packet.bytes.subspan(cell.offset,cell.bytes)))return false;
     if(cell.kind==CaptureCellKind::References){
       if(cell.bytes!=std::uint64_t(cell.count)*9)return Fail(CaptureFailure::InvalidValue,cell.field,location.parents);
@@ -108,6 +159,78 @@ bool CaptureValueWriter::Append(const CapturePacket &packet,std::uint32_t index,
   }
   return FinishRoot();
 }
+// 只借用本帧仍由主线程持有的 ordinary writer，批量复制三段后仅重定位条目和重映射引用。
+bool CaptureValueWriter::CloneOrdinaryBody(const CaptureValueWriter &source,std::uint32_t index,CaptureSubject subject,
+    std::uint16_t layout,std::span<const CaptureReferenceEntry> references,CaptureAppendContext context,
+    capture::BodyCloneCounts &work) noexcept {
+  if(open_||sealed_||catalog_set_||records_||diagnostic_.reason!=CaptureFailure::None)return Fail(CaptureFailure::InvalidTransaction);
+  root_={subject,0,0,layout};
+  if(&source.buffer_==&buffer_||source.open_||source.sealed_||source.diagnostic_.reason!=CaptureFailure::None||
+     index>=source.records_||index>=source.buffer_.body_clone_ranges_.size())return Fail(CaptureFailure::InvalidTransaction);
+  const auto &prior=source.witness_;
+  if(prior.phase!=CapturePhase::Ordinary||witness_.phase!=CapturePhase::PlayerPost||witness_.required_revision!=prior.revision||
+     witness_.scope!=prior.scope||witness_.generation!=prior.generation||witness_.outer!=prior.outer||witness_.tick!=prior.tick||
+     witness_.owner!=prior.owner||witness_.batch!=prior.batch||witness_.mutation!=prior.mutation||witness_.game_frame!=prior.game_frame)
+    return Fail(CaptureFailure::InvalidWindow);
+  const auto &record=source.buffer_.records_[index];const auto &range=source.buffer_.body_clone_ranges_[index];
+  const auto *description=FindLayout(layout);
+  if(!description||record.layout!=layout||record.subject!=subject||record.stream!=BodyStream::Body||record.purpose||
+     !record.fast_body||range.path==UINT32_MAX||!record.mask||record.mask!=StreamMask(*description,BodyStream::Body))
+    return Fail(CaptureFailure::InvalidTransaction);
+  const auto cell_end=std::uint64_t(record.first_cell)+record.cell_count;
+  const auto path_end=std::uint64_t(range.path)+range.paths;
+  const auto byte_end=std::uint64_t(range.byte)+range.bytes;
+  if(cell_end>source.cells_||path_end>source.paths_||byte_end>source.bytes_||
+     (range.reference_first==UINT32_MAX?range.reference_end!=0:
+      range.reference_first<record.first_cell||range.reference_first>=range.reference_end||range.reference_end>cell_end))
+    return Fail(CaptureFailure::InvalidValue);
+  const CodecLocation location{{},layout,kNullIndex,kNullIndex};
+  if(std::uint64_t(cells_)+record.cell_count>buffer_.cells_.size())return FailCapacity(location,"cells",cells_,buffer_.cells_.size(),record.cell_count);
+  if(std::uint64_t(paths_)+range.paths>buffer_.paths_.size())return Fail(CaptureFailure::PathBudget);
+  if(std::uint64_t(bytes_)+range.bytes>buffer_.bytes_.size())return FailCapacity(location,"bytes",bytes_,buffer_.bytes_.size(),range.bytes);
+  if(!OpenRoot(subject,layout,BodyStream::Body,record.mask))return false;
+  const auto reject=[&](CaptureFailure reason,const CaptureCell &cell,std::span<const CodecPathStep> parents={}){
+    FailCapture(diagnostic_,reason,{subject,0,0,cell.layout},cell.field,parents);
+    AbortRoot();return false;
+  };
+  auto copied=std::span(buffer_.cells_).subspan(cells_,record.cell_count);
+  std::copy_n(source.buffer_.cells_.begin()+record.first_cell,record.cell_count,copied.begin());
+  std::copy_n(source.buffer_.paths_.begin()+range.path,range.paths,buffer_.paths_.begin()+paths_);
+  std::copy_n(source.buffer_.bytes_.begin()+range.byte,range.bytes,buffer_.bytes_.begin()+bytes_);
+  work.cells=record.cell_count;work.paths=range.paths;work.bytes=range.bytes;
+  auto reference_limit=reference_limit_;
+  for(std::uint32_t i=0;i<copied.size();++i){auto &cell=copied[i];
+    // 零深度和零长度可指向各自范围的末端；实际切片不得越出源根。
+    if(cell.depth>kCodecMaxDepth||cell.path<range.path||std::uint64_t(cell.path)+cell.depth>path_end||
+       cell.offset<range.byte||std::uint64_t(cell.offset)+cell.bytes>byte_end)return reject(CaptureFailure::InvalidValue,cell);
+    const auto source_offset=cell.offset;
+    cell.path=paths_+(cell.path-range.path);cell.offset=bytes_+(cell.offset-range.byte);
+    if(cell.kind!=CaptureCellKind::References)continue;
+    const auto parents=std::span(buffer_.paths_).subspan(cell.path,cell.depth);
+    const auto ordinal=record.first_cell+i;
+    if(cell.aux!=255||cell.bytes!=std::uint64_t(cell.count)*9||
+       (cell.count&&(ordinal<range.reference_first||ordinal>=range.reference_end)))
+      return reject(CaptureFailure::InvalidValue,cell,parents);
+    const auto *from=source.buffer_.bytes_.data()+source_offset;
+    auto *to=buffer_.bytes_.data()+cell.offset;
+    for(std::uint32_t element=0;element<cell.count;++element,from+=9,to+=9){
+      const auto kind=CapturedReferenceKind(std::to_integer<unsigned>(from[0]));std::uint64_t handle=0;
+      for(unsigned j=0;j<8;++j)handle|=std::uint64_t(std::to_integer<unsigned>(from[j+1]))<<(8*j);
+      if(kind==CapturedReferenceKind::Null){if(handle)return reject(CaptureFailure::InvalidValue,cell,parents);continue;}
+      if((kind!=CapturedReferenceKind::Identity&&kind!=CapturedReferenceKind::Pending)||!handle||handle>references.size()||!context.reference)
+        return reject(CaptureFailure::ReferencePending,cell,parents);
+      const auto mapped=context.reference(context.owner,references[std::size_t(handle-1)]);
+      if(!mapped.handle||(mapped.kind!=CapturedReferenceKind::Identity&&mapped.kind!=CapturedReferenceKind::Pending))
+        return reject(CaptureFailure::ReferencePending,cell,parents);
+      // 身份目录可改变号位，原条目的 Null／Identity／Pending 语义保持。
+      for(unsigned j=0;j<8;++j)to[j+1]=std::byte(mapped.handle>>(8*j));
+      reference_limit=std::max(reference_limit,mapped.handle);++work.references;
+    }
+  }
+  cells_+=record.cell_count;paths_+=range.paths;bytes_+=range.bytes;
+  reference_limit_=reference_limit;
+  return FinishRoot();
+}
 bool CaptureValueWriter::Fail(CaptureFailure reason,std::uint16_t field,std::span<const CodecPathStep> parents) noexcept {
   auto location=root_;
   if(!parents.empty()){const auto &last=parents.back();const auto *parent=FindField(last.layout,last.field);
@@ -119,42 +242,148 @@ bool CaptureValueWriter::Fail(const CaptureDiagnostic &diagnostic) noexcept {
   if(diagnostic_.reason==CaptureFailure::None)Fail(CaptureFailure::Incomplete);
   return false;
 }
+bool CaptureValueWriter::FailCapacity(const CodecLocation &loc,const char *arena,std::size_t used,
+    std::size_t limit,std::uint64_t requested) noexcept {
+  // 回卷前保留具体耗尽的区、剩余额度和本次请求，避免只看到被截断的字段号。
+  if(diagnostic_.reason==CaptureFailure::None){
+    Fail(CaptureFailure::ValueBudget,loc.field,loc.parents);
+    std::snprintf(diagnostic_.detail.data(),diagnostic_.detail.size(),"arena=%s roots=%u used=%zu limit=%zu requested=%llu",
+      arena,records_,used,limit,static_cast<unsigned long long>(requested));
+  }
+  return false;
+}
 bool CaptureValueWriter::BeginRoot(CaptureSubject subject,std::uint16_t layout,BodyStream stream,std::uint32_t mask) noexcept {
   if(diagnostic_.reason!=CaptureFailure::None)return false;
-  if(open_||sealed_)return Fail(CaptureFailure::InvalidTransaction);
+  if(open_||sealed_||catalog_set_)return Fail(CaptureFailure::InvalidTransaction);
   root_={subject,0,0,layout};
   const auto *description=FindLayout(layout);BodySourceFieldInfo ignored;
   if(!description || (description->field_count && !DescribeBodySourceField(layout,0,ignored)))return Fail(CaptureFailure::UnknownLayout);
   if(!subject.space || !subject.local || !subject.use ||
      (stream!=BodyStream::Value && stream!=BodyStream::World && stream!=BodyStream::Body))return Fail(CaptureFailure::InvalidValue);
-  std::uint32_t allowed=0;
-  for(std::uint8_t i=0;i<description->block_count;++i){const auto &block=Blocks()[description->first_block+i];
-    if(block.max_size && (stream==BodyStream::Value || block.body==(stream==BodyStream::Body)))allowed|=std::uint32_t{1}<<i;}
+  const auto allowed=StreamMask(*description,stream);
   if((mask&~allowed) || (stream!=BodyStream::Value && !mask) || (stream==BodyStream::Value && mask!=allowed))return Fail(CaptureFailure::InvalidValue);
+  return OpenRoot(subject,layout,stream,mask);
+}
+// 已绑定执行器持有确切的流掩码；公共入口先核调用方提供的掩码。
+bool CaptureValueWriter::OpenRoot(CaptureSubject subject,std::uint16_t layout,BodyStream stream,std::uint32_t mask) noexcept {
+  if(diagnostic_.reason!=CaptureFailure::None)return false;
+  if(open_||sealed_||catalog_set_)return Fail(CaptureFailure::InvalidTransaction);
+  root_={subject,0,0,layout};
+  if(!subject.space || !subject.local || !subject.use || (!mask && stream!=BodyStream::Value))return Fail(CaptureFailure::InvalidValue);
   if(records_>=buffer_.records_.size())return Fail(CaptureFailure::RecordBudget);
-  mark_cells_=cells_;mark_paths_=paths_;mark_bytes_=bytes_;open_=true;
+  mark_cells_=cells_;mark_paths_=paths_;mark_bytes_=bytes_;open_=true;allowed_depth_=0;
+  shared_body_=false;first_reference_cell_=UINT32_MAX;last_reference_end_=0;
+  if(!buffer_.body_clone_ranges_.empty())buffer_.body_clone_ranges_[records_]={};
   buffer_.records_[records_]={subject,layout,stream,mask,cells_,0};return true;
 }
 bool CaptureValueWriter::Put(const CodecLocation &location,CaptureCellKind kind,ScalarKind scalar,
     std::uint32_t count,std::uint16_t aux,std::span<const std::byte> value) noexcept {
-  if(diagnostic_.reason!=CaptureFailure::None)return false;
   if(!Allows(location))return Fail(CaptureFailure::InvalidTransaction,location.field,location.parents);
-  if(cells_>=buffer_.cells_.size())return Fail(CaptureFailure::ValueBudget,location.field,location.parents);
-  if(location.parents.size()>buffer_.paths_.size()-paths_)return Fail(CaptureFailure::PathBudget,location.field,location.parents);
-  if(value.size()>buffer_.bytes_.size()-bytes_ || value.size()>UINT32_MAX)return Fail(CaptureFailure::ValueBudget,location.field,location.parents);
+  return Store(location,kind,scalar,count,aux,value,nullptr);
+}
+// 两个入口共用事务和容量保护。绑定路径只在该实例首次写入时复制，返回父实例可继续使用同一偏移。
+bool CaptureValueWriter::Store(const CodecLocation &location,CaptureCellKind kind,ScalarKind scalar,
+    std::uint32_t count,std::uint16_t aux,std::span<const std::byte> value,BoundPath *bound) noexcept {
+  if(diagnostic_.reason!=CaptureFailure::None)return false;
+  if(!open_||sealed_)return Fail(CaptureFailure::InvalidTransaction,location.field,location.parents);
+  if(cells_>=buffer_.cells_.size())return FailCapacity(location,"cells",cells_,buffer_.cells_.size(),1);
+  if(value.size()>buffer_.bytes_.size()-bytes_)return FailCapacity(location,"bytes",bytes_,buffer_.bytes_.size(),value.size());
+  auto path=paths_;
+  if(bound && bound->offset!=UINT32_MAX)path=bound->offset;
+  else if(cells_>mark_cells_){const auto &prior=buffer_.cells_[cells_-1];
+    if(prior.depth==location.parents.size()&&std::equal(location.parents.begin(),location.parents.end(),buffer_.paths_.begin()+prior.path))path=prior.path;}
+  if(path==paths_){
+    if(location.parents.size()>buffer_.paths_.size()-paths_)return Fail(CaptureFailure::PathBudget,location.field,location.parents);
+    std::copy(location.parents.begin(),location.parents.end(),buffer_.paths_.begin()+paths_);paths_+=std::uint32_t(location.parents.size());
+  }
+  if(bound)bound->offset=path;
   auto &cell=buffer_.cells_[cells_++];
-  cell={paths_,bytes_,std::uint32_t(value.size()),count,location.layout,
+  cell={path,bytes_,std::uint32_t(value.size()),count,location.layout,
     CanonicalKey(kind)?location.canonical_field:location.field,aux,std::uint8_t(location.parents.size()),kind,scalar};
-  std::copy(location.parents.begin(),location.parents.end(),buffer_.paths_.begin()+paths_);paths_+=std::uint32_t(location.parents.size());
   if(!value.empty())std::memmove(buffer_.bytes_.data()+bytes_,value.data(),value.size());
   bytes_+=std::uint32_t(value.size());return true;
 }
+// 只由绑定计划使用。复制段直接进入本根 arena，字段条目引用已经保留的切片。
+std::span<std::byte> CaptureValueWriter::ReserveScalars(std::uint32_t size,const CodecLocation &loc) noexcept {
+  if(!open_||sealed_||diagnostic_.reason!=CaptureFailure::None){
+    Fail(CaptureFailure::ValueBudget,loc.field,loc.parents);return {};}
+  if(size>buffer_.bytes_.size()-bytes_){FailCapacity(loc,"bytes",bytes_,buffer_.bytes_.size(),size);return {};}
+  const auto first=bytes_;bytes_+=size;return std::span(buffer_.bytes_).subspan(first,size);
+}
+bool CaptureValueWriter::PutScalarSlice(const CodecLocation &loc,ScalarKind scalar,std::uint32_t count,std::span<const std::byte> value) noexcept {
+  CaptureWrittenValue ignored;
+  if(!Allows(loc))return Fail(CaptureFailure::InvalidTransaction,loc.field,loc.parents);
+  return SetSlice(loc,nullptr,scalar,CaptureScalarWidth(scalar),count,value,ignored);
+}
+bool CaptureValueWriter::SetSlice(const CodecLocation &loc,BoundPath *path,ScalarKind scalar,std::uint32_t width,
+    std::uint32_t count,std::span<const std::byte> value,CaptureWrittenValue &written) noexcept {
+  const auto first=reinterpret_cast<std::uintptr_t>(buffer_.bytes_.data());
+  const auto pointer=reinterpret_cast<std::uintptr_t>(value.data());
+  if(!width||std::uint64_t(count)*width!=value.size()||pointer<first||pointer-first<mark_bytes_||
+     pointer-first>bytes_||value.size()>bytes_-(pointer-first))return Fail(CaptureFailure::InvalidValue,loc.field,loc.parents);
+  // 同一递归实例的父路径已由首字段登记；连续复制段也已进入本根arena。
+  // 直接登记最终切片，避免先写空cell再覆盖offset/bytes；事务、容量和切片归属检查保持。
+  if(path&&path->offset!=UINT32_MAX){
+    if(diagnostic_.reason!=CaptureFailure::None)return false;
+    if(!open_||sealed_)return Fail(CaptureFailure::InvalidTransaction,loc.field,loc.parents);
+    if(cells_>=buffer_.cells_.size())return FailCapacity(loc,"cells",cells_,buffer_.cells_.size(),1);
+    buffer_.cells_[cells_++]={path->offset,std::uint32_t(pointer-first),std::uint32_t(value.size()),count,
+      loc.layout,loc.field,0,std::uint8_t(loc.parents.size()),CaptureCellKind::Scalar,scalar};
+    written={scalar,count,0,value};return true;
+  }
+  if(!Store(loc,CaptureCellKind::Scalar,scalar,count,0,{},path))return false;
+  auto &cell=buffer_.cells_[cells_-1];cell.offset=std::uint32_t(pointer-first);cell.bytes=std::uint32_t(value.size());
+  written={scalar,count,0,value};return true;
+}
+// 模板在冷准备期已证明逐字段宽度和无缝覆盖；一次核arena／cell总容量和实例路径。
+// 仍为每个字段登记独立cell，数值validator由执行器逐字段执行；失败由整根事务回卷。
+bool CaptureValueWriter::WriteBoundScalarBatch(const CodecLocation &loc,BoundPath &path,
+    std::span<const CaptureCell> cells,std::span<const std::byte> value) noexcept {
+  if(diagnostic_.reason!=CaptureFailure::None)return false;
+  if(!open_||sealed_)return Fail(CaptureFailure::InvalidTransaction,loc.field,loc.parents);
+  const auto first=reinterpret_cast<std::uintptr_t>(buffer_.bytes_.data());
+  const auto pointer=reinterpret_cast<std::uintptr_t>(value.data());
+  if(cells.empty()||cells.front().offset||std::uint64_t(cells.back().offset)+cells.back().bytes!=value.size()||
+     pointer<first||pointer-first<mark_bytes_||pointer-first>bytes_||value.size()>bytes_-(pointer-first))
+    return Fail(CaptureFailure::InvalidValue,loc.field,loc.parents);
+  if(cells.size()>buffer_.cells_.size()-cells_){
+    auto failure=loc;failure.field=failure.canonical_field=cells[buffer_.cells_.size()-cells_].field;
+    return FailCapacity(failure,"cells",cells_,buffer_.cells_.size(),cells.size());
+  }
+  if(path.offset==UINT32_MAX){
+    auto offset=paths_;
+    if(cells_>mark_cells_){const auto &prior=buffer_.cells_[cells_-1];
+      if(prior.depth==loc.parents.size()&&std::equal(loc.parents.begin(),loc.parents.end(),buffer_.paths_.begin()+prior.path))offset=prior.path;}
+    if(offset==paths_){
+      if(loc.parents.size()>buffer_.paths_.size()-paths_)return Fail(CaptureFailure::PathBudget,loc.field,loc.parents);
+      std::copy(loc.parents.begin(),loc.parents.end(),buffer_.paths_.begin()+paths_);paths_+=std::uint32_t(loc.parents.size());
+    }
+    path.offset=offset;
+  }
+  auto destination=std::span(buffer_.cells_).subspan(cells_,cells.size());
+  std::copy(cells.begin(),cells.end(),destination.begin());
+  for(auto &cell:destination){cell.path=path.offset;cell.offset+=std::uint32_t(pointer-first);cell.depth=std::uint8_t(loc.parents.size());}
+  cells_+=std::uint32_t(cells.size());return true;
+}
+bool CaptureValueWriter::WriteBound(const CodecLocation &loc,BoundPath &path,CaptureCellKind kind,
+    std::uint32_t value,std::uint16_t aux) noexcept {
+  const auto scalar=kind==CaptureCellKind::Resources||kind==CaptureCellKind::References?ScalarKind::U16:ScalarKind::None;
+  return Store(loc,kind,scalar,value,aux,{},&path);
+}
+// 宽度由冷绑定提供，实际数量和切片归属继续检查；返回值直接供 selector／validator 消费。
+bool CaptureValueWriter::WriteBoundScalar(const CodecLocation &loc,BoundPath &path,ScalarKind scalar,
+    std::uint32_t width,std::uint32_t count,std::span<const std::byte> value,bool slice,CaptureWrittenValue &written) noexcept {
+  if(slice)return SetSlice(loc,&path,scalar,width,count,value,written);
+  if(!width||std::uint64_t(count)*width!=value.size())return Fail(CaptureFailure::InvalidValue,loc.field,loc.parents);
+  if(!Store(loc,CaptureCellKind::Scalar,scalar,count,0,value,&path))return false;
+  written={scalar,count,0,std::span(buffer_.bytes_).subspan(bytes_-value.size(),value.size())};return true;
+}
 bool CaptureValueWriter::Allows(const CodecLocation &location) const noexcept {
   return open_ && !sealed_ && diagnostic_.reason==CaptureFailure::None &&
-    ValidLocation(root_.layout,buffer_.records_[records_].mask,location);
+    ValidLocation(root_.layout,buffer_.records_[records_].mask,location,allowed_path_,allowed_layout_,allowed_mask_,allowed_depth_);
 }
 bool CaptureValueWriter::LastValue(const CodecLocation &location,CaptureCellKind kind,CaptureWrittenValue &out) const noexcept {
-  out={};if(!Allows(location) || cells_==mark_cells_)return false;
+  out={};if(!open_||sealed_||diagnostic_.reason!=CaptureFailure::None||cells_==mark_cells_)return false;
   const auto &cell=buffer_.cells_[cells_-1];
   if(cell.layout!=location.layout || cell.field!=(CanonicalKey(kind)?location.canonical_field:location.field) ||
      cell.kind!=kind || ComparePath(std::span(buffer_.paths_).subspan(cell.path,cell.depth),location.parents))return false;
@@ -206,48 +435,68 @@ bool CaptureValueWriter::PutLinks(const CodecLocation &location,bool resource,st
       link.kind==CapturedReferenceKind::Invalid || unsigned(link.kind)>unsigned(CapturedReferenceKind::Invalid))
     return Fail(CaptureFailure::InvalidValue,location.field,location.parents);
   // 固定9B的自有编码排除C++ padding；后续memcmp不受调用者栈上填充字节影响。
-  if(std::uint64_t(links.size())*9>buffer_.bytes_.size()-bytes_)return Fail(CaptureFailure::ValueBudget,location.field,location.parents);
+  if(std::uint64_t(links.size())*9>buffer_.bytes_.size()-bytes_)
+    return FailCapacity(location,"bytes",bytes_,buffer_.bytes_.size(),std::uint64_t(links.size())*9);
   if(!Put(location,resource?CaptureCellKind::Resources:CaptureCellKind::References,ScalarKind::U16,
           std::uint32_t(links.size()),table,{}))return false;
   auto &cell=buffer_.cells_[cells_-1];cell.bytes=std::uint32_t(links.size()*9);
+  if(!resource&&!links.empty()&&!buffer_.body_clone_ranges_.empty()){
+    if(first_reference_cell_==UINT32_MAX)first_reference_cell_=cells_-1;
+    last_reference_end_=cells_;
+  }
   for(const auto &link:links){buffer_.bytes_[bytes_++]=std::byte(link.kind);
     if(!resource)reference_limit_=std::max(reference_limit_,link.handle);
-    for(unsigned i=0;i<8;++i)buffer_.bytes_[bytes_++]=std::byte((link.handle>>(8*i))&255);}
+    // J273为小端；只复制句柄的8字节，固定9B格式不包含CaptureLink的C++填充。
+    static_assert(std::endian::native==std::endian::little);
+    std::memcpy(buffer_.bytes_.data()+bytes_,&link.handle,sizeof(link.handle));bytes_+=sizeof(link.handle);}
   return true;
 }
 bool CaptureValueWriter::FinishRoot() noexcept {
   if(diagnostic_.reason!=CaptureFailure::None){AbortRoot();return false;}
   if(!open_||sealed_)return Fail(CaptureFailure::InvalidTransaction);
-  auto begin=buffer_.cells_.begin()+mark_cells_,end=buffer_.cells_.begin()+cells_;
-  const auto paths=std::span<const CodecPathStep>(buffer_.paths_).first(paths_);
-  std::sort(begin,end,[paths](const auto &a,const auto &b){
-    const auto path=ComparePath(paths.subspan(a.path,a.depth),paths.subspan(b.path,b.depth));
-    return path ? path<0 : std::tie(a.layout,a.field,a.kind,a.aux)<std::tie(b.layout,b.field,b.kind,b.aux);});
-  auto output=mark_cells_;
-  for(auto cursor=mark_cells_;cursor<cells_;++cursor){const auto &cell=buffer_.cells_[cursor];
-    if(output>mark_cells_ && SameKey(buffer_.cells_[output-1],cell,paths)){
-      const auto &prior=buffer_.cells_[output-1];
-      if(cell.kind!=CaptureCellKind::Count && cell.kind!=CaptureCellKind::Presence)
-        return Fail(CaptureFailure::DuplicateValue,cell.field,paths.subspan(cell.path,cell.depth));
-      if(cell.count!=prior.count)return Fail(CaptureFailure::DuplicateValue,cell.field,paths.subspan(cell.path,cell.depth));
-      continue;
-    }
-    buffer_.cells_[output++]=cell;
-  }
-  cells_=output;auto &record=buffer_.records_[records_++];record.cell_count=cells_-record.first_cell;
+  auto &record=buffer_.records_[records_];record.cell_count=cells_-record.first_cell;
+  if(shared_body_&&!buffer_.body_clone_ranges_.empty())buffer_.body_clone_ranges_[records_]={mark_paths_,paths_-mark_paths_,
+    mark_bytes_,bytes_-mark_bytes_,first_reference_cell_,last_reference_end_};
+  ++records_;
   open_=false;return true;
 }
 void CaptureValueWriter::AbortRoot() noexcept {
   if(!open_)return;
-  cells_=mark_cells_;paths_=mark_paths_;bytes_=mark_bytes_;open_=false;
+  cells_=mark_cells_;paths_=mark_paths_;bytes_=mark_bytes_;open_=false;shared_body_=false;
+  if(!buffer_.body_clone_ranges_.empty())buffer_.body_clone_ranges_[records_]={};
   Fail(CaptureFailure::Incomplete);
+}
+bool CaptureValueWriter::RetainRoot(RootCheckpoint mark,CaptureSubject subject,std::uint16_t layout,CaptureFailure reason) noexcept {
+  if(sealed_||catalog_set_||witness_.phase!=CapturePhase::Ordinary||mark.records>=buffer_.records_.size())return false;
+  AbortRoot();
+  records_=mark.records;cells_=mark.cells;paths_=mark.paths;bytes_=mark.bytes;reference_limit_=mark.references;
+  diagnostic_={};
+  buffer_.records_[records_]={subject,layout,BodyStream::World,0,cells_,0};
+  buffer_.records_[records_].retained_reason=reason;
+  buffer_.records_[records_++].retained=true;
+  return true;
+}
+// 上次值已在后台。这里只登记当前成员及已确认的来源版本，随后走普通帧发布。
+bool CaptureValueWriter::ReuseRoot(CaptureSubject subject,std::uint16_t layout,std::uint64_t base) noexcept {
+  if(open_||sealed_||catalog_set_||diagnostic_.reason!=CaptureFailure::None||
+     witness_.phase!=CapturePhase::Ordinary||!subject.local||!subject.use||!base||base>=witness_.revision||
+     records_==buffer_.records_.size()||!IsStateMemberLayout(layout))return Fail(CaptureFailure::InvalidTransaction);
+  auto &record=buffer_.records_[records_++];
+  record={subject,layout,BodyStream::World,0,cells_,0};record.reusable_base=base;
+  root_={subject,0,0,layout};
+  return true;
 }
 bool CaptureValueWriter::Seal(std::uint32_t expected,CapturePacket &out) noexcept {
   out={};if(diagnostic_.reason!=CaptureFailure::None)return false;
   if(open_||sealed_||!expected||expected!=records_)return Fail(CaptureFailure::Incomplete);
   sealed_=true;out={witness_,std::span(buffer_.records_).first(records_),std::span(buffer_.cells_).first(cells_),
     std::span(buffer_.paths_).first(paths_),std::span(buffer_.bytes_).first(bytes_),catalog_,std::span(buffer_.references_).first(catalog_.references),
-    event_first_sequence_,event_watermark_};return true;
+    event_first_sequence_,event_watermark_,request_baseline_};return true;
+}
+CapturePacket CaptureValueWriter::Completed(std::span<const CaptureReferenceEntry> refs) const noexcept {
+  if(open_||sealed_||diagnostic_.reason!=CaptureFailure::None)return {};
+  return {witness_,std::span(buffer_.records_).first(records_),std::span(buffer_.cells_).first(cells_),
+    std::span(buffer_.paths_).first(paths_),std::span(buffer_.bytes_).first(bytes_),catalog_,refs};
 }
 // 水位描述整份ordinary交接；逐根Append不改它，避免latest替换丢失纯外观序号空隙。
 bool CaptureValueWriter::EventRange(std::uint64_t first,std::uint64_t watermark) noexcept {
@@ -256,27 +505,62 @@ bool CaptureValueWriter::EventRange(std::uint64_t first,std::uint64_t watermark)
   event_first_sequence_=first;event_watermark_=watermark;return true;
 }
 bool CaptureValueWriter::Catalog(CaptureCatalogStamp stamp,std::span<const CaptureReferenceEntry> references) noexcept {
-  if(sealed_ || open_ || diagnostic_.reason!=CaptureFailure::None)return Fail(CaptureFailure::InvalidTransaction);
-  if(reference_limit_>references.size() || reference_limit_>buffer_.references_.size())return Fail(CaptureFailure::ReferencePending);
-  stamp.references=std::uint32_t(reference_limit_);std::copy_n(references.begin(),stamp.references,buffer_.references_.begin());catalog_=stamp;return true;
+  if(sealed_||open_||catalog_set_||diagnostic_.reason!=CaptureFailure::None)return Fail(CaptureFailure::InvalidTransaction);
+  if(reference_limit_>references.size())return Fail(CaptureFailure::ReferencePending);
+  if(witness_.phase==CapturePhase::PlayerPost&&reference_limit_>buffer_.references_.size()){
+    // 快槽只封存自身实际引用，避免为大房间目录的长前缀占用完整 ordinary 的容量。
+    const auto begin=buffer_.references_.begin();std::size_t used=0;
+    for(const auto &cell:std::span(buffer_.cells_).first(cells_))if(cell.kind==CaptureCellKind::References){
+      if(cell.bytes!=std::uint64_t(cell.count)*9||cell.offset>bytes_||cell.bytes>bytes_-cell.offset)return Fail(CaptureFailure::InvalidValue);
+      for(std::uint32_t i=0;i<cell.count;++i){auto *data=buffer_.bytes_.data()+cell.offset+std::size_t(i)*9;
+        std::uint64_t handle=0;for(unsigned j=0;j<8;++j)handle|=std::uint64_t(std::to_integer<unsigned>(data[j+1]))<<(j*8);
+        if(!handle)continue;
+        if(handle>references.size())return Fail(CaptureFailure::ReferencePending);
+        const auto &ref=references[std::size_t(handle-1)];
+        const auto end=begin+used;
+        const auto found=std::find_if(begin,end,[&](const auto &entry){return std::tie(entry.space,entry.local,entry.use)==std::tie(ref.space,ref.local,ref.use);});
+        if(found==end){if(used==buffer_.references_.size())return Fail(CaptureFailure::ReferencePending);begin[used++]=ref;}
+        const auto local=std::uint64_t(found-begin)+1;
+        for(unsigned j=0;j<8;++j)data[j+1]=std::byte(local>>(j*8));
+      }
+    }
+    stamp.references=std::uint32_t(used);catalog_=stamp;catalog_set_=true;return true;
+  }
+  if(reference_limit_>buffer_.references_.size())return Fail(CaptureFailure::ReferencePending);
+  stamp.references=std::uint32_t(reference_limit_);std::copy_n(references.begin(),stamp.references,buffer_.references_.begin());catalog_=stamp;catalog_set_=true;return true;
 }
-CapturedBodySource::CapturedBodySource(const CapturePacket &packet,std::uint32_t record,CaptureLinkResolver resolver,std::span<std::byte> scratch)
+CapturedBodySource::CapturedBodySource(const CapturePacket &packet,std::uint32_t record,CaptureLinkResolver resolver,std::span<std::byte> scratch,
+    std::span<std::uint32_t> index_scratch)
     :packet_(packet),resolver_(resolver),scratch_(scratch) {
   if(record>=packet.records.size())SourceGap("record_index");record_=packet.records[record];
   if(record_.first_cell>packet.cells.size() || record_.cell_count>packet.cells.size()-record_.first_cell ||
-     Overlap(packet.bytes,scratch))SourceGap("record_or_scratch_range");
+     record_.cell_count>index_scratch.size()||Overlap(packet.bytes,scratch))SourceGap("record_or_scratch_range");
+  auto index=index_scratch.first(record_.cell_count);
+  for(std::uint32_t i=0;i<index.size();++i){index[i]=record_.first_cell+i;const auto &cell=packet.cells[index[i]];
+    if(cell.path>packet.paths.size()||cell.depth>packet.paths.size()-cell.path)SourceGap("path_range");
+    Bytes(cell);
+  }
+  std::sort(index.begin(),index.end(),[&](auto x,auto y){const auto &a=packet.cells[x],&b=packet.cells[y];
+    const auto path=ComparePath(packet.paths.subspan(a.path,a.depth),packet.paths.subspan(b.path,b.depth));
+    return path?path<0:std::tie(a.layout,a.field,a.kind,a.aux)<std::tie(b.layout,b.field,b.kind,b.aux);});
+  std::size_t unique=0;
+  for(auto i:index){const auto &cell=packet.cells[i];
+    if(unique&&SameKey(packet.cells[index[unique-1]],cell,packet.paths)){
+      if(!CanonicalKey(cell.kind)||cell.count!=packet.cells[index[unique-1]].count)SourceGap("duplicate_captured_value");
+    }else index[unique++]=i;
+  }
+  index_=index.first(unique);
 }
 const CaptureCell &CapturedBodySource::Find(const CodecLocation &location,CaptureCellKind kind,std::uint16_t aux) const {
   const auto field=CanonicalKey(kind)?location.canonical_field:location.field;
-  const auto cells=packet_.cells.subspan(record_.first_cell,record_.cell_count);
-  const auto it=std::lower_bound(cells.begin(),cells.end(),0,[&](const CaptureCell &cell,int){
-    if(cell.path>packet_.paths.size() || cell.depth>packet_.paths.size()-cell.path)SourceGap("path_range");
+  const auto it=std::lower_bound(index_.begin(),index_.end(),0,[&](auto i,int){const auto &cell=packet_.cells[i];
     const auto path=ComparePath(packet_.paths.subspan(cell.path,cell.depth),location.parents);
     return path ? path<0 : std::tie(cell.layout,cell.field,cell.kind,cell.aux)<std::tie(location.layout,field,kind,aux);});
-  if(it==cells.end() || std::tie(it->layout,it->field,it->kind,it->aux)!=std::tie(location.layout,field,kind,aux) ||
-     it->path>packet_.paths.size() || it->depth>packet_.paths.size()-it->path ||
-     ComparePath(packet_.paths.subspan(it->path,it->depth),location.parents))SourceGap("missing_captured_value");
-  return *it;
+  if(it==index_.end())SourceGap("missing_captured_value");
+  const auto &cell=packet_.cells[*it];
+  if(std::tie(cell.layout,cell.field,cell.kind,cell.aux)!=std::tie(location.layout,field,kind,aux)||
+     ComparePath(packet_.paths.subspan(cell.path,cell.depth),location.parents))SourceGap("missing_captured_value");
+  return cell;
 }
 std::span<const std::byte> CapturedBodySource::Bytes(const CaptureCell &cell) const {
   if(cell.offset>packet_.bytes.size() || cell.bytes>packet_.bytes.size()-cell.offset)SourceGap("value_range");
@@ -297,7 +581,8 @@ std::span<const std::byte> CapturedBodySource::Scalar(const CodecLocation &locat
     std::uint16_t id=kNullIndex;
     if(link.kind==CapturedReferenceKind::Null){if(link.handle)SourceGap("null_link_handle");}
     else if((link.kind!=CapturedReferenceKind::Identity && link.kind!=CapturedReferenceKind::Pending) || !link.handle ||
-       !resolver_.resolve || !resolver_.resolve(resolver_.context,record_.subject,resource,info.resource_table,link,id) || id==kNullIndex)
+       !resolver_.resolve || !resolver_.resolve(resolver_.context,record_.subject,resource,info.resource_table,link,id) ||
+       (id==kNullIndex&&(!resolver_.allow_retained_null||resource||info.nonnull)))
       SourceGap(resource?"resource_handle_unresolved":"reference_handle_pending");
     scratch_[std::size_t(i)*2]=std::byte(id&255);scratch_[std::size_t(i)*2+1]=std::byte(id>>8);
   }

@@ -1,6 +1,6 @@
 # 公共协议常量
 
-布局版本 75；由唯一布局源生成。数值登记不表示运行编解码已经接通。
+布局版本 84；由唯一布局源生成。数值登记不表示运行编解码已经接通。
 
 | 分类 | 名称 | 数值 | 语义 |
 |---|---|---|---|
@@ -17,11 +17,9 @@
 | display_branch | secondary_fade | 10 | Q12终结分支：secondary_fade；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用 |
 | display_branch | pause_screen | 11 | Q12终结分支：pause_screen；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用 |
 | display_branch | unknown_ui_word_24444 | 12 | Q12终结分支：unknown_ui_word_24444；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用 |
-| message | ContextReady | 8 | 公共协议Kind编号；仅合同登记，运行stream_codec尚未接通 |
-| message | AppliedAck | 9 | 公共协议Kind编号；仅合同登记，运行stream_codec尚未接通 |
+| message | AppliedAck | 9 | 沿用线上编号，表示完整帧已经解码且接收快照可作基线 |
 | message | Resync | 10 | 公共协议Kind编号；仅合同登记，运行stream_codec尚未接通 |
 | message | StateFrame | 21 | 公共协议Kind编号；仅合同登记，运行stream_codec尚未接通 |
-| message | MemberTable | 22 | 公共协议Kind编号；仅合同登记，运行stream_codec尚未接通 |
 | message | ResourceTable | 23 | 公共协议Kind编号；仅合同登记，运行stream_codec尚未接通 |
 | message | ResourceBlobChunk | 24 | 公共协议Kind24仅保留编号；版本61正文禁用306，不启用原始媒体／blob，也未接通运行stream_codec |
 | resource_table | anm2-animation-table | 0 | 显式u8资源空间；不能因序号相等跨表替换 |
@@ -42,6 +40,7 @@
 | resource_kind | ItemConfig | 7 | 版本63已完成typed payload与table/kind数字矩阵；仅本地资源描述／有限recipe，不包含媒体文件内容。 |
 | resource_kind | EntityConfig | 8 | 版本63已完成typed payload与table/kind数字矩阵；仅本地资源描述／有限recipe，不包含媒体文件内容。 |
 | resource_kind | Audio | 9 | 版本63已完成typed payload与table/kind数字矩阵；仅本地资源描述／有限recipe，不包含媒体文件内容。 |
+| resource_kind | ImagePath | 10 | 配置、历史栏及图层路径等只见到文件名时的图像资源；由 Client 加载本地文件并检查路径与本地几何。 |
 | stream | World | 0 | 具名公共封装枚举；组合约束见正式合同 |
 | stream | Body | 1 | 具名公共封装枚举；组合约束见正式合同 |
 | group_op | Replace | 0 | 具名公共封装枚举；组合约束见正式合同 |
@@ -102,7 +101,7 @@
 | result_purpose | GenericPromptResult | 380 | 用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分 |
 | result_purpose | AudioVoiceState | 382 | 用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分 |
 | result_purpose | AudioWorldEvent | 383 | 用途号复用具名结果布局号；同用途不同实例由owner_instance/generation区分 |
-| flag | Joint | 1 | Frame和AppliedAck bit0；双分段共同提交 |
+| flag | Joint | 1 | Frame和AppliedAck bit0；对应双分段完整基线 |
 | flag | Baseline | 1 | Section bit0，当且仅当base_version=0 |
 | display_font | Latin | 0 | 协议自有有限显示profile，非原生编号；本地字体／样式映射由第10／13步核定，缺失报Gap，不执行任意首码命令 |
 | display_font | Japanese | 1 | 协议自有有限显示profile，非原生编号；本地字体／样式映射由第10／13步核定，缺失报Gap，不执行任意首码命令 |

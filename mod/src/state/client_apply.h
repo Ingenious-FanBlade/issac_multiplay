@@ -1,5 +1,7 @@
 #pragma once
 #include "state/client_receive.h"
+#include <chrono>
+#include <optional>
 
 namespace cs::state {
 // 各子步骤只返回真实原生事实；Waiting必须没有本次写入，否则转入统一失败排空。
@@ -27,18 +29,20 @@ public:
   virtual ~ClientStateApplyResults()=default;
   virtual bool Complete(const ClientStateApplyCompletion &) noexcept=0;
 };
-// 唯一主线程writer：一个ticket从准备到发布/排空都不重叠；不解析报文，不运行后台状态机。
+// 一条通道的主线程进度。场景可以交错准备，只在选定通道后执行完整写段。
 class ClientStateApplyCoordinator final {
 public:
   ClientStateApplyCoordinator(ClientStateNativeOwner &,ClientStateApplyResults &);
   bool Offer(ClientStateApplyBatchRef) noexcept;
-  void Pump() noexcept;
+  // allow_apply 只在可完整执行的一次 Manager 调用内开启。
+  void Pump(bool allow_apply) noexcept;
   void Cancel() noexcept;
   bool Busy() const noexcept{return bool(batch_);}
-  const char *Reason()const noexcept{return reason_;}
+  const char *Reason()const noexcept{return reason_.data();}
 private:
   enum class Phase:std::uint8_t {Prepare,Stage,Install,Display,Replay,Publish,DrainBeforeReport,Report,AwaitDecision,Drain,ReportDrain};
   void Fail(const char *) noexcept;
+  void SetReason(const char *) noexcept;
   bool Step(ClientStateNativeStep,Phase) noexcept;
   ClientStateNativeOwner &owner_;
   ClientStateApplyResults &results_;
@@ -48,6 +52,7 @@ private:
   Phase phase_=Phase::Prepare;
   bool written_=false,cancelled_=false;
   std::size_t event_=0;
-  const char *reason_="binary_idle";
+  // 失败会先退休安装器再上报，原因必须独立于安装器的临时缓冲。
+  std::array<char,192> reason_{};
 };
 } // namespace cs::state

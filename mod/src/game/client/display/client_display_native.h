@@ -1,6 +1,7 @@
 #pragma once
 #include "game/client/scene/client_native_roots.h"
 #include "game/client/display/client_display_bridge.h"
+#include "game/client/display/client_display_memory.h"
 #include "state/display_contract.h"
 #include <cstddef>
 #include <cstdint>
@@ -41,6 +42,12 @@ struct ClientDisplayInjections final {
   std::array<float,2> water{};
   float devil=0,angel=0,planetarium=0;
   bool deal_qualified=false,progress_blocked=false;
+  // 从同批Host状态提取的原生构建条件与短时FX相位。
+  int backdrop_wall_style=0,camera_entry_door=-1,camera_previous_entry=0,poop_fx_countdown=0;
+  bool backdrop_tutorial=false,camera_return_focus=false;
+  std::uint8_t room_graphics_flags=0;
+  std::array<float,2> camera_return_position{};
+  std::array<float,11> poop_fx_color{};
 };
 struct ClientDisplayMapValue final {
   std::uint16_t slot=UINT16_MAX,mask=0;bool present=false,spawn_seed_present=false;
@@ -50,6 +57,7 @@ struct ClientDisplayMapValue final {
   std::uint8_t display_bits=0;bool visited=false;
 };
 ClientDisplayMetadata ClientDisplayMeta(const ClientDisplayWorldRef &) noexcept;
+ClientDisplayMemoryRef ClientDisplayMemory(const ClientDisplayWorldRef &) noexcept;
 ClientDisplayInjections ClientDisplayInputs(const ClientDisplayWorldRef &) noexcept;
 ClientDisplayArray<ClientDisplayCopy> ClientDisplayCopies(const ClientDisplayWorldRef &) noexcept;
 unsigned ClientDisplayMapCount(const ClientDisplayWorldRef &) noexcept;
@@ -57,20 +65,41 @@ ClientDisplayMapValue ClientDisplayMapAt(const ClientDisplayWorldRef &,unsigned)
 bool ClientDisplaySameMap(const ClientDisplayWorldRef &,const ClientDisplayWorldRef &) noexcept;
 
 struct ClientDisplayNative;
-struct ClientDisplayStep final {bool done=false,written=false;const char *reason="display_waiting";};
-ClientDisplayNative *ClientDisplayCreate() noexcept;
+struct ClientDisplayMusicRequest;
+struct ClientDisplayStep final {
+  bool done=false,written=false;
+  const char *reason="display_waiting";
+  bool rebuilt=false;
+};
+ClientDisplayNative *ClientDisplayCreate(const ClientDisplayWorldRef &) noexcept;
 void ClientDisplayDestroy(ClientDisplayNative *) noexcept;
+// 只读判断本窗口是否会经过显示构造或捕获，用于 World 未变字段的略过资格。
 ClientDisplayStep ClientDisplayBeforeInstall(ClientDisplayNative *,const ClientDisplayWorldRef &,const ClientNativeRoots &) noexcept;
 ClientDisplayStep ClientDisplayInstall(ClientDisplayNative *,const ClientDisplayWorldRef &,const ClientNativeRoots &) noexcept;
 // 冷加入只构造本机展示资源，保留常驻原生 Room 与当前 Lua／图形代次。
-ClientDisplayStep ClientDisplayBuildRoots(ClientDisplayNative *,const ClientNativeRoots &) noexcept;
+ClientDisplayStep ClientDisplayFinishInstall(ClientDisplayNative *,const ClientDisplayWorldRef &,const ClientNativeRoots &) noexcept;
+void ClientDisplayPublish(ClientDisplayNative *) noexcept;
 bool ClientDisplayReleaseRoots(ClientDisplayNative *) noexcept;
 void ClientDisplayAbortPending(ClientDisplayNative *) noexcept;
 bool ClientDisplayPreserveRoom(ClientDisplayNative *,const ClientNativeRoots &) noexcept;
 ClientNativeRoots ClientDisplayRoots(const ClientDisplayNative *) noexcept;
 bool ClientDisplayRetire(ClientDisplayNative *,bool preserve_target=false,bool preserve_audio=false) noexcept;
 bool ClientDisplayHasWorld(const ClientDisplayNative *) noexcept;
-bool ClientDisplayCurrent(const ClientDisplayNative *,const ClientNativeRoots &) noexcept;
+void ClientDisplaySuspend(ClientDisplayNative *) noexcept;
+// 仅在显示资格失败时返回第一项真实失配，保留原生期望值和现场值。
+struct ClientDisplayIssue {
+  const char *reason=nullptr;
+  std::uintptr_t expected=0,actual=0;
+  std::uint32_t resource=UINT32_MAX;
+  std::uint32_t field=UINT32_MAX;
+};
+bool ClientDisplayCurrent(const ClientDisplayNative *,const ClientNativeRoots &,ClientDisplayIssue *issue=nullptr) noexcept;
+void ClientDisplayReportIssue(const ClientDisplayNative *,const ClientDisplayIssue &,const char *phase,
+    std::uint64_t route,std::uint64_t scene,std::uint32_t revision) noexcept;
+// SDK 单元经 C++17 兼容的纯值入口记录，具体聚合在 C++20 账户实现。
+void ClientDisplayRecordMemoryIssue(const ClientDisplayMemoryRef &,const ClientDisplayIssue &,const char *phase,
+    std::uint64_t route,std::uint64_t scene,std::uint32_t revision) noexcept;
+bool ClientDisplayGraphicsChanged(const ClientDisplayNative *) noexcept;
 bool ClientDisplayPaused(const ClientDisplayNative *,bool &) noexcept;
 bool ClientDisplayAdvance(ClientDisplayNative *,const ClientNativeRoots &,bool local_blocked) noexcept;
 bool ClientDisplayRenderBegin(ClientDisplayNative *,const ClientNativeRoots &) noexcept;
@@ -99,6 +128,7 @@ struct ClientDisplayEvent final {
   std::array<std::string_view,32> lines{};
   unsigned line_count=0;
   int index=0,dimension=0;
+  std::uint64_t final_room=0;
   bool completed=false;
 };
 // 基线中的Boss演出当前姿态，主Sprite用-1，extra map用原生层键。

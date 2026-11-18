@@ -21,12 +21,15 @@ bool EntitySource::ReadSceneContext(const CaptureWitness &w,EntityFacts f,Native
   struct End {bool &active;~End(){active=false;}} end{s.active};
   s.window={s.thread,w,&s,[](void *p,const CaptureWitness &v,const CaptureRoot &r) noexcept {return static_cast<Impl *>(p)->Current(v,r);},nullptr};
   std::array<std::uint32_t,80> nodes{};std::uint32_t count=0;
-  if(scene.game>UINT32_MAX-0x1bc2c || !s.NativeTree(scene.game+0x1bc2c,nodes,count,d))return false;
+  // J273 的 Seeds 内嵌在 Game+0x1BB84，效果树位于 Seeds+0x54。
+  constexpr std::uint32_t seed_effect_tree=0x1bb84+0x54;
+  if(scene.game>UINT32_MAX-seed_effect_tree || !s.NativeTree(scene.game+seed_effect_tree,nodes,count,d))return false;
   scene.seed_effects={};
+  scene.seed_effect_count=count;
   std::int32_t previous=-1;
   for(std::uint32_t i=0;i<count;++i){std::int32_t effect=0;if(!s.Tracked(std::uint64_t(nodes[i])+16,effect,d))return false;
     if(effect<0 || effect>=int(scene.seed_effects.size()) || effect<=previous)return FailCapture(d,CaptureFailure::InvalidValue,{f.subject});
-    scene.seed_effects[std::size_t(effect)]=true;previous=effect;}
+    scene.seed_effects[std::size_t(effect)]=true;scene.seed_effect_ids[i]=std::uint32_t(effect);previous=effect;}
   std::uint32_t raw=0,temporary=0,stage=0,difficulty=0,challenge=0;
   if(!s.Value(std::uint64_t(scene.game)+12,raw,d) || !s.Value(std::uint64_t(scene.game)+0x25ac8,temporary,d) ||
      !s.Value(scene.game,stage,d) || !s.Value(std::uint64_t(scene.game)+0x25f40,difficulty,d) ||
@@ -36,10 +39,7 @@ bool EntitySource::ReadSceneContext(const CaptureWitness &w,EntityFacts f,Native
   for(unsigned i=0;i<6;++i)if(scene.seed_effects[63+i])prevented|=masks[i];
   if(scene.seed_effects[70])prevented=0x7f;if(scene.seed_effects[79])prevented|=0x40;
   scene.effective_curses=(raw|temporary|forced)&~prevented;scene.greed=difficulty==2 || difficulty==3;
-  std::array<std::byte,32> after{};
-  for(std::uint32_t i=0;i<s.witness_used;++i){const auto &mark=s.witnesses[i];if(!s.Read(mark.address,std::span(after).first(mark.size),d) ||
-      !std::equal(after.begin(),after.begin()+mark.size,mark.bytes.begin()))return FailCapture(d,CaptureFailure::SourceChanged,{f.subject});}
-  return true;
+  return s.Verify({f.subject,f.address,0,f.layout},d);
 }
 
 // 所有转换按数字布局／字段解释。纯协议视图的address是具名owner的同步借用，不是偏移基址。
@@ -76,7 +76,12 @@ bool EntitySource::Impl::SceneLeaf(const CaptureFieldAccess &a,CaptureValueWrite
     if(field==host_field::RoomDescriptor::spawn_seed){if(a.root.address!=scene.current_descriptor)return Reject(a,d,CaptureFailure::InvalidTransaction);return native(address);}
     if(field==2 || field==5){std::uint32_t v=0;if(!Value(address,v,d) || v>(field==2?2u:255u))return Reject(a,d,CaptureFailure::InvalidValue);return number(v);}
     if(field==8){std::int32_t count=0;if(!Value(address,count,d))return false;return number(count?1u:0u);}
-    if(field==9){std::uint32_t flags=0;if(!Value(address,flags,d))return false;return number((flags&1)|((flags>>9)&2)|((flags>>9)&4)|((flags>>15)&8)|((flags>>1)&16));}
+    if(field==host_field::RoomDescriptor::flags){
+      std::uint32_t flags=0;if(!Value(address,flags,d))return false;
+      // 保留背景、灯光与坑面实际读取的位，包括祭祀房的原生光照条件。
+      return number((flags&1)|((flags>>9)&6)|((flags>>15)&8)|((flags>>1)&16)|
+        ((flags>>4)&32)|((flags>>6)&64)|((flags<<5)&128));
+    }
     if(field==10){if(!scene.greed)return number(0);std::int32_t special=0,index=0;std::uint32_t config=0,type=0;
       if(!Value(std::uint64_t(scene.game)+0x18370,special,d) || !Value(a.root.address,index,d) || !Value(std::uint64_t(a.root.address)+16,config,d))return false;
       if(config&&!Value(std::uint64_t(config)+8,type,d))return false;return number(config&&type==4&&index==special?1u:0u);}

@@ -61,6 +61,8 @@ const ClientDisplayMetadata &ClientDisplayWorld::Metadata() const noexcept{retur
 const ClientDisplayInjections &ClientDisplayWorld::Inputs() const noexcept{return storage_->injections;}
 std::span<const std::uint64_t> ClientDisplayWorld::MapFacts() const noexcept{return storage_->map_facts;}
 long ClientDisplayWorld::StorageReferences()const noexcept{return storage_.use_count();}
+ClientDisplayMemoryRef ClientDisplayWorld::Memory()const noexcept{return storage_->map_facts.get_allocator().Memory();}
+ClientDisplayMemoryRef ClientDisplayMemory(const ClientDisplayWorldRef &w) noexcept{return w?w->Memory():nullptr;}
 ClientDisplayMetadata ClientDisplayMeta(const ClientDisplayWorldRef &w) noexcept {
   return w->Metadata();
 }
@@ -137,7 +139,7 @@ ClientDisplayWorldRef ClientDescribeDisplayWorld(state::ClientShadowStateRef wor
   {
     const auto input=Field(game,kDisplayGameRun_display_injections);
     std::array<state::ProjectionFact,64> focus_facts{};
-    std::array<state::BodyFieldView,16> focus_fields{};
+    std::array<state::BodyFieldView,24> focus_fields{};
     state::BodyCodecScratch focus_scratch{focus_facts,0,focus_fields};
     const auto value=state::DecodeValue(F::DisplayInjectionState::kLayout,input,focus_scratch);
     using namespace F::DisplayInjectionState;
@@ -153,6 +155,15 @@ ClientDisplayWorldRef ClientDescribeDisplayWorld(state::ClientShadowStateRef wor
         case water_current:s->injections.water=Exact<std::array<float,2>>(f.bytes);break;
         case map_focus:meta.map_focus[0]=Exact<std::int32_t>(f.bytes);break;
         case map_focus_large:meta.map_focus[1]=Exact<std::int32_t>(f.bytes);break;
+        case backdrop_wall_style:s->injections.backdrop_wall_style=Exact<std::int32_t>(f.bytes);break;
+        case backdrop_tutorial:s->injections.backdrop_tutorial=Exact<std::uint8_t>(f.bytes)!=0;break;
+        case room_graphics_flags:s->injections.room_graphics_flags=Exact<std::uint8_t>(f.bytes);break;
+        case camera_entry_door:s->injections.camera_entry_door=Exact<std::int32_t>(f.bytes);break;
+        case camera_previous_entry:s->injections.camera_previous_entry=Exact<std::int32_t>(f.bytes);break;
+        case camera_return_focus:s->injections.camera_return_focus=Exact<std::uint8_t>(f.bytes)!=0;break;
+        case camera_return_position:s->injections.camera_return_position=Exact<std::array<float,2>>(f.bytes);break;
+        case poop_fx_countdown:s->injections.poop_fx_countdown=Exact<std::int32_t>(f.bytes);break;
+        case poop_fx_color:s->injections.poop_fx_color=Exact<std::array<float,11>>(f.bytes);break;
       }
     }
     if(meta.challenge==32)for(const int focus:meta.map_focus)if(focus<0||focus>=169)Fail("display_challenge32_map_focus_missing");

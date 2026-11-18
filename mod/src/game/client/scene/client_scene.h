@@ -5,6 +5,7 @@
 #include "game/client/scene/client_lifetime.h"
 #include "game/client/player/client_player_diagnostics.h"
 #include "game/client/display/client_display_native.h"
+#include "state/client_shadow.h"
 #include <array>
 #include <atomic>
 #include <cstdint>
@@ -84,14 +85,17 @@ public:
   bool DisplayReady() const noexcept;
   ClientNativeRoots NativeRoots() const noexcept;
   bool NativeDisplay() const noexcept;
+  bool DisplayGraphicsChanged() const noexcept {return DisplayReady()&&ClientDisplayGraphicsChanged(display_);}
   // 正式二进制批次借用已有 Game／Room；完整提交后才开放显示。
   void BeginBinary() noexcept {binary_scene_=true;}
   bool BinaryScene() const noexcept {return binary_scene_;}
-  void PublishBinary(std::uint64_t revision) noexcept;
-  void SuspendBinaryDisplay() noexcept {binary_published_=false;}
+  void PublishBinary(state::ClientStateBlockTableRef,std::uint8_t streams) noexcept;
+  void SuspendBinaryDisplay() noexcept {binary_published_=false;published_blocks_.reset();ClientDisplaySuspend(display_);}
+  state::ClientStateBlockTableRef PublishedBlocks()const noexcept {return DisplayReady()?published_blocks_:nullptr;}
   void FinishBinary() noexcept;
   ClientDisplayStep PrepareBinaryDisplay(const ClientDisplayWorldRef &) noexcept;
   ClientDisplayStep InstallBinaryDisplay(const ClientDisplayWorldRef &) noexcept;
+  ClientDisplayStep CaptureBinaryDisplay(const ClientDisplayWorldRef &) noexcept;
   ClientDisplayStep RestoreBinaryBoss(const ClientDisplayBoss &) noexcept;
   ClientDisplayStep InstallBinaryAudio(const ClientDisplayMusicRequest &,ClientDisplayArray<ClientDisplaySound>) noexcept;
   ClientDisplayStep ReplayBinaryEvent(const ClientDisplayEvent &) noexcept;
@@ -132,6 +136,8 @@ public:
   ClientSceneState State() const noexcept { return state_; }
   ClientApplyResult Result() const noexcept { return result_; }
   std::uint64_t AppliedRevision() const noexcept {return binary_published_?applied_revision_:0;}
+  std::uint64_t AppliedWorldCount() const noexcept {return applied_world_count_;}
+  std::uint64_t AppliedBodyCount() const noexcept {return applied_body_count_;}
   const ClientGenerations &Generations() const noexcept {return generations_;}
   bool HasNativePrefix() const noexcept {return native_dispatch_prefix_||result_.native_written||result_.pending_owners;}
   // 分派原调用前记录“可能已执行”的不可逆前缀，直到 I8 实际退休后才可清除。
@@ -171,10 +177,14 @@ private:
   ClientSceneState state_=ClientSceneState::Waiting;
   replica::Scope waiting_scope_{};
   ClientDisplayNative *display_=nullptr;
+  // 主线程发布入口和一次 Render 的持有式借用。原生可写性仍由场景借用票据管理。
+  state::ClientStateBlockTableRef published_blocks_,render_blocks_;
   bool binary_scene_=false,binary_published_=false,display_history_=false;
   replica::Scope display_history_scope_{};
   bool retirement_complete_=false,retirement_failed_=false,recovery_forbidden_=false;
   std::uint64_t applied_revision_=0;
+  // 只统计实际原生发布，用状态查询的样本间隔计算安装频率。
+  std::uint64_t applied_world_count_=0,applied_body_count_=0;
   ClientGenerations generations_{};
   ClientApplyResult result_{};
   unsigned active_native_=0, active_lua_=0, active_graphics_=0, active_observation_=0, active_dispatch_=0;

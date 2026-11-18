@@ -6,6 +6,7 @@
 #include "world/common/native_source.h"
 #include "world/common/membership.h"
 #include "world/storage.h"
+#include <span>
 
 namespace cs::world {
 
@@ -13,6 +14,16 @@ namespace cs::world {
 struct MemoryReader final {
   bool (*copy)(std::uint32_t, void *, std::size_t) noexcept = nullptr;
   std::uint32_t image_base = 0, image_size = 0, main_thread = 0;
+  // 后台只在冷准备读取当前模块的 PE/RTTI 静态元数据，游戏对象仍通过主线程 copy 读取。
+  bool (*copy_image)(std::uint32_t, void *, std::size_t) noexcept = nullptr;
+  // 正式原生读取器可提供单次纯读分类窗口；定制来源未提供时仍逐次走 copy。
+  // 实现必须复用 ClassifyNative 的完整 RTTI 检查，不得缓存对象类别或跨回调页见证。
+  Class (*classify)(ObjectDomain,std::uint32_t,std::uint32_t,std::uint32_t,
+                    std::uint32_t &,bool &) noexcept = nullptr;
+  // 单次纯读核Game指针及其Room／索引／维度；偏移来自当前可信布局。
+  // 可复用本次调用内的页见证，但每个根值仍读取实际字节，不能跨调用缓存。
+  bool (*roots)(std::uint32_t,const std::array<std::uint32_t,4> &,
+                std::array<std::uint32_t,4> &) noexcept = nullptr;
 };
 // 本 tick 的真实凭据来自 NativeReturned，不能使用最近 completed tick。
 struct Authority final {
@@ -27,11 +38,13 @@ struct PlayerAnchor final {
   bool valid = false;
   bool operator==(const PlayerAnchor &) const = default;
 };
+using PlayerAnchorSet = std::array<PlayerAnchor, kControlAnchorCapacity>;
 // 当前outer内真实派生更新的逐身体证言；持久读取资格与本步是否更新是两件事。
 struct PlayerPostWitness final {
   PlayerAnchor anchor{};
   std::uint64_t local=0,use=0,shape=0,tick=0,outer=0,owner=0,mutation=0,run=0,room=0;
   AuthorityKind kind=AuthorityKind::None;
+  bool operator==(const PlayerPostWitness &) const = default;
 };
 // 正式二进制读取只借用已完成的主线程窗口；不依赖旧字段是否进入Recorder／Lua样本。
 struct NativeCaptureWindow {
@@ -40,6 +53,7 @@ struct NativeCaptureWindow {
   bool ordinary=false;
   std::uint64_t wrong_thread=0,native_exception=0;
   bool production=false,production_outer=false;
+  bool operator==(const NativeCaptureWindow &) const = default;
 };
 
 // 采集服务的窄提交通知；录制器不拥有 Collector，也不能决定 Authority 是否提交。
@@ -60,6 +74,15 @@ public:
   // 主线程接收已准备上下文时调用；失败不影响 Authority。
   bool Activate() noexcept;
   void SetCaptureSink(CaptureSink sink) noexcept { sink_=sink; }
+  void SetLegacyDiagnostics(bool enabled) noexcept {
+    if(enabled&&!legacy_diagnostics_)legacy_output_failed_=false;
+    legacy_diagnostics_=enabled;
+  }
+  bool LegacyDiagnostics() const noexcept { return legacy_diagnostics_&&!LegacyOutputFailed(); }
+  bool LegacyOutputFailed() const noexcept { return legacy_output_failed_||storage_.DiagnosticReaderFailed(); }
+  std::uint64_t LegacyAttempts() const noexcept { return legacy_attempts_; }
+  void CommitNativeMemberships(const NativeCaptureWindow &,std::span<const RawSource>,std::span<const std::uint32_t>,
+                               std::span<const std::uint32_t>) noexcept;
   bool Recording() const noexcept;
   bool Participating() const noexcept { return active_; }
   bool Drained() const noexcept;
@@ -85,6 +108,11 @@ public:
   void LifecycleLeave(bool normal) noexcept;
   void RevokePlayer(std::uint32_t ordinal) noexcept;
   void AnchorPlayer(std::uint32_t ordinal, const PlayerAnchor &anchor) noexcept;
+  // 全体目标先判重；只撤销／安装变化槽。通知使用最终实际提交的锚点。
+  unsigned ReplacePlayerAnchors(PlayerAnchorSet &desired,
+      void (*retire)(std::uint32_t address) noexcept,
+      void (*changed)(unsigned slot,const PlayerAnchor &before,const PlayerAnchor &after) noexcept) noexcept;
+  static std::size_t AnchorRefreshWorkspaceBytes() noexcept;
   std::uint64_t EntityLocalId(std::uint32_t address) noexcept {
     auto *identity = identities_.Find(ObjectDomain::Entity, address);
     return identity && !identity->Retired() ? identity->local_id : 0;
@@ -105,10 +133,15 @@ public:
   // 独立正常显示／音频观察窗口，不要求模拟tick；不据此授予任意Player字段资格。
   bool NativeProduction(NativeCaptureWindow &,std::uint64_t owner) noexcept;
   bool NativePostMatches(const core::TickPostState &) const noexcept;
+  core::TickPostState NativePrepared(bool complete) noexcept;
+  // 已复核的旧批次可给正式结构共享成员事实；缺任何槽或水位变化时回退独立读取。
+  bool DiagnosticMembers(const NativeCaptureWindow &,std::span<RawSource>,std::span<std::uint32_t>) noexcept;
   bool NativeBody(std::uint32_t slot,NativeCaptureWindow &,PlayerPostWitness &) noexcept;
-  bool NativeWindowCurrent(const NativeCaptureWindow &) noexcept;
+  bool NativeBodyInOrdinary(std::uint32_t slot,const NativeCaptureWindow &,NativeCaptureWindow &,PlayerPostWitness &) noexcept;
+  bool NativeWindowCurrent(const NativeCaptureWindow &,bool recheck_production_roots=true) noexcept;
   bool NativeCurrent(const NativeCaptureWindow &,std::uint32_t address,std::uint64_t local,
-                     std::uint64_t use,std::uint64_t shape,ObjectDomain domain=ObjectDomain::Entity) noexcept;
+                     std::uint64_t use,std::uint64_t shape,ObjectDomain domain=ObjectDomain::Entity,
+                     const NativeSource *reader=nullptr,bool grid_already_qualified=false) noexcept;
   // 20 项观察入口的 call/parent 值；错线程只在观察策略层置原子故障位。
   std::uint32_t ObserveEnter(Observation observation, std::uint32_t object,
                             const std::uint32_t *args, std::uint32_t count) noexcept;
@@ -129,6 +162,8 @@ public:
   std::uint32_t BeforePlayerReplaceSource(std::uint32_t manager,std::uint32_t old_body,std::uint32_t replacement) noexcept;
 
 private:
+  void InstallPlayerAnchor(std::uint32_t ordinal,const PlayerAnchor &anchor) noexcept;
+  bool NativeGridReady(const NativeCaptureWindow &,const Identity &,const NativeSource *,bool already_qualified) noexcept;
   struct Roots {
     std::uint32_t game = 0, room = 0, index = 0, dimension = 0;
     bool operator==(const Roots &) const = default;
@@ -152,6 +187,8 @@ private:
     std::uint32_t body_after = 0, before_grid = 0, grid_index = kNoGridIndex;
     bool body_slot_known = false, before_grid_door = false;
     PlayerReplaceState player_replace{};
+    // 只比较派生 Effect Init 入栈时的同一池对象，防止重入取得替换实例。
+    std::uint64_t effect_local=0,effect_use=0;
   };
   void RememberPlayerReplaceState(Call &) noexcept;
   void CompletePlayerReplaceState(const Call &) noexcept;
@@ -162,6 +199,7 @@ private:
   }
   bool Image(std::uint32_t address, std::size_t bytes) const noexcept;
   bool ReadRoots(Roots &roots) noexcept;
+  bool CurrentPlayerPost(std::uint32_t,PlayerPostWitness &) noexcept;
   Class Classify(ObjectDomain domain, std::uint32_t address,
                  std::uint32_t &vptr, bool &base_known) noexcept;
   void Incomplete(Reason reason) noexcept;
@@ -242,7 +280,7 @@ private:
   void CompletePlayerEsauReplacement(const PlayerChildOwner &) noexcept;
   bool PlayerLazarusRetired(const PlayerChildOwner &,PlayerChildWitness &) noexcept;
   EntityReconfiguration *EntityReconfigurationFor(std::uint32_t object) noexcept;
-  std::array<PlayerAnchor, kControlAnchorCapacity> anchors_{};
+  PlayerAnchorSet anchors_{};
   // 当前exact pair是否已观察正常PlayerUpdate；独立于创建owner赋予的字段读取依据。
   std::array<PlayerAnchor, kControlAnchorCapacity> update_witnesses_{};
   std::array<PlayerPostWitness,kControlAnchorCapacity> player_posts_{};
@@ -258,6 +296,9 @@ private:
   std::array<RngInventory, kObjectBudget> rng_inventory_{};
   std::uint32_t rng_count_ = 0;
   BatchWriter pending_{};
+  // 诊断租约与 Authority 后态凭据独立；每个 outer 只发送一次完成通知。
+  bool legacy_diagnostics_=false,legacy_output_failed_=false,post_notified_=false;
+  std::uint64_t legacy_attempts_=0;
   core::TickPostState post_{};
 };
 } // namespace cs::world

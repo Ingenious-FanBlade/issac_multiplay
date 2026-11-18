@@ -49,7 +49,7 @@ struct Publication final {
   // 采集会话/epoch/run/room是主线程核对的连续性键，不含原生地址。
   // 同一键下暂缺新候选不等于撤销已交付网络的历史目标；全零表示明确退休。
   std::array<std::uint64_t,4> source{};
-  state::HostStateSnapshotRef binary,binary_ordinary;
+  std::shared_ptr<const state::HostStatePublication> binary;
 };
 class HostPeer final {
 public:
@@ -60,7 +60,7 @@ public:
   Packets Progress(const protocol::Ack &);
   Packets Bye(const char *);
   Packets Reject(const char *);
-  bool Offer(const Publication &, std::uint64_t now);
+  bool Offer(const Publication &, const state::HostStatePublication::View &, std::uint64_t now);
   unsigned Pump(std::uint64_t now, EncodingCache &, const stream::ReliableSender::Send &);
   std::uint64_t NextWake(std::uint64_t now) const noexcept;
   const stream::Metrics &Metrics() const noexcept {return metrics_;}
@@ -72,7 +72,14 @@ public:
   bool OwnsPacket(std::span<const std::uint8_t>) const noexcept;
   bool NetworkSettled() const noexcept { return operations_.Settled(); }
   unsigned PublicationPhase() const noexcept;
-  struct BinaryProgress {std::uint32_t world=0,body=0;std::uint64_t events=0,dropped_capacity=0,dropped_expired=0,unmatched_acks=0;};
+  struct BinaryProgress {
+    std::uint32_t world=0,body=0;
+    std::uint64_t events=0,dropped_capacity=0,dropped_expired=0,unmatched_acks=0;
+    // 累计真实完整发送次数和目录对就绪耗时，跨同一 Peer 的场景路由累计。
+    std::uint64_t joint_sent=0,world_sent=0,body_sent=0;
+    std::uint64_t body_dependency_blocks=0;
+    state::HostWorldProgress world_window;
+  };
   BinaryProgress StateProgress() const noexcept;
   const Operations::Statistics &OperationStatistics() const noexcept {
     return operations_.Status();
@@ -130,12 +137,13 @@ public:
   bool Poll(Event &) noexcept;
   bool PollWorld(Event &) noexcept;
   // 二进制邮箱与旧Range完全分开；主线程只消费不可变批次／资源工作并回报原票据。
-  bool PollBinary(state::ClientStateApplyBatchRef &) noexcept;
+  // 按应用通道取票，0 为 World／joint／恢复，1 为普通 Body；总容量仍为两票。
+  bool PollBinary(unsigned channel,state::ClientStateApplyBatchRef &) noexcept;
   bool PollBinaryResource(state::ClientStateResourceJob &) noexcept;
   bool CompleteBinary(const state::ClientStateApplyCompletion &) noexcept;
   bool CompleteBinaryResource(const state::ClientResourcePreparationTicket &,state::ClientResourceState) noexcept;
   bool RecoverBinary(const state::StateRoute &,state::StateResyncReason) noexcept;
-  // 主线程完成准备/原生操作后才发布结果；接收线程从不自行生成AppliedAck。
+  // 主线程回报本地应用和退休结果；后台在保留可解码快照后独立发送接收 ACK。
   bool Prepare(const Event &) noexcept;
   bool Complete(const Event &, OperationStage, const char *reason) noexcept;
   void Stop() noexcept;

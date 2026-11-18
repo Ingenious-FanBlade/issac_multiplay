@@ -132,10 +132,17 @@ void StartTrace(const std::string &directory) {
   std::filesystem::create_directories(directory);
   if (!QueryPerformanceFrequency(&frequency) || frequency.QuadPart <= 0)
     throw std::runtime_error("trace_clock_failed");
-  path =
-      directory + "/boot-" + std::to_string(GetCurrentProcessId()) + ".jsonl";
-  output = CreateFileA(path.c_str(), FILE_APPEND_DATA, FILE_SHARE_READ, nullptr,
-                       CREATE_NEW, FILE_ATTRIBUTE_NORMAL, nullptr);
+  const auto prefix = directory + "/boot-" + std::to_string(GetCurrentProcessId());
+  // Windows 会复用 PID；保留历史日志，并为重复 PID 选择新文件，避免中断模块初始化。
+  for (unsigned attempt = 0;; ++attempt) {
+    path = prefix + (attempt ? "-" + std::to_string(attempt) : "") + ".jsonl";
+    output = CreateFileA(path.c_str(), FILE_APPEND_DATA, FILE_SHARE_READ, nullptr,
+                         CREATE_NEW, FILE_ATTRIBUTE_NORMAL, nullptr);
+    const auto error = GetLastError();
+    if (output != INVALID_HANDLE_VALUE ||
+        (error != ERROR_FILE_EXISTS && error != ERROR_ALREADY_EXISTS))
+      break;
+  }
   if (output == INVALID_HANDLE_VALUE)
     throw std::runtime_error("trace_open_failed");
   wake = CreateEventW(nullptr, FALSE, FALSE, nullptr);

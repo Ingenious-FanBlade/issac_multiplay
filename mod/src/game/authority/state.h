@@ -67,7 +67,7 @@ struct SessionRuntime {
   std::array<TickMetrics, core::kMaximumParticipants> metrics{};
   // 只记录恢复时序；不保存旧输入，不读取或写入武器蓄力，A/B 使用相同上限。
   std::array<ShootingRecovery, core::kMaximumParticipants> shooting_recovery{};
-  std::array<Topology, core::kMaximumParticipants> topology{};
+  TopologyGroups topology{};
   std::array<void *, core::kMaximumParticipants> controlled_player{};
   std::array<std::array<BodyActivityWitness, kMaximumGroupBodies>,
              core::kMaximumParticipants>

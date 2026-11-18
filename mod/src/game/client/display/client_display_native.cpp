@@ -1,7 +1,9 @@
 #include "IsaacRepentance.h"
 #include "game/client/display/client_display_native.h"
+#include "game/client/room/client_backdrop_native.h"
 #include "game/client/scene/client_lifetime.h"
 #include "game/common/bridge.h"
+#include "game/common/binary_effect_e2e.h"
 #include "game/common/context.h"
 #include "core/replication_memory.h"
 #include "runtime.h"
@@ -11,6 +13,7 @@
 #include <cstring>
 #include <list>
 #include <new>
+#include <tuple>
 #include <windows.h>
 #include <GL/gl.h>
 
@@ -27,6 +30,21 @@ using SeedNode=std::_Tree_node<int,void *>;
 static_assert(_ITERATOR_DEBUG_LEVEL==0&&sizeof(std::set<int>)==8&&sizeof(SeedNode)==20&&
   offsetof(SeedNode,_Myval)==16&&offsetof(SeedNode,_Isnil)==13&&offsetof(SeedNode,_Color)==12);
 struct SavedScalar final {void *root=nullptr;unsigned offset=0,size=0;std::array<std::byte,88> bytes{};};
+// 房间原生资源的依赖值和本机surface身份。相同输入的热帧复用已建资源。
+struct RoomGraphicsKey final {
+  const RoomConfig_Room *config=nullptr;
+  unsigned stage=0,stage_type=0,difficulty=0,backdrop=0,flags=0,curse=0,room_type=0;
+  int width=0,height=0,wall_style=0;
+  bool special_ray=false;
+  bool tutorial=false,ascent=false,water=false;
+  std::uint8_t graphics_flags=0;
+  std::array<float,4> bounds{};
+  std::array<const void *,5> targets{};
+  auto Values() const noexcept {
+    return std::tie(config,stage,stage_type,difficulty,backdrop,flags,curse,room_type,width,height,wall_style,
+      tutorial,graphics_flags,ascent,water,special_ray,bounds,targets);
+  }
+};
 }
 // 主线程显示owner持有本方种子树、原值快照和surface资格；原生Room资源仍由Scene退休。
 struct ClientDisplayNative final {
@@ -35,6 +53,13 @@ struct ClientDisplayNative final {
   Camera *owned_camera=nullptr;
   bool hud_loaded=false,root_uncertain=false,audio_uncertain=false;
   std::array<ANM2 *,2> owned_lights{};
+  RoomGraphicsKey room_graphics{};
+  bool graphics_ready=false,fx_owned=false,backdrop_entered=false,radial_owned=false,hell_owned=false;
+  bool global_images_owned=false,shading_target_owned=false,shading_applicable=false,display_complete=false,capture_initial=false;
+  KAGE_SmartPointer_ImageBase previous_shading,previous_shading_target,previous_ray;
+  std::array<std::uint32_t,4> previous_fx_rng{};
+  int graphics_width=0,graphics_height=0;
+  KAGE_Graphics_ImageBase *history_surface=nullptr;
   // 持续声由 native slot 持有强引用，跨路由不借旧批次的资源目录或文字。
   struct Voice final {
     std::uint64_t instance=0,generation=0;
@@ -68,7 +93,7 @@ struct ClientDisplayNative final {
   int surface_width=0,surface_height=0;
   KAGE_Graphics_ImageBase *captured_old=nullptr;
   int captured_width=0,captured_height=0;
-  memory::Lease charge;
+  ClientDisplayMemoryRef memory;
   void Save(void *root,unsigned offset,unsigned size){
     for(unsigned i=0;i<saved_count;++i)if(saved[i].root==root&&saved[i].offset==offset)return;
     if(saved_count==saved.size()||size>88)throw std::runtime_error("display_snapshot_budget");
@@ -80,6 +105,7 @@ namespace {
 ClientDisplayNative *active=nullptr;
 thread_local ClientDisplayNative *capture_owner=nullptr;
 thread_local unsigned display_depth=0;
+thread_local unsigned fx_build_seed=0;
 thread_local bool boss_replay=false;
 struct DisplayScope final {DisplayScope(){++display_depth;}~DisplayScope(){--display_depth;}};
 ClientDisplayNative *DisplaySource() noexcept{return capture_owner?capture_owner:active;}
@@ -93,9 +119,18 @@ bool Roots(const ClientDisplayNative &o,const ClientNativeRoots &r) noexcept {
     o.room->_Camera==r.camera&&(!o.owned_camera||o.owned_camera==r.camera);
 }
 void Reapply(ClientDisplayNative &);
+bool RoomResourcesCurrent(const ClientDisplayNative &,ClientDisplayIssue *issue=nullptr) noexcept;
+bool DisplayMismatch(ClientDisplayIssue *issue,const char *reason,std::uintptr_t expected=0,std::uintptr_t actual=0,
+    std::uint32_t resource=UINT32_MAX,std::uint32_t field=UINT32_MAX) noexcept {
+  if(issue)*issue={reason,expected,actual,resource,field};
+  return false;
+}
+std::uintptr_t Address(const void *value) noexcept{return reinterpret_cast<std::uintptr_t>(value);}
+KAGE_SmartPointer_ImageBase &ImageSlot(unsigned) noexcept;
 // 离屏捕获只运行原生PreRender/Render和图形提交；不调用转场FSM或完整ChangeRoom。
 bool Capture(ClientDisplayNative &o,bool old) {
-  if(!Graphics()||!o.room||!o.room->_descriptor||!o.room->_descriptor->SpawnSeed)return false;
+  if(!Graphics()||!RoomResourcesCurrent(o)||!o.room->_descriptor||!o.room->_descriptor->SpawnSeed)return false;
+  ClientDisplayMemoryScope memory(o.memory);
   auto &graphics=*__ptr_g_KAGE_Graphics_Manager;auto &transition=o.game->_roomTransition;
   auto *target=Read<KAGE_Graphics_ImageBase *>(&transition,old?0x28:0x30);
   if(!target){reinterpret_cast<void (__thiscall *)(RoomTransition *)>(Base+0x423820)(&transition);
@@ -104,18 +139,26 @@ bool Capture(ClientDisplayNative &o,bool old) {
   // 新surface在publication前绘制，Hook仍须读取同批已安装paused和原生对象，不借旧展示输入。
   struct Source final {ClientDisplayNative *old;explicit Source(ClientDisplayNative &o):old(capture_owner){capture_owner=&o;}
     ~Source(){capture_owner=old;}} source(o);
-  o.room->PreRender();graphics.PresentWithoutSwap();Rendering::PushCurrentRenderTarget();
+  o.room->PreRender();
+  graphics.PresentWithoutSwap();Rendering::PushCurrentRenderTarget();
   struct Restore final {KAGE_Graphics_Manager &graphics;BlendMode blend;KAGE_Graphics_Shader *shader;
     ~Restore(){Rendering::RestorePreviousRenderTarget();graphics._blendMode=blend;graphics._shader=shader;}} restore{graphics,graphics._blendMode,graphics._shader};
   graphics.SetCurrentRenderTarget(target,true);graphics.Clear();
   // 与原生mode1相同的默认7号混合模式；由外层原生target owner恢复图形目标。
-  graphics._blendMode=BlendMode();
+  // 原生离屏路径经图形 owner 的 slot 14 设置模式，同时更新后端状态。
+  // J273 的两份常量只有前 16 字节，原生另行写入 alpha 目标因子 7。
+  const BlendMode blend(0,Read<bool>(&graphics,0x23)?1:6,7,1,7);
+  using SetBlend=void (__thiscall *)(KAGE_Graphics_Manager *,BlendMode);
+  const auto blend_table=Read<void *const *>(&graphics,0);
+  reinterpret_cast<SetBlend>(blend_table[14])(&graphics,blend);
   reinterpret_cast<void (__thiscall *)(Room *)>(Base+0x404500)(o.room);
   graphics.PresentWithoutSwap();
   if(!ClientNativeCpuQueuesEmpty()||Read<std::uint32_t>(o.game,0x25a70)!=ClientDisplayMeta(o.installed).frame)return false;
   Reapply(o);
+  memory.Complete();
   return true;
 }
+// 首次公开前用同批已安装引用验证原生房间绘制，转场复用自己刚捕获的目标。
 bool FlushDisplay() {
   if(!Graphics()||!__ptr_g_KAGE_Graphics_Manager)return false;
   __ptr_g_KAGE_Graphics_Manager->PresentWithoutSwap();
@@ -125,6 +168,386 @@ bool ChangedRoom(const ClientDisplayWorldRef &a,const ClientDisplayWorldRef &b) 
   const auto ma=ClientDisplayMeta(a),mb=ClientDisplayMeta(b);const auto &x=ma.scope,&y=mb.scope;
   return x.run!=y.run||x.floor!=y.floor||x.dimension!=y.dimension||x.room!=y.room||x.scene!=y.scene||
     ma.room_use!=mb.room_use||ma.room_shape!=mb.room_shape;
+}
+// 只借用原生函数确切读取的标量，离栈立即恢复。
+template<class T> struct BorrowValue final {
+  void *object;
+  unsigned offset;
+  T before;
+  BorrowValue(void *p,unsigned at,const T &value):object(p),offset(at),before(Read<T>(p,at)){Write(object,offset,value);}
+  ~BorrowValue(){Write(object,offset,before);}
+};
+KAGE_SmartPointer_ImageBase &ImageSlot(unsigned offset) noexcept {
+  return *reinterpret_cast<KAGE_SmartPointer_ImageBase *>(Base+offset);
+}
+KAGE_SmartPointer_ImageBase LoadDisplayImage(const char *path) {
+  KAGE_SmartPointer_ImageBase image;
+  Manager::LoadImage(&image,path,__ptr_g_VertexAttributeDescriptor_Position,false);
+  return image;
+}
+ANM2 &RoomSprite(Room &r,unsigned offset) noexcept {
+  return *reinterpret_cast<ANM2 *>(reinterpret_cast<std::byte *>(&r)+offset);
+}
+void ReleaseCamera(ClientDisplayNative &o) {
+  if(!o.owned_camera)return;
+  // 官方 ASMCamera 的常驻 Hook 将析构入口包装成无栈参数的 SDK 方法；必须经
+  // SDK 调用并保留官方 Clamp 状态恢复。照搬裸 J273 的额外栈 word 会使返回地址错位。
+  o.owned_camera->destructor();
+  o.room->_Camera=nullptr;
+  o.owned_camera=nullptr;
+}
+void ConstructCamera(ClientDisplayNative &o,const ClientDisplayInjections &input) {
+  const auto scroll=o.room->_renderScrollOffset;
+  BorrowValue<int> previous(o.game,0x18308,input.camera_previous_entry);
+  BorrowValue<int> door(o.game,0x1831c,input.camera_entry_door);
+  BorrowValue<int> return_room(o.game,0x18328,input.camera_return_focus?int(o.game->_currentRoomIdx):-1);
+  BorrowValue<std::array<float,2>> return_position(o.game,0x18320,input.camera_return_position);
+  o.root_uncertain=true;
+  ReleaseCamera(o);
+  o.root_uncertain=false;
+  auto *camera=static_cast<Camera *>(reinterpret_cast<void *(__cdecl *)(std::size_t)>(Base+0x686de5)(sizeof(Camera)));
+  if(!camera)throw std::bad_alloc();
+  // 构造异常仍保留实际分配前缀；完整构造返回前Room不能借用该指针。
+  o.owned_camera=camera;
+  o.root_uncertain=true;
+  camera->constructor(o.room);
+  o.room->_Camera=camera;
+  o.root_uncertain=false;
+  o.room->_renderScrollOffset=scroll;
+}
+// J273 Room主题12可借Data->StageId提供另一楼层的FX配置。
+std::pair<int,int> FxStage(int stage,int type,int id,bool greed) noexcept {
+  if(stage!=12||id<=0)return {stage,type};
+  if(greed){
+    if(id<13)return {(id-1)/3+1,(id-1)%3};
+    if(id==24||id==25)return {id-18,0};
+    if(id>=27)return {(id-27)/2+1,(id-27)%2+4};
+    return {stage,type};
+  }
+  if(id<13)return {2*((id-1)/3)+1,(id-1)%3};
+  if(id==13)return {9,0};
+  if(id<=17)return {(id-14)/2+10,(id-14)%2};
+  if(id==26)return {12,0};
+  if(id==35)return {13,0};
+  if(id>=27)return {2*((id-27)/2)+1,(id-27)%2+4};
+  return {stage,type};
+}
+// J273 0x821D00 从 ECX/EDX 取 stage/type，第三参在栈上，由 caller 清理。
+// 这里不能用三参 __fastcall：MSVC 会把栈参数交给 callee 清理。
+int FxPhysicalStage(int stage,int stage_type) noexcept {
+  const auto entry=Base+0x421d00;
+  int result;
+  __asm {
+    mov ecx,stage
+    mov edx,stage_type
+    push -1
+    call dword ptr [entry]
+    add esp,4
+    mov result,eax
+  }
+  return result;
+}
+void ClearFx(FXLayers &fx) {
+  reinterpret_cast<void (__thiscall *)(FXLayers *)>(Base+0x56bd30)(&fx);
+  fx._poopFxCountdown=0;
+}
+// 原生vector仍属Room。校验实际就绪的图像、pose和选中ray引用，无层是合法配置。
+bool FxVector(const void *owner,unsigned at,unsigned stride,unsigned &count) noexcept {
+  const auto begin=Read<std::uintptr_t>(owner,at),end=Read<std::uintptr_t>(owner,at+4),cap=Read<std::uintptr_t>(owner,at+8);
+  if(end<begin||cap<end||(!begin&&cap)||(end-begin)%stride||(cap-begin)%stride)return false;
+  count=unsigned((end-begin)/stride);
+  return true;
+}
+bool FxReady(const FXLayers &fx,bool applies) noexcept {
+  if(fx._loaded!=applies)return false;
+  unsigned layers=0,groups=0;
+  if(!FxVector(&fx,0x18,0x4c,layers)||!FxVector(&fx,0x24,0x2c,groups))return false;
+  if(!applies)return !layers&&!groups&&!Read<void *>(&fx,0xc4);
+  const auto selected=Read<int>(&fx,0x30);
+  if(selected< -1||(selected>=0&&unsigned(selected)>=groups))return false;
+  const auto *layer=Read<const std::byte *>(&fx,0x18);
+  for(unsigned n=0;n<layers;++n,layer+=0x4c){
+    unsigned poses=0;
+    if(!FxVector(layer,0xc,0x14,poses)||!Read<void *>(layer,4)||!Read<void *>(layer,8)||
+       Read<unsigned>(layer,0x18)>poses)return false;
+  }
+  if(selected>=0){
+    const auto *group=Read<const std::byte *>(&fx,0x24)+0x2c*selected;
+    unsigned rays=0;
+    if(!FxVector(group,0x1c,0x14,rays)||!rays)return false;
+    const auto *ray=Read<const std::byte *>(group,0x1c);
+    for(unsigned n=0;n<rays;++n,ray+=0x14)if(!Read<void *>(ray,0xc)||!Read<void *>(ray,0x10))return false;
+  }
+  if(Read<void *>(&fx,0xc4))
+    return Read<bool>(&fx,0x2c8+0x109)&&Read<bool>(&fx,0x3dc+0x109);
+  return true;
+}
+// 图形配置表和文件路径都由本机原生资源系统提供。
+bool BuildFx(ClientDisplayNative &o,const RoomGraphicsKey &key,unsigned seed) {
+  auto &fx=o.room->_fxLayers;
+  const bool applies=key.room_type!=16&&key.backdrop!=18;
+  if(!o.fx_owned&&fx._loaded)return false;
+  if(!o.fx_owned){
+    o.previous_fx_rng=Read<std::array<std::uint32_t,4>>(reinterpret_cast<const void *>(Base+0x7ac6d8),0);
+    o.fx_owned=true;
+  }
+  if(!applies){ClearFx(fx);return FxReady(fx,false);}
+  const auto [stage,type]=FxStage(key.stage,key.stage_type,key.config->StageId,key.difficulty==2||key.difficulty==3);
+  const auto physical=FxPhysicalStage(stage,type);
+  if(physical<0||physical>=37||o.game->_roomConfig._stages[physical]._backdrop<0||
+     o.game->_roomConfig._stages[physical]._backdrop>=63)return false;
+  // 解析器用游戏CRT构造返回串，交游戏自己的析构，不把跨模块分配转交本DLL。
+  struct ResolvedPath final {
+    alignas(4) std::byte storage[24]{};
+    bool assigned=false;
+    ~ResolvedPath(){if(assigned)reinterpret_cast<void (__thiscall *)(void *)>(Base+0x85f0)(storage);}
+    std_string *Address() noexcept {return reinterpret_cast<std_string *>(storage);}
+  } path;
+  static_assert(sizeof(std_string)==24);
+  const std_string file="fxlayers.xml";
+  const auto resolve=reinterpret_cast<std_string *(__thiscall *)(void *,std_string *,const std_string *)>(Base+0x4d2ab0);
+  resolve(reinterpret_cast<std::byte *>(o.manager)+0x2a3bc,path.Address(),&file);
+  path.assigned=true;
+  if(path.Address()->empty())return false;
+  // 该入口自行设置loaded。DecorSeed只覆盖本次读取，玩法全局Random由call site替换。
+  BorrowValue<unsigned> decor(o.room->_descriptor,0x58,seed);
+  struct LocalSeed final {explicit LocalSeed(unsigned value){fx_build_seed=value;}~LocalSeed(){fx_build_seed=0;}} local(seed);
+  fx._poopFxCountdown=0;
+  reinterpret_cast<void (__thiscall *)(FXLayers *,const char *,int,int)>(Base+0x568e10)(&fx,path.Address()->c_str(),stage,type);
+  if(!FxReady(fx,true))return false;
+  DisplayScope display;
+  Named(ClientEntry::DisplayFxUpdate,[&]{reinterpret_cast<void (__thiscall *)(FXLayers *,bool)>(Base+0x56bf40)(&fx,true);});
+  return FxReady(fx,true);
+}
+bool PreparePoop(Room &room,const ClientDisplayInjections &input,unsigned seed) {
+  auto &fx=room._fxLayers;
+  if(!input.poop_fx_countdown){fx._poopFxCountdown=0;return true;}
+  if(!fx._loaded)return false;
+  ColorMod color;
+  static_assert(sizeof(color)==sizeof(input.poop_fx_color));
+  std::memcpy(&color,input.poop_fx_color.data(),sizeof(color));
+  if(fx._poopFxCountdown<=0){
+    BorrowValue<unsigned> decor(room._descriptor,0x58,seed);
+    fx.AddPoopFx(&color);
+  }
+  unsigned poses=0;
+  if(!Read<void *>(&fx,0x3c)||!Read<void *>(&fx,0x40)||!FxVector(&fx,0x44,0x14,poses)||
+     !poses||Read<unsigned>(&fx,0x50)>poses)return false;
+  fx._poopFxColor=color;
+  fx._poopFxCountdown=input.poop_fx_countdown;
+  return true;
+}
+// 原生floor/wall构图执行前设置Q4独立流；启动房投影只在本次教程检查生效。
+bool BuildBackdrop(ClientDisplayNative &o,const RoomGraphicsKey &key,unsigned seed) {
+  auto &b=o.room->_backdrop;
+  for(unsigned i=0;i<4;++i){
+    const auto &surface=*reinterpret_cast<const KAGE_SmartPointer_ImageBase *>(reinterpret_cast<const std::byte *>(&b)+i*8);
+    if(!surface.image||!surface.counter||surface.image->GetWidth()!=780||surface.image->GetHeight()!=468)return false;
+  }
+  const auto &config=b.configurations[key.backdrop];
+  if(key.backdrop&&(config.backdropId!=key.backdrop||config.gfx.empty()))return false;
+  const bool sprite_floor=key.backdrop==18||key.backdrop==26||key.backdrop==35||
+    key.backdrop==52||key.backdrop==53||key.backdrop==54;
+  KAGE_SmartPointer_ImageBase atlas;
+  KAGE_SmartPointer_ImageBase water_atlas;
+  if(key.backdrop&&!sprite_floor){
+    atlas=LoadDisplayImage(config.gfx.c_str());
+    if(!atlas.image||!atlas.counter)return false;
+  }
+  if(!config.waterGfx.empty()&&!sprite_floor){
+    water_atlas=LoadDisplayImage(config.waterGfx.c_str());
+    if(!water_atlas.image||!water_atlas.counter)return false;
+  }
+  if(key.tutorial&&(o.game->_playerManager._playerList.empty()||!o.game->_playerManager._playerList.front()))return false;
+  b.seed=b.rng._seed=seed;
+  b.rng._shift1=5;b.rng._shift2=9;b.rng._shift3=7;
+  BorrowValue<int> style(o.room,0x7068,key.wall_style);
+  const auto entry=int(o.game->_currentRoomIdx);
+  // Ascent首层使用固定入口84，保持原生Ascent位一致供其它构图分支读取。
+  if(key.ascent&&key.stage==1&&key.stage_type!=4&&key.stage_type!=5&&((entry==84)!=key.tutorial))return false;
+  BorrowValue<int> start(o.game,0x182d0,key.tutorial?entry:INT32_MIN);
+  const Vector min=b.unkVec1,max=b.unkVec2;
+  ClientBackdropLocalBuild build(&b);
+  o.backdrop_entered=true;
+  // 通过官方Init包装进入原生构图，保留回调与配置处理的原有顺序。
+  b.Init(key.backdrop,true);
+  b.unkVec1=min;b.unkVec2=max;
+  if(!build.Complete()||b.backdropId!=key.backdrop)return false;
+  return !sprite_floor||b.floorANM2._loaded;
+}
+const char *ShadingPath(const RoomGraphicsKey &key) noexcept {
+  constexpr const char *paths[]={"gfx/backdrop/shading.png","gfx/backdrop/shading_ih.png","gfx/backdrop/shading_iv.png",
+    "gfx/backdrop/shading_1x2.png","gfx/backdrop/shading_iiv.png","gfx/backdrop/shading_2x1.png","gfx/backdrop/shading_iih.png",
+    "gfx/backdrop/shading_2x2.png","gfx/backdrop/shading_ltl.png","gfx/backdrop/shading_ltr.png",
+    "gfx/backdrop/shading_lbl.png","gfx/backdrop/shading_lbr.png"};
+  if(key.backdrop==52||key.backdrop==53)
+    return key.config->Subtype==10?"gfx/backdrop/shading_closet_L.png":"gfx/backdrop/shading_closet_R.png";
+  const auto shape=unsigned(key.config->Shape);
+  if(key.backdrop==11)switch(shape){
+    case 4:return "gfx/backdrop/shading_1x2_utero.png";
+    case 6:return "gfx/backdrop/shading_2x1_utero.png";
+    case 8:return "gfx/backdrop/shading_2x2_utero.png";
+    case 1:return "gfx/backdrop/shading_utero.png";
+  }
+  return paths[shape>=1&&shape<=12?shape-1:0];
+}
+bool BuildShading(const RoomGraphicsKey &key,const BackdropConfig &config,KAGE_SmartPointer_ImageBase &image,
+    KAGE_SmartPointer_ImageBase &surface) {
+  if((config.unk1&0xffu)||!config.walls)return true;
+  // 本批重绘自己的目标。普通游戏的全局shade图与surface在退出时按对归还。
+  if(!surface.image){
+    KColor clear(0,0,0,0);
+    surface=KAGE_Graphics_ImageManager::CreateProceduralImage(780,468,"Client Room Shading",clear);
+  }
+  auto *target=surface.image;
+  image=LoadDisplayImage(ShadingPath(key));
+  if(!target||!image.image||!image.counter||target->GetWidth()!=780||target->GetHeight()!=468)return false;
+  auto &graphics=*__ptr_g_KAGE_Graphics_Manager;
+  Rendering::PushCurrentRenderTarget();
+  struct Restore final {KAGE_Graphics_Manager &graphics;BlendMode blend;KAGE_Graphics_Shader *shader;
+    ~Restore(){Rendering::RestorePreviousRenderTarget();graphics._blendMode=blend;graphics._shader=shader;}
+  } restore{graphics,graphics._blendMode,graphics._shader};
+  graphics.SetCurrentRenderTarget(target,false);
+  graphics.Clear();
+  // 按 J273 0x7E8216–0x7E8281 使用覆盖混合和原生图像 slot 9。
+  // 该入口只接收位置和颜色，由图像根据当前纹理尺寸生成原生顶点。
+  graphics._blendMode=BlendMode(0,1,0,1,0);
+  const Vector position(0,0);
+  const KColor white(1,1,1,1);
+  using DrawAt=void (__thiscall *)(KAGE_Graphics_ImageBase *,const Vector *,const KColor *);
+  const auto table=Read<void *const *>(image.image,0);
+  reinterpret_cast<DrawAt>(table[9])(image.image,&position,&white);
+  graphics.PresentWithoutSwap();
+  return ClientNativeCpuQueuesEmpty();
+}
+bool BuildSpecialBackgrounds(ClientDisplayNative &o,const RoomGraphicsKey &key,unsigned seed) {
+  KAGE_SmartPointer_ImageBase shading,ray,shading_target;
+  if(o.shading_target_owned)shading_target=ImageSlot(0x7e7350);
+  if(!BuildShading(key,o.room->_backdrop.configurations[key.backdrop],shading,shading_target))return false;
+  if(key.special_ray){
+    ray=LoadDisplayImage(seed&1?"gfx/backdrop/fx_ray_3.png":"gfx/backdrop/fx_ray_4.png");
+    if(!ray.image||!ray.counter)return false;
+    auto **table=*reinterpret_cast<void ***>(ray.image);
+    reinterpret_cast<void (__thiscall *)(KAGE_Graphics_ImageBase *,int,int)>(table[16])(ray.image,1,1);
+    const auto *format=*reinterpret_cast<const KAGE_Graphics_ImageBase_VertexAttributeDescriptor *const *>(Base+0x6acb00);
+    if(!format)return false;
+    ray.image->SetVertexFormat(*format);
+  }
+  if(!o.global_images_owned){
+    o.previous_shading=ImageSlot(0x7e7370);o.previous_shading_target=ImageSlot(0x7e7350);
+    o.previous_ray=ImageSlot(0x7e7358);o.global_images_owned=true;
+  }
+  if(shading_target.image){ImageSlot(0x7e7350)=std::move(shading_target);o.shading_target_owned=true;}
+  o.shading_applicable=shading.image!=nullptr;
+  ImageSlot(0x7e7370)=std::move(shading);ImageSlot(0x7e7358)=std::move(ray);
+  auto &radial=RoomSprite(*o.room,0x7100);
+  if(o.radial_owned){radial.Reset();o.radial_owned=false;}
+  if(key.backdrop==18||key.backdrop==28){
+    o.radial_owned=true;
+    std_string path="gfx/Effect_SatanRadial.anm2";
+    radial.Load(path,false);
+    if(key.backdrop==28){
+      std_string sheet="gfx/satan_radial_ultragreed.png";
+      if(!radial.ReplaceSpritesheet(0,sheet))return false;
+    }
+    radial.LoadGraphics(false);
+    auto *layer=radial.GetLayer(0);
+    if(!radial._loaded||!layer||!layer->_spriteSheetLoaded)return false;
+  }
+  auto *hell=reinterpret_cast<std::byte *>(o.room)+0x776c;
+  if(Read<Room *>(hell,0)!=o.room)return false;
+  const bool uses_hell=key.config->Type==16&&key.config->StageId==35;
+  if(!uses_hell&&o.hell_owned){RoomSprite(*o.room,0x7770).Reset();o.hell_owned=false;}
+  if(uses_hell){
+    o.hell_owned=true;
+    reinterpret_cast<void (__thiscall *)(void *)>(Base+0x42e960)(hell);
+    auto &sprite=RoomSprite(*o.room,0x7770);
+    if(!sprite._loaded||sprite._layerCount<15)return false;
+    for(int n=0;n<15;++n){const auto *layer=sprite.GetLayer(n);if(!layer||!layer->_spriteSheetLoaded)return false;}
+  }
+  return true;
+}
+// 目标地址由本机图形生命周期产生。resize损失内容时，下一批重新构图。
+std::array<const void *,5> RoomTargets(const Room &room) noexcept {
+  const auto &b=room._backdrop;
+  return {b.floorBuffer.image,b.wallsBuffer.image,b.floorSurface2.image,b.tempBackdropSurface.image,ImageSlot(0x7e7350).image};
+}
+bool RoomResourcesCurrent(const ClientDisplayNative &o,ClientDisplayIssue *issue) noexcept {
+  if(!o.graphics_ready||!o.game||!o.room)return DisplayMismatch(issue,"graphics_owner_not_ready");
+  if(!o.owned_camera||o.room->_Camera!=o.owned_camera)
+    return DisplayMismatch(issue,"graphics_camera_changed",Address(o.owned_camera),Address(o.room->_Camera));
+  if(!o.hud_loaded)return DisplayMismatch(issue,"graphics_hud_not_loaded",1);
+  const auto targets=RoomTargets(*o.room);
+  constexpr const char *target_names[]={"floor_buffer","walls_buffer","floor_surface_two","temporary_backdrop","global_backdrop"};
+  for(unsigned i=0;i<targets.size();++i)if(targets[i]!=o.room_graphics.targets[i])
+    return DisplayMismatch(issue,target_names[i],Address(o.room_graphics.targets[i]),Address(targets[i]),i);
+  if(int(g_WIDTH)!=o.graphics_width)return DisplayMismatch(issue,"graphics_width_changed",o.graphics_width,int(g_WIDTH));
+  if(int(g_HEIGHT)!=o.graphics_height)return DisplayMismatch(issue,"graphics_height_changed",o.graphics_height,int(g_HEIGHT));
+  const auto &shading=ImageSlot(0x7e7370);
+  if((shading.image!=nullptr)!=o.shading_applicable)
+    return DisplayMismatch(issue,"graphics_shading_presence",o.shading_applicable,Address(shading.image),0x7e7370);
+  const auto &ray=ImageSlot(0x7e7358);
+  if((ray.image!=nullptr)!=o.room_graphics.special_ray)
+    return DisplayMismatch(issue,"graphics_ray_presence",o.room_graphics.special_ray,Address(ray.image),0x7e7358);
+  const auto *history=ImageSlot(0x7e72b4).image;
+  if(!o.history_surface||history!=o.history_surface)
+    return DisplayMismatch(issue,"graphics_history_changed",Address(o.history_surface),Address(history),0x7e72b4);
+  const bool fx=o.room_graphics.room_type!=16&&o.room_graphics.backdrop!=18;
+  if(o.room->_fxLayers._loaded!=fx)return DisplayMismatch(issue,"graphics_fx_loaded_changed",fx,o.room->_fxLayers._loaded);
+  return true;
+}
+RoomGraphicsKey RoomGraphics(const ClientDisplayNative &o,const ClientDisplayInjections &input) noexcept {
+  const auto &room=*o.room;const auto &game=*o.game;
+  RoomGraphicsKey key{};
+  key.config=room._descriptor->Data;
+  // Host 资源目录只追加身份；无关 Sprite/图像入目录不改变本房图形依赖，不能触发重建。
+  key.stage=Read<unsigned>(&game,0);key.stage_type=Read<unsigned>(&game,4);
+  key.difficulty=Read<unsigned>(&game,0x25f40);key.backdrop=room._backdrop.backdropId;
+  key.flags=Read<unsigned>(room._descriptor,0x44)&0x1200u;key.room_type=Read<unsigned>(&room,8);
+  const auto raw=Read<unsigned>(&game,12),temporary=Read<unsigned>(&game,0x25ac8);
+  const auto forced=reinterpret_cast<unsigned (__cdecl *)()>(Base+0x2f55c0)();
+  const auto prevented=reinterpret_cast<unsigned (__cdecl *)()>(Base+0x2f5750)();
+  key.curse=(raw&2u)|(((raw|temporary|forced)&~prevented&2u)<<1);
+  key.width=Read<int>(&room,12);key.height=Read<int>(&room,16);key.bounds=Read<std::array<float,4>>(&room,20);
+  key.wall_style=key.backdrop==20?input.backdrop_wall_style:0;
+  key.tutorial=input.backdrop_tutorial;key.graphics_flags=input.room_graphics_flags;
+  key.ascent=(Read<unsigned>(&game,0x25ac4)&0x10000u)!=0;
+  key.special_ray=reinterpret_cast<bool (__cdecl *)()>(Base+0x4194d0)();
+  key.water=key.backdrop==45&&(input.water[0]!=0||input.water[1]!=0);
+  key.targets=RoomTargets(room);
+  return key;
+}
+// 使用同一个构图条件预判与执行，安装改变墙面、房间标志或资源时会在调用前复核。
+bool NeedsRoomGraphics(const ClientDisplayNative &o,bool new_room,const RoomGraphicsKey &key) noexcept {
+  return new_room||!RoomResourcesCurrent(o)||key.Values()!=o.room_graphics.Values();
+}
+// 排空后的唯一退出点。四个Backdrop surface仍由Room持有，回收构图临时引用与内嵌Sprite。
+void ReleaseRoomGraphics(ClientDisplayNative &o) {
+  o.graphics_ready=o.display_complete=false;
+  if(o.fx_owned){
+    auto &fx=o.room->_fxLayers;
+    ClearFx(fx);
+    RoomSprite(*o.room,0x18e0).Reset();
+    RoomSprite(*o.room,0x19f4).Reset();
+    *reinterpret_cast<KAGE_SmartPointer_ImageBase *>(reinterpret_cast<std::byte *>(&fx)+0x3c)=KAGE_SmartPointer_ImageBase{};
+    Write(reinterpret_cast<void *>(Base+0x7ac6d8),0,o.previous_fx_rng);
+    o.fx_owned=false;
+  }
+  if(o.backdrop_entered){
+    auto &b=o.room->_backdrop;
+    b.floorANM2.Reset();b._wallDetailANM2.Reset();b._controlsANM2.Reset();b._controlsButtonsANM2.Reset();
+    b.gfx=KAGE_SmartPointer_ImageBase{};
+    b.nlfloorGfx=KAGE_SmartPointer_ImageBase{};
+    b.waterGfx=KAGE_SmartPointer_ImageBase{};
+    o.backdrop_entered=false;
+  }
+  if(o.radial_owned){RoomSprite(*o.room,0x7100).Reset();o.radial_owned=false;}
+  if(o.hell_owned){RoomSprite(*o.room,0x7770).Reset();Write<std::uint8_t>(o.room,0x7884,0);o.hell_owned=false;}
+  if(o.global_images_owned){
+    ImageSlot(0x7e7370)=std::move(o.previous_shading);ImageSlot(0x7e7350)=std::move(o.previous_shading_target);
+    ImageSlot(0x7e7358)=std::move(o.previous_ray);
+    o.global_images_owned=o.shading_target_owned=false;
+  }
 }
 RoomDescriptor *MapDescriptor(Game &g,unsigned slot) noexcept {
   return slot<507?&g._gridRooms[slot]:slot<527&&slot!=525?&g._negativeGridRooms[slot-507]:nullptr;
@@ -161,6 +584,40 @@ void Reapply(ClientDisplayNative &o) {
       static_cast<void *>(o.room):static_cast<void *>(o.room->_descriptor);
     std::memcpy(static_cast<std::byte *>(root)+v.offset,v.data,v.size);}
 }
+// J273 0x980130 的纯显示绑定：保留原生主身体／双子选择，只用 C/S 组槽替代设备查找。
+// 不调用整段 AssignPlayerHUDs：该函数还会重写合作选择表，并查询原版 NetInputDevice。
+bool DescribePlayerHud(const Game &game,std::array<Entity_Player *,8> &players) {
+  const auto primary=[](const Entity_Player &p){
+    const auto *t=static_cast<const Entity_Player *>(p._twinPlayer._ref);
+    return !t||t==&p||t->_playerIndex==-1||t->_playerIndex>=p._playerIndex;
+  };
+  for(auto *p:game._playerManager._playerList){
+    if(!p||!p->_exists||p->_parent._ref||!primary(*p))continue;
+    unsigned slot=0;
+    if(!ClientBinaryHudOrdinal(p,slot))return false;
+    players[slot]=p;
+    auto *t=static_cast<Entity_Player *>(p->_twinPlayer._ref);
+    if(t&&t->_exists&&t->_playerType!=40&&
+       ((t->_playerType!=29&&t->_playerType!=38)||primary(*t))){
+      players[slot+4]=t;
+    }
+  }
+  return true;
+}
+bool BindPlayerHud(ClientDisplayNative &o) {
+  std::array<Entity_Player *,8> players{};
+  if(!DescribePlayerHud(*o.game,players))return false;
+  for(unsigned i=0;i<players.size();++i){
+    auto &hud=o.game->_hud._playerHUD[i];
+    o.Save(&hud,0,sizeof(hud._player));
+    if(hud._player==players[i])continue;
+    // 仅身份变化时清理旧图标／心形缓存；热帧保留原生倒计时与资源引用。
+    reinterpret_cast<void (__thiscall *)(PlayerHUD *)>(Base+0x4326c0)(&hud);
+    hud._player=players[i];
+    Write<std::uint16_t>(&hud,0x6b0,257);
+  }
+  return true;
+}
 bool StopAudio(ClientDisplayNative &o);
 void RefreshLoopMix(ClientDisplayNative &o);
 void Sort(Room &room) {
@@ -191,14 +648,18 @@ void Cursor(Manager &m) {
   Write(&m,0x4af9c,x);Write(&m,0x4afa0,y);Write(&m,0x4afa4,idle);
 }
 }
-ClientDisplayNative *ClientDisplayCreate() noexcept {
-  if(!MainWindow()||TopOwner()!=Owner::Manager)return nullptr;
-  try{auto charge=memory::Reserve(memory::Pool::Values,sizeof(ClientDisplayNative)+2*81*20+128,"client_display_native");
-    auto *o=new ClientDisplayNative;o->charge=std::move(charge);return o;}catch(...){return nullptr;}
+ClientDisplayNative *ClientDisplayCreate(const ClientDisplayWorldRef &target) noexcept {
+  if(!MainWindow()||TopOwner()!=Owner::Manager||!ClientDisplayMemoryHooksReady())return nullptr;
+  auto memory=ClientDisplayMemory(target);
+  constexpr auto bytes=sizeof(ClientDisplayNative)+2*81*20+128;
+  try{ClientDisplayCharge(memory,bytes);}catch(...){return nullptr;}
+  try{auto *o=new ClientDisplayNative;o->memory=std::move(memory);return o;}
+  catch(...){ClientDisplayUncharge(memory,bytes);return nullptr;}
 }
 void ClientDisplayDestroy(ClientDisplayNative *o) noexcept {
   if(o&&IsMain()&&!o->written&&!ClientDisplayAudioHeld(o)&&!o->owned_camera&&!o->root_uncertain){
-    if(active==o)active=nullptr;delete o;
+    if(active==o)active=nullptr;auto memory=o->memory;delete o;
+    ClientDisplayUncharge(memory,sizeof(ClientDisplayNative)+2*81*20+128);
   }
 }
 ClientNativeRoots ClientDisplayRoots(const ClientDisplayNative *o) noexcept {
@@ -225,73 +686,77 @@ bool ClientDisplayPreserveRoom(ClientDisplayNative *o,const ClientNativeRoots &r
     return true;
   }catch(...){return false;}
 }
-ClientDisplayStep ClientDisplayBuildRoots(ClientDisplayNative *o,const ClientNativeRoots &r) noexcept {
+static ClientDisplayStep BuildDisplayRoots(ClientDisplayNative *o,const ClientNativeRoots &r) noexcept {
   if(!o||!MainWindow()||TopOwner()!=Owner::Manager||!Graphics()||r.game!=g_Game||!g_Game||r.room!=g_Game->_room||
      !r.room||!r.descriptor||o->root_uncertain)return {false,false,"display_root_window"};
-  if(o->owned_camera)return {o->room==r.room&&r.camera==o->owned_camera&&o->hud_loaded,false,"display_root_current"};
+  if(o->hud_loaded)return {o->room==r.room&&r.camera==o->owned_camera,false,"display_root_current"};
   if(r.camera||g_Manager->_state!=1)return {false,false,"display_cold_root_occupied"};
   o->game=g_Game;o->room=g_Game->_room;o->manager=g_Manager;
-  // Camera 构造读取已安装的房间边界。HUD 与本机历史 surface 使用原生图形资源 owner。
+  // HUD与全局surface沿用本机游戏图形owner。Camera在本房的实装输入就绪后创建。
   try{
-    auto *raw=reinterpret_cast<void *(__cdecl *)(std::size_t)>(Base+0x686de5)(sizeof(Camera));
-    if(!raw)return {false,false,"display_camera_allocation"};
     o->root_uncertain=true;
-    o->owned_camera=static_cast<Camera *>(raw);
-    o->owned_camera->constructor(o->room);o->room->_Camera=o->owned_camera;
     DisplayScope scope;
     o->game->_hud.LoadGraphics();o->hud_loaded=true;
+    o->root_uncertain=false;
     // 复用 Room 正常构造好的两份灯光 ANM2，只在冷场景加载所需图层。
     constexpr unsigned light_offsets[]={0x6e40,0x6f54};
     constexpr const char *light_paths[]={"gfx/LightGradient.anm2","gfx/SpotLight.anm2"};
     for(unsigned i=0;i<2;++i){
       auto *sprite=reinterpret_cast<ANM2 *>(reinterpret_cast<std::byte *>(o->room)+light_offsets[i]);
       if(!sprite->_loaded){
-        std::string path=light_paths[i];sprite->Load(path,true);
+        // 先登记接管，再进原生加载；异常前缀保持不可退休，分配记录继续持有 Peer 账户。
         o->owned_lights[i]=sprite;
+        o->root_uncertain=true;
+        std::string path=light_paths[i];sprite->Load(path,true);
+        o->root_uncertain=false;
       }
       auto *layer=sprite->_loaded?sprite->GetLayer(0):nullptr;
       if(!layer){o->root_uncertain=false;return {false,true,"display_light_resource_missing"};}
       Write(layer,0x20,1u);Write(layer,0x24,1u);
+      if(i==0)Write(layer,0x78,std::array<unsigned,5>{0,1,7,1,7});
+      const char *animation=i==0?"Default":"Idle";
+      if(!sprite->_animState._animData)sprite->Play(animation,true);
+      if(!sprite->_animState._animData||!layer->_spriteSheetLoaded)return {false,true,"display_light_binding"};
     }
-    if(!Read<void *>(reinterpret_cast<void *>(Base+0x7e72b4),0))
-      reinterpret_cast<void (__cdecl *)()>(Base+0x2efb70)();
     o->root_uncertain=false;
     if(!FlushDisplay())return {false,true,"display_roots_cpu_borrow"};
     return {true,true,"display_roots_ready"};
   }catch(...){return {false,true,"display_root_construction_exception"};}
 }
 bool ClientDisplayReleaseRoots(ClientDisplayNative *o) noexcept {
-  if(!o||(!o->owned_camera&&!o->hud_loaded))return !o||!o->root_uncertain;
+  if(!o||(!o->owned_camera&&!o->hud_loaded&&!o->fx_owned&&!o->backdrop_entered&&!o->global_images_owned))return !o||!o->root_uncertain;
   if(o->root_uncertain||o->written||!MainWindow()||!Graphics()||g_Game!=o->game||g_Manager!=o->manager||
      o->game->_room!=o->room||o->room->_Camera!=o->owned_camera)return false;
   try{
     o->root_uncertain=true;
+    ReleaseRoomGraphics(*o);
     if(o->hud_loaded){
       reinterpret_cast<void (__thiscall *)(HUD *)>(Base+0x57ab10)(&o->game->_hud);
       reinterpret_cast<void (__thiscall *)(HUD *)>(Base+0x579d80)(&o->game->_hud);
       o->hud_loaded=false;
     }
     for(auto *&light:o->owned_lights)if(light){light->destructor();light->constructor();light=nullptr;}
-    // 走 SDK 析构和同一原生分配器，保留 Game 当前 Room 给后续路由。
-    o->owned_camera->destructor();
-    reinterpret_cast<void (__cdecl *)(void *)>(Base+0x68717b)(o->owned_camera);
-    o->room->_Camera=nullptr;o->owned_camera=nullptr;o->root_uncertain=false;
+    ReleaseCamera(*o);
+    o->root_uncertain=false;
+    o->failed=false;
     return true;
   }catch(...){return false;}
 }
 ClientDisplayStep ClientDisplayBeforeInstall(ClientDisplayNative *o,const ClientDisplayWorldRef &target,const ClientNativeRoots &r) noexcept {
-  if(!o||!target||!MainWindow()||TopOwner()!=Owner::Manager||o->rendering||o->failed)return {false,false,"display_prepare_owner"};
+  if(!o||!target||ClientDisplayMemory(target)!=o->memory||!MainWindow()||TopOwner()!=Owner::Manager||o->rendering||o->failed)
+    return {false,false,"display_prepare_owner"};
   bool capture_started=false;
   try{
     const auto meta=ClientDisplayMeta(target);
     const bool transition_started=o->installed&&meta.transition_mode!=0&&ClientDisplayMeta(o->installed).transition_mode==0;
     const bool room_changed=o->installed&&ChangedRoom(o->installed,target);
-    if(o->installed&&(room_changed||transition_started)){
+    if(o->installed&&(room_changed||transition_started)&&RoomResourcesCurrent(*o)){
       if(!Roots(*o,r)||!o->room->_descriptor->Data)return {false,false,"display_old_world_binding"};
       capture_started=true;
       if(!ClientDisplayPreserveRoom(o,r)){o->failed=true;if(active==o)active=nullptr;return {false,true,"display_old_surface_capture"};}
       if(room_changed)o->new_surface=false;
     }
+    if(o->installed&&!RoomResourcesCurrent(*o))o->old_surface=o->new_surface=false;
     o->previous_shake=g_Game?Read<int>(g_Game,0x25a80):0;
     o->pending=target;return {true,capture_started,"display_prepared"};
   }catch(...){if(capture_started){o->failed=true;if(active==o)active=nullptr;}else if(!o->written)o->saved_count=0;
@@ -302,32 +767,48 @@ ClientDisplayStep ClientDisplayInstall(ClientDisplayNative *o,const ClientDispla
      !r.game||!r.room||!r.descriptor||r.game!=g_Game||r.room!=g_Game->_room||r.descriptor!=g_Game->_room->_descriptor||!Graphics())
     return {false,false,"display_install_owner"};
   try{
+    ClientDisplayMemoryScope memory(o->memory);
     const auto d=ClientDisplayMeta(target);auto *descriptor=static_cast<RoomDescriptor *>(r.descriptor);
-    if(!d.spawn_seed||descriptor->GridIndex!=d.grid||descriptor->Dimension!=d.dimension)return {false,false,"display_descriptor_binding"};
+    if(!d.spawn_seed||!descriptor->Data||descriptor->GridIndex!=d.grid||descriptor->Dimension!=d.dimension)return {false,false,"display_descriptor_binding"};
     if(o->game&&o->game!=r.game)return {false,false,"display_game_replaced"};
-    // 6F7D28直接读取本地历史surface；没有正常资源owner时不能把空目标交给Render。
-    if(!Read<void *>(reinterpret_cast<void *>(Base+0x7e72b4),0))return {false,false,"display_history_surface_pending"};
     if(o->old_surface&&(o->captured_old!=Read<KAGE_Graphics_ImageBase *>(&g_Game->_roomTransition,0x28)||
        int(g_WIDTH)!=o->captured_width||int(g_HEIGHT)!=o->captured_height))o->old_surface=o->new_surface=false;
     for(unsigned i=0;i<ClientDisplayMapCount(target);++i){const auto v=ClientDisplayMapAt(target,i);auto *native=MapDescriptor(*g_Game,v.slot);
       if(!native||native->GridIndex!=v.grid||native->Dimension!=v.dimension)return {false,false,"display_map_descriptor_binding"};}
+    const auto built=BuildDisplayRoots(o,r);
+    if(!built.done)return built;
     const bool map_changed=!ClientDisplaySameMap(o->installed,target);
-    o->game=static_cast<Game *>(r.game);o->room=static_cast<Room *>(r.room);o->manager=g_Manager;o->descriptor=descriptor;
+    const bool new_room=!o->installed||ChangedRoom(o->installed,target);
+    o->descriptor=descriptor;
     const auto previous_shake=o->previous_shake;
-    // 所有可分配工作和旧值快照先完成；从written起失败必须退休，不能宣称自动回滚。
+    // 先保存旧值；后续原生分配逐次预收费。从written起失败必须退休，不能宣称自动回滚。
     for(const unsigned offset:{0x25a84u,0x25a88u,0x25ab8u})o->Save(o->game,offset,offset==0x25ab8?1:4);
     o->Save(o->manager,0x8,4);
+    // 保留Ascent及其他状态位。FX、墙面和灯光都可能读取这两个已投影的位。
+    o->Save(o->game,0x25ac5,1);
     {o->Save(o->game,0x1aee4,60);o->Save(o->game,0x1af20,15);o->Save(o->room,0x7460,8);o->Save(o->game,0x1adb4,4);}
-    o->written=true;if(active==o)active=nullptr;
+    // J273 HUD::Render 0x97DC30/0x97DC3E：四个原版合作选择面板仅由两个非负
+    // 索引开启。客机从菜单直接安装世界，候选角色表可为空，必须关闭此原版入口。
+    // Save 按地址去重，热帧不覆盖接管前快照；失败退休／退出 C/S 时由 Retire 原样恢复。
+    for(unsigned slot=0;slot<4;++slot)for(const unsigned member:{0xcu,0x14u})
+      o->Save(&o->game->_playerManager,slot*20+member,sizeof(int));
+    o->written=true;o->display_complete=false;if(active==o)active=nullptr;
+    // 此处只在 MainWindow 验证过的 C/S 客机安装作用域执行，Host 与原版流程不经过。
+    for(unsigned slot=0;slot<4;++slot)for(const unsigned member:{0xcu,0x14u})
+      Write(&o->game->_playerManager,slot*20+member,-1);
     // 本地已构造C/S游戏承载进入原生游戏显示态；Manager更新仍整体拦截。
     // 音乐的dizzy／红房分支和Manager::Render因此读真实本地游戏态，退休先还原菜单态。
     o->manager->_state=2;
     o->installed=target;
-    {
-      const auto input=ClientDisplayInputs(target);
-      Write(o->game,0x1aee4,input.pill_effects);Write(o->game,0x1af20,input.pill_identified);Write(o->room,0x7460,input.water);
-      Write(o->game,0x1adb4,input.planetarium);
-    }
+    o->root_uncertain=true;
+    const bool hud_bound=BindPlayerHud(*o);
+    o->root_uncertain=false;
+    if(!hud_bound)return {false,true,"display_player_hud_binding"};
+    const auto input=ClientDisplayInputs(target);
+    const auto phases=Read<unsigned>(o->game,0x25ac4);
+    Write(o->game,0x25ac4,(phases&~0xc000u)|(unsigned(input.room_graphics_flags)<<14));
+    Write(o->game,0x1aee4,input.pill_effects);Write(o->game,0x1af20,input.pill_identified);Write(o->room,0x7460,input.water);
+    Write(o->game,0x1adb4,input.planetarium);
     if(previous_shake>0&&Read<int>(o->game,0x25a80)==0){Write(o->game,0x25a84,0.0f);Write(o->game,0x25a88,0.0f);}
     const auto old_modifier=o->last_sfx_modifier,modifier=d.sfx;
     o->mixing_dirty=o->mixing_dirty||std::max(old_modifier,0.0f)!=std::max(modifier,0.0f);
@@ -339,6 +820,60 @@ ClientDisplayStep ClientDisplayInstall(ClientDisplayNative *o,const ClientDispla
     o->old_frame=d.frame;o->map_dirty=o->map_dirty||map_changed;o->hud_dirty=o->hud_dirty||map_changed;
     // 同M换world使平均位置缓存失效；不伪造实体年龄，也不补调用玩家模拟。
     Write(reinterpret_cast<void *>(Base+0x7d01e8),0,std::uint32_t(o->manager->_framecount-1));
+    // 只填补本机生命周期下尚未初始化的图形缓存。
+    o->root_uncertain=true;
+    // 菜单遗留的 resize 请求会让首次 Game::Render 重建所有屏幕 surface。
+    // 在安装期先执行同一原生显示维护，再构图和记录资源身份，避免发布后身份失效。
+    if(Read<std::uint8_t>(o->game,0x25aac)){
+      reinterpret_cast<void (__thiscall *)(Game *)>(Base+0x303e40)(o->game);
+      Write<std::uint8_t>(o->game,0x25aac,0);
+    }
+    if(!ImageSlot(0x7e7350).image||!ImageSlot(0x7e7360).image)
+      reinterpret_cast<void (__cdecl *)()>(Base+0x3e08e0)();
+    if(!ImageSlot(0x7e72b4).image)
+      reinterpret_cast<void (__cdecl *)()>(Base+0x2efb70)();
+    o->root_uncertain=false;
+    if(!ImageSlot(0x7e7350).image||!ImageSlot(0x7e7360).image||!ImageSlot(0x7e72b4).image||
+       (Read<bool>(o->manager,0x2a1fd)&&!ImageSlot(0x7e7398).image))
+      return {false,true,"display_shared_surfaces"};
+    auto key=RoomGraphics(*o,input);
+    if(key.backdrop>=63)return {false,true,"display_backdrop_id"};
+    // 使用本机外观流，保证同房重建稳定。SpawnSeed原位保留给Q9消费者。
+    const unsigned seed=std::max(1u,d.spawn_seed^0xa63f218du);
+    if(NeedsRoomGraphics(*o,new_room,key)){
+      o->graphics_ready=false;
+      if(!o->owned_camera||new_room||key.bounds!=o->room_graphics.bounds||
+         key.width!=o->room_graphics.width||key.height!=o->room_graphics.height)
+        ConstructCamera(*o,input);
+      // 原生异常可能留下尚未完成的 owner；只有正常返回才恢复可退休资格。
+      o->root_uncertain=true;const bool fx=BuildFx(*o,key,seed);o->root_uncertain=false;
+      if(!fx)return {false,true,"display_fx_resources"};
+      o->root_uncertain=true;const bool backdrop=BuildBackdrop(*o,key,seed);o->root_uncertain=false;
+      if(!backdrop)return {false,true,"display_backdrop_resources"};
+      o->root_uncertain=true;const bool background=BuildSpecialBackgrounds(*o,key,seed);o->root_uncertain=false;
+      if(!background)return {false,true,"display_background_resources"};
+      key.targets=RoomTargets(*o->room);
+      Write<std::uint8_t>(o->room,0x11f6,1);
+      o->room_graphics=key;
+      o->graphics_width=int(g_WIDTH);o->graphics_height=int(g_HEIGHT);
+      o->history_surface=ImageSlot(0x7e72b4).image;
+      o->graphics_ready=true;
+      o->capture_initial=true;
+      o->new_surface=false;
+    }
+    o->root_uncertain=true;const bool poop=PreparePoop(*o->room,input,seed);o->root_uncertain=false;
+    if(!poop)return {false,true,"display_poop_resources"};
+    Reapply(*o);
+    if(!FlushDisplay())return {false,true,"display_install_cpu_borrow"};
+    memory.Complete();
+    return {true,true,"display_resources_installed",o->capture_initial};
+  }catch(...){o->failed=true;ClientDisplaySuspend(o);return {false,o->written||o->hud_loaded,"display_install_exception"};}
+}
+ClientDisplayStep ClientDisplayFinishInstall(ClientDisplayNative *o,const ClientDisplayWorldRef &target,const ClientNativeRoots &r) noexcept {
+  if(!o||o->pending!=target||o->installed!=target||!MainWindow()||TopOwner()!=Owner::Manager||o->failed||
+     !Roots(*o,r)||!RoomResourcesCurrent(*o))return {false,false,"display_capture_resource_binding"};
+  try{
+    const auto d=ClientDisplayMeta(target);
     // 中途加入只拥有当前房间。用它建立两张有效本地图，保持 Host 的阶段和滚动方向。
     if((d.transition_mode==2||d.transition_mode==3)&&!o->old_surface&&!ClientDisplayPreserveRoom(o,r)){
       o->failed=true;return {false,true,"display_transition_baseline_surface"};
@@ -347,11 +882,20 @@ ClientDisplayStep ClientDisplayInstall(ClientDisplayNative *o,const ClientDispla
       TransitionScroll(*o,d);
       if(!Capture(*o,false)){o->failed=true;return {false,true,"display_new_surface_capture"};}o->new_surface=true;
     }
+    // 首帧与任何重新构图都要走一次原生绘制，复用同批已生成的转场新图。
+    if(o->capture_initial&&!o->new_surface&&!Capture(*o,false))return {false,true,"display_initial_surface_capture"};
     if(!d.transition_mode){o->old_surface=false;o->new_surface=false;}
     if(!FlushDisplay()){o->failed=true;return {false,true,"display_install_cpu_borrow"};}
-    o->surface_width=int(g_WIDTH);o->surface_height=int(g_HEIGHT);o->pending.reset();active=o;
+    o->surface_width=int(g_WIDTH);o->surface_height=int(g_HEIGHT);o->pending.reset();o->display_complete=true;o->capture_initial=false;
     return {true,true,"display_installed"};
   }catch(...){o->failed=true;if(active==o)active=nullptr;return {false,o->written,"display_install_exception"};}
+}
+void ClientDisplayPublish(ClientDisplayNative *o) noexcept {if(o&&o->display_complete&&o->installed)active=o;}
+void ClientDisplaySuspend(ClientDisplayNative *o) noexcept {if(active==o)active=nullptr;}
+bool ClientDisplayFxRandom(const void *site,unsigned &value) noexcept {
+  if(!IsMain()||!ClientBusy()||!fx_build_seed||reinterpret_cast<std::uintptr_t>(site)!=Base+0x568e96)return false;
+  value=fx_build_seed;
+  return true;
 }
 bool ClientDisplayRetire(ClientDisplayNative *o,bool preserve_target,bool preserve_audio) noexcept {
   if(!o)return true;if(!MainWindow()||TopOwner()!=Owner::Manager||o->rendering)return false;
@@ -377,26 +921,89 @@ bool ClientDisplayRetire(ClientDisplayNative *o,bool preserve_target,bool preser
       }
       const auto modifier=Read<float>(o->manager,0x2a170);
       // 先撤树借用，再允许 Game／Seeds 或 Room 资源 owner 析构。
-      for(unsigned i=o->saved_count;i;--i){const auto &s=o->saved[i-1];std::memcpy(static_cast<std::byte *>(s.root)+s.offset,s.bytes.data(),s.size);}
+      for(unsigned i=o->saved_count;i;--i){
+        const auto &s=o->saved[i-1];
+        if(s.root==o->game&&s.offset==0x25ac5){
+          const auto current=Read<std::uint8_t>(s.root,s.offset);
+          Write<std::uint8_t>(s.root,s.offset,(current&0x3fu)|(std::to_integer<unsigned>(s.bytes[0])&0xc0u));
+        }else std::memcpy(static_cast<std::byte *>(s.root)+s.offset,s.bytes.data(),s.size);
+      }
       if(!preserve_target&&std::max(modifier,0.0f)!=std::max(Read<float>(o->manager,0x2a170),0.0f)){
         DisplayScope scope;Named(ClientEntry::DisplaySfxRefresh,[&]{o->manager->_sfxManager.ClearVolumeModifier();});
       }
     }
-    o->written=false;o->saved_count=0;o->installed.reset();o->descriptor=nullptr;o->boss_generation=0;
-    if(!o->owned_camera)o->room=nullptr;
+    o->written=false;o->saved_count=0;o->installed.reset();o->descriptor=nullptr;o->boss_generation=0;o->display_complete=false;
+    if(!preserve_audio){o->old_surface=o->new_surface=false;o->captured_old=nullptr;}
+    if(!o->owned_camera&&!o->hud_loaded)o->room=nullptr;
     if(!preserve_target)o->pending.reset();
     return true;
   }catch(...){o->failed=true;return false;}
 }
 bool ClientDisplayHasWorld(const ClientDisplayNative *o) noexcept {return o&&bool(o->installed);}
-bool ClientDisplayCurrent(const ClientDisplayNative *o,const ClientNativeRoots &r) noexcept {
-  return MainWindow()&&o&&o==active&&!o->failed&&o->installed&&Roots(*o,r)&&
-    Read<std::uint32_t>(o->game,0x25a70)==ClientDisplayMeta(o->installed).frame;
+bool ClientDisplayGraphicsChanged(const ClientDisplayNative *o) noexcept {
+  return o&&o==active&&o->installed&&g_Game==o->game&&o->game->_room==o->room&&o->graphics_ready&&
+    (int(g_WIDTH)!=o->graphics_width||int(g_HEIGHT)!=o->graphics_height||RoomTargets(*o->room)!=o->room_graphics.targets||
+     ImageSlot(0x7e72b4).image!=o->history_surface);
+}
+bool ClientDisplayCurrent(const ClientDisplayNative *o,const ClientNativeRoots &r,ClientDisplayIssue *issue) noexcept {
+  if(!MainWindow())return DisplayMismatch(issue,"display_window_changed");
+  if(!o||o!=active)return DisplayMismatch(issue,"display_owner_changed",Address(o),Address(active));
+  if(o->failed||!o->installed)return DisplayMismatch(issue,"display_owner_not_installed");
+  if(!Roots(*o,r)){
+    if(!o->game||g_Game!=o->game||r.game!=o->game)
+      return DisplayMismatch(issue,"display_game_changed",Address(o->game),Address(g_Game!=o->game?g_Game:r.game));
+    if(!o->manager||g_Manager!=o->manager)return DisplayMismatch(issue,"display_manager_changed",Address(o->manager),Address(g_Manager));
+    if(!o->room||r.room!=o->room||o->game->_room!=o->room)
+      return DisplayMismatch(issue,"display_room_changed",Address(o->room),Address(o->game->_room!=o->room?o->game->_room:r.room));
+    if(!o->descriptor||r.descriptor!=o->descriptor||o->room->_descriptor!=o->descriptor)
+      return DisplayMismatch(issue,"display_descriptor_changed",Address(o->descriptor),
+        Address(o->room->_descriptor!=o->descriptor?o->room->_descriptor:r.descriptor));
+    return DisplayMismatch(issue,"display_camera_changed",Address(o->owned_camera?o->owned_camera:o->room->_Camera),Address(r.camera));
+  }
+  if(!RoomResourcesCurrent(*o,issue))return false;
+  const auto expected=ClientDisplayMeta(o->installed).frame,actual=Read<std::uint32_t>(o->game,0x25a70);
+  return expected==actual||DisplayMismatch(issue,"display_game_frame_changed",expected,actual,UINT32_MAX,0x25a70);
+}
+void ClientDisplayReportIssue(const ClientDisplayNative *o,const ClientDisplayIssue &issue,const char *phase,
+    std::uint64_t route,std::uint64_t scene,std::uint32_t revision) noexcept {
+  if(!issue.reason)return;
+  if(o)ClientDisplayRecordMemoryIssue(o->memory,issue,phase,route,scene,revision);
+  Trace("client_error","event=binary_display_witness route=%llu scene=%llu revision=%u phase=%s reason=%s expected=%llu actual=%llu resource=%u field=%u",
+    route,scene,revision,phase,issue.reason,std::uint64_t(issue.expected),std::uint64_t(issue.actual),issue.resource,unsigned(issue.field));
 }
 bool ClientDisplayPaused(const ClientDisplayNative *o,bool &v) noexcept {
   if(!o||o!=DisplaySource()||o->failed||!o->installed||!IsMain())return false;v=ClientDisplayMeta(o->installed).paused;return true;
 }
 bool ClientNativeDisplayActive() noexcept{const auto *source=DisplaySource();return IsMain()&&source&&source->installed&&!source->failed&&ClientBusy();}
+#ifdef ISAACCS_E2E
+// 对照提交列表与实际 Game::Render 的原生输入。每个血效种类只记录首个实例变化。
+void TraceBinaryBloodRender(void *pointer,const char *role) noexcept {
+  if(!replica::stream::E2ETraceEnabled())return;
+  auto *game=static_cast<Game *>(pointer);
+  if(!game||game!=g_Game||!game->_room)return;
+  const auto &list=game->_room->_entityList._renderEL;
+  if(list._size>4096||list._size>list._capacity||(list._size&&!list._data))return;
+  constexpr std::array<unsigned,3> variants{2,3,5};
+  static std::array<unsigned,variants.size()> prior_seeds{};
+  std::array<unsigned,variants.size()> seeds{};
+  for(unsigned i=0;i<list._size;++i){
+    const auto *entity=list._data[i];
+    if(!entity||entity->_type!=1000)continue;
+    const auto match=std::find(variants.begin(),variants.end(),entity->_variant);
+    if(match==variants.end())continue;
+    const auto n=std::size_t(match-variants.begin());
+    if(seeds[n])continue;
+    seeds[n]=entity->_initSeed;
+    if(seeds[n]==prior_seeds[n])continue;
+    const auto &sprite=entity->_sprite;
+    Trace("binary_blood_render_e2e_fault_probe","side=%s frame=%d variant=%u seed=%u visible=%u loaded=%u animation=%u pose=%.1f alpha=%.3f scale=%.3f/%.3f layers=%u",
+      role,game->_frameCount,entity->_variant,seeds[n],unsigned(entity->_visible),unsigned(sprite._loaded),
+      unsigned(sprite._animState._animData!=nullptr),double(sprite._animState._animFrame),double(sprite._color._tint[3]),
+      double(sprite._scale.x),double(sprite._scale.y),sprite._layerCount);
+  }
+  prior_seeds=seeds;
+}
+#endif
 ClientProjectileRenderScope::ClientProjectileRenderScope(void *pointer) noexcept {
   if(!ClientNativeDisplayActive())return;
   auto *entity=static_cast<Entity *>(pointer);
@@ -474,7 +1081,11 @@ bool ClientDisplayAdvance(ClientDisplayNative *o,const ClientNativeRoots &r,bool
           Named(ClientEntry::DisplayMinimapUpdate,[&]{g._minimap.Update();});
           if(o->map_dirty){Named(ClientEntry::DisplayMinimapRefresh,[&]{g._minimap.Refresh();});o->map_dirty=false;}
           if(branch==Branch::Normal){Named(ClientEntry::DisplaySort,[&]{Sort(room);});
-            Named(ClientEntry::DisplayFxUpdate,[&]{reinterpret_cast<void (__thiscall *)(FXLayers *,bool)>(Base+0x56bf40)(&room._fxLayers,false);});
+            Named(ClientEntry::DisplayFxUpdate,[&]{
+              ClientDisplayMemoryScope memory(o->memory);o->root_uncertain=true;
+              reinterpret_cast<void (__thiscall *)(FXLayers *,bool)>(Base+0x56bf40)(&room._fxLayers,false);
+              memory.Complete();o->root_uncertain=false;
+            });
             Named(ClientEntry::DisplayBackground,[&]{auto &floor=room._backdrop.floorANM2;floor.Update();
               // 7F93D8..7F9449：26号背景保持Idle；不调用Room::Update相邻的玩法段。
               const auto *animation=floor._animState._animData;
@@ -504,7 +1115,7 @@ bool ClientDisplayAdvance(ClientDisplayNative *o,const ClientNativeRoots &r,bool
 bool ClientDisplayRenderBegin(ClientDisplayNative *o,const ClientNativeRoots &r) noexcept {
   if(!ClientDisplayCurrent(o,r)||TopOwner()!=Owner::Render||!Graphics()||o->rendering||!o->room->_descriptor->SpawnSeed)return false;
   // 活跃转场resize丢失旧画面时明确停止该显示事务，等待完整恢复；不画空surface。
-  if(o->game->_roomTransition._mode&&(int(g_WIDTH)!=o->surface_width||int(g_HEIGHT)!=o->surface_height||Read<int>(o->game,0x25aac))){
+  if(o->game->_roomTransition._mode&&(int(g_WIDTH)!=o->surface_width||int(g_HEIGHT)!=o->surface_height||Read<std::uint8_t>(o->game,0x25aac))){
     o->failed=true;active=nullptr;return false;}
   o->rendering=true;++display_depth;return true;
 }
@@ -517,10 +1128,19 @@ bool ClientDisplayRouteRender(ClientDisplayNative *o,bool begin) noexcept {
 }
 void ClientDisplayRenderEnd(ClientDisplayNative *o,const ClientNativeRoots &r) noexcept {
   if(!o||!o->rendering)return;o->rendering=false;if(display_depth)--display_depth;
-  if(!Roots(*o,r)){o->failed=true;if(active==o)active=nullptr;return;}
+  if(!Roots(*o,r)){Trace("client_error","event=display_render_roots_changed");o->failed=true;if(active==o)active=nullptr;return;}
   // RE-5：只纠正已核Q8写集，不回放玩法；F在Render中只检查，从不借用或恢复。
-  if(Read<std::uint32_t>(o->game,0x25a70)!=ClientDisplayMeta(o->installed).frame){o->failed=true;if(active==o)active=nullptr;return;}
+  if(Read<std::uint32_t>(o->game,0x25a70)!=ClientDisplayMeta(o->installed).frame){
+    Trace("client_error","event=display_render_frame_changed actual=%u expected=%u",Read<std::uint32_t>(o->game,0x25a70),ClientDisplayMeta(o->installed).frame);
+    o->failed=true;if(active==o)active=nullptr;return;}
   Reapply(*o);
+  // 首次 Render 的缓存变化必须指明失效项，不能让外层 return mismatch 掩盖根因。
+  if(!ClientDisplayCurrent(o,r))Trace("client_error",
+    "event=display_render_current window=%u active=%u failed=%u resources=%u targets=%u viewport=%u shading=%u ray=%u history=%u fx=%u expected_fx=%u",
+    unsigned(MainWindow()),unsigned(active==o),unsigned(o->failed),unsigned(RoomResourcesCurrent(*o)),
+    unsigned(RoomTargets(*o->room)==o->room_graphics.targets),unsigned(int(g_WIDTH)==o->graphics_width&&int(g_HEIGHT)==o->graphics_height),
+    unsigned((ImageSlot(0x7e7370).image!=nullptr)==o->shading_applicable),unsigned((ImageSlot(0x7e7358).image!=nullptr)==o->room_graphics.special_ray),
+    unsigned(ImageSlot(0x7e72b4).image==o->history_surface),unsigned(o->room->_fxLayers._loaded),unsigned(o->room_graphics.room_type!=16&&o->room_graphics.backdrop!=18));
 }
 namespace {
 std::byte *SoundSlot(const ClientDisplaySound &v) noexcept {
@@ -600,7 +1220,7 @@ bool StopAudio(ClientDisplayNative &o){
   return true;
 }
 bool PlaybackWindow(ClientDisplayNative *o) noexcept {
-  return o&&o==active&&o->installed&&!o->failed&&MainWindow()&&Graphics()&&TopOwner()==Owner::Manager&&g_Manager==o->manager;
+  return o&&o->display_complete&&o->installed&&!o->failed&&MainWindow()&&Graphics()&&TopOwner()==Owner::Manager&&g_Manager==o->manager;
 }
 void FortuneLines(const ClientDisplayEvent &event,std::list<std::string> &lines){
   if(event.index>=0&&event.index<16384&&!event.category.empty()){
@@ -699,7 +1319,7 @@ ClientDisplayStep ClientDisplayAudio(ClientDisplayNative *o,const ClientDisplayM
   return {ok&&dispatch.Succeeded(),true,ok?"binary_audio_installed":"binary_audio_partial"};
 }
 bool ClientDisplayCheckPublication(const ClientDisplayNative *o) noexcept {
-  if(!o||!o->installed)return false;
+  if(!o||!o->installed||!o->display_complete||!RoomResourcesCurrent(*o))return false;
   const auto d=ClientDisplayMeta(o->installed);
   if(d.transition_mode==2&&d.transition_boss)return o->boss_generation&&o->game->_roomTransition._versusScreenANM2._loaded;
   if(d.transition_mode==2||d.transition_mode==3)return o->old_surface&&o->new_surface;
@@ -756,9 +1376,14 @@ ClientDisplayStep ClientDisplayRestoreBoss(ClientDisplayNative *o,const ClientDi
 }
 ClientDisplayStep ClientDisplayEventReplay(ClientDisplayNative *o,const ClientDisplayEvent &event) noexcept {
   if(!PlaybackWindow(o))return {false,false,"binary_event_window"};
-  // 转场事件由当前值和旧／新 surface 兑现。完成事件仍必须匹配已安装的实际目的地。
+  // 快速切房会把多个完成事件带到同一世界目标。已过的房间代次由当前世界覆盖；
+  // 同代次用 RoomDescriptor.GridIndex 核实际目的地，入口象限可能是同房的另一个格。
   if(event.kind==5){
-    const bool valid=!event.completed||(int(o->game->_currentRoomIdx)==event.index&&int(o->game->_currentDimensionIdx)==event.dimension);
+    if(!event.completed)return {true,false,"binary_transition_state_current"};
+    const auto meta=ClientDisplayMeta(o->installed);
+    if(event.final_room<meta.scope.room)return {true,false,"binary_transition_covered_by_world"};
+    const bool valid=event.final_room==meta.scope.room&&o->room&&o->room->_descriptor&&
+      o->room->_descriptor->GridIndex==event.index&&int(o->game->_currentDimensionIdx)==event.dimension;
     return {valid,false,valid?"binary_transition_state_current":"binary_transition_destination_mismatch"};
   }
   // Boss事件仍经可靠顺序消费；当前world基线决定实际显示代次，历史事件不会覆盖它。

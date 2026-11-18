@@ -28,9 +28,8 @@ bool EntitySource::Impl::HistoryGlyphs(const CaptureFieldAccess &a,CaptureTraver
     CaptureLink item_resource;if(!ItemResource(config,item_resource,d) || !item_resource.handle)return Reject(a,d,CaptureFailure::ResourcePending);
     const auto &resource=resources[std::size_t(item_resource.handle-1)];
     if(!resource.links[0])return Reject(a,d,CaptureFailure::ResourcePending);
-    const auto image=resource.links[0];const auto &image_resource=resources[std::size_t(image-1)];
     glyphs[used++]={std::bit_cast<std::int32_t>(std::uint32_t(id)|(trinket?0x80000u:0u)),
-      {image_resource.metadata_known?CapturedReferenceKind::Identity:CapturedReferenceKind::Pending,image}};
+      {CapturedReferenceKind::Identity,resource.links[0]}};
   }
   out.count=used;out.opaque[0]=NativeAddress(bytes);out.opaque[1]=sizeof(NativeHistoryGlyph)|(std::uint64_t(NativeSequence::Owned)<<32);
   out.opaque[2]=start;out.opaque[3]=witness_used-start;return true;

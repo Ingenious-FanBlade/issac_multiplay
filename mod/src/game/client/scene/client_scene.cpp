@@ -99,23 +99,29 @@ void ClientScene::Pump() noexcept {
   if(IsMain()&&TopOwner()==Owner::Manager&&ContextHealthy()&&!InBlockedContext())ContextWindow();
 }
 bool ClientScene::DisplayReady() const noexcept {
-  return IsMain()&&binary_published_&&state_==ClientSceneState::Displaying&&
+  return IsMain()&&binary_published_&&published_blocks_&&state_==ClientSceneState::Displaying&&
          !foreign_fault_.load(std::memory_order_acquire);
 }
-void ClientScene::PublishBinary(std::uint64_t revision) noexcept {
+void ClientScene::PublishBinary(state::ClientStateBlockTableRef blocks,std::uint8_t streams) noexcept {
+  const auto revision=blocks->streams[0]->Context().target_version;
+  published_blocks_=std::move(blocks);
+  if(streams&1)ClientDisplayPublish(display_);
   if(!binary_published_||applied_revision_!=revision)stream_last_commit_=GetTickCount64();
+  if(streams&1)++applied_world_count_;
+  if(streams&2)++applied_body_count_;
   binary_published_=true;applied_revision_=revision;
   state_=ClientSceneState::Displaying;
   FailureResult(ClientResultKind::NativeCommitted,"binary_apply","binary_native_committed");
   result_.native_committed=true;result_.old_display_valid=true;result_.revision=revision;
 }
 void ClientScene::FinishBinary() noexcept {
+  published_blocks_.reset();
   binary_scene_=binary_published_=false;native_dispatch_prefix_=false;applied_revision_=0;
   result_.native_written=result_.native_committed=result_.old_display_valid=false;result_.executed_prefix=0;
 }
 ClientDisplayStep ClientScene::PrepareBinaryDisplay(const ClientDisplayWorldRef &target) noexcept {
   if(!DestructiveReady())return {false,false,"binary_display_waiting_for_borrows"};
-  if(!display_)display_=ClientDisplayCreate();
+  if(!display_)display_=ClientDisplayCreate(target);
   if(!display_)return {false,false,"binary_display_allocation"};
   const auto old=state_;state_=ClientSceneState::Applying;ClientDisplayStep step;
   {ClientDispatchScope dispatch(ClientOperation::Apply,ClientEntry::NativeApply);
@@ -130,14 +136,29 @@ ClientDisplayStep ClientScene::PrepareBinaryDisplay(const ClientDisplayWorldRef 
 ClientDisplayStep ClientScene::InstallBinaryDisplay(const ClientDisplayWorldRef &target) noexcept {
   if(!display_||!DestructiveReady())return {false,false,"binary_display_install_window"};
   const auto old=state_;state_=ClientSceneState::Applying;ClientDisplayStep step;
-  {ClientDispatchScope dispatch(ClientOperation::Apply,ClientEntry::NativeApply);
+  {ClientDispatchScope dispatch(ClientOperation::Apply,ClientEntry::NativeApply,ClientEntryMask(ClientEntry::BackdropEffects));
     if(dispatch.Ready()&&ClientDispatchBefore(ClientEntry::NativeApply)==ClientEntryDecision::CallOriginal){
-      step=ClientDisplayBuildRoots(display_,ClientPreparationRoots());
-      const bool built=step.written;
-      if(step.done){step=ClientDisplayInstall(display_,target,ClientPreparationRoots());step.written|=built;}
+      step=ClientDisplayInstall(display_,target,ClientPreparationRoots());
       ClientDispatchReturned(ClientEntry::NativeApply);
       if(!dispatch.Succeeded())step={false,true,"binary_display_install_dispatch"};
     }}
+  if(state_==ClientSceneState::Applying)state_=old;
+  return step;
+}
+// 首次捕获放在Sprite重绑和原生字段读回之后，仍使用同一Manager窗口。
+ClientDisplayStep ClientScene::CaptureBinaryDisplay(const ClientDisplayWorldRef &target) noexcept {
+  if(!display_||!DestructiveReady())return {false,false,"binary_display_capture_window"};
+  const auto old=state_;
+  state_=ClientSceneState::Applying;
+  ClientDisplayStep step;
+  {
+    ClientDispatchScope dispatch(ClientOperation::Apply,ClientEntry::NativeApply);
+    if(dispatch.Ready()&&ClientDispatchBefore(ClientEntry::NativeApply)==ClientEntryDecision::CallOriginal){
+      step=ClientDisplayFinishInstall(display_,target,ClientPreparationRoots());
+      ClientDispatchReturned(ClientEntry::NativeApply);
+      if(!dispatch.Succeeded())step={false,true,"binary_display_capture_dispatch"};
+    }
+  }
   if(state_==ClientSceneState::Applying)state_=old;
   return step;
 }
@@ -203,21 +224,42 @@ bool ClientScene::DiscardBinaryHistory() noexcept {
 }
 bool ClientScene::NativeDisplay() const noexcept {return DisplayReady()&&ClientDisplayCurrent(display_,NativeRoots());}
 bool ClientScene::AdvanceDisplay(bool local_blocked) noexcept {
-  if(!DisplayReady()||!ClientDisplayHasWorld(display_))return true;
+  const auto blocks=PublishedBlocks();
+  if(!blocks||!ClientDisplayHasWorld(display_))return true;
   // 发布后的帧号或根绑定变化须撤销当前显示资格。
-  if(!NativeDisplay()){Fail("display_world_not_current");return false;}
+  ClientDisplayIssue issue;
+  if(!ClientDisplayCurrent(display_,NativeRoots(),&issue)){
+    ClientDisplayReportIssue(display_,issue,"before_advance",blocks->route.route,blocks->route.scope.scene,applied_revision_);
+    Fail("display_world_not_current");return false;
+  }
   ClientBorrowToken graphics{};if(!Borrow(ClientPurpose::Graphics,graphics))return false;
   bool ok=false;
   {ClientDispatchScope dispatch(ClientOperation::PresentMaintenance,ClientEntry::PresentationMaintenance);
     if(dispatch.Ready()&&ClientDispatchBefore(ClientEntry::PresentationMaintenance)==ClientEntryDecision::CallOriginal){
       ok=ClientDisplayAdvance(display_,NativeRoots(),local_blocked);
       ClientDispatchReturned(ClientEntry::PresentationMaintenance);ok=ok&&dispatch.Succeeded();}}
-  Release(graphics);if(!ok)Fail("display_advance_failed");return ok;
+  Release(graphics);
+  if(!ok){
+    ClientDisplayCurrent(display_,NativeRoots(),&issue);
+    ClientDisplayReportIssue(display_,issue,"after_advance",blocks->route.route,blocks->route.scope.scene,applied_revision_);
+    Fail("display_advance_failed");
+  }
+  return ok;
 }
-bool ClientScene::BeginNativeRender() noexcept{return NativeDisplay()&&ClientDisplayRenderBegin(display_,NativeRoots());}
+bool ClientScene::BeginNativeRender() noexcept {
+  const auto blocks=PublishedBlocks();
+  if(!blocks||render_blocks_||!NativeDisplay()||!ClientDisplayRenderBegin(display_,NativeRoots()))return false;
+  render_blocks_=blocks;return true;
+}
 bool ClientScene::RouteNativeRender(bool begin) noexcept{return ClientDisplayRouteRender(display_,begin);}
 void ClientScene::EndNativeRender() noexcept {
-  ClientDisplayRenderEnd(display_,NativeRoots());if(!NativeDisplay())Fail("display_render_failed");
+  const auto blocks=render_blocks_;
+  ClientDisplayRenderEnd(display_,NativeRoots());render_blocks_.reset();
+  ClientDisplayIssue issue;
+  if(!DisplayReady()||!ClientDisplayCurrent(display_,NativeRoots(),&issue)){
+    if(blocks)ClientDisplayReportIssue(display_,issue,"after_render",blocks->route.route,blocks->route.scope.scene,applied_revision_);
+    Fail("display_render_failed");
+  }
 }
 std::vector<ClientOwnerFact> ClientScene::RetainedFacts() const {
   std::vector<ClientOwnerFact> out;if(!IsMain())return out;
@@ -617,7 +659,7 @@ void ClientScene::InvalidateResource() noexcept {
 }
 void ClientScene::Retire(const char *reason) noexcept {
   if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return;}
-  binary_published_=false;result_.old_display_valid=false;
+  SuspendBinaryDisplay();result_.old_display_valid=false;
   if(!result_.retirement_cause[0])std::snprintf(result_.retirement_cause.data(),result_.retirement_cause.size(),"%s",reason?reason:"stop");
   state_=ClientSceneState::Retiring;FailureResult(ClientResultKind::Retiring,"retire",reason);
   for(auto &owner:retained_)if(owner.ticket.id)owner.retiring=true;
@@ -625,7 +667,7 @@ void ClientScene::Retire(const char *reason) noexcept {
 }
 void ClientScene::Fail(const char *reason) noexcept {
   if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return;}
-  binary_published_=false;result_.old_display_valid=false;
+  SuspendBinaryDisplay();result_.old_display_valid=false;
   state_=ClientSceneState::Failed;FailureResult(ClientResultKind::PartialNativeFailure,"failed",reason);
   for(auto &owner:retained_)if(owner.ticket.id)owner.retiring=true;
   DrainRetained();

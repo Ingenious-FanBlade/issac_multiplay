@@ -210,6 +210,9 @@ void ForeignCall() noexcept {
   if (armed_public.load(std::memory_order_acquire))
     foreign_seen.store(true, std::memory_order_release);
 }
+bool ForeignCallPending() noexcept {
+  return foreign_seen.load(std::memory_order_acquire);
+}
 // 会话只能由下一次 Manager 入口创建；身份使用系统随机源，重启不复位
 // generation。
 const char *StartSolo() noexcept {
@@ -542,12 +545,70 @@ std::string SourceStreamFields(unsigned page){
   const auto *source=c->binary_entities.get();
   if(!source)return "ok=0\nerror=binary_source_off\n";
   const auto stats=source->Statistics();
-  return "ok=1\nstream.source.ready="+std::to_string(stats.active)+
+  auto out="ok=1\nstream.source.ready="+std::to_string(stats.active)+
+      "\nstream.source.sample_ms="+std::to_string(GetTickCount64())+
       "\nstream.source.ordinary="+std::to_string(stats.ordinary)+
       "\nstream.source.bodies="+std::to_string(stats.bodies)+
       "\nstream.source.gaps="+std::to_string(stats.gaps)+
+      "\nstream.source.object_failures="+std::to_string(stats.object_failures)+
+      "\nstream.source.body_skipped="+std::to_string(stats.body_skipped)+
+      "\nstream.source.retained_roots="+std::to_string(stats.retained_roots)+
+      "\nstream.source.max_retained_frames="+std::to_string(stats.max_retained_frames)+
+      "\nstream.source.first_object_failure.reason="+std::to_string(unsigned(stats.first_object_failure.reason))+
+      "\nstream.source.first_object_failure.space="+std::to_string(stats.first_object_failure.subject.space)+
+      "\nstream.source.first_object_failure.id="+std::to_string(stats.first_object_failure.subject.local)+
+      "\nstream.source.first_object_failure.use="+std::to_string(stats.first_object_failure.subject.use)+
+      "\nstream.source.first_object_failure.layout="+std::to_string(stats.first_object_failure.layout)+
+      "\nstream.source.first_object_failure.field="+std::to_string(stats.first_object_failure.field)+
+      "\nstream.source.first_object_failure.detail="+stats.first_object_failure.detail.data()+
+      "\nstream.source.member_indices.high_water="+std::to_string(stats.member_indices.high_water)+
+      "\nstream.source.member_indices.reused="+std::to_string(stats.member_indices.reused)+
+      "\nstream.source.transient_entity_retirements="+std::to_string(stats.transient_entity_retirements)+
+      "\nstream.source.capture_failure="+std::to_string(unsigned(stats.failure.reason))+
+      "\nstream.source.capture_layout="+std::to_string(stats.failure.layout)+
+      "\nstream.source.capture_field="+std::to_string(stats.failure.field)+
+      "\nstream.source.capture_origin="+stats.failure.origin.file_name()+":"+std::to_string(stats.failure.origin.line())+
+      "\nstream.source.capture_detail="+stats.failure.detail.data()+
+      "\nstream.source.read_copies="+std::to_string(stats.reads.copies)+
+      "\nstream.source.read_bytes="+std::to_string(stats.reads.bytes)+
+      "\nstream.source.read_queries="+std::to_string(stats.reads.queries)+
+      "\nstream.source.read_hits="+std::to_string(stats.reads.hits)+
+      "\nstream.source.read_fallbacks="+std::to_string(stats.reads.fallbacks)+
+      "\nstream.source.read_failures="+std::to_string(stats.reads.failures)+
+      "\nstream.source.root_resource_checks="+std::to_string(stats.reads.root_resource_checks)+
+      "\nstream.source.root_resource_revocations="+std::to_string(stats.reads.root_resource_revocations)+
+      "\nstream.source.string_blocks="+std::to_string(stats.reads.string_blocks)+
+      "\nstream.source.body_reused="+std::to_string(stats.body_reused)+
+      "\nstream.source.member_scans="+std::to_string(stats.member_scans)+
+      "\nstream.source.scene_scans="+std::to_string(stats.scene_scans)+
+      "\nstream.source.topology_builds="+std::to_string(stats.native.topology_builds)+
+      "\nstream.source.topology_hits="+std::to_string(stats.native.topology_hits)+
+      "\nstream.source.shared_player_prepared="+std::to_string(stats.native.shared_player_prepared)+
+      "\nstream.source.shared_player_consumed="+std::to_string(stats.native.shared_player_consumed)+
+      "\nstream.source.shared_player_reviews="+std::to_string(stats.native.shared_player_reviews)+
+      "\nstream.source.witnesses="+std::to_string(stats.native.witnesses)+
+      "\nstream.source.witness_rechecks="+std::to_string(stats.native.rechecks)+
+      "\nstream.source.legacy_attempts="+std::to_string(c->collector?c->collector->LegacyAttempts():0)+
+      "\nstream.source.replaced="+std::to_string(stats.exchange.replaced)+
+      "\nstream.source.revoked="+std::to_string(stats.exchange.revoked)+
+      "\nstream.source.roots="+std::to_string(stats.roots)+
+      "\nstream.source.cells="+std::to_string(stats.cells)+
+      "\nstream.source.paths="+std::to_string(stats.paths)+
+      "\nstream.source.bytes="+std::to_string(stats.bytes)+
       "\nstream.source.revision="+std::to_string(stats.publication_revision)+
       "\nstream.source.reason="+stats.publication_failure.data()+"\n";
+  constexpr const char *categories[]={"file","selected_file","image","item","animation","image_path","config"};
+  out+="stream.source.unchanged.checks="+std::to_string(stats.native.unchanged_checks)+
+    "\nstream.source.unchanged.roots="+std::to_string(stats.native.unchanged_roots)+
+    "\nstream.source.unchanged.unavailable="+std::to_string(stats.native.unchanged_unavailable)+
+    "\nstream.source.unchanged.slots="+std::to_string(stats.native.unchanged_slots)+
+    "\nstream.source.resource.frame_slots="+std::to_string(stats.native.resource_frame_slots)+"\n";
+  for(unsigned i=0;i<stats.native.resource_hits.size();++i){const auto key=std::string("stream.source.resource.")+categories[i];
+    out+=key+".parses="+std::to_string(stats.native.resource_parses[i])+"\n";
+    out+=key+".hits="+std::to_string(stats.native.resource_hits[i])+"\n";
+    out+=key+".frame_hits="+std::to_string(stats.native.resource_frame_hits[i])+"\n";
+  }
+  return out+source->WorkerFields(page);
 }
 std::string StatusFields() {
   auto *r = Runtime();
@@ -722,6 +783,12 @@ std::string StatusFields() {
     n((prefix+"phase").c_str(),status.publication_phase);n((prefix+"retransmissions").c_str(),status.operation_retransmissions);n((prefix+"cancellations").c_str(),status.operation_cancellations);n((prefix+"completed").c_str(),status.operation_completed);n((prefix+"failed").c_str(),status.operation_failed);
     n((prefix+"binary_world_ack").c_str(),status.binary_world_ack);n((prefix+"binary_body_ack").c_str(),status.binary_body_ack);n((prefix+"binary_event_ack").c_str(),status.binary_event_ack);
     n((prefix+"binary_event_dropped_capacity").c_str(),status.binary_event_dropped_capacity);n((prefix+"binary_event_dropped_expired").c_str(),status.binary_event_dropped_expired);n((prefix+"binary_unmatched_acks").c_str(),status.binary_unmatched_acks);
+    n((prefix+"binary_joint_sent").c_str(),status.binary_joint_sent);
+    n((prefix+"binary_world_sent").c_str(),status.binary_world_sent);n((prefix+"binary_body_sent").c_str(),status.binary_body_sent);
+    n((prefix+"binary_body_dependency_blocks").c_str(),status.binary_body_dependency_blocks);
+    n((prefix+"binary_world_window_skips").c_str(),status.binary_world_window_skips);
+    n((prefix+"binary_world_inflight_max").c_str(),status.binary_world_inflight_max);
+    n((prefix+"binary_world_retries").c_str(),status.binary_world_retries);
     out+=prefix+"first_failure="+status.replication_first_failure.data()+"\n";
   }
 

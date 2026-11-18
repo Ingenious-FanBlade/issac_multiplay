@@ -100,7 +100,7 @@ constexpr const char *kObservationNames[kObservationCount] = {
     "Factory",   "Init",       "Publish",     "Remove",  "ClearReferences",
     "Destroy",   "PlayerCtor", "PlayerCreate", "ManagerRestore", "Replace",
     "PlayerRestore", "NpcMorph", "PickupMorph", "GridFactory", "GridInit",
-    "GridSpawn", "Door",       "GridFree",    "Spawn", "GridCtor"};
+    "GridSpawn", "Door",       "GridFree",    "Spawn", "GridCtor", "EffectInit"};
 constexpr const char *kEventKindNames[10] = {
     "NATIVE_HOOK", "BIRTH_CONFIRMED", "LIFECYCLE_BOUNDARY", "GAP_OR_UNKNOWN",
     "GRID_PHYSICAL_RETIRED", "UNUSED_5", "CURRENT_PLAYER_READ_WITNESS",
@@ -110,9 +110,10 @@ constexpr const char *kOriginNames[3] = {"UNSET", "FIRST_OBSERVED",
 constexpr const char *kLifecycleNames[7] = {
     "UNKNOWN", "ACQUIRED", "PUBLISHED", "CONSTRUCTED", "REMOVE_REQUESTED",
     "RETIRING", "DESTROYED"};
-constexpr const char *kReadinessNames[7] = {
+constexpr const char *kReadinessNames[8] = {
     "NO_OBSERVED_INIT", "BASE_INIT_RETURNED", "KNOWN_CREATION_OWNER_COMPLETED",
-    "USER_ACCEPTED_CURRENT_PLAYER_UPDATE_WITNESS", "NAMED_PLAYER_CHILD_INIT_COMPLETED", "NAMED_PLAYER_STATE_OWNER_COMPLETED", "NATIVE_JOIN_EFFECT_COMPLETED"};
+    "USER_ACCEPTED_CURRENT_PLAYER_UPDATE_WITNESS", "NAMED_PLAYER_CHILD_INIT_COMPLETED", "NAMED_PLAYER_STATE_OWNER_COMPLETED",
+    "NATIVE_JOIN_EFFECT_COMPLETED", "NATIVE_DIRECT_EFFECT_PUBLISHED"};
 constexpr const char *kAuthorityKindNames[3] = {"NONE", "STANDARD_ROOM",
                                                 "ODD_PLAYER"};
 constexpr const char *kSourceNames[kSourceCount] = {
@@ -149,7 +150,7 @@ static_assert(std::size(kFieldStatusNames) == 5 &&
                   std::size(kEventKindNames) == 10 &&
                   std::size(kOriginNames) == 3 &&
                   std::size(kLifecycleNames) == 7 &&
-                  std::size(kReadinessNames) == 7 &&
+                  std::size(kReadinessNames) == 8 &&
                   std::size(kAuthorityKindNames) == 3 &&
                   std::size(kSourceNames) == kSourceCount,
               "名称表长度与枚举上限不符");

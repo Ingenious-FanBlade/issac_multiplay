@@ -1,5 +1,7 @@
 #pragma once
+#include "core/session.h"
 #include "core/participant.h"
+#include <array>
 #include <cstddef>
 #include <cstring>
 #include <limits>
@@ -62,16 +64,23 @@ struct ControlBody {
   }
   bool operator==(const ControlBody &) const = default;
 };
-// exact pair 与生命状态分开；同一 Player 地址上的死亡/复活也必须失效。
-struct Topology {
+// 同一读取边界的公共快照。各控制组在这份 Game／Room 和名单见证上独立派生。
+struct TopologyCommon {
   RoomIdentity room{};
-  core::Binding pair{};
-  bool run = false, known = false, unique = false;
-  bool valid = false, exists = false, dead = false, removed = false,
-       ghost = false;
+  bool run = false, known = false;
   bool focused = true, pause_on_focus_lost = false, starting = false;
   int pause = 0, room_transition = 0, stage_transition = 0;
-  unsigned player_count = 0, variant = 0;
+  unsigned player_count = 0;
+  TopologyFault fault = TopologyFault::None;
+  const char *reason = "unknown";
+};
+// exact pair 与生命状态分开；同一 Player 地址上的死亡/复活也必须失效。
+struct Topology : TopologyCommon {
+  core::Binding pair{};
+  bool unique = false;
+  bool valid = false, exists = false, dead = false, removed = false,
+       ghost = false;
+  unsigned variant = 0;
   int character = -1;
   std::array<ControlBody, kMaximumGroupBodies> bodies{};
   unsigned body_count = 0, active_bodies = 0;
@@ -82,8 +91,6 @@ struct Topology {
         return true;
     return false;
   }
-  TopologyFault fault = TopologyFault::None;
-  const char *reason = "unknown";
   bool Alive() const noexcept {
     for (unsigned i = 0; i < body_count; ++i)
       if (bodies[i].CanConsume())
@@ -96,6 +103,12 @@ struct Topology {
            fault == TopologyFault::PlayerList || fault == TopologyFault::Device;
   }
 };
+using TopologyGroups = std::array<Topology, core::kMaximumParticipants>;
+using TopologyDevices = std::array<void *, core::kMaximumParticipants>;
+// 同步读取掩码中的组，结果不借用批次存储；返回身体归属冲突的 ordinal 位。
+unsigned ReadTopologies(unsigned mask, const TopologyDevices &devices,
+                        TopologyGroups &out) noexcept;
+std::size_t TopologyReadWorkspaceBytes() noexcept;
 Topology ReadTopology(unsigned ordinal = 0,
                       void *owned_device = nullptr) noexcept;
 Topology ReadTopologyForRoot(unsigned ordinal, void *root,

@@ -23,8 +23,8 @@ public:
 private:
   friend struct ClientStateTableStorage;
   StateRoute route_{};
-  std::uint32_t epoch_=0,previous_=0;
-  ClientStateVector<StateMemberEntry> entries_,update_;
+  std::uint32_t epoch_=0;
+  ClientStateVector<StateMemberEntry> entries_;
 };
 // 资源内容按项共享，不通过旧snapshot链延寿；图计划与目录数组随此快照固定。
 class ClientResourceSnapshot final {
@@ -71,13 +71,14 @@ public:
   void Close();
   bool Drained() const;
   void Collect();
-  ClientTableInstall InstallMembers(const StateRoute &,std::span<const std::byte>);
+  // 目录随纯值快照持有，差分只以该帧指定的成员目录为来源。
+  ClientMemberSnapshotRef FrameMembers(const StateRoute &,std::uint32_t epoch,
+      const ClientMemberSnapshotRef &base,std::span<const std::byte> encoded) const;
   ClientTableInstall InstallResources(const StateRoute &,std::span<const std::byte>);
   // 生命周期owner证明旧route及原生借用已排空后显式调用；普通Open不重编号epoch。
   ClientTableInstall RebaseResources(const StateRoute &retired,std::span<const std::byte>);
-  ClientMemberSnapshotRef Members(std::uint32_t epoch) const;
   ClientResourceSnapshotRef Resources(std::uint32_t epoch) const;
-  std::optional<StateContextReady> MetadataReady() const;
+  ClientResourceSnapshotRef LatestResources() const;
   // 仅固定本目标的非空资源根。空集合直接返回合法空闭包，避免审阅整个无关目录。
   ResourceGraphView Prepare(const ClientResourceSnapshotRef &,std::span<const ResourceKey>,ResourceGraphScratch &) const;
   // 完整计划的图校验复用调用者租约；不将同线程的另一项独立工作默认视为可重入。

@@ -313,6 +313,8 @@ public:
   // 失败只让 world 不可用，记录首因，不抛出、不停 C/S 会话。
   bool Prepare(const StorageConfig &config) noexcept;
   bool Ready() const noexcept;
+  bool NativeAvailable() const noexcept;
+  bool DiagnosticReaderFailed() const noexcept;
 
   // —— 主线程 API：只做原子操作与 SetEvent，零等待 ——
   // 取 FREE 槽；没有可用槽时记录 BUFFER_BACKPRESSURE gap 并返回空句柄。
@@ -320,8 +322,12 @@ public:
   BatchWriter Begin(const BatchBegin &begin) noexcept;
   // 生命周期事件：分配 event_seq 并发布；环满即停用录制。
   bool PublishEvent(LifecycleEvent event) noexcept;
+  // 正式身份事件只取有序序号；诊断环满由 Collector 停用诊断生产。
+  bool StampEvent(LifecycleEvent &) noexcept;
+  bool EnqueueDiagnosticEvent(const LifecycleEvent &) noexcept;
   // gap 控制记录：独立固定容量；交付失败即停用录制。
   bool PublishGap(const GapRecord &gap) noexcept;
+  bool EnqueueDiagnosticGap(const GapRecord &) noexcept;
   // 独立有界控制环；满或通知失败只使 world 故障，不能静默丢场景标记。
   bool PublishCheckpoint(const CheckpointRecord &checkpoint) noexcept;
   // 最近一次已发布的事件序号；用于批次 event_watermark。

@@ -15,6 +15,7 @@
 
 #include "world/model.h"
 
+#include <array>
 #include <cstdint>
 #include <memory>
 
@@ -52,14 +53,16 @@ struct Identity final {
   std::uint32_t birth_variant = 0;
   std::uint32_t birth_subtype = 0;
   std::uint32_t birth_seed = 0;
-  bool born = false;
 
-  // —— 生命周期与连续性 ——
-  bool destroyed = false;
-  bool reused = false;   // 同址被再次取得，跨进程引用因此有歧义风险
-  bool published = false;
-  bool candidate = false; // 已取得、等待外层 owner 确认出生
-  bool current_public_ready = false; // +177 当前值资格，独立于初始化历史和出生。
+  // 生命周期标记占同一字节，为形态元组留出空间，保持身份表内存上限。
+  bool born : 1 = false;
+  bool destroyed : 1 = false;
+  bool reused : 1 = false;   // 同址被再次取得，跨进程引用因此有歧义风险
+  bool published : 1 = false;
+  bool candidate : 1 = false; // 已取得、等待外层 owner 确认出生
+  bool current_public_ready : 1 = false; // +177 当前值资格，独立于初始化历史和出生。
+  bool native_shape_known : 1 = false;
+  bool direct_effect_init_returned : 1 = false; // 同一直接取得的 Effect 已走完派生 Init，尚待发布。
   std::uint64_t owner_scope = 0; // 外层创建 owner 的观察作用域（0=未知）
 
   // —— 来源成员关系：committed 是上次已提交快照，pending 是本批累积 ——
@@ -71,6 +74,8 @@ struct Identity final {
   // —— 本批对象去重（batch_attempt 与当前批次不同则 batch_index 无效）——
   std::uint64_t batch_attempt = 0;
   std::int32_t batch_index = -1;
+  // 同一 use 在普通采集见到的 Type、Variant、SubType，独立于出生描述。
+  std::array<std::uint32_t,3> native_shape{};
 
   // 已退休：物理销毁或生命周期进入 Retiring 之后。成员退出不算退休。
   bool Retired() const noexcept {
@@ -81,6 +86,8 @@ struct Identity final {
   // 这是保守选择：Morph 内层 Init 之后必须重新等到外层 owner 完成。
   void MarkInitReturned() noexcept {
     current_public_ready = false;
+    native_shape_known = false;
+    direct_effect_init_returned = false;
     readiness = static_cast<std::uint32_t>(Readiness::BaseInitReturned);
   }
   // 加入实体列表只是成员关系观察，不确认出生；首次发布推进 lifecycle。

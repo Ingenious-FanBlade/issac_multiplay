@@ -95,12 +95,12 @@ StateEventQueue::StateEventQueue(std::uint32_t count,std::uint32_t bytes){
   if(!count||count>512||bytes<StateEventQueueHeaderBytes()||bytes>256u<<10)throw std::invalid_argument("event_queue_capacity");
   memory_=memory::Reserve(memory::Pool::Values,sizeof(*this)+std::uint64_t(count)*sizeof(Entry)+bytes,"peer_state_events");entries_.resize(count);bytes_.resize(bytes);
 }
-void StateEventQueue::Reset(std::uint64_t baseline) noexcept {count_=used_=0;offered_=acked_=sent_=baseline;stats_={};}
+void StateEventQueue::Reset(std::uint64_t baseline) noexcept {for(unsigned i=0;i<count_;++i)entries_[i]={};count_=used_=0;offered_=acked_=sent_=baseline;stats_={};}
 void StateEventQueue::Remove(std::uint32_t i) noexcept {const auto size=std::uint32_t(entries_[i].value.payload.size()),offset=entries_[i].offset;
   std::memmove(bytes_.data()+offset,bytes_.data()+offset+size,used_-offset-size);used_-=size;
-  std::move(entries_.begin()+i+1,entries_.begin()+count_,entries_.begin()+i);--count_;
+  std::move(entries_.begin()+i+1,entries_.begin()+count_,entries_.begin()+i);entries_[--count_]={};
   for(unsigned n=i;n<count_;++n){auto &entry=entries_[n];entry.offset-=size;entry.value.payload=std::span<const std::byte>(bytes_).subspan(entry.offset,entry.value.payload.size());}}
-bool StateEventQueue::Offer(const StateEventView &value) noexcept {
+bool StateEventQueue::Offer(const StateEventView &value,std::shared_ptr<const void> owner) noexcept {
   try {Event(value);}catch(...){return false;}
   if(value.sequence==UINT64_MAX)return false;
   if(value.sequence<=acked_)return true;
@@ -113,7 +113,7 @@ bool StateEventQueue::Offer(const StateEventView &value) noexcept {
     for(unsigned i=0;i<count_;++i)if(StateEventCosmetic(StateEventKind(entries_[i].value.purpose))){oldest=i;break;}
     if(oldest==count_){if(StateEventCosmetic(StateEventKind(value.purpose))){offered_=value.sequence;++stats_.dropped_capacity;return true;}return false;}
     Remove(oldest);++stats_.dropped_capacity;}
-  auto &entry=entries_[count_++];entry={value,used_};if(!value.payload.empty())std::memcpy(bytes_.data()+used_,value.payload.data(),value.payload.size());
+  auto &entry=entries_[count_++];entry={value,used_,std::move(owner)};if(!value.payload.empty())std::memcpy(bytes_.data()+used_,value.payload.data(),value.payload.size());
   entry.value.payload=std::span<const std::byte>(bytes_).subspan(used_,value.payload.size());used_+=std::uint32_t(value.payload.size());offered_=value.sequence;return true;
 }
 bool StateEventQueue::CanCover(std::uint64_t first,std::uint64_t watermark) const noexcept {
@@ -140,7 +140,7 @@ void StateEventQueue::Expire(std::uint32_t frame,std::uint32_t maximum_age) noex
     if(StateEventCosmetic(StateEventKind(event.purpose))&&age<0x80000000u&&age>maximum_age){Remove(i);++stats_.dropped_expired;}else ++i;}
 }
 bool QueueCapturedStateEvents(const CapturePacket &packet,StateEventQueue &queue,CaptureLinkResolver resolver,std::span<std::byte> links,
-    std::span<std::byte> encoded,BodyCodecScratch &scratch,const BodyCodecContext *context,BodyCodecLimits limits){
+    std::span<std::byte> encoded,BodyCodecScratch &scratch,const BodyCodecContext *context,BodyCodecLimits limits,std::span<std::uint32_t> index){
   if(!queue.CanCover(packet.event_first_sequence,packet.event_watermark))return false;
   std::array<std::uint32_t,512> order{};unsigned count=0;
   for(std::uint32_t i=0;i<packet.records.size();++i)if(packet.records[i].event_sequence){if(count==order.size())return false;order[count++]=i;}
@@ -155,7 +155,7 @@ bool QueueCapturedStateEvents(const CapturePacket &packet,StateEventQueue &queue
        record.stream!=BodyStream::Value||record.pass!=unsigned(StateEventCosmetic(kind)))return false;
     // 已确认事件不再解析其旧room成员／资源；latest包重带它们不能拖住新world。
     if(queue.Covered(record.event_sequence))continue;
-    CapturedBodySource source(packet,i,resolver,links);const auto body=EncodeValueInto(record.layout,source,encoded,scratch,context,limits);
+    CapturedBodySource source(packet,i,resolver,links,index);const auto body=EncodeValueInto(record.layout,source,encoded,scratch,context,limits);
     StateEventView event;event.sequence=record.event_sequence;event.logical_frame=record.event_game_frame;event.owner=kNullIndex;event.purpose=unsigned(kind);
     event.voice=event.generation=0;event.clear_scope=0;event.flags=std::uint8_t(StateEventCosmetic(kind));event.layout=record.layout;event.payload=body.bytes;
     if(!queue.Offer(event))return false;

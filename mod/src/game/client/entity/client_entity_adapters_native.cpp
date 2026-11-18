@@ -13,6 +13,9 @@ namespace {
 thread_local bool initializing_class=false;
 thread_local unsigned initializing_seed=0;
 thread_local bool retiring_class=false;
+// 只在当前 Manager 内的原生 Morph 中启用，Host、原版与其他实体仍走常驻 Hook 的原链。
+struct MorphScope {void *object=nullptr;unsigned category=0;bool pickup_init=false;};
+thread_local MorphScope morph;
 // SDK的Entity方法包装器内部仍按vtable分派，C++基类限定也不能选择base原生实现。
 // 直达唯一Hook清单world_entity_init/remove/clear_references的已登记入口；保留官方与自有常驻链。
 void BaseEntityInit(Entity &entity,unsigned type,unsigned variant,unsigned subtype,unsigned seed){
@@ -24,10 +27,7 @@ void BaseEntityRetire(Entity &entity){
   reinterpret_cast<void (__thiscall *)(Entity *)>(Base+0x2a8000)(&entity);
   reinterpret_cast<void (__thiscall *)(Entity *)>(Base+0x2a8060)(&entity);
 }
-bool InitializeEntity(void *pointer,unsigned category,unsigned type,unsigned variant,unsigned subtype,unsigned seed,const char *&reason){
-  if(initializing_class||!pointer||!seed){reason="entity_class_init_nested_or_seed";return false;}
-  struct Scope final {Scope(unsigned seed){initializing_class=true;initializing_seed=seed;}~Scope(){initializing_class=false;initializing_seed=0;}} scope(seed);
-  auto &e=*static_cast<Entity *>(pointer);
+void InitializeEntityClass(Entity &e,unsigned category,unsigned type,unsigned variant,unsigned subtype,unsigned seed){
   // Pickup/Familiar/Effect的派生Init包含生成/抽池/Player状态裁决；真实Factory/ctor已经建立成员owner。
   // 仅进入官方base Init及Plus链，随后由本方完整最终量/资源/关系安装；不将跳过计作原派生调用完成。
   if(category==7||category==8||category==9||category==10){
@@ -39,6 +39,17 @@ bool InitializeEntity(void *pointer,unsigned category,unsigned type,unsigned var
     }
   }
   else e.Init(type,variant,subtype,seed);
+}
+bool TryInitializeEntityClass(Entity &e,unsigned category,unsigned type,unsigned variant,unsigned subtype,unsigned seed){
+  __try {InitializeEntityClass(e,category,type,variant,subtype,seed);return true;}
+  __except(EXCEPTION_EXECUTE_HANDLER){return false;}
+}
+bool InitializeEntity(void *pointer,unsigned category,unsigned type,unsigned variant,unsigned subtype,unsigned seed,const char *&reason){
+  if(initializing_class||!pointer||!seed){reason="entity_class_init_nested_or_seed";return false;}
+  struct Scope final {Scope(unsigned seed){initializing_class=true;initializing_seed=seed;}~Scope(){initializing_class=false;initializing_seed=0;}} scope(seed);
+  if(!TryInitializeEntityClass(*static_cast<Entity *>(pointer),category,type,variant,subtype,seed)){
+    reason="entity_class_init_seh";return false;
+  }
   reason="entity_class_admitted_init_completed";return true;
 }
 // 官方KnifePlus hitboxSource只有受控leaf接口；不扫描或伪造官方私有holder。
@@ -56,8 +67,74 @@ bool ClientEntityInitializationRandom(unsigned &value) noexcept {if(!initializin
 bool ClientBinaryEntityInitialize(void *object,unsigned category,unsigned type,unsigned variant,unsigned subtype,unsigned seed,const char *&reason) {
   return ClientBinaryInstallationScopeActive(false)&&InitializeEntity(object,category,type,variant,subtype,seed,reason);
 }
-bool ClientBinaryEntityCleanup(void *object,unsigned category) noexcept {
-  if(!object||!ClientBinaryInstallationScopeActive(true)||retiring_class)return false;
+bool ClientMorphScopedEntity(const void *object,unsigned category) noexcept {
+  return object&&morph.object==object&&morph.category==category&&ClientBusy()&&ClientBinaryInstallationScopeActive(false);
+}
+bool ClientMorphPickupModifiers(const void *return_address) noexcept {
+  return ClientMorphScopedEntity(morph.object,7)&&
+    reinterpret_cast<std::uintptr_t>(return_address)==Base+0x2dffd3;
+}
+bool ClientMorphPickupInit(void *object,unsigned type,int variant,int subtype,unsigned) {
+  if(!ClientMorphScopedEntity(object,7))return false;
+  if(!morph.pickup_init){
+    morph.pickup_init=true;
+    // Host 的正常 Morph 可以换 seed。复用池槽时直接用目标的 InitSeed，避免在本地再抽一次。
+    BaseEntityInit(*static_cast<Entity *>(object),type,unsigned(variant),unsigned(subtype),initializing_seed);
+  }
+  return true;
+}
+namespace {
+void MorphPickup(Entity_Pickup &pickup,unsigned type,unsigned variant,unsigned subtype) {
+  auto &ignore_modifiers=*reinterpret_cast<unsigned *>(Base+0x7e49f0);
+  const auto previous=ignore_modifiers;
+  __try {pickup.Morph(int(type),int(variant),int(subtype),false,true,true);}
+  __finally {ignore_modifiers=previous;}
+}
+bool MorphEntityCall(Entity &e,unsigned category,unsigned type,unsigned variant,unsigned subtype,unsigned seed,
+    int champion) noexcept {
+  __try {
+    if(!e._exists||!e._valid)return false;
+    const auto *vptr=*reinterpret_cast<void **>(&e);
+    if(reinterpret_cast<std::uintptr_t>(vptr)!=Base+(category==7?0x718e8cu:0x7187d0u))return false;
+    const auto index=e._index,collision=e._collisionIndex;
+    const auto position=e._pos,velocity=e._velocity;
+    if(category==7){
+      auto &pickup=static_cast<Entity_Pickup &>(e);
+      // 只调用非商店普通底座和宝箱。分叉底座／展示实体继续走 Remove／Init。
+      const auto ordinary=[](unsigned v){return (v>=50&&v<=58)||v==60||v==100;};
+      if(type!=5||e._type!=5||!ordinary(e._variant)||!ordinary(variant)||
+          pickup._price||pickup._pickupGhost||pickup._megaChestCollectible[0]||pickup._megaChestCollectible[1])return false;
+      MorphPickup(pickup,type,variant,subtype);
+      if(!morph.pickup_init)return false;
+    }else{
+      // 6B7730 会消费共享的单次 NPC 初始化位，客机不能消费正在等待的原生操作。
+      if(type<10||type>=1000||e._type<10||e._type>=1000||e._initSeed!=seed||
+          *reinterpret_cast<const unsigned char *>(Base+0x7e49ec))return false;
+      static_cast<Entity_NPC &>(e).Morph(int(type),int(variant),int(subtype),champion);
+    }
+    if(*reinterpret_cast<void **>(&e)!=vptr||e._index!=index||!e._valid||!e._exists||
+        e._type!=type||e._variant!=variant||e._subtype!=subtype||e._initSeed!=seed)return false;
+    e._collisionIndex=collision;e._pos=position;e._velocity=velocity;
+    return true;
+  }__except(EXCEPTION_EXECUTE_HANDLER){return false;}
+}
+}
+bool ClientBinaryEntityMorph(void *object,unsigned category,unsigned type,unsigned variant,unsigned subtype,
+    unsigned seed,int champion) noexcept {
+  if(!object||morph.object||initializing_class||(category!=1&&category!=7)||!seed||
+      !ClientBinaryInstallationScopeActive(false)||!ClientMorphIsolationInstalled())return false;
+  // 复用隔离 Init 的 RNG 入口；并在 SEH 返回后归还作用域，避免状态泄漏到原版播放。
+  struct Scope {
+    Scope(void *object,unsigned category,unsigned seed){
+      morph={object,category,false};initializing_class=true;initializing_seed=seed;
+    }
+    ~Scope(){morph={};initializing_class=false;initializing_seed=0;}
+  } scope(object,category,seed);
+  return MorphEntityCall(*static_cast<Entity *>(object),category,type,variant,subtype,seed,champion);
+}
+bool ClientBinaryEntityCleanup(void *object,unsigned category,bool init_auxiliary) noexcept {
+  // 附属物只能由同一 Init 窗口的池位差集进入此入口。
+  if(!object||!ClientBinaryInstallationScopeActive(!init_auxiliary)||retiring_class)return false;
   struct Scope {Scope(){retiring_class=true;}~Scope(){retiring_class=false;}} scope;
   try {
     auto &e=*static_cast<Entity *>(object);

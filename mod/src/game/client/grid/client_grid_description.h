@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <memory>
 #include <optional>
-namespace cs::state {class ClientStateMemory;}
+namespace cs::state {class ClientStateMemory;class ClientShadowState;}
 
 namespace cs::game {
 // 语义角色在生成时解析为真实布局字段索引；运行访问不比较字符串或猜原生偏移。
@@ -39,6 +39,7 @@ struct ClientGridShadowBlockView final {
 struct ClientGridShadowRecordView final {
   ClientGridShadowIdentity identity;
   std::array<ClientGridShadowBlockView,32> blocks{};
+  std::shared_ptr<const state::ClientShadowState> backing;
 };
 // 字节借用的寿命不超过持有它的描述／投影；不含原生对象、资源或容器地址。
 struct ClientGridBytes final { const std::uint8_t *data=nullptr; std::uint32_t size=0; };

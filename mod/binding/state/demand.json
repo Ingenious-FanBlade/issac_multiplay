@@ -522,10 +522,6 @@
       "reason": "Q14既有Run显示输入；D5完整种子效果供诅咒F/P和音乐41—44的原生内联树读取"
     },
     {
-      "type": "RunScoreSheet",
-      "reason": "Q14既有Run显示输入；D5完整种子效果供诅咒F/P和音乐41—44的原生内联树读取"
-    },
-    {
       "type": "RunColorModState",
       "reason": "Q14既有Run显示输入；D5完整种子效果供诅咒F/P和音乐41—44的原生内联树读取"
     },
@@ -626,10 +622,6 @@
       "reason": "Q14过渡期保留公共报文与资源引用结构；414—417及425—433随第二批接线收窄，当前不改变固定头"
     },
     {
-      "type": "StateContextReady",
-      "reason": "Q14过渡期保留公共报文与资源引用结构；414—417及425—433随第二批接线收窄，当前不改变固定头"
-    },
-    {
       "type": "StateAppliedAckHeader",
       "reason": "Q14过渡期保留公共报文与资源引用结构；414—417及425—433随第二批接线收窄，当前不改变固定头"
     },
@@ -640,6 +632,18 @@
     {
       "type": "StateResyncHeader",
       "reason": "Q14过渡期保留公共报文与资源引用结构；414—417及425—433随第二批接线收窄，当前不改变固定头"
+    },
+    {
+      "type": "ResourceEntryHeader",
+      "reason": "资源目录编码和解码必需的8字节条目头；不属于可裁剪的显示结果"
+    },
+    {
+      "type": "SurfaceRecipeHeader",
+      "reason": "本地白图／程序图集一次Clear分配描述的固定头，资源协议仍保留此用途"
+    },
+    {
+      "type": "SurfaceRecipeClear",
+      "reason": "本地白图／程序图集一次Clear的颜色值，不恢复通用绘制recipe"
     },
     {
       "type": "ResourcePath",
@@ -793,7 +797,6 @@
         "secondary_fade_alpha": "Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner",
         "primary_fade_alpha": "Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner",
         "daily": "Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner",
-        "score": "Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner",
         "difficulty": "Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner",
         "retrovision_countdown": "Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner",
         "retrovision_duration": "Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner",
@@ -823,7 +826,6 @@
         "door_grid_positions": "Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送",
         "frame_baseline": "Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送",
         "render_scroll": "Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送",
-        "fx_layers": "Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送",
         "backdrop": "Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送",
         "shockwave_a": "Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送",
         "shockwave_b": "Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送",
@@ -855,12 +857,6 @@
         "controls_sprite": "Q14背景id与原生Sprite／边界照旧；表面binding结果由本地原生冷构建，不发送旧资源配方",
         "controls_buttons_sprite": "Q14背景id与原生Sprite／边界照旧；表面binding结果由本地原生冷构建，不发送旧资源配方",
         "sprite_mask": "Q14背景id与原生Sprite／边界照旧；表面binding结果由本地原生冷构建，不发送旧资源配方"
-      }
-    },
-    {
-      "type": "FXLayers",
-      "fields": {
-        "loaded": "Q14保留FXLayers当前资格；旧FXScenePayload结果退役，图与pose由Client原生显示推进"
       }
     }
   ]

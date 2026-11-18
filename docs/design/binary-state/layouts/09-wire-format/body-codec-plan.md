@@ -1,8 +1,8 @@
 # 各域正文数字编解码计划
 
-布局版本 75；由同一布局源生成，不是运行测试报告。
+布局版本 84；由同一布局源生成，不是运行测试报告。
 
-共371种布局、2644个字段计划、25个条件字段；最大根字段数117。无负载的Host权威类型只登记空值布局，不补造状态。
+共370种布局、2649个字段计划、25个条件字段；最大根字段数117。无负载的Host权威类型只登记空值布局，不补造状态。
 
 条件、资源空间、整数／浮点校验、计数组和规范零负载在构建时转成数字规则；正文热路径不按名称解释。字段／引用的图关系、资源ready和原生应用成功仍由完整目标处理。
 
@@ -18,15 +18,15 @@
 | player.json | 48 | 209 |
 | grid.json | 5 | 40 |
 | grid-classes.json | 27 | 203 |
-| room.json | 54 | 114 |
+| room.json | 54 | 129 |
 | level.json | 18 | 34 |
-| run.json | 9 | 70 |
+| run.json | 9 | 53 |
 | presentation.json | 78 | 1 |
 | hud-local.json | 2 | 0 |
-| display.json | 15 | 85 |
+| display.json | 15 | 94 |
 | overlay-display.json | 1 | 8 |
 | random.json | 24 | 0 |
-| wire.json | 25 | 126 |
+| wire.json | 24 | 124 |
 
 ## 条件数字规则
 
@@ -39,7 +39,7 @@
 | 180/2 cooldown | 0 | item-config | 704 | 26 |
 | 214/10 position | 9 | equal | 1 | 0 |
 | 215/13 main_state | 12 | equal | 1 | 0 |
-| 239/20 shockwave_overlay_sprite | 19 | equal | 1 | 0 |
+| 239/19 shockwave_overlay_sprite | 18 | equal | 1 | 0 |
 | 240/4 floor_sprite | 3 | any-bits | 1 | 0 |
 | 240/5 wall_detail_sprite | 3 | any-bits | 2 | 0 |
 | 240/6 controls_sprite | 3 | any-bits | 4 | 0 |

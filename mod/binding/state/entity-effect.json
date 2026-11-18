@@ -41,14 +41,10 @@
           "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
           "wire": {
             "kind": "nested",
-            "type": "ANM2",
-            "projections": [
-              0,
-              1,
-              2
-            ]
+            "type": "ANM2"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x11c",
@@ -81,32 +77,6 @@
           "evidence": "docs/design/binary-state/effect-synchronization-review.md"
         }
       ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "MrMe 外观",
-          "sequence": "world",
-          "fields": [
-            "mr_sprite#0"
-          ]
-        },
-        {
-          "id": 1,
-          "name": "MrMe 动画",
-          "sequence": "world",
-          "fields": [
-            "mr_sprite#1"
-          ]
-        },
-        {
-          "id": 2,
-          "name": "MrMe 图层",
-          "sequence": "world",
-          "fields": [
-            "mr_sprite#2"
-          ]
-        }
-      ],
       "conversions": {},
       "validators": {},
       "members": [],
@@ -137,7 +107,8 @@
             "kind": "nested",
             "type": "Vector"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x8",
@@ -152,7 +123,8 @@
             "kind": "nested",
             "type": "ColorMod"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x34",
@@ -167,7 +139,8 @@
             "kind": "copy",
             "type": "f32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x38",
@@ -182,7 +155,8 @@
             "kind": "copy",
             "type": "u32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x3c",
@@ -197,21 +171,8 @@
             "kind": "copy",
             "type": "f32"
           },
-          "read_requires": "entity-current-window"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "轨迹节点",
-          "sequence": "world",
-          "fields": [
-            "trail_position",
-            "trail_color",
-            "trail_scale",
-            "trail_render_word",
-            "trail_alpha"
-          ]
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         }
       ],
       "conversions": {},
@@ -265,26 +226,11 @@
             "storage": "array",
             "count_from": "typed_trail_owner_count",
             "host": "read_effect_trail_nodes",
-            "client": "rebuild_effect_trail_nodes"
+            "client": "rebuild_effect_trail_nodes",
+            "flat_storage": "deque"
           },
-          "read_requires": "entity-current-window"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "轨迹头（仅根投影的present）",
-          "sequence": "world",
-          "fields": [],
-          "reserved": true
-        },
-        {
-          "id": 1,
-          "name": "轨迹节点",
-          "sequence": "world",
-          "fields": [
-            "trail_nodes"
-          ]
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         }
       ],
       "conversions": {},
@@ -325,7 +271,8 @@
             "host": "anm2_selected_file_to_resource",
             "client": "anm2_selected_file_from_resource",
             "target": "anm2-files"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x18",
@@ -344,7 +291,8 @@
             "storage": "string",
             "host": "read_anm2_default_name",
             "client": "assign_anm2_default_name"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x30",
@@ -358,7 +306,8 @@
           "wire": {
             "kind": "nested",
             "type": "AnimationState"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x50",
@@ -372,7 +321,8 @@
           "wire": {
             "kind": "nested",
             "type": "AnimationState"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x70",
@@ -386,7 +336,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x71",
@@ -436,7 +387,8 @@
             "host": "read_anm2_layer_states",
             "client": "rebuild_anm2_layer_states",
             "count_field": "layer_count"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x80",
@@ -520,7 +472,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xA8",
@@ -534,7 +487,8 @@
           "wire": {
             "kind": "nested",
             "type": "ColorMod"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xD4",
@@ -548,7 +502,8 @@
           "wire": {
             "kind": "nested",
             "type": "ColorMod"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x100",
@@ -562,7 +517,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x101",
@@ -576,7 +532,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x102",
@@ -600,7 +557,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x108",
@@ -654,43 +612,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "外观与资源",
-          "sequence": "body",
-          "fields": [
-            "file_name",
-            "overlay_render_first",
-            "rotation",
-            "color",
-            "champion_color",
-            "flip_x",
-            "flip_y",
-            "playback_speed",
-            "render_flags",
-            "default_animation_name"
-          ]
-        },
-        {
-          "id": 1,
-          "name": "动画与独立选择器",
-          "sequence": "body",
-          "fields": [
-            "main_state",
-            "overlay_state"
-          ]
-        },
-        {
-          "id": 2,
-          "name": "图层状态",
-          "sequence": "body",
-          "fields": [
-            "layer_states"
-          ]
+          },
+          "sequence": "body"
         }
       ],
       "conversions": {
@@ -721,7 +644,27 @@
       },
       "members": [],
       "public_owners": [],
-      "notes": "仅Effect191有效Sprite的ANM2场景视图；其余字段与通用ANM2相同。+94 Offset／+9C Scale在602F4E—602F68每次绘制前由宿主或Effect最终展示输入重写，归派生；不扩大到其他Sprite。绘制借用后精确恢复。"
+      "notes": "仅Effect191有效Sprite的ANM2场景视图；其余字段与通用ANM2相同。+94 Offset／+9C Scale在602F4E—602F68每次绘制前由宿主或Effect最终展示输入重写，归派生；不扩大到其他Sprite。绘制借用后精确恢复。",
+      "write_groups": [
+        {
+          "fields": [
+            "file_name",
+            "default_animation_name",
+            "main_state",
+            "overlay_state",
+            "overlay_render_first",
+            "layer_states",
+            "rotation",
+            "color",
+            "champion_color",
+            "flip_x",
+            "flip_y",
+            "playback_speed",
+            "render_flags"
+          ],
+          "handler": "anm2_selected_file_from_resource"
+        }
+      ]
     },
     {
       "type": "EffectPickupGhostData",
@@ -760,15 +703,11 @@
             "storage": "array",
             "inline_count": 4,
             "count_field": "ghost_count",
-            "projections": [
-              0,
-              1,
-              2
-            ],
             "host": "read_effect_ghost_active_sprites",
             "client": "rebuild_effect_ghost_active_sprites"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x454",
@@ -779,32 +718,6 @@
           "semantics": "Host原生有效前缀长度，605830最多填4个；Client由三投影一致的u16 count重建i32，不再独立发送i32。Host编码前须拒绝负数或>4。",
           "status": "已核",
           "evidence": "docs/design/binary-state/effect-synchronization-review.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "幽影有效Sprite外观",
-          "sequence": "world",
-          "fields": [
-            "ghost_sprites#0"
-          ]
-        },
-        {
-          "id": 1,
-          "name": "幽影有效Sprite动画",
-          "sequence": "world",
-          "fields": [
-            "ghost_sprites#1"
-          ]
-        },
-        {
-          "id": 2,
-          "name": "幽影有效Sprite图层",
-          "sequence": "world",
-          "fields": [
-            "ghost_sprites#2"
-          ]
         }
       ],
       "conversions": {},
@@ -926,7 +839,8 @@
             "kind": "copy",
             "type": "i32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x454",
@@ -963,7 +877,8 @@
             "host": "ExpireFrame",
             "client": "RemainingFrames"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x460",
@@ -978,7 +893,8 @@
             "kind": "copy",
             "type": "i32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x464",
@@ -993,7 +909,8 @@
             "kind": "copy",
             "type": "u8"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x465",
@@ -1018,7 +935,8 @@
             "kind": "copy",
             "type": "Vector"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x470",
@@ -1043,7 +961,8 @@
             "kind": "copy",
             "type": "f32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x478",
@@ -1058,7 +977,8 @@
             "kind": "copy",
             "type": "f32"
           },
-          "read_requires": "entity-current-window"
+          "read_requires": "entity-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x47c",
@@ -1179,36 +1099,6 @@
           "semantics": "对象大小由数组构造及删除析构共同核定为0x4C0；全映像30条MEM/21函数按对象来源排除，+0x4B4共享holder仅8B止于4BB。支持尾部填充假设但保留未知，不缩短对象范围、不复制",
           "status": "未知",
           "evidence": "docs/design/binary-state/step4-first-four-evidence.md；docs/design/binary-state/projectile-effect-residual-evidence.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 10,
-          "name": "FX0 动态展示状态、Timeout与旋转缩放",
-          "sequence": "world",
-          "fields": [
-            "state",
-            "expire_frame",
-            "rotation",
-            "scale"
-          ]
-        },
-        {
-          "id": 11,
-          "name": "FX1 展示生命期与跟随几何",
-          "sequence": "world",
-          "fields": [
-            "lifespan",
-            "following",
-            "parent_offset"
-          ]
-        },
-        {
-          "id": 12,
-          "name": "FX2 变体数据（基础臂未知，预留）",
-          "sequence": "world",
-          "fields": [],
-          "reserved": true
         }
       ],
       "conversions": {
@@ -1386,15 +1276,6 @@
                 "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md；docs/design/binary-state/effect-next-five-evidence.md；docs/design/binary-state/projectile-effect-residual-evidence.md"
               }
             ],
-            "blocks": [
-              {
-                "id": 12,
-                "name": "FX2 TearFlags（Host专用，预留）",
-                "sequence": "world",
-                "fields": [],
-                "reserved": true
-              }
-            ],
             "members": [
               {
                 "id": "EntityEffect.GetTearFlags",
@@ -1508,15 +1389,6 @@
                 "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc；docs/design/binary-state/effect-synchronization-review.md"
               }
             ],
-            "blocks": [
-              {
-                "id": 12,
-                "name": "FX2 GridDesc（Host专用，预留）",
-                "sequence": "world",
-                "fields": [],
-                "reserved": true
-              }
-            ],
             "members": [
               {
                 "id": "EntityEffect.GetGridEntityDesc",
@@ -1546,41 +1418,11 @@
                   "kind": "nested",
                   "type": "EffectMrMeData",
                   "storage": "shared-owner",
-                  "projections": [
-                    0,
-                    1,
-                    2
-                  ],
                   "host": "read_effect_MrMe_owner",
                   "client": "install_effect_MrMe_owner"
                 },
-                "read_requires": "entity-current-window"
-              }
-            ],
-            "blocks": [
-              {
-                "id": 13,
-                "name": "FX3 附属存在与外观",
-                "sequence": "world",
-                "fields": [
-                  "extra_data#0"
-                ]
-              },
-              {
-                "id": 14,
-                "name": "FX4 附属动态",
-                "sequence": "world",
-                "fields": [
-                  "extra_data#1"
-                ]
-              },
-              {
-                "id": 15,
-                "name": "FX5 附属图层",
-                "sequence": "world",
-                "fields": [
-                  "extra_data#2"
-                ]
+                "read_requires": "entity-current-window",
+                "sequence": "world"
               }
             ]
           },
@@ -1604,32 +1446,11 @@
                   "kind": "nested",
                   "type": "EffectSpriteTrailData",
                   "storage": "shared-owner",
-                  "projections": [
-                    0,
-                    1
-                  ],
                   "host": "read_effect_SpriteTrail_owner",
                   "client": "install_effect_SpriteTrail_owner"
                 },
-                "read_requires": "entity-current-window"
-              }
-            ],
-            "blocks": [
-              {
-                "id": 13,
-                "name": "FX3 附属存在与外观",
-                "sequence": "world",
-                "fields": [
-                  "extra_data#0"
-                ]
-              },
-              {
-                "id": 14,
-                "name": "FX4 附属动态",
-                "sequence": "world",
-                "fields": [
-                  "extra_data#1"
-                ]
+                "read_requires": "entity-current-window",
+                "sequence": "world"
               }
             ]
           },
@@ -1653,41 +1474,11 @@
                   "kind": "nested",
                   "type": "EffectPickupGhostData",
                   "storage": "shared-owner",
-                  "projections": [
-                    0,
-                    1,
-                    2
-                  ],
                   "host": "read_effect_PickupGhost_owner",
                   "client": "install_effect_PickupGhost_owner"
                 },
-                "read_requires": "entity-current-window"
-              }
-            ],
-            "blocks": [
-              {
-                "id": 13,
-                "name": "FX3 附属存在与外观",
-                "sequence": "world",
-                "fields": [
-                  "extra_data#0"
-                ]
-              },
-              {
-                "id": 14,
-                "name": "FX4 附属动态",
-                "sequence": "world",
-                "fields": [
-                  "extra_data#1"
-                ]
-              },
-              {
-                "id": 15,
-                "name": "FX5 附属图层",
-                "sequence": "world",
-                "fields": [
-                  "extra_data#2"
-                ]
+                "read_requires": "entity-current-window",
+                "sequence": "world"
               }
             ]
           },
@@ -1773,15 +1564,6 @@
                 "status": "已核",
                 "evidence": "docs/design/binary-state/effect-next-five-evidence.md"
               }
-            ],
-            "blocks": [
-              {
-                "id": 12,
-                "name": "FX2 Propagation（Host／本地及未知，预留）",
-                "sequence": "world",
-                "fields": [],
-                "reserved": true
-              }
             ]
           },
           {
@@ -1851,15 +1633,6 @@
                 "status": "未知",
                 "evidence": "docs/design/binary-state/projectile-effect-residual-evidence.md"
               }
-            ],
-            "blocks": [
-              {
-                "id": 12,
-                "name": "FX2 Timer（Host／本地及未知，预留）",
-                "sequence": "world",
-                "fields": [],
-                "reserved": true
-              }
             ]
           },
           {
@@ -1898,15 +1671,6 @@
                 "semantics": "120其余复用字节未核，初始化或相邻字段用途不作完整性证据。",
                 "status": "未知",
                 "evidence": "docs/design/binary-state/effect-next-five-evidence.md"
-              }
-            ],
-            "blocks": [
-              {
-                "id": 12,
-                "name": "FX2 SpawnRequest（Host／本地及未知，预留）",
-                "sequence": "world",
-                "fields": [],
-                "reserved": true
               }
             ]
           },
@@ -1947,15 +1711,6 @@
                 "semantics": "428虽在5CFBA5清零，但未闭合其完整含义；本段保持未知。",
                 "status": "未知",
                 "evidence": "docs/design/binary-state/effect-next-five-evidence.md"
-              }
-            ],
-            "blocks": [
-              {
-                "id": 12,
-                "name": "FX2 DustCountdown（Host／本地及未知，预留）",
-                "sequence": "world",
-                "fields": [],
-                "reserved": true
               }
             ]
           },
@@ -2005,15 +1760,6 @@
                 "semantics": "113后8B未核，不能由两个已核标量推造其他字段。",
                 "status": "未知",
                 "evidence": "docs/design/binary-state/effect-next-five-evidence.md"
-              }
-            ],
-            "blocks": [
-              {
-                "id": 12,
-                "name": "FX2 TearFlags113（Host／本地及未知，预留）",
-                "sequence": "world",
-                "fields": [],
-                "reserved": true
               }
             ],
             "members": [
@@ -2079,15 +1825,6 @@
                 "evidence": "docs/design/binary-state/projectile-effect-residual-evidence.md"
               }
             ],
-            "blocks": [
-              {
-                "id": 12,
-                "name": "FX2 ChainLightning（Host及未知，预留）",
-                "sequence": "world",
-                "fields": [],
-                "reserved": true
-              }
-            ],
             "members": [
               {
                 "id": "EntityEffect.GetTearFlags",
@@ -2131,15 +1868,6 @@
                 "semantics": "19/71/194的后16B没有随前16B位运算获得语义或初始化证明；继续UNKNOWN。",
                 "status": "未知",
                 "evidence": "docs/design/binary-state/projectile-effect-residual-evidence.md"
-              }
-            ],
-            "blocks": [
-              {
-                "id": 12,
-                "name": "FX2 内部效果位（Host及未知，预留）",
-                "sequence": "world",
-                "fields": [],
-                "reserved": true
               }
             ]
           }

@@ -11,6 +11,7 @@ import re
 import struct
 import sys
 from pathlib import Path
+from gen_flat_layout import emit_flat_layouts
 
 ROOT = Path(__file__).resolve().parents[2]
 CATEGORIES = dict(zip(
@@ -152,6 +153,27 @@ def schema_check(value, schema, definitions, where):
         require(value >= schema.get('minimum', -float('inf')) and value <= schema.get('maximum', float('inf')), where, '数值越界')
 
 
+def restore_legacy_blocks(entry, compatibility, where):
+    """仅为仍在运行的版本 84 codec 补回块与投影，不作为平铺字段源。"""
+    require(isinstance(compatibility, dict) and
+            not (set(compatibility) - {'blocks', 'block_sequences', 'projections', 'variants'}),
+            where, '旧块兼容项有未登记的属性')
+    for key in ('blocks', 'block_sequences'):
+        if key in compatibility:
+            require(key not in entry, where, '域源与兼容表同时声明 ' + key)
+            entry[key] = compatibility[key]
+    ranges = {r['name']: r for r in entry.get('ranges', [])}
+    for name, projections in compatibility.get('projections', {}).items():
+        wire = ranges.get(name, {}).get('wire')
+        require(wire is not None and 'projections' not in wire, where + '.' + name,
+                '旧投影必须对应一份无投影的字段声明')
+        wire['projections'] = projections
+    arms = {arm['name']: arm for arm in entry.get('variants', {}).get('arms', [])}
+    for name, legacy in compatibility.get('variants', {}).items():
+        require(name in arms, where, '旧块兼容项引用不存在的变体 ' + name)
+        restore_legacy_blocks(arms[name], legacy, where + '.' + name)
+
+
 class Compiler:
     """类型先展开继承和变体，再分块展开嵌套成员；任何本地地址都不能作为 copy 项。"""
     def __init__(self, source):
@@ -177,6 +199,10 @@ class Compiler:
         self.hud_local_policy = None
         constant_keys = set()
         schema = read_json(source / 'schema.json')
+        legacy = read_json(source / 'legacy-block-layout.json')
+        require(set(legacy) == {'format', 'types'} and legacy['format'] == 'isaac.cs.binary-state-legacy-block-layout'
+                and isinstance(legacy['types'], dict), 'legacy-block-layout', '旧块兼容表格式不匹配')
+        legacy_types = legacy['types']
         for domain in self.version['domains']:
             require(re.fullmatch(r'[a-z][a-z0-9_-]*\.json', domain), domain, '非法域文件名')
             data = read_json(source / domain)
@@ -200,8 +226,12 @@ class Compiler:
                 name = entry['type']
                 require(re.fullmatch(r'[A-Za-z_][A-Za-z_0-9]*', name), name, '非法类型名')
                 require(name not in self.types, name, '重复类型')
+                if name in legacy_types:
+                    restore_legacy_blocks(entry, legacy_types.pop(name), name)
+                    schema_check(entry, schema['$defs']['layout'], schema['$defs'], name)
                 self.types[name] = copy.deepcopy(entry)
                 self.doc_steps[name] = DOC_DOMAIN_STEPS[domain]
+        require(not legacy_types, 'legacy-block-layout', '兼容表引用未知类型: ' + ', '.join(legacy_types))
         self.expanded = {}
         self.plans = {}
         self.native_cache = {}
@@ -280,6 +310,7 @@ class Compiler:
                 (entry['native_size'] == 0 and entry.get('extent') == 'protocol' and not entry['ranges'] and not entry.get('parent')),
                 name, '非法原生大小；纯协议记录必须明确无原生对象')
         entry['layout'] = integer(entry['layout'])
+        entry['_declaration_name'] = name
         require(0 < entry['layout'] < 65535 and entry['layout'] not in self.ids, name, '布局编号重复或越界')
         self.ids.add(entry['layout'])
         entry.setdefault('members', [])
@@ -290,12 +321,17 @@ class Compiler:
         entry.setdefault('companions', [])
         entry.setdefault('count_groups', [])
         entry.setdefault('synthetic_fields', [])
+        entry.setdefault('write_groups', [])
+        entry.setdefault('blocks', [])
         entry.setdefault('catalog_rows', [])
         entry.setdefault('supplementary_rows', [])
         require(isinstance(entry.get('rtti'), dict) and 'name' in entry['rtti'] and 'rva' in entry['rtti'], name, '缺少 RTTI 声明（值类型可为空）')
         require(0 <= integer(entry['rtti']['rva']) <= DYNAMIC, name, 'RTTI RVA 超过 u32')
+        for field in entry['ranges'] + entry['synthetic_fields'] + entry['companions']:
+            field['_declared_in'] = name
         if entry.get('parent'):
             parent = self.expand(entry['parent'])
+            entry.setdefault('flat', parent.get('flat', False))
             # Dummy有独立RTTI但无尾部成员，允许等大继承；不能借此覆盖父类字节。
             require(parent['native_size'] <= entry['native_size'] and
                     (parent['native_size'] < entry['native_size'] or not entry['ranges']),
@@ -311,6 +347,7 @@ class Compiler:
             entry['members'] = copy.deepcopy(parent['members']) + entry['members']
             entry['count_groups'] = copy.deepcopy(parent['count_groups']) + entry['count_groups']
             entry['synthetic_fields'] = copy.deepcopy(parent['synthetic_fields']) + entry['synthetic_fields']
+            entry['write_groups'] = copy.deepcopy(parent['write_groups']) + entry['write_groups']
             # 派生实体可把同名Plus伴随源收窄成派生Plus；公共块仍只发送一次。
             # 只有真实继承关系允许替换，不能借同名来源改解释成无关对象。
             companions = {c['name']: copy.deepcopy(c) for c in parent['companions']}
@@ -504,6 +541,8 @@ class Compiler:
                 require(variant['type'] not in self.types and 0 < variant['layout'] < 65535 and variant['layout'] not in self.ids, name, '重复变体类型或编号')
                 self.ids.add(variant['layout'])
                 replacements = arm.get('ranges', [])
+                for field in replacements:
+                    field['_declared_in'] = name
                 affected = [r for r in variant['ranges'] if any(r['offset'] < integer(new['offset']) + integer(new['size']) and r['offset'] + r['size'] > integer(new['offset']) for new in replacements)]
                 # 最后的全覆盖检查同时检查替换组首尾；允许把一段 union 拆成多段有语义字段。
                 variant['ranges'] = [r for r in variant['ranges'] if r not in affected] + replacements
@@ -513,6 +552,7 @@ class Compiler:
                 variant['blocks'] = [blocks[k] for k in sorted(blocks)]
                 variant['validators'] = {**variant['validators'], **arm.get('validators', {})}
                 variant['conversions'] = {**variant['conversions'], **arm.get('conversions', {})}
+                variant['write_groups'] += arm.get('write_groups', [])
                 variant['members'] = [m for m in variant['members'] if m['id'] not in {n['id'] for n in arm.get('members', [])}] + arm.get('members', [])
                 variant['variant_values'] = sorted(values)
                 variant['variant_selector'] = variants['selector']
@@ -1166,6 +1206,25 @@ def emit_host_fields(plans, out):
     write(out / 'state_host_fields.inc', ''.join(body))
 
 
+def codec_scalar(name):
+    """正文和平铺都用同一标量编号与分量数。"""
+    match = re.fullmatch(r'(u8|i8|u16|i16|u32|i32|u64|i64|f32|f64|bool|bytes)(?:\[(\d+)\])?', name)
+    if not match:
+        return 'None', 0
+    return {'bool': 'U8', 'bytes': 'U8'}.get(match[1], match[1].upper()), int(match[2] or 1)
+
+
+def scalar_bits(value, name):
+    """生成器按真实标量宽度保留上下界和枚举位模式。"""
+    if name in {'f32', 'f64'}:
+        return int.from_bytes(struct.pack('<f' if name == 'f32' else '<d', value), 'little')
+    width = 8 * SCALARS[name]
+    signed = name.startswith('i')
+    low, high = (-(1 << (width-1)), (1 << (width-1))-1) if signed else (0, (1 << width)-1)
+    require(isinstance(value, int) and low <= value <= high, 'validator', '整数校验边界超出标量宽度')
+    return value & ((1 << width) - 1)
+
+
 def emit_body_codec(compiler, plans, out, docs):
     """将标量、条件和计数组编译为数字表；正文热路径不解析名称或语义字符串。"""
     fields, validators, enum_values, rules = [], [('Validation::None', 'ScalarKind::U8', 0, 0, 0, 0)], [], []
@@ -1176,21 +1235,6 @@ def emit_body_codec(compiler, plans, out, docs):
                        'one-of': 'OneOf', 'item-config': 'ItemConfig'}
     resource_ids = {c['name']: c['value'] for c in compiler.protocol_constants if c['domain'] == 'resource_table'}
 
-    def scalar(name):
-        match = re.fullmatch(r'(u8|i8|u16|i16|u32|i32|u64|i64|f32|f64|bool|bytes)(?:\[(\d+)\])?', name)
-        if not match:
-            return 'None', 0
-        return {'bool': 'U8', 'bytes': 'U8'}.get(match[1], match[1].upper()), int(match[2] or 1)
-
-    def bits(value, name):
-        if name in {'f32', 'f64'}:
-            return int.from_bytes(struct.pack('<f' if name == 'f32' else '<d', value), 'little')
-        width = 8 * SCALARS[name]
-        signed = name.startswith('i')
-        low, high = (-(1 << (width-1)), (1 << (width-1))-1) if signed else (0, (1 << width)-1)
-        require(isinstance(value, int) and low <= value <= high, 'body validator', '整数校验边界超出标量宽度')
-        return int(value) & ((1 << (8 * SCALARS[name])) - 1)
-
     for p in plans:
         entry = p['entry']
         canonical = {}
@@ -1198,7 +1242,7 @@ def emit_body_codec(compiler, plans, out, docs):
             canonical.setdefault(f['name'].split('#', 1)[0], f['index'])
         constraints = {c['field']: c for c in p['count_constraints']}
         for f in p['fields']:
-            atom, components = scalar(f['type']) if not f['nested_layout'] else ('None', 0)
+            atom, components = codec_scalar(f['type']) if not f['nested_layout'] else ('None', 0)
             require(atom != 'None' or f['nested_layout'] or f['operation'] == 'Choice', entry['type'], '正文标量类型未登记')
             require(components <= 65535, entry['type'], '单字段固定标量数组超过当前数字计划容量')
             require(f['operation'] != 'Resource' or f['target'] in resource_ids, entry['type'], '资源字段缺少公共空间编号')
@@ -1212,15 +1256,15 @@ def emit_body_codec(compiler, plans, out, docs):
                 require(atom != 'None' or v['kind'] == 'finite', entry['type'], '嵌套字段的非有限值校验须下沉到真实标量')
                 validation = len(validators)
                 first = len(enum_values)
-                enum_values.extend(bits(value, v['scalar']) for value in v.get('values', []))
-                validators.append(('Validation::' + v['kind'].title(), 'ScalarKind::' + scalar(v['scalar'])[0],
-                                   bits(v.get('min', 0), v['scalar']), bits(v.get('max', 0), v['scalar']), first, len(enum_values) - first))
+                enum_values.extend(scalar_bits(value, v['scalar']) for value in v.get('values', []))
+                validators.append(('Validation::' + v['kind'].title(), 'ScalarKind::' + codec_scalar(v['scalar'])[0],
+                                   scalar_bits(v.get('min', 0), v['scalar']), scalar_bits(v.get('max', 0), v['scalar']), first, len(enum_values) - first))
             selector, predicate, value, mask = 65535, 'None', 0, 0
             if f['condition']:
                 c = f['condition']
                 selector = next(n['index'] for n in p['fields'] if n['name'] == c['field'])
                 selector_plan = p['fields'][selector]
-                selector_scalar, selector_components = scalar(selector_plan['type'])
+                selector_scalar, selector_components = codec_scalar(selector_plan['type'])
                 require(0 < selector_plan['max_size'] <= 8 and not selector_plan['nested_layout'] and selector_components == 1 and
                         selector_scalar not in {'None', 'F32', 'F64'}, entry['type'], '条件选择器须为先行整数标量')
                 test = c['test']
@@ -1259,7 +1303,7 @@ def emit_body_codec(compiler, plans, out, docs):
             selector_index = rules[-1][2]
             targets = [f for f in p['fields'] if f['index'] != selector_index] if not second else [p['fields'][rules[-1][3]]]
             require(all(f['index'] > selector_index and f['block'] == p['fields'][selector_index]['block'] and
-                        f['min_size'] == f['max_size'] and scalar(f['type'])[0] != 'None' for f in targets),
+                        f['min_size'] == f['max_size'] and codec_scalar(f['type'])[0] != 'None' for f in targets),
                     entry['type'], '规范零负载须在同块选择器之后且为定长纯值')
     body = ['// 同源生成的正文计划；所有名称仅供诊断，不参与热分派。\n',
             f'constexpr std::size_t kBodyMaxFields = {max(len(p["fields"]) for p in plans)};\n',
@@ -1400,8 +1444,7 @@ def emit_state_budget(compiler, plans, out, docs):
     for p in plans:
         text += f'| {p["entry"]["type"]} | {p["entry"]["layout"]} | {p["min"]} | {p["max"]} |\n'
     text += '\n## 容量边界单价\n\n| 对象 | 正文B | 不压缩一端发出B |\n|---|---|---|\n'
-    for name, value in [('ContextReady', size('StateCommonHeader')+size('StateContextReady')),
-                        ('单项AppliedAck', size('StateCommonHeader')+size('StateAppliedAckHeader')+size('StateAppliedAckEntry')),
+    for name, value in [('单项接收 ACK', size('StateCommonHeader')+size('StateAppliedAckHeader')+size('StateAppliedAckEntry')),
                         ('joint AppliedAck', size('StateCommonHeader')+size('StateAppliedAckHeader')+2*size('StateAppliedAckEntry')),
                         ('Resync', size('StateCommonHeader')+size('StateResyncHeader')),
                         ('最大成员表', size('StateCommonHeader')+size('StateTableHeader')+65535*size('StateMemberEntry')),
@@ -1421,7 +1464,7 @@ def emit_state_protocol(compiler, plans, out, docs):
     """完整消息只使用同源固定头／字段索引，不再手写字节偏移。"""
     names = ['StateCommonHeader', 'StateFrameHeader', 'StateSectionHeader', 'StateRecordHeader',
              'StateTableHeader', 'StateMemberEntry', 'StateResultGroupHeader', 'StateDependencyEntry', 'StateContributionEntry', 'StateAudioEventHeader',
-             'StateContextReady', 'StateAppliedAckHeader', 'StateAppliedAckEntry', 'StateResyncHeader']
+             'StateAppliedAckHeader', 'StateAppliedAckEntry', 'StateResyncHeader']
     body = ['// 完整二进制消息的同源固定头与接受保护；不安装游戏对象。\n']
     summary = f'# 完整消息与接受数字合同\n\n布局版本 {compiler.version["version"]}；同源生成，不是测试报告。\n\n| 头 | 布局 | 字节 |\n|---|---|---|\n'
     for name in names:
@@ -1459,8 +1502,11 @@ def emit_resource_protocol(compiler, plans, out, docs):
         body.append(f'enum class {name}Field : std::uint16_t {{' +
                     ','.join(f'{f["name"]}={f["index"]}' for f in p['fields']) + f', count={len(p["fields"])}' + '};\n')
     entries = source['entries']
+    kinds = {e['kind'] for e in entries}
     require(len({(e['table'], e['kind']) for e in entries}) == len(entries) and
-            {e['kind'] for e in entries} == set(range(10)) - {5}, 'resource_protocol', '资源矩阵缺项／重复／启用像素')
+            kinds == set(range(11)) - {5}, 'resource_protocol', '资源矩阵缺项／重复／启用像素')
+    require(kinds == set(by_name['ResourceEntryHeader']['entry']['validators']['kind']['values']),
+            'resource_protocol', '资源头允许的种类与表分派不同')
     body.append(array('ResourceDispatch', 'kResourceDispatch', len(entries)))
     summary = f'# 资源协议数字合同\n\n布局版本 {compiler.version["version"]}；同源生成，不是测试报告。\n\n'
     summary += '| table | kind | typed布局 | 编码 |\n|---|---|---|---|\n'
@@ -1606,6 +1652,7 @@ def emit(compiler, plans, out, docs):
     emit_room_description(compiler, plans, out)
     emit_display_install(compiler, plans, out)
     emit_host_fields(plans, out)
+    emit_flat_layouts(compiler, plans, out, codec_scalar, scalar_bits)
     emit_body_codec(compiler, plans, out, docs)
     reference = sorted(compiler.reference_plans.values(), key=lambda p: p['entry']['layout'])
 
@@ -1625,7 +1672,8 @@ def emit(compiler, plans, out, docs):
         parent = compiler.expanded[e['parent']]['layout'] if e.get('parent') else 0
         prefix = e.get('extent', 'object') == 'base_prefix'
         protocol = e.get('extent') == 'protocol'
-        wire.append(f'  {{{lid}, {parent}, {quote(e["type"])}, {e["native_size"]}, {p["unknown"]}, {len(p["blocks"])}, {str(p["complete"]).lower()}, {str(prefix).lower()}, {str(protocol).lower()}, {quote(e["rtti"]["name"])}, {integer(e["rtti"]["rva"])}, {first_field}, {len(p["fields"])}, {first_block}, {first_copy}, {len(p["copies"])}}},\n')
+        flat = str(bool(e.get('flat') and p['fields'])).lower()
+        wire.append(f'  {{{lid}, {parent}, {quote(e["type"])}, {e["native_size"]}, {p["unknown"]}, {len(p["blocks"])}, {str(p["complete"]).lower()}, {str(prefix).lower()}, {str(protocol).lower()}, {quote(e["rtti"]["name"])}, {integer(e["rtti"]["rva"])}, {first_field}, {len(p["fields"])}, {first_block}, {first_copy}, {len(p["copies"])}, {flat}}},\n')
         first_field += len(p['fields'])
         first_block += len(p['blocks'])
         first_copy += len(p['copies'])
@@ -1726,9 +1774,18 @@ def emit(compiler, plans, out, docs):
         slots[p['entry']['layout']] = position
     wire += ['}};\n', array('std::uint16_t', 'kStateLayoutSlots', len(slots)), ','.join(map(str, slots)) + '\n', '}};\n',
              array('Block', 'kStateBlocks', sum(len(p['blocks']) for p in plans))]
+    capture_fields = []
+    capture_blocks = []
     for p in plans:
         for b in p['blocks']:
             wire.append(f'  {{{p["entry"]["layout"]}, {b["id"]}, {str(b["body"]).lower()}, {str(b["player_body"]).lower()}, {quote(b["name"])}, {b["min"]}, {b["max"]}}},\n')
+            indices = [f['index'] for f in p['fields'] if f['block'] == b['id']]
+            capture_blocks.append((len(capture_fields), len(indices)))
+            capture_fields.extend(indices)
+    # Host 顺序执行每块对应的字段切片，线格式及字段索引不变。
+    capture += ['}};\n', array('CaptureSlice', 'kCaptureBlockSlices', len(capture_blocks))]
+    capture.extend(f'  {{{first}, {count}}},\n' for first, count in capture_blocks)
+    capture += ['}};\n', array('std::uint16_t', 'kCaptureBlockFields', len(capture_fields)), ','.join(map(str, capture_fields)) + '\n']
     wire += ['}};\n', array('Field', 'kStateFields', count_fields)]
     for p in plans:
         for f in p['fields']:

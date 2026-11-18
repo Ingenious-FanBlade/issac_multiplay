@@ -64,6 +64,7 @@ bool EntitySource::Impl::Aggregate(std::uint32_t address,std::span<std::byte> ou
 
 // open先读取数量／头和来源证言；执行器确认同组上限后才进入Element。
 bool EntitySource::Impl::Open(const CaptureFieldAccess &a,CaptureTraversalSource &out,CaptureDiagnostic &d) noexcept {
+  evidence_layout=a.root.layout;evidence_field=a.field.index;CheckReuseRecipe(Recipe(a.field));
   if(Recipe(a.field)==EntityRead::Display)return DisplayOpen(a,out,d);
   if(Recipe(a.field)==EntityRead::Run)return RunOpen(a,out,d);
   if(Recipe(a.field)==EntityRead::RockRubble || Recipe(a.field)==EntityRead::FireEmbers)return GridOpen(a,out,d);
@@ -90,7 +91,13 @@ bool EntitySource::Impl::Open(const CaptureFieldAccess &a,CaptureTraversalSource
       CaptureRoot payload{a.root.subject,holder[0],layout->native_size,layout->id};
       if(!plan->Identify(a.window,payload,d) || payload.layout!=layout->id)return Reject(a,d,CaptureFailure::UnknownLayout);}
   }else if(recipe==EntityRead::Vector || recipe==EntityRead::TrinketPresence){std::array<std::uint32_t,3> header{};
-    if(a.field.source!=FieldSource::Object || !Tracked(address,header,d))return false;
+    if(a.field.source!=FieldSource::Object)return false;
+    // P6 World 和 P0 Body 的 costume 投影共用同一个已核 vector 头及元素索引。
+    if(player.ready&&a.root.layout==197&&a.root.address==facts.address&&a.field.native_offset==0x1220){
+      if(!contiguous(player.costume_data,std::uint32_t(player.costumes.size()),a.field.native_stride))return false;
+      out.identity=address;return true;
+    }
+    if(!Tracked(address,header,d))return false;
     const auto stride=a.field.native_stride;
     if(!stride || header[0]>header[1] || header[1]>header[2] || (!header[0] && (header[1]||header[2])) ||
        (header[1]-header[0])%stride || (header[2]-header[0])%stride)return Reject(a,d,CaptureFailure::InvalidValue);
@@ -100,11 +107,29 @@ bool EntitySource::Impl::Open(const CaptureFieldAccess &a,CaptureTraversalSource
        a.field.native_offset>a.root.extent || a.field.native_size>a.root.extent-a.field.native_offset)return Reject(a,d,CaptureFailure::AddressRange);
     if(!contiguous(std::uint32_t(address),a.field.fixed_count,a.field.native_stride))return false;out.identity=address;
   }else if(recipe==EntityRead::String){
+    const auto mark=scratch_used;
     auto bytes=Allocate(std::uint64_t(a.field.limit)+1,1,d);if(d.reason!=CaptureFailure::None)return false;std::uint32_t count=0;
-    if(address>UINT32_MAX || !(a.format.storage==BodyStorage::CString?CStringAt(std::uint32_t(address),a.field.limit+1,bytes,count,d,true):StringAt(std::uint32_t(address),bytes.first(a.field.limit),count,d,true)))return false;
+    const auto extent=a.field.native_offset<a.root.extent?std::min(a.field.native_size,a.root.extent-a.field.native_offset):0;
+    if(address>UINT32_MAX || !(a.format.storage==BodyStorage::CString?(extent && CStringAt(std::uint32_t(address),a.field.limit+1,bytes,count,d,true,extent)):StringAt(std::uint32_t(address),bytes.first(a.field.limit),count,d,true)))return false;
+    // 仅保留已读取的有效前缀。证言指向原生字符串，两流的 arena 无须累积未使用的上限空间。
+    scratch_used=mark+count;
     if(!contiguous(NativeAddress(bytes),count,1,NativeSequence::Owned))return false;out.identity=address;
   }else if(recipe==EntityRead::Layers || recipe==EntityRead::LayerFrames || recipe==EntityRead::NullFrames){
     std::uint32_t data=0,count=0,owner=a.root.address;std::uint8_t loaded=0;
+    if(recipe==EntityRead::Layers){
+      if(const auto *sprite=PlayerSprite(a.location.parents);sprite&&sprite->address==a.root.address&&a.field.native_offset==0x7c){
+        if(!contiguous(sprite->layer_data,sprite->layer_count,a.field.native_stride))return false;
+        out.identity=address;return true;
+      }
+    }else if(const auto *sprite=PlayerAnimation(a)){
+      using E=NativeEvidenceUse;
+      std::uint32_t animation=0;
+      if(!ReadPlayerAnimation(a,*sprite,owner,animation,d))return false;
+      if(animation&&!Tracked(std::uint64_t(animation)+(recipe==EntityRead::LayerFrames?0x1cu:0x24u),count,d,{owner,E::FrameCount}))return false;
+      if(count&&!Tracked(address,data,d,{a.root.address,E::FrameData}))return false;
+      if(!contiguous(data,count,a.field.native_stride))return false;
+      out.identity=address;out.opaque[2]=start;out.opaque[3]=witness_used-start;return true;
+    }
     if(recipe!=EntityRead::Layers && (!Tracked(a.root.address,owner,d) || !owner))return Reject(a,d,CaptureFailure::MissingValue);
     if(!Tracked(std::uint64_t(owner)+0x109,loaded,d) || loaded>1)return Reject(a,d,CaptureFailure::InvalidValue);
     if(loaded){
@@ -175,16 +200,14 @@ bool EntitySource::Impl::Element(const CaptureFieldAccess &a,const CaptureTraver
 bool EntitySource::Impl::Close(const CaptureFieldAccess &a,const CaptureTraversalSource &source,CaptureDiagnostic &d) noexcept {
   if(Recipe(a.field)==EntityRead::Display)return a.window.Check(a.root,d);
   if(source.opaque[2]>witness_used || source.opaque[3]>witness_used-source.opaque[2])return Reject(a,d,CaptureFailure::InvalidTransaction);
-  std::array<std::byte,32> bytes{};
-  for(std::uint64_t i=source.opaque[2];i<source.opaque[2]+source.opaque[3];++i){const auto &mark=witnesses[std::size_t(i)];
-    if(!Read(mark.address,std::span(bytes).first(mark.size),d) || !std::equal(bytes.begin(),bytes.begin()+mark.size,mark.bytes.begin()))
-      return Reject(a,d,CaptureFailure::SourceChanged);}
+  // 所有具名原生证言已登记于根事务，Verify 统一复读一次。
   return true;
 }
 // 标量容器消费当前已经预检的游标；读出的原始指针仍在当前同步栈转为自有handle。
 bool EntitySource::Impl::ScalarContainer(const CaptureFieldAccess &a,CaptureValueWriter &writer,CaptureDiagnostic &d) noexcept {
   if(!a.traversal || a.field.nested_layout)return Reject(a,d,CaptureFailure::InvalidTransaction);
   const auto &source=*a.traversal;const auto count=std::uint64_t(source.count)*a.format.components;
+  const auto mark=scratch_used;
   const auto bytes=count*CaptureScalarWidth(a.format.scalar);
   const auto sequence=NativeSequence(source.opaque[1]>>32);const auto stride=std::uint32_t(source.opaque[1]);
   const auto element_address=[&](std::uint32_t index,std::uint64_t &address){address=source.opaque[0]+std::uint64_t(index)*stride;
@@ -196,8 +219,9 @@ bool EntitySource::Impl::ScalarContainer(const CaptureFieldAccess &a,CaptureValu
     auto links=std::span(reinterpret_cast<CaptureLink *>(storage.data()),source.count);
     for(std::uint32_t i=0;i<source.count;++i){std::uint64_t address=0;std::uint32_t pointer=0;
       if(!element_address(i,address) || !Value(address,pointer,d))return false;
-      links[i]=services.reference(services.owner,pointer);if(links[i].kind==CapturedReferenceKind::Invalid)return Reject(a,d,CaptureFailure::ReferencePending);}
-    return writer.PutLinks(a.location,false,255,links);
+      links[i]=ReadReference(pointer);if(links[i].kind==CapturedReferenceKind::Invalid)return Reject(a,d,CaptureFailure::ReferencePending);}
+    const bool written=writer.PutLinks(a.location,false,255,links);
+    scratch_used=mark;return written;
   }
   const auto width=a.format.components*CaptureScalarWidth(a.format.scalar);
   if(count>UINT32_MAX || (sequence!=NativeSequence::Addresses && stride!=width))return Reject(a,d,CaptureFailure::InvalidValue);
@@ -206,6 +230,8 @@ bool EntitySource::Impl::ScalarContainer(const CaptureFieldAccess &a,CaptureValu
       if(!element_address(i,address) || !Read(address,values.subspan(std::size_t(i)*width,width),d))return false;}}
   else if(bytes && !Read(source.opaque[0],values,d))return false;
   if(Recipe(a.field)==EntityRead::TrinketPresence)for(auto &b:values)b=b==std::byte{}?std::byte{}:std::byte{1};
-  return writer.PutScalar(a.location,a.format.scalar,std::uint32_t(count),values);
+  // writer 已同步复制标量或引用，保留 open 的游标与联合投影，归还本叶暂存。
+  const bool written=writer.PutScalar(a.location,a.format.scalar,std::uint32_t(count),values);
+  scratch_used=mark;return written;
 }
 }

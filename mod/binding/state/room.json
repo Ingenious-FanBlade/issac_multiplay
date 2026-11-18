@@ -4870,7 +4870,7 @@
           "type": "bool",
           "category": "换算",
           "status": "已核",
-          "semantics": "native pass活动条件；同步决定：规范present；不复制未构造对象／强设loaded；正式投影：线上表示当前完整FX结果存在性；不直接安装原生loaded",
+          "semantics": "本机原生FX加载／清理写入的显示资格。客户端按实际资源与适用分支读回，布局78起退出线上需求。",
           "evidence": "96CE20/96DB20",
           "wire": {
             "kind": "convert",
@@ -11406,8 +11406,8 @@
       "conversions": {
         "resource_entry_header_index_read": "不可变会话资源项，不得FFFF；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
         "resource_entry_header_index_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；不可变会话资源项，不得FFFF；不调用Update／Init／Restore或写访客进度。",
-        "resource_entry_header_kind_read": "版本61基础头kind仅允许0、1、2、3、4、6、7、8、9，拒绝像素5；完整payload／table-kind矩阵待后续，不凭头部通过接受资源。",
-        "resource_entry_header_kind_install": "版本61基础头kind仅允许0、1、2、3、4、6、7、8、9，拒绝像素5；完整payload／table-kind矩阵待后续，不凭头部通过接受资源。",
+        "resource_entry_header_kind_read": "按资源种类允许集写头，随后由 table/kind 矩阵核对完整资源。",
+        "resource_entry_header_kind_install": "按资源种类允许集解码头，随后由 table/kind 矩阵核对完整资源。",
         "resource_entry_header_payload_bytes_read": "后续typed payload精确长度；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
         "resource_entry_header_payload_bytes_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；后续typed payload精确长度；不调用Update／Init／Restore或写访客进度。",
         "resource_entry_header_table_read": "从不可变typed资源声明取明确空间；显式资源表空间0—7；与u16 index共同定位，不因整数相等跨表替换",
@@ -11426,7 +11426,8 @@
             6,
             7,
             8,
-            9
+            9,
+            10
           ]
         },
         "table": {
@@ -11438,7 +11439,7 @@
       },
       "members": [],
       "public_owners": [],
-      "notes": "第9步公共合同将旧7B头改为8B：table/index/kind/payload_bytes。布局304保留；完整typed payload和允许集尚待本步后续，不代表资源可接受报文已实现。 版本61当前kind允许编号排除SurfacePixels=5；其余只通过基础头校验，完整payload与table/kind对应仍须后续登记；Audio仅本地选定资源描述。",
+      "notes": "布局304为8B资源头：table/index/kind/payload_bytes。生成器核资源种类允许集与分派矩阵一致，种类5保留。",
       "extent": "protocol",
       "layout": 304,
       "synthetic_fields": [
@@ -11461,7 +11462,7 @@
         {
           "name": "kind",
           "type": "u8",
-          "semantics": "公共resource_kind保留0—9编号；当前排除像素5，其他完整payload及table/kind允许集待后续。",
+          "semantics": "资源种类，0—10 的有效编号由 table/kind 对照表决定；不接收像素种类5。",
           "evidence": "docs/design/binary-state/7-room-level.md；room-display-resource-design.md及对应原生账本",
           "host": "resource_entry_header_kind_read",
           "client": "resource_entry_header_kind_install"

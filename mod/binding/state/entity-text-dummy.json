@@ -22,13 +22,13 @@
           "semantics": "内联零终止原始字节串，仅发送首个零之前0—255B；无编码假设。Init不初始化，必须有本use/revision真实writer见证；终止后的旧槽数据不读取或复制",
           "status": "已核", "evidence": "docs/design/binary-state/text-dummy-evidence.md",
           "read_requires": "text-current-use-writer",
-          "wire": {"kind": "container", "storage": "c-string", "element": "u8", "stride": 1, "limit": 255, "host": "read_text_bytes", "client": "install_text_bytes"}
+          "wire": {"kind": "container", "storage": "c-string", "element": "u8", "stride": 1, "limit": 255, "host": "read_text_bytes", "client": "install_text_bytes"}, "sequence": "world"
         },
         {
           "offset": "0x518", "size": "0x10", "name": "text_rgba", "type": "f32[4]", "category": "状态",
           "semantics": "固定Text字体路径实际读取的最终RGBA；与公共Sprite ColorMod分开，保留Host已计算淡出/闪烁，不在Client调用Update重算",
           "status": "已核", "evidence": "docs/design/binary-state/text-dummy-evidence.md",
-          "read_requires": "entity-current-window", "wire": {"kind": "copy", "type": "f32[4]"}
+          "read_requires": "entity-current-window", "wire": {"kind": "copy", "type": "f32[4]"}, "sequence": "world"
         },
         {
           "offset": "0x528", "size": "0x4", "name": "text_color_space", "type": "u32", "category": "权威",
@@ -40,11 +40,6 @@
           "semantics": "0x530池步长及删除析构size证明对象上界；未核尾字用途，不能由未见直接访问推成填充，不读取或上线",
           "status": "未知", "evidence": "docs/design/binary-state/text-dummy-evidence.md"
         }
-      ],
-      "blocks": [
-        {"id": 10, "name": "TX0 最终文本颜色", "sequence": "world", "fields": ["text_rgba"]},
-        {"id": 11, "name": "TX1 有效文本字节", "sequence": "world", "fields": ["text_bytes"]},
-        {"id": 12, "name": "TX2 variant2绘制计数（基础臂预留）", "sequence": "world", "fields": [], "reserved": true}
       ],
       "conversions": {},
       "validators": {"text_rgba": {"kind": "finite", "scalar": "f32"}},
@@ -73,10 +68,9 @@
                 "offset": "0x410", "size": "0x4", "name": "text_counter", "type": "i32", "category": "状态",
                 "semantics": "variant2 Render直接读取的有符号counter，与同world Manager/pause子帧计算缩放；保持精确原值，不套递减到期锚点，不在Client推进或用于退休",
                 "status": "已核", "evidence": "docs/design/binary-state/text-dummy-evidence.md",
-                "read_requires": "entity-current-window", "wire": {"kind": "copy", "type": "i32"}
+                "read_requires": "entity-current-window", "wire": {"kind": "copy", "type": "i32"}, "sequence": "world"
               }
             ],
-            "blocks": [{"id": 12, "name": "TX2 variant2绘制计数", "sequence": "world", "fields": ["text_counter"]}],
             "members": [
               {"id": "NativeText.counter", "disposition": "field", "fields": ["text_counter"], "reason": "5CC723读取并参与缩放，只有variant2有此消费者"},
               {"id": "NativeText.draw_phase", "disposition": "derived", "fields": ["text_counter", "@text_presentation"], "reason": "size=4-2.5*clamp((subframe+2*counter)/8,0,1)；Manager帧与pause上下文必须同一world"}
@@ -89,7 +83,7 @@
     {
       "type": "EntityDummy", "layout": 147, "native_size": "0x410", "parent": "Entity",
       "rtti": {"name": ".?AVEntity_Dummy@IsaacRepentancePlus@@", "rva": "0x7d2164"},
-      "ranges": [], "blocks": [], "conversions": {}, "validators": {}, "members": [],
+      "ranges": [], "conversions": {}, "validators": {}, "members": [],
       "public_owners": [],
       "notes": "第4步版本44：独立RTTI的等大派生类，没有专有尾部或待传标签串，旧目录也没有NativeDummy专有成员owner。Render以公共Type/Variant格式化e%d.%d，经公共屏幕坐标与本地Font2绘制；公共E0—E9/Plus照常继承。公共Render仅在exists/visible为真时刷新屏幕cache，后续标签无同等判断；其历史/跨视口依赖须第13步闭合，缺来源报Gap，不能假称无条件派生。335B公共未知保留。Factory Create(964)取NPC，正式取得须真实Dummy预构造空槽owner，不能改vptr或假造自然来源。"
     }

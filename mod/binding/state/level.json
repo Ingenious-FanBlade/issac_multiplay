@@ -180,8 +180,8 @@
           "type": "u32",
           "category": "换算",
           "status": "已核",
-          "semantics": "Flags混合玩法输入和实际显示条件；高位业务语义未穷尽；同步决定：L1.display_bits:u8，原bit0/10/11/18/5→线上bit0/1/2/3/4，其余零；bit2/9的最终lighting/pass、bit6实际音乐及其它结果由具名owner承接；不发全flags；正式投影：原bit0/10/11/18/5依次到线上bit0..4；其余零；不恢复全flags",
-          "evidence": "964037；963EF5；964392；97C300；grid-pressure-door-evidence.md Door Light Flags&40000；801BE0 Pit读取20h；804500特殊坑重绘；803E20献祭bit2/pitch-black；8134C0",
+          "semantics": "L1.display_bits:u8，原bit0/10/11/18/5/9/12/2依次到线上bit0..7。后3位承接深色背景和光线、Ashpit地面及祭祀房光照条件。安装保留其他原生位。",
+          "evidence": "964037；963EF5；964392；97C300；grid-pressure-door-evidence.md Door Light Flags&40000；801BE0 Pit读取20h；917910；90EF64；803E20；81AF50",
           "wire": {
             "kind": "convert",
             "type": "u8",
@@ -446,8 +446,8 @@
         "room_descriptor_allowed_doors_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；有效低八门槽mask；不调用Update／Init／Restore或写访客进度。",
         "room_descriptor_visited_count_read": "原i32!=0；历史累计不发送；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
         "room_descriptor_visited_count_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；原i32!=0；历史累计不发送；不调用Update／Init／Restore或写访客进度。",
-        "room_descriptor_flags_read": "原bit0/10/11/18/5依次到线上bit0..4；其余零；不恢复全flags；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
-        "room_descriptor_flags_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；原bit0/10/11/18/5依次到线上bit0..4；其余零；不恢复全flags；不调用Update／Init／Restore或写访客进度。",
+        "room_descriptor_flags_read": "原bit0/10/11/18/5/9/12/2依次到线上bit0..7，供地图、坑、门光、背景深色细节和原生光照消费。",
+        "room_descriptor_flags_install": "按位安装原bit0/10/11/18/5/9/12/2，保留本机其余位，交同批原生显示消费。",
         "room_descriptor_greed_treasure_icon_read": "Greed特殊宝物房当前最终图标开关；不适用规范0；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
         "room_descriptor_greed_treasure_icon_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；Greed特殊宝物房当前最终图标开关；不适用规范0；不调用Update／Init／Restore或写访客进度。",
         "room_descriptor_map_icons_read": "L2完整可显示事实，DisplayFlags0不读隐藏保存体；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
@@ -481,7 +481,7 @@
           "kind": "range",
           "scalar": "u8",
           "min": 0,
-          "max": 31
+          "max": 255
         },
         "greed_treasure_icon": {
           "kind": "range",
@@ -740,7 +740,7 @@
             "flags"
           ],
           "route": "RoomDescriptor.flags",
-          "reason": "五位原生0/10/11/18/5→线上0..4；sacrifice/pitch-black最终lighting及音乐/背景另承接；不回放全flags；原stream行3104归属ReplicatedState原样保留；第7步当前处置，具体缓存／adapter尚待接线。 正式字段只承接该API必要的当前显示投影；不保证被裁原数值Getter相等。"
+          "reason": "原生0/10/11/18/5/9/12/2→线上0..7，供地图、坑、门光及本地构图／光照使用。原stream行3104归属ReplicatedState原样保留。"
         },
         {
           "catalog": "docs/design/tx-04-21/stream-catalog.json",

@@ -37,7 +37,8 @@
             "host": "anm2_selected_file_to_resource",
             "client": "anm2_selected_file_from_resource",
             "target": "anm2-files"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x18",
@@ -61,7 +62,8 @@
           "wire": {
             "kind": "nested",
             "type": "AnimationState"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x50",
@@ -75,7 +77,8 @@
           "wire": {
             "kind": "nested",
             "type": "AnimationState"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x70",
@@ -89,7 +92,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x71",
@@ -139,7 +143,8 @@
             "host": "read_anm2_layer_states",
             "client": "rebuild_anm2_layer_states",
             "count_field": "layer_count"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x80",
@@ -203,7 +208,8 @@
           "wire": {
             "kind": "nested",
             "type": "Vector"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x9C",
@@ -217,7 +223,8 @@
           "wire": {
             "kind": "nested",
             "type": "Vector"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xA4",
@@ -231,7 +238,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xA8",
@@ -255,7 +263,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32[4]"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xE4",
@@ -279,7 +288,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x101",
@@ -293,7 +303,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x102",
@@ -317,7 +328,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x108",
@@ -371,44 +383,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "外观与资源",
-          "sequence": "body",
-          "fields": [
-            "file_name",
-            "overlay_render_first",
-            "offset",
-            "scale",
-            "rotation",
-            "champion_color",
-            "flip_x",
-            "flip_y",
-            "playback_speed",
-            "render_flags",
-            "glitch_draw_bits"
-          ]
-        },
-        {
-          "id": 1,
-          "name": "动画与独立选择器",
-          "sequence": "body",
-          "fields": [
-            "main_state",
-            "overlay_state"
-          ]
-        },
-        {
-          "id": 2,
-          "name": "图层状态",
-          "sequence": "body",
-          "fields": [
-            "layer_states"
-          ]
+          },
+          "sequence": "body"
         }
       ],
       "conversions": {
@@ -468,10 +444,32 @@
           "semantics": "按Host当前ANM2地址在自有纯值RNG以shift-index35计算两次RandomInt(2)的最终选择：bit0=0为+90/1为-90，bit1为flipX。只发0..3结果，不发地址/随机种子或游标；绑定subject/use/shape/Sprite角色",
           "evidence": "docs/design/binary-state/grid-common-synchronization-review.md；J273 Room Render804500与RenderFrame404570；官方Utils/ANM2Utils.hpp::GetFrameSourceQuad",
           "host": "read_grid_sprite_glitch_draw_bits",
-          "client": "install_grid_sprite_glitch_draw_bits"
+          "client": "install_grid_sprite_glitch_draw_bits",
+          "sequence": "body"
         }
       ],
-      "native_view_of": "GridSprite"
+      "native_view_of": "GridSprite",
+      "write_groups": [
+        {
+          "fields": [
+            "file_name",
+            "main_state",
+            "overlay_state",
+            "overlay_render_first",
+            "layer_states",
+            "offset",
+            "scale",
+            "rotation",
+            "champion_color",
+            "flip_x",
+            "flip_y",
+            "playback_speed",
+            "render_flags",
+            "glitch_draw_bits"
+          ],
+          "handler": "anm2_selected_file_from_resource"
+        }
+      ]
     },
     {
       "type": "GridFireEmberAnimation",
@@ -508,7 +506,8 @@
             "host": "anm2_animation_to_index",
             "client": "anm2_animation_from_index",
             "target": "anm2-animation-table"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x8",
@@ -552,7 +551,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x15",
@@ -583,17 +583,6 @@
           "semantics": "Host动画事件历史位；不表示可靠事件队列，不进入Client状态或漂移比较",
           "status": "已核",
           "evidence": "J273 AnimationState::WasEventTriggered 读取 this+0x1C（imagebase 0x400000）；官方 AnimationState.zhl；版本32同步职责复核：docs/design/binary-state/animation-resource-synchronization-review.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "粒子模板主动画资源与插值开关",
-          "sequence": "body",
-          "fields": [
-            "active_animation",
-            "is_playing"
-          ]
         }
       ],
       "conversions": {},
@@ -640,7 +629,8 @@
             "host": "anm2_selected_file_to_resource",
             "client": "anm2_selected_file_from_resource",
             "target": "anm2-files"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x18",
@@ -664,7 +654,8 @@
           "wire": {
             "kind": "nested",
             "type": "GridFireEmberAnimation"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x50",
@@ -678,7 +669,8 @@
           "wire": {
             "kind": "nested",
             "type": "AnimationState"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x70",
@@ -692,7 +684,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x71",
@@ -742,7 +735,8 @@
             "host": "read_anm2_layer_states",
             "client": "rebuild_anm2_layer_states",
             "count_field": "layer_count"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x80",
@@ -806,7 +800,8 @@
           "wire": {
             "kind": "nested",
             "type": "Vector"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x9C",
@@ -820,7 +815,8 @@
           "wire": {
             "kind": "nested",
             "type": "Vector"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xA4",
@@ -834,7 +830,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xA8",
@@ -848,7 +845,8 @@
           "wire": {
             "kind": "nested",
             "type": "ColorMod"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xD4",
@@ -862,7 +860,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32[4]"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xE4",
@@ -886,7 +885,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x101",
@@ -900,7 +900,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x102",
@@ -924,7 +925,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x108",
@@ -978,45 +980,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "外观与资源",
-          "sequence": "body",
-          "fields": [
-            "file_name",
-            "overlay_render_first",
-            "offset",
-            "scale",
-            "rotation",
-            "color",
-            "champion_color",
-            "flip_x",
-            "flip_y",
-            "playback_speed",
-            "render_flags",
-            "glitch_draw_bits"
-          ]
-        },
-        {
-          "id": 1,
-          "name": "动画与独立选择器",
-          "sequence": "body",
-          "fields": [
-            "main_state",
-            "overlay_state"
-          ]
-        },
-        {
-          "id": 2,
-          "name": "图层状态",
-          "sequence": "body",
-          "fields": [
-            "layer_states"
-          ]
+          },
+          "sequence": "body"
         }
       ],
       "conversions": {
@@ -1067,10 +1032,33 @@
           "semantics": "按Host当前ANM2地址在自有纯值RNG以shift-index35计算两次RandomInt(2)的最终选择：bit0=0为+90/1为-90，bit1为flipX。只发0..3结果，不发地址/随机种子或游标；绑定subject/use/shape/Sprite角色",
           "evidence": "docs/design/binary-state/grid-common-synchronization-review.md；J273 Room Render804500与RenderFrame404570；官方Utils/ANM2Utils.hpp::GetFrameSourceQuad",
           "host": "read_grid_sprite_glitch_draw_bits",
-          "client": "install_grid_sprite_glitch_draw_bits"
+          "client": "install_grid_sprite_glitch_draw_bits",
+          "sequence": "body"
         }
       ],
-      "native_view_of": "GridSprite"
+      "native_view_of": "GridSprite",
+      "write_groups": [
+        {
+          "fields": [
+            "file_name",
+            "main_state",
+            "overlay_state",
+            "overlay_render_first",
+            "layer_states",
+            "offset",
+            "scale",
+            "rotation",
+            "color",
+            "champion_color",
+            "flip_x",
+            "flip_y",
+            "playback_speed",
+            "render_flags",
+            "glitch_draw_bits"
+          ],
+          "handler": "anm2_selected_file_from_resource"
+        }
+      ]
     },
     {
       "type": "GridFireEmber",
@@ -1095,7 +1083,8 @@
             "kind": "nested",
             "type": "Vector"
           },
-          "read_requires": "grid-current-window"
+          "read_requires": "grid-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x8",
@@ -1121,7 +1110,8 @@
             "kind": "copy",
             "type": "i32"
           },
-          "read_requires": "grid-current-window"
+          "read_requires": "grid-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x14",
@@ -1136,19 +1126,8 @@
             "kind": "copy",
             "type": "i32"
           },
-          "read_requires": "grid-current-window"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "当前粒子位置与绘制寿命输入",
-          "sequence": "world",
-          "fields": [
-            "position",
-            "age",
-            "max_life"
-          ]
+          "read_requires": "grid-current-window",
+          "sequence": "world"
         }
       ],
       "conversions": {},
@@ -1180,7 +1159,6 @@
         "rva": "0x7d2214"
       },
       "ranges": [],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "contexts": {
@@ -1236,7 +1214,6 @@
         "rva": "0x7d3200"
       },
       "ranges": [],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "contexts": {
@@ -1292,7 +1269,6 @@
         "rva": "0x7d3238"
       },
       "ranges": [],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "contexts": {
@@ -1348,7 +1324,6 @@
         "rva": "0x7d22bc"
       },
       "ranges": [],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "contexts": {
@@ -1397,7 +1372,6 @@
         "rva": "0x7d224c"
       },
       "ranges": [],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "contexts": {
@@ -1446,7 +1420,6 @@
         "rva": "0x7d2430"
       },
       "ranges": [],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "contexts": {
@@ -1513,7 +1486,6 @@
           "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md；VA706521/71A713/71A876"
         }
       ],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "contexts": {
@@ -1586,14 +1558,10 @@
           "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md；VA706418/67B6AC-67B700",
           "wire": {
             "kind": "nested",
-            "type": "GridSprite",
-            "projections": [
-              0,
-              1,
-              2
-            ]
+            "type": "GridSprite"
           },
-          "read_requires": "grid-current-window"
+          "read_requires": "grid-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x268",
@@ -1634,7 +1602,8 @@
             "host": "read_grid_fire_visible_embers",
             "client": "install_grid_fire_visible_embers"
           },
-          "read_requires": "grid-current-window"
+          "read_requires": "grid-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x27c",
@@ -1647,72 +1616,10 @@
           "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md；VA706445/67B721-67B7D5",
           "wire": {
             "kind": "nested",
-            "type": "GridFireEmberSprite",
-            "projections": [
-              0,
-              1,
-              2
-            ]
+            "type": "GridFireEmberSprite"
           },
-          "read_requires": "grid-current-window"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 4,
-          "name": "GF0 第二Sprite 外观",
-          "sequence": "world",
-          "fields": [
-            "fire_sprite#0"
-          ]
-        },
-        {
-          "id": 5,
-          "name": "GF1 第二Sprite 动画",
-          "sequence": "world",
-          "fields": [
-            "fire_sprite#1"
-          ]
-        },
-        {
-          "id": 6,
-          "name": "GF2 第二Sprite 图层",
-          "sequence": "world",
-          "fields": [
-            "fire_sprite#2"
-          ]
-        },
-        {
-          "id": 7,
-          "name": "GF3 Ember模板 外观",
-          "sequence": "world",
-          "fields": [
-            "ember_sprite#0"
-          ]
-        },
-        {
-          "id": 8,
-          "name": "GF4 Ember模板 动画",
-          "sequence": "world",
-          "fields": [
-            "ember_sprite#1"
-          ]
-        },
-        {
-          "id": 9,
-          "name": "GF5 Ember模板 图层",
-          "sequence": "world",
-          "fields": [
-            "ember_sprite#2"
-          ]
-        },
-        {
-          "id": 10,
-          "name": "GF6 当前可绘粒子列表",
-          "sequence": "world",
-          "fields": [
-            "embers"
-          ]
+          "read_requires": "grid-current-window",
+          "sequence": "world"
         }
       ],
       "conversions": {
@@ -1865,7 +1772,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x24",
@@ -1879,7 +1787,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x28",
@@ -1893,7 +1802,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x2C",
@@ -1907,7 +1817,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x30",
@@ -1941,7 +1852,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x33",
@@ -1955,7 +1867,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x34",
@@ -1969,7 +1882,8 @@
           "wire": {
             "kind": "nested",
             "type": "Vector"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x3C",
@@ -1983,7 +1897,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x40",
@@ -2007,7 +1922,8 @@
                 "value": 1
               }
             }
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x48",
@@ -2021,7 +1937,8 @@
           "wire": {
             "kind": "nested",
             "type": "ColorMod"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x74",
@@ -2035,7 +1952,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x75",
@@ -2059,7 +1977,8 @@
           "wire": {
             "kind": "nested",
             "type": "BlendMode"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x8C",
@@ -2073,7 +1992,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x90",
@@ -2087,7 +2007,8 @@
           "wire": {
             "kind": "nested",
             "type": "Vector"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x98",
@@ -2104,39 +2025,8 @@
             "host": "image_base_name_to_resource",
             "client": "image_base_resource_to_smart_pointer",
             "target": "image-table"
-          }
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "贴图资源",
-          "sequence": "body",
-          "fields": [
-            "image_selection"
-          ]
-        },
-        {
-          "id": 1,
-          "name": "图层外观",
-          "sequence": "body",
-          "fields": [
-            "min_filter_mode",
-            "mag_filter_mode",
-            "wrap_s_mode",
-            "wrap_t_mode",
-            "flip_x",
-            "flip_y",
-            "size",
-            "rotation",
-            "has_position",
-            "position",
-            "color",
-            "visible",
-            "blend_mode",
-            "render_flags",
-            "crop_offset"
-          ]
+          },
+          "sequence": "body"
         }
       ],
       "conversions": {
@@ -2180,7 +2070,20 @@
           "semantics": "state==2且layer_index==0为0，其余为1；须与父Rock及容器序号一致",
           "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md",
           "host": "read_grid_rock_layer_has_position",
-          "client": "install_grid_rock_layer_has_position"
+          "client": "install_grid_rock_layer_has_position",
+          "sequence": "body"
+        }
+      ],
+      "write_groups": [
+        {
+          "fields": [
+            "image_selection",
+            "min_filter_mode",
+            "mag_filter_mode",
+            "wrap_s_mode",
+            "wrap_t_mode"
+          ],
+          "handler": "image_base_resource_to_smart_pointer"
         }
       ]
     },
@@ -2221,7 +2124,8 @@
             "host": "anm2_selected_file_to_resource",
             "client": "anm2_selected_file_from_resource",
             "target": "anm2-files"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x18",
@@ -2255,7 +2159,8 @@
                 "value": 1
               }
             }
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x50",
@@ -2269,7 +2174,8 @@
           "wire": {
             "kind": "nested",
             "type": "AnimationState"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x70",
@@ -2283,7 +2189,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x71",
@@ -2333,7 +2240,8 @@
             "host": "read_grid_rock_layers",
             "client": "install_grid_rock_layers",
             "count_field": "layer_count"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x80",
@@ -2397,7 +2305,8 @@
           "wire": {
             "kind": "nested",
             "type": "Vector"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x9C",
@@ -2411,7 +2320,8 @@
           "wire": {
             "kind": "nested",
             "type": "Vector"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xA4",
@@ -2425,7 +2335,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xA8",
@@ -2439,7 +2350,8 @@
           "wire": {
             "kind": "nested",
             "type": "ColorMod"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xD4",
@@ -2453,7 +2365,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32[4]"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xE4",
@@ -2477,7 +2390,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x101",
@@ -2491,7 +2405,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x102",
@@ -2515,7 +2430,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x108",
@@ -2569,46 +2485,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "外观与资源",
-          "sequence": "body",
-          "fields": [
-            "file_name",
-            "overlay_render_first",
-            "offset",
-            "scale",
-            "rotation",
-            "color",
-            "champion_color",
-            "flip_x",
-            "flip_y",
-            "playback_speed",
-            "render_flags",
-            "glitch_draw_bits"
-          ]
-        },
-        {
-          "id": 1,
-          "name": "动画与独立选择器",
-          "sequence": "body",
-          "fields": [
-            "has_main_pose",
-            "main_state",
-            "overlay_state"
-          ]
-        },
-        {
-          "id": 2,
-          "name": "图层状态",
-          "sequence": "body",
-          "fields": [
-            "layer_states"
-          ]
+          },
+          "sequence": "body"
         }
       ],
       "conversions": {
@@ -2670,7 +2548,8 @@
           "semantics": "按Host当前ANM2地址在自有纯值RNG以shift-index35计算两次RandomInt(2)的最终选择：bit0=0为+90/1为-90，bit1为flipX。只发0..3结果，不发地址/随机种子或游标；绑定subject/use/shape/Sprite角色",
           "evidence": "docs/design/binary-state/grid-common-synchronization-review.md；J273 Room Render804500与RenderFrame404570；官方Utils/ANM2Utils.hpp::GetFrameSourceQuad",
           "host": "read_grid_sprite_glitch_draw_bits",
-          "client": "install_grid_sprite_glitch_draw_bits"
+          "client": "install_grid_sprite_glitch_draw_bits",
+          "sequence": "body"
         },
         {
           "name": "has_main_pose",
@@ -2678,10 +2557,34 @@
           "semantics": "父Rock state==2为0，其余为1；与父状态强制一致",
           "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md",
           "host": "read_grid_rock_has_main_pose",
-          "client": "install_grid_rock_has_main_pose"
+          "client": "install_grid_rock_has_main_pose",
+          "sequence": "body"
         }
       ],
-      "native_view_of": "GridSprite"
+      "native_view_of": "GridSprite",
+      "write_groups": [
+        {
+          "fields": [
+            "file_name",
+            "main_state",
+            "overlay_state",
+            "overlay_render_first",
+            "layer_states",
+            "offset",
+            "scale",
+            "rotation",
+            "color",
+            "champion_color",
+            "flip_x",
+            "flip_y",
+            "playback_speed",
+            "render_flags",
+            "glitch_draw_bits",
+            "has_main_pose"
+          ],
+          "handler": "anm2_selected_file_from_resource"
+        }
+      ]
     },
     {
       "type": "GridStatueUnusedSprite",
@@ -2996,29 +2899,6 @@
           "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation"
         }
       ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "Statue无Sprite展示负载",
-          "sequence": "body",
-          "fields": [],
-          "reserved": true
-        },
-        {
-          "id": 1,
-          "name": "Statue无Sprite展示负载",
-          "sequence": "body",
-          "fields": [],
-          "reserved": true
-        },
-        {
-          "id": 2,
-          "name": "Statue无Sprite展示负载",
-          "sequence": "body",
-          "fields": [],
-          "reserved": true
-        }
-      ],
       "conversions": {},
       "validators": {},
       "members": [],
@@ -3058,7 +2938,6 @@
           "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 70C4C0"
         }
       ],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "members": [
@@ -3146,7 +3025,6 @@
           "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 70E1C7"
         }
       ],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "members": [
@@ -3285,7 +3163,6 @@
           "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 718989/7189C1/718B77/718FBF/718FCA/718FD6/719089"
         }
       ],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "members": [
@@ -3370,7 +3247,6 @@
           "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 82DC18/82D14F/82D15B/82D15E"
         }
       ],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "members": [
@@ -3443,7 +3319,6 @@
           "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 71952C/7195C0/7195E2/719CBE"
         }
       ],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "members": [
@@ -3648,7 +3523,6 @@
           "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 706367-7063D9/710751/EntityRef.zhl"
         }
       ],
-      "blocks": [],
       "conversions": {},
       "validators": {},
       "members": [
@@ -3838,7 +3712,8 @@
             "client": "grid_rock_rubble_from_resource",
             "target": "anm2-animation-table"
           },
-          "read_requires": "grid-current-window"
+          "read_requires": "grid-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x184",
@@ -3858,7 +3733,8 @@
             "host": "read_grid_rock_visible_rubble",
             "client": "install_grid_rock_visible_rubble"
           },
-          "read_requires": "grid-current-window"
+          "read_requires": "grid-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x190",
@@ -3879,17 +3755,6 @@
           "semantics": "Init/Update保存旧Desc.State供外部玩法判断（例如MakeBridge识别type25 state1）；Render不读，不是结构事务版本",
           "status": "已核",
           "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 7152FE/7143B4/70F0F6"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 4,
-          "name": "GR0 当前可绘碎块资源与有序偏移",
-          "sequence": "world",
-          "fields": [
-            "rubble_animation",
-            "rubble_offsets"
-          ]
         }
       ],
       "conversions": {
@@ -4309,7 +4174,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x4",
@@ -4323,7 +4189,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x8",
@@ -4337,7 +4204,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "sequence": "world"
         },
         {
           "offset": "0xC",
@@ -4398,18 +4266,6 @@
           "semantics": "Host玩法随机后保存的种子；不冒充Room Light实际使用的SpawnSeed，也不作为Client新建玩法RNG的输入",
           "status": "已核",
           "evidence": "J273 ctor 0x704FFE；hurt_func 0x7056F1等将对象_rng结果写入对象+20；已核绘制/水面/light不消费本字段；grid-common-evidence.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "GD0 确定性Light类型的描述展示输入",
-          "sequence": "world",
-          "fields": [
-            "type",
-            "variant",
-            "state"
-          ]
         }
       ],
       "conversions": {},
@@ -4529,7 +4385,8 @@
             "host": "read_grid_door_draw_enabled",
             "client": "install_grid_door_draw_enabled"
           },
-          "read_requires": "grid-current-window"
+          "read_requires": "grid-current-window",
+          "sequence": "body"
         },
         {
           "offset": "0x10",
@@ -4602,16 +4459,6 @@
           "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md；VA707FA1/707FA8、70800E-708019"
         }
       ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "Door主体与附属绘制入口",
-          "sequence": "body",
-          "fields": [
-            "tint_a"
-          ]
-        }
-      ],
       "conversions": {
         "read_grid_door_draw_enabled": "合法grid-current-window仅读主Sprite ColorMod+C的f32；非有限报Gap，有限时按0<alpha输出0/1，不发幅值/其它十个旧分量。入口在墙色覆写前，不能从Room色或ExtraVisible推导。",
         "install_grid_door_draw_enabled": "只接受0/1，已构造Client主Sprite写本地alpha=0.0/1.0承载同等入口，不写Host幅值。Door Render通过后借用同world完整Room.wallColor，draw scope恢复本地ColorMod；不是Light/碰撞/过门授权。"
@@ -4664,7 +4511,8 @@
             "host": "anm2_selected_file_to_resource",
             "client": "anm2_selected_file_from_resource",
             "target": "anm2-files"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x18",
@@ -4688,7 +4536,8 @@
           "wire": {
             "kind": "nested",
             "type": "AnimationState"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x50",
@@ -4702,7 +4551,8 @@
           "wire": {
             "kind": "nested",
             "type": "AnimationState"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x70",
@@ -4716,7 +4566,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x71",
@@ -4766,7 +4617,8 @@
             "host": "read_anm2_layer_states",
             "client": "rebuild_anm2_layer_states",
             "count_field": "layer_count"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x80",
@@ -4830,7 +4682,8 @@
           "wire": {
             "kind": "nested",
             "type": "Vector"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x9C",
@@ -4844,7 +4697,8 @@
           "wire": {
             "kind": "nested",
             "type": "Vector"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xA4",
@@ -4858,7 +4712,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xA8",
@@ -4872,7 +4727,8 @@
           "wire": {
             "kind": "nested",
             "type": "GridDoorTint"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xD4",
@@ -4886,7 +4742,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32[4]"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0xE4",
@@ -4910,7 +4767,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x101",
@@ -4924,7 +4782,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x102",
@@ -4948,7 +4807,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "sequence": "body"
         },
         {
           "offset": "0x108",
@@ -5002,45 +4862,8 @@
           "wire": {
             "kind": "copy",
             "type": "u32"
-          }
-        }
-      ],
-      "blocks": [
-        {
-          "id": 0,
-          "name": "外观与资源",
-          "sequence": "body",
-          "fields": [
-            "file_name",
-            "overlay_render_first",
-            "offset",
-            "scale",
-            "rotation",
-            "color",
-            "champion_color",
-            "flip_x",
-            "flip_y",
-            "playback_speed",
-            "render_flags",
-            "glitch_draw_bits"
-          ]
-        },
-        {
-          "id": 1,
-          "name": "动画与独立选择器",
-          "sequence": "body",
-          "fields": [
-            "main_state",
-            "overlay_state"
-          ]
-        },
-        {
-          "id": 2,
-          "name": "图层状态",
-          "sequence": "body",
-          "fields": [
-            "layer_states"
-          ]
+          },
+          "sequence": "body"
         }
       ],
       "conversions": {
@@ -5256,10 +5079,33 @@
           "semantics": "按Host当前ANM2地址在自有纯值RNG以shift-index35计算两次RandomInt(2)的最终选择：bit0=0为+90/1为-90，bit1为flipX。只发0..3结果，不发地址/随机种子或游标；绑定subject/use/shape/Sprite角色",
           "evidence": "docs/design/binary-state/grid-common-synchronization-review.md；J273 Room Render804500与RenderFrame404570；官方Utils/ANM2Utils.hpp::GetFrameSourceQuad",
           "host": "read_grid_sprite_glitch_draw_bits",
-          "client": "install_grid_sprite_glitch_draw_bits"
+          "client": "install_grid_sprite_glitch_draw_bits",
+          "sequence": "body"
         }
       ],
-      "native_view_of": "GridSprite"
+      "native_view_of": "GridSprite",
+      "write_groups": [
+        {
+          "fields": [
+            "file_name",
+            "main_state",
+            "overlay_state",
+            "overlay_render_first",
+            "layer_states",
+            "offset",
+            "scale",
+            "rotation",
+            "color",
+            "champion_color",
+            "flip_x",
+            "flip_y",
+            "playback_speed",
+            "render_flags",
+            "glitch_draw_bits"
+          ],
+          "handler": "anm2_selected_file_from_resource"
+        }
+      ]
     },
     {
       "type": "GridEntityPressurePlate",
@@ -5282,14 +5128,10 @@
           "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md；Factory7065B6/Render95E23F-95E2B9/Free70683C",
           "wire": {
             "kind": "nested",
-            "type": "GridSprite",
-            "projections": [
-              0,
-              1,
-              2
-            ]
+            "type": "GridSprite"
           },
-          "read_requires": "grid-current-window"
+          "read_requires": "grid-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x268",
@@ -5311,32 +5153,6 @@
           "status": "已核",
           "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md",
           "native_type": "RNG"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 4,
-          "name": "GP0 TimerPlate 外观",
-          "sequence": "world",
-          "fields": [
-            "timer_plate#0"
-          ]
-        },
-        {
-          "id": 5,
-          "name": "GP1 TimerPlate 动画",
-          "sequence": "world",
-          "fields": [
-            "timer_plate#1"
-          ]
-        },
-        {
-          "id": 6,
-          "name": "GP2 TimerPlate 图层",
-          "sequence": "world",
-          "fields": [
-            "timer_plate#2"
-          ]
         }
       ],
       "conversions": {},
@@ -5527,7 +5343,8 @@
             "kind": "copy",
             "type": "i32"
           },
-          "read_requires": "grid-current-window"
+          "read_requires": "grid-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x164",
@@ -5550,14 +5367,10 @@
           "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md；Factory706228/Render708070-70808E/官方GetExtraSprite",
           "wire": {
             "kind": "nested",
-            "type": "GridSprite",
-            "projections": [
-              0,
-              1,
-              2
-            ]
+            "type": "GridSprite"
           },
-          "read_requires": "grid-current-window"
+          "read_requires": "grid-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x27c",
@@ -5572,7 +5385,8 @@
             "kind": "copy",
             "type": "u8"
           },
-          "read_requires": "grid-current-window"
+          "read_requires": "grid-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x27d",
@@ -5617,7 +5431,8 @@
             "kind": "copy",
             "type": "i32"
           },
-          "read_requires": "grid-current-window"
+          "read_requires": "grid-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x284",
@@ -5654,7 +5469,8 @@
             "host": "read_grid_door_light_bit",
             "client": "install_grid_door_light_bit"
           },
-          "read_requires": "grid-current-window"
+          "read_requires": "grid-current-window",
+          "sequence": "world"
         },
         {
           "offset": "0x290",
@@ -5695,43 +5511,6 @@
           "semantics": "Host开闭/锁定动画选择字符串，Update/PlayAnimation产出最终ANM2；Render/Light不直接读，内容及地址/容量不上线，本地正常构造/析构",
           "status": "已核",
           "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md"
-        }
-      ],
-      "blocks": [
-        {
-          "id": 4,
-          "name": "GD4 Door实际绘制与Light输入",
-          "sequence": "world",
-          "fields": [
-            "target_room_type",
-            "extra_visible",
-            "target_room_index",
-            "door_flags"
-          ]
-        },
-        {
-          "id": 5,
-          "name": "GD5 ExtraSprite 外观",
-          "sequence": "world",
-          "fields": [
-            "extra_sprite#0"
-          ]
-        },
-        {
-          "id": 6,
-          "name": "GD6 ExtraSprite 动画",
-          "sequence": "world",
-          "fields": [
-            "extra_sprite#1"
-          ]
-        },
-        {
-          "id": 7,
-          "name": "GD7 ExtraSprite 图层",
-          "sequence": "world",
-          "fields": [
-            "extra_sprite#2"
-          ]
         }
       ],
       "conversions": {
