@@ -118,6 +118,9 @@ public:
   // Player 的 World／Body 共用来源；任一投影失败便回卷同一根。
   bool CaptureOrdinary(const state::CaptureWitness &,EntityFacts,state::CaptureValueWriter &,
                        state::CaptureDiagnostic &,std::uint16_t &resolved_layout,std::uint64_t reusable_base=0) noexcept;
+  // 平铺 Tear 入口走同一根资格与回卷。由平铺编码链路选择，独立于版本 84 正文。
+  bool CaptureOrdinaryFlat(const state::CaptureWitness &,EntityFacts,state::CaptureValueWriter &,
+                           state::CaptureDiagnostic &,std::uint16_t &resolved_layout) noexcept;
   // 仅实际ordinary外层成功提交后确认P6；尚无同拓扑ordinary时不能产生fast body。
   void OrdinaryCommitted(state::CaptureSubject) noexcept;
   // 外部资源写水位推进后，丢弃前一读段留下的跨帧精确证明。
@@ -145,7 +148,8 @@ public:
   NativeSourceStats Statistics() const noexcept;
 private:
   bool CaptureRootValues(const state::CaptureWitness &,EntityFacts,state::BodyStream,state::CaptureValueWriter &,
-                         state::CaptureDiagnostic &,bool reliable,std::uint64_t candidate_topology,bool pair_player,std::uint16_t *resolved_layout,std::uint64_t reusable_base=0) noexcept;
+                         state::CaptureDiagnostic &,bool reliable,std::uint64_t candidate_topology,bool pair_player,
+                         std::uint16_t *resolved_layout,std::uint64_t reusable_base=0,bool flat=false) noexcept;
   std::unique_ptr<Impl> impl_;
 };
 }

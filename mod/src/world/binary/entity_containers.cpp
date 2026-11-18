@@ -62,6 +62,15 @@ bool EntitySource::Impl::Aggregate(std::uint32_t address,std::span<std::byte> ou
   return true;
 }
 
+// EntityPlus 的 holder 由 Entity 中两个原生半字组成，两个采集器共用来源证言。
+bool EntitySource::Impl::ExistingPlus(const CaptureRoot &root,std::uint32_t &holder,std::uint32_t &payload,
+    CaptureDiagnostic &d) noexcept {
+  std::uint16_t upper=0,lower=0;
+  if(!Tracked(std::uint64_t(root.address)+0x18e,upper,d) || !Tracked(std::uint64_t(root.address)+0x192,lower,d))return false;
+  holder=(std::uint32_t(upper)<<16)|lower;
+  return (holder && Tracked(holder,payload,d) && payload) || FailCapture(d,CaptureFailure::MissingValue,root);
+}
+
 // open先读取数量／头和来源证言；执行器确认同组上限后才进入Element。
 bool EntitySource::Impl::Open(const CaptureFieldAccess &a,CaptureTraversalSource &out,CaptureDiagnostic &d) noexcept {
   evidence_layout=a.root.layout;evidence_field=a.field.index;CheckReuseRecipe(Recipe(a.field));
@@ -74,10 +83,8 @@ bool EntitySource::Impl::Open(const CaptureFieldAccess &a,CaptureTraversalSource
   const auto contiguous=[&](std::uint32_t data,std::uint32_t count,std::uint32_t stride,NativeSequence kind=NativeSequence::Contiguous){
     if((count && !data) || !stride || std::uint64_t(data)+std::uint64_t(count)*stride>(std::uint64_t{1}<<32))return Reject(a,d,CaptureFailure::AddressRange);
     out.opaque[0]=data;out.opaque[1]=Sequence(stride,kind);out.count=count;return true;};
-  if(recipe==EntityRead::Plus || recipe==EntityRead::Spoofs){std::uint16_t upper=0,lower=0;std::uint32_t holder=0,data=0;
-    if(!Tracked(std::uint64_t(a.root.address)+0x18e,upper,d) || !Tracked(std::uint64_t(a.root.address)+0x192,lower,d))return false;
-    holder=(std::uint32_t(upper)<<16)|lower;
-    if(!holder || !Tracked(holder,data,d) || !data)return Reject(a,d,CaptureFailure::MissingValue);
+  if(recipe==EntityRead::Plus || recipe==EntityRead::Spoofs){std::uint32_t holder=0,data=0;
+    if(!ExistingPlus(a.root,holder,data,d)){if(d.field==kNullIndex)d.field=a.field.index;return false;}
     // PlayerPlus类型由真实EntityPlayer RTTI和Init owner决定；不调用可分配GetEntityPlayerPlus。
     if(recipe==EntityRead::Spoofs && (!facts.player_ready || a.root.address!=facts.address))return Reject(a,d,CaptureFailure::MissingQualification);
     const auto payload=std::uint64_t(data)+(recipe==EntityRead::Spoofs?16u:0u);

@@ -65,6 +65,8 @@ struct FlatPatch {
   FlatPatchKind kind;
   FlatHeader header;
   FieldSource source;
+  std::uint8_t resource_table; // 非资源槽为 255；表号不上线。
+  bool seeded; // 原生槽已随复制段进入主区，补丁须覆盖其全部字节。
   bool frame_relative; // 到期帧依赖当前帧号，原生应用每帧重复换算。
   const char *host, *client, *target, *count_source, *read_requirement;
   std::span<const FlatCondition> conditions;

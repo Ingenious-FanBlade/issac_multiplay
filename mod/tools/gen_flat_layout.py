@@ -421,6 +421,7 @@ def emit_flat_layouts(compiler, plans, out, codec_scalar, scalar_bits):
     complete = set()
     layouts = []
     output = ['// 由 gen_flat_layout.py 生成，勿编辑。\n']
+    resource_ids = {c['name']: c['value'] for c in compiler.protocol_constants if c['domain'] == 'resource_table'}
     while pending:
         name = pending.popleft()
         if name in complete:
@@ -431,7 +432,7 @@ def emit_flat_layouts(compiler, plans, out, codec_scalar, scalar_bits):
         lid = flat.root['layout']
         layouts.append((lid, 'kFlat' + str(lid)))
         pending.extend(sorted(flat.children))
-        emit_type(output, flat, data, 'kFlat' + str(lid), codec_scalar, scalar_bits)
+        emit_type(output, flat, data, 'kFlat' + str(lid), codec_scalar, scalar_bits, resource_ids)
     slots = dict(layouts)
     emit_array(output, 'const FlatLayout *', 'kFlatSlots',
                ('&' + slots[i] if i in slots else 'nullptr' for i in range(max(slots, default=-1) + 1)), compact=True)
@@ -463,7 +464,7 @@ def quote(value):
     return json.dumps(value, ensure_ascii=False)
 
 
-def emit_type(output, flat, data, symbol, codec_scalar, scalar_bits):
+def emit_type(output, flat, data, symbol, codec_scalar, scalar_bits, resource_ids):
     """每个布局的数组存于只读区；按相同序号引用字段及写入组。"""
     leaves = flat.leaves
 
@@ -489,6 +490,9 @@ def emit_type(output, flat, data, symbol, codec_scalar, scalar_bits):
                             'ScalarKind::' + (codec_scalar(validator_scalar)[0] if v else 'None'),
                             *bounds, values)
         operation = 'FlatPatchKind::' + leaf.kind
+        table = resource_ids.get(leaf.target, 255)
+        if leaf.kind == 'Resource':
+            require(table != 255, flat.name + '.' + leaf.path, '资源槽缺少目录表号')
         fields.append(braces(quote(leaf.path), leaf.offset, leaf.width, leaf.group, components,
                              'ScalarKind::' + scalar, 'FlatStream::' + leaf.stream.title(), operation,
                              str(leaf.shape).lower(), 'FlatValueRule::' + leaf.value_rule, validation))
@@ -506,13 +510,13 @@ def emit_type(output, flat, data, symbol, codec_scalar, scalar_bits):
                                            leaf.count_offset, leaf.stride, leaf.limit, leaf.max_bytes, leaf.mask,
                                            ordinal, leaf.scope, leaf.child, leaf.owner_layout, operation,
                                            'FlatHeader::' + leaf.header, 'FieldSource::' + leaf.source,
-                                           str(leaf.frame_relative).lower(),
+                                           table, str(leaf.seeded).lower(), str(leaf.frame_relative).lower(),
                                            quote(leaf.host), quote(leaf.client), quote(leaf.target), quote(leaf.count),
                                            quote(leaf.read_requirement), conditions, choices)))
     for offset, width in data['zeros']:
         patches.append((offset, braces(offset, width, NO_OFFSET, 0, 0, NO_OFFSET, 0, 0, 0, 0, NO_INDEX,
                                        NO_INDEX, 0, 0, 'FlatPatchKind::Zero', 'FlatHeader::None',
-                                       'FieldSource::Synthetic', 'false', '""', '""', '""', '""', '""', '{}', '{}')))
+                                       'FieldSource::Synthetic', 255, 'false', 'false', '""', '""', '""', '""', '""', '{}', '{}')))
     field_table = emit_array(output, 'FlatField', symbol + 'Fields', fields)
     byte_table = emit_array(output, 'std::uint16_t', symbol + 'ByteFields',
                             ('kNullIndex' if value == NO_INDEX else str(value) for value in data['byte_fields']), compact=True)

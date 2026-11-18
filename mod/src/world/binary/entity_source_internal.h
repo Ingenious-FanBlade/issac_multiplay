@@ -1,6 +1,7 @@
 #pragma once
 #include "world/binary/entity_source.h"
 #include "state/entity_counters.h"
+#include "state/flat_layout.h"
 #include <algorithm>
 #include <bit>
 #include <cstring>
@@ -21,6 +22,7 @@ enum class NativeSequence : std::uint32_t { Contiguous, Owned, Addresses, Weapon
 EntityRead GridRecipe(std::string_view) noexcept;
 EntityRead SceneRecipe(std::string_view) noexcept;
 EntityRead RunRecipe(std::string_view) noexcept;
+EntityRead FindEntityRead(std::string_view) noexcept;
 // 默认来源属于本根。Player 的同址不同用途／不同子 owner 必须保留独立证言。
 enum class NativeEvidenceUse : std::uint8_t { Field, PlayerVtable, Loaded, FileName, Layers, Image, CostumeVector, CostumeItem,
   CostumeFlags, CostumeIndex, CostumeLayer, CostumeBody, CanFly, AnimationOwner, Animation, FrameCount, FrameData };
@@ -59,12 +61,11 @@ struct PreparedPlayerSource {
   bool ready=false,shared_streams=false;
 };
 enum class NativeResourceSource : std::uint8_t { File, SelectedFile, Image, Item, Animation, ImagePath, Config };
-// 原生地址只用于同段来源索引，稳定目录另外比较完整规范值。
+// 以实际资源指针作键。动画的文件与 owner、图像的场景是来源的一部分。
 struct NativeResourceKey {
   NativeResourceSource kind{};
   std::uint32_t address=0,owner=0,scene=0;
-  std::uint16_t space=0;
-  std::uint64_t local=0,use=0,shape=0,dependency=0;
+  std::uint64_t dependency=0;
   auto operator<=>(const NativeResourceKey &) const = default;
 };
 struct NativeResourceMemo {NativeResourceKey key;CaptureLink link;};
@@ -99,7 +100,7 @@ private:
 struct NativeResourceReuse {
   NativeResourceKey key;
   StateScope scope;
-  std::uint64_t epoch=0;
+  std::uint64_t epoch=0,generation=0,serial=0;
   CaptureLink link;
   NativeInputStorage<80,1536> input;
 };
@@ -119,6 +120,13 @@ struct NativeSpriteDependency {std::uint32_t address=0,owner=0;std::uint64_t loc
 struct NativeConfigOwner {std::uint32_t address=0;std::uint64_t run=0,owner=0;};
 struct NativeHistoryGlyph {std::int32_t visual=0;CaptureLink image{CapturedReferenceKind::Null,0};};
 
+// 具名补丁在冷准备时绑定。根和可达子布局共用按序排列的生成补丁表。
+struct FlatSourceProgram {
+  const FlatLayout *layout=nullptr;
+  std::vector<EntityRead> reads;
+  bool has_conditions=false;
+};
+
 struct EntitySource::Impl {
   MemoryReader memory;
   std::thread::id thread;
@@ -126,6 +134,7 @@ struct EntitySource::Impl {
   EntitySourceCapacity capacity;
   memory::Lease memory_charge;
   std::vector<EntityRead> reads;
+  std::vector<FlatSourceProgram> flat_programs;
   std::vector<CaptureVtableBinding> vtables;
   std::unique_ptr<CapturePlan> plan;
   std::unique_ptr<CaptureExecutor> executor;
@@ -141,7 +150,8 @@ struct EntitySource::Impl {
   std::vector<NativeConfigOwner> config_owners;
   std::uint32_t config_owner_used=0;
   std::uint32_t memo_used=0;
-  std::uint64_t memo_serial=0;
+  StateScope memo_scope;
+  std::uint64_t memo_generation=0,memo_epoch=0;
   NativeSourceStats stats;
   memory::Lease reuse_charge;
   std::vector<NativeRootReuse> root_reuse;
@@ -189,6 +199,11 @@ struct EntitySource::Impl {
   bool StringAt(std::uint32_t,std::span<std::byte>,std::uint32_t &,CaptureDiagnostic &,bool track=false,NativeEvidenceSource={}) noexcept;
   bool CStringAt(std::uint32_t,std::uint32_t,std::span<std::byte>,std::uint32_t &,CaptureDiagnostic &,bool track=false,std::uint32_t extent=0) noexcept;
   bool Leaf(const CaptureFieldAccess &,CaptureValueWriter &,CaptureDiagnostic &) noexcept;
+  bool BasicConversion(EntityRead,const CaptureRoot &,std::uint64_t address,std::uint32_t mask,
+                       std::uint64_t &result,CaptureDiagnostic &) noexcept;
+  bool ExistingPlus(const CaptureRoot &,std::uint32_t &holder,std::uint32_t &payload,CaptureDiagnostic &) noexcept;
+  bool ExecuteFlatTear(const CaptureRoot &,CaptureValueWriter &,CaptureDiagnostic &) noexcept;
+  std::uint64_t BindFlatTear();
   bool Open(const CaptureFieldAccess &,CaptureTraversalSource &,CaptureDiagnostic &) noexcept;
   bool Element(const CaptureFieldAccess &,const CaptureTraversalSource &,std::uint16_t,CaptureRoot &,CaptureDiagnostic &) noexcept;
   bool Close(const CaptureFieldAccess &,const CaptureTraversalSource &,CaptureDiagnostic &) noexcept;
@@ -200,6 +215,8 @@ struct EntitySource::Impl {
   bool ItemResource(std::uint32_t,CaptureLink &,CaptureDiagnostic &) noexcept;
   bool FileResource(std::uint32_t,bool,CaptureLink &,CaptureDiagnostic &,bool player_sprite=false) noexcept;
   bool ImageResource(std::uint32_t,CaptureLink &,CaptureDiagnostic &) noexcept;
+  bool ImagePathResource(std::uint32_t,CaptureLink &,CaptureDiagnostic &) noexcept;
+  bool ConfigResource(std::uint32_t,CaptureLink &,CaptureDiagnostic &) noexcept;
   bool AnimationResource(std::uint32_t,std::uint32_t,CaptureLink &,CaptureDiagnostic &,const CaptureLink *prepared_file=nullptr) noexcept;
   bool Intern(NativeResource,std::span<const std::byte>,std::span<const NativeAnimationLayer>,CaptureLink &,CaptureDiagnostic &) noexcept;
   bool ReuseResource(NativeResourceKey,CaptureLink &,void *,bool (*)(void *) noexcept,bool cross_frame) noexcept;

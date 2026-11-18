@@ -213,6 +213,41 @@ bool EntitySource::Impl::AnimationResource(std::uint32_t owner,std::uint32_t ani
   const bool stored=Intern(value,std::span(name).first(length),rows,out,d);
   scratch_used=mark;return stored;});
 }
+// 两种采集器共用 VFS 规范化及目录登记，构造产物不含原生字符串地址。
+bool EntitySource::Impl::ImagePathResource(std::uint32_t address,CaptureLink &out,CaptureDiagnostic &d) noexcept {
+  out={CapturedReferenceKind::Null,0};
+  return ResourceOnce({NativeResourceSource::ImagePath,address},out,[&]{
+    std::array<std::byte,4096> bytes{};
+    std::uint32_t size=0;
+    if(!StringAt(address,bytes,size,d))return false;
+    if(!size)return true;
+    const auto path=Vfs(std::span(bytes).first(size),1);
+    if(path.empty())return FailCapture(d,CaptureFailure::ResourcePending,{facts.subject});
+    NativeResource value;
+    value.table=1;
+    value.kind=state::kResourceImagePathKind;
+    return Intern(value,path,{},out,d);
+  });
+}
+
+bool EntitySource::Impl::ConfigResource(std::uint32_t pointer,CaptureLink &out,CaptureDiagnostic &d) noexcept {
+  out={CapturedReferenceKind::Null,0};
+  if(!pointer)return true;
+  return ResourceOnce({NativeResourceSource::Config,pointer},out,[&]{
+    NativeResource value;
+    value.table=4;
+    value.kind=8;
+    if(pointer>UINT32_MAX-0x8c)return FailCapture(d,CaptureFailure::AddressRange,{facts.subject});
+    for(unsigned i=0;i<3;++i)if(!Value(std::uint64_t(pointer)+4*i,value.values[i],d))return false;
+    if(!Value(std::uint64_t(pointer)+0x64,value.values[3],d) || !Value(std::uint64_t(pointer)+0x24,value.values[4],d) ||
+       !std::isfinite(std::bit_cast<float>(value.values[4])))return FailCapture(d,CaptureFailure::InvalidValue,{facts.subject});
+    CaptureLink file;
+    if(!FileResource(pointer+0x74,false,file,d))return false;
+    value.links[0]=file.handle;
+    return Intern(value,{},{},out,d);
+  });
+}
+
 bool EntitySource::Impl::Resource(const CaptureFieldAccess &a,CaptureLink &out,CaptureDiagnostic &d) noexcept {
   const auto address=std::uint64_t(a.root.address)+a.field.native_offset;const auto recipe=Recipe(a.field);
   if(address>UINT32_MAX)return Reject(a,d,CaptureFailure::AddressRange);
@@ -221,11 +256,7 @@ bool EntitySource::Impl::Resource(const CaptureFieldAccess &a,CaptureLink &out,C
     if(const auto *sprite=PlayerSprite(a.location.parents);sprite&&sprite->address==address){out=sprite->file;return true;}
     return FileResource(std::uint32_t(address),true,out,d);
   }
-  if(recipe==EntityRead::ImagePath)return ResourceOnce({NativeResourceSource::ImagePath,std::uint32_t(address)},out,[&]{
-    std::array<std::byte,4096> bytes{};std::uint32_t size=0;
-    if(!StringAt(std::uint32_t(address),bytes,size,d))return false;if(!size)return true;
-    const auto path=Vfs(std::span(bytes).first(size),1);if(path.empty())return Reject(a,d,CaptureFailure::ResourcePending);
-    NativeResource value;value.table=1;value.kind=state::kResourceImagePathKind;return Intern(value,path,{},out,d);});
+  if(recipe==EntityRead::ImagePath)return ImagePathResource(std::uint32_t(address),out,d);
   if(recipe==EntityRead::Image){if(PlayerLayerImage(a,out))return true;
     std::array<std::uint32_t,2> pair{};
     if(!Tracked(address,pair,d) || (pair[0]&&!pair[1]) || !ImageResource(pair[0],out,d))
@@ -251,14 +282,7 @@ bool EntitySource::Impl::Resource(const CaptureFieldAccess &a,CaptureLink &out,C
     return Intern(value,{},{},out,d);}
   if(recipe==EntityRead::Item)return ItemResource(pointer,out,d);
   if(recipe==EntityRead::QueueItem){std::uint32_t type=0;if(!Value(pointer,type,d))return false;return type!=2 || ItemResource(pointer,out,d);}
-  if(recipe==EntityRead::Config)return ResourceOnce({NativeResourceSource::Config,pointer},out,[&]{
-    NativeResource value;value.table=4;value.kind=8;
-    if(pointer>UINT32_MAX-0x8c)return Reject(a,d,CaptureFailure::AddressRange);
-    for(unsigned i=0;i<3;++i)if(!Value(std::uint64_t(pointer)+4*i,value.values[i],d))return false;
-    if(!Value(std::uint64_t(pointer)+0x64,value.values[3],d) || !Value(std::uint64_t(pointer)+0x24,value.values[4],d) ||
-       !std::isfinite(std::bit_cast<float>(value.values[4])))return Reject(a,d,CaptureFailure::InvalidValue);
-    CaptureLink file;if(!FileResource(pointer+0x74,false,file,d))return false;value.links[0]=file.handle;
-    return Intern(value,{},{},out,d);});
+  if(recipe==EntityRead::Config)return ConfigResource(pointer,out,d);
   return Reject(a,d,CaptureFailure::MissingHandler);
 }
 }

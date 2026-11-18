@@ -38,7 +38,7 @@ add_library(isaac_cs_world STATIC src/world/model.cpp src/world/identity.cpp
   src/world/common/native_source.cpp src/world/common/membership.cpp src/world/compatibility/min_read_v1.cpp src/world/compatibility/encode.cpp
   src/world/domains/entity/collect.cpp src/world/domains/grid/collect.cpp
   src/world/common/frame_read_regions.cpp
-  src/world/binary/read_session.cpp src/world/binary/entity_source.cpp src/world/binary/entity_source_reuse.cpp src/world/binary/entity_containers.cpp src/world/binary/entity_resources.cpp src/world/binary/resource_export.cpp
+  src/world/binary/read_session.cpp src/world/binary/entity_source.cpp src/world/binary/entity_flat_capture.cpp src/world/binary/entity_source_reuse.cpp src/world/binary/entity_containers.cpp src/world/binary/entity_resources.cpp src/world/binary/resource_export.cpp
   src/world/binary/entity_player.cpp src/world/binary/grid_source.cpp src/world/binary/scene_source.cpp src/world/binary/scene_map.cpp src/world/binary/run_source.cpp src/world/binary/display_source.cpp src/world/binary/presentation_source.cpp src/world/binary/hud_probability.cpp)
 target_include_directories(isaac_cs_world PUBLIC src)
 target_compile_features(isaac_cs_world PUBLIC cxx_std_20)
@@ -62,7 +62,7 @@ add_custom_command(OUTPUT "${GENERATED}/state_capture.inc" "${GENERATED}/state_w
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/observation-expansion/run-catalog.json"
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-21/stream-catalog.json" VERBATIM)
 add_library(isaac_cs_state STATIC src/state/layout.cpp src/state/nested.cpp src/state/owned_payload.cpp src/state/entity_extension.cpp src/state/entity_counters.cpp src/state/npc_presentation.cpp src/state/body_codec.cpp src/state/resource_protocol.cpp src/state/wire_protocol.cpp src/state/acceptance.cpp src/state/budget.cpp
-  src/state/capture.cpp src/state/capture_values.cpp src/state/capture_exchange.cpp src/state/capture_executor.cpp src/state/production_cache.cpp src/state/events.cpp src/state/host_publish.cpp
+  src/state/capture.cpp src/state/capture_values.cpp src/state/flat_capture.cpp src/state/capture_exchange.cpp src/state/capture_executor.cpp src/state/production_cache.cpp src/state/events.cpp src/state/host_publish.cpp
   src/state/client_memory.cpp src/state/client_tables.cpp src/state/client_shadow.cpp src/state/client_events.cpp src/state/client_receive.cpp src/state/client_validation.cpp src/state/client_plan.cpp src/state/client_apply.cpp
   "${GENERATED}/state_capture.inc" "${GENERATED}/state_wire.inc" "${GENERATED}/state_flat.inc"
   "${GENERATED}/state_client.inc" "${GENERATED}/state_members.inc" "${GENERATED}/state_body_codec.inc" "${GENERATED}/state_resource_protocol.inc" "${GENERATED}/state_protocol.inc" "${GENERATED}/state_budget.inc")

@@ -40,6 +40,8 @@ struct CaptureRecord {
   CaptureFailure retained_reason=CaptureFailure::None;
   bool retained=false; // 对象仍在，由 Host 沿用同一实例的上次完整值。
   bool fast_body=false; // 已按实际正文长度核过快槽预算，仅供同段克隆。
+  // 平铺根直接借用包内字节区，长度包括主区及全部附加段。
+  std::uint32_t flat_offset=0,flat_bytes=0;
 };
 // 资源目录的不可变前缀及本包引用表尺寸；随packet交接，不借用主线程可变计数。
 struct CaptureCatalogStamp {std::uint32_t references=0,resources=0,resource_bytes=0,resource_layers=0;};
@@ -99,6 +101,8 @@ public:
   // Begin固定根身份、流与真实块mask；Finish只封闭值事务，尚不代表正文或完整world合法。
   bool BeginRoot(CaptureSubject,std::uint16_t layout,BodyStream,std::uint32_t mask) noexcept;
   bool FinishRoot() noexcept;
+  std::span<std::byte> BeginFlatRoot(CaptureSubject,std::uint16_t layout,std::uint32_t max_bytes) noexcept;
+  bool FinishFlatRoot(std::uint32_t bytes) noexcept;
   void AbortRoot() noexcept;
   // 回卷同一对象的所有流，随后只提交身份标记。只由普通采集的对象根使用。
   struct RootCheckpoint {std::uint32_t records,cells,paths,bytes;std::uint64_t references;};
@@ -149,7 +153,7 @@ private:
   bool SetSlice(const CodecLocation &,BoundPath *,ScalarKind,std::uint32_t width,std::uint32_t count,
                 std::span<const std::byte>,CaptureWrittenValue &) noexcept;
   bool FailCapacity(const CodecLocation &,const char *arena,std::size_t used,std::size_t limit,std::uint64_t requested) noexcept;
-  bool OpenRoot(CaptureSubject,std::uint16_t,BodyStream,std::uint32_t) noexcept;
+  bool OpenRoot(CaptureSubject,std::uint16_t,BodyStream,std::uint32_t,bool flat=false) noexcept;
   std::span<std::byte> ReserveScalars(std::uint32_t,const CodecLocation &) noexcept;
   void MarkFastBody(bool eligible,bool reviewed_pair) noexcept {
     buffer_.records_[records_].fast_body=eligible;
@@ -170,6 +174,7 @@ private:
   mutable std::array<std::uint32_t,kCodecMaxDepth> allowed_mask_{};
   mutable std::size_t allowed_depth_=0;
   std::uint32_t records_=0,cells_=0,paths_=0,bytes_=0,mark_cells_=0,mark_paths_=0,mark_bytes_=0;
+  std::uint32_t flat_capacity_=0;
   std::uint32_t first_reference_cell_=UINT32_MAX,last_reference_end_=0;
   bool shared_body_=false;
   bool open_=false,sealed_=false;

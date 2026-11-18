@@ -13,13 +13,32 @@ std::span<const std::byte> Text(NativeResourceView view,const NativeResource &r)
 void String(std::vector<std::byte> &out,std::span<const std::byte> text){if(text.size()>4096)Fail("path_length");Put(out,text.size(),2);out.insert(out.end(),text.begin(),text.end());}
 }
 std::vector<state::HostStateResource> ExportStateResources(NativeResourceView view,std::span<const state::HostStateResource> previous){
-  // 主线程handle仅追加。各table独立编号，重传与换房保持原编号／原内容。
-  std::vector<HostStateResource> result(previous.begin(),previous.end());std::array<std::uint32_t,8> counts{};
-  for(const auto &r:result){if(r.key.table>=counts.size())Fail("table");counts[r.key.table]=std::max(counts[r.key.table],std::uint32_t(r.key.index)+1);}
-  if(result.size()>view.entries.size())Fail("catalog_rewound");
-  std::map<std::uint64_t,ResourceKey> keys;for(const auto &r:result)keys.emplace(r.handle,r.key);
-  for(std::size_t i=result.size();i<view.entries.size();++i){const auto &r=view.entries[i];if(!r.handle||r.table>=counts.size()||counts[r.table]>=kNullIndex||keys.contains(r.handle))Fail("resource_index_exhausted_or_conflict");keys.emplace(r.handle,ResourceKey{r.table,std::uint16_t(counts[r.table]++)});}
-  const auto reference=[&](std::uint64_t handle,std::uint8_t table){if(!handle)return kNullIndex;const auto i=keys.find(handle);if(i==keys.end()||i->second.table!=table)Fail("dependency_missing");return i->second.index;};
+  // Intern 在目录末尾分配 1-based 句柄，各表的线上号独立累加。
+  if(previous.size()>view.entries.size())Fail("catalog_rewound");
+  std::vector<HostStateResource> result(previous.begin(),previous.end());
+  std::array<std::uint32_t,8> counts{};
+  for(std::size_t i=0;i<result.size();++i){
+    const auto &entry=result[i];
+    if(entry.handle!=i+1 || entry.key.table>=counts.size())Fail("resource_index_conflict");
+    counts[entry.key.table]=std::max(counts[entry.key.table],std::uint32_t(entry.key.index)+1);
+  }
+  auto key_memory=memory::Reserve(memory::Pool::Workspace,
+    (view.entries.size()-result.size())*sizeof(ResourceKey),"host_resource_keys");
+  std::vector<ResourceKey> added(view.entries.size()-result.size());
+  key_memory->Resize(added.capacity()*sizeof(ResourceKey));
+  for(std::size_t i=result.size();i<view.entries.size();++i){
+    const auto &entry=view.entries[i];
+    if(entry.handle!=i+1 || entry.table>=counts.size() || counts[entry.table]>=kNullIndex)Fail("resource_index_exhausted_or_conflict");
+    added[i-previous.size()]={entry.table,std::uint16_t(counts[entry.table]++)};
+  }
+  const auto reference=[&](std::uint64_t handle,std::uint8_t table){
+    if(!handle)return kNullIndex;
+    if(handle>view.entries.size())Fail("dependency_missing");
+    const auto i=std::size_t(handle-1);
+    const auto key=i<previous.size()?previous[i].key:added[i-previous.size()];
+    if(key.table!=table)Fail("dependency_missing");
+    return key.index;
+  };
   std::array<std::byte,65536> check{};std::array<ProjectionFact,256> facts{};std::array<BodyFieldView,32> fields{};
   ResourceCodecScratch scratch{{facts,0,fields}};
   for(std::size_t i=result.size();i<view.entries.size();++i){const auto &r=view.entries[i];const auto &values=r.values;
@@ -44,7 +63,7 @@ std::vector<state::HostStateResource> ExportStateResources(NativeResourceView vi
       Put(bytes,0,1);for(const auto v:op.colors[0])Put(bytes,v,4);break;}
     default:Fail("unsupported_resource_kind");
     }
-    const ResourceEntryView entry{keys.at(r.handle),r.kind,bytes};
+    const ResourceEntryView entry{added[i-previous.size()],r.kind,bytes};
     // 正式编码器核typed描述及合法路径；不加载资源，不把元数据标为GPU／音频ready。
     EncodeResourceEntryInto(entry,check,scratch);
     result.push_back({r.handle,entry.key,r.kind,std::make_shared<const HostStateBytes>(bytes)});

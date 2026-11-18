@@ -1,4 +1,5 @@
 #include "state/capture_values.h"
+#include "state/flat_layout.h"
 #include "core/capture_cost.h"
 #include <algorithm>
 #include <bit>
@@ -127,6 +128,7 @@ bool CaptureValueWriter::Production(const CaptureRecord &source) noexcept {
 bool CaptureValueWriter::Append(const CapturePacket &packet,std::uint32_t index,CaptureAppendContext context) noexcept {
   if(index>=packet.records.size())return Fail(CaptureFailure::InvalidTransaction);
   const auto &record=packet.records[index];
+  if(record.flat_bytes)return Fail(CaptureFailure::InvalidTransaction);
   if(record.first_cell>packet.cells.size() || record.cell_count>packet.cells.size()-record.first_cell ||
      !BeginRoot(record.subject,record.layout,record.stream,record.mask))return Fail(CaptureFailure::InvalidTransaction);
   if(record.purpose && !Production(record))return false;
@@ -265,16 +267,49 @@ bool CaptureValueWriter::BeginRoot(CaptureSubject subject,std::uint16_t layout,B
   return OpenRoot(subject,layout,stream,mask);
 }
 // 已绑定执行器持有确切的流掩码；公共入口先核调用方提供的掩码。
-bool CaptureValueWriter::OpenRoot(CaptureSubject subject,std::uint16_t layout,BodyStream stream,std::uint32_t mask) noexcept {
+bool CaptureValueWriter::OpenRoot(CaptureSubject subject,std::uint16_t layout,BodyStream stream,std::uint32_t mask,bool flat) noexcept {
   if(diagnostic_.reason!=CaptureFailure::None)return false;
   if(open_||sealed_||catalog_set_)return Fail(CaptureFailure::InvalidTransaction);
   root_={subject,0,0,layout};
-  if(!subject.space || !subject.local || !subject.use || (!mask && stream!=BodyStream::Value))return Fail(CaptureFailure::InvalidValue);
+  if(!subject.space || !subject.local || !subject.use || (!flat && !mask && stream!=BodyStream::Value))return Fail(CaptureFailure::InvalidValue);
   if(records_>=buffer_.records_.size())return Fail(CaptureFailure::RecordBudget);
   mark_cells_=cells_;mark_paths_=paths_;mark_bytes_=bytes_;open_=true;allowed_depth_=0;
   shared_body_=false;first_reference_cell_=UINT32_MAX;last_reference_end_=0;
   if(!buffer_.body_clone_ranges_.empty())buffer_.body_clone_ranges_[records_]={};
   buffer_.records_[records_]={subject,layout,stream,mask,cells_,0};return true;
+}
+// 直接在既有纯值 arena 中构造本根，失败时回到包含对齐填充在内的事务起点。
+std::span<std::byte> CaptureValueWriter::BeginFlatRoot(CaptureSubject subject,std::uint16_t layout,std::uint32_t max_bytes) noexcept {
+  const auto *description=FindLayout(layout);
+  const auto *flat=FindFlatLayout(layout);
+  if(!description || !description->flat_record || !flat || witness_.phase!=CapturePhase::Ordinary){
+    Fail(CaptureFailure::UnknownLayout);
+    return {};
+  }
+  if(!OpenRoot(subject,layout,BodyStream::World,0,true))return {};
+  auto free=std::span(buffer_.bytes_).subspan(bytes_);
+  const auto padding=(32u-(reinterpret_cast<std::uintptr_t>(free.data())&31u))&31u;
+  const auto available=padding<=free.size()?std::min<std::size_t>(max_bytes,free.size()-padding):0;
+  if(available<flat->mirror_size){
+    FailCapacity({{},layout,kNullIndex,kNullIndex},"flat_bytes",bytes_,buffer_.bytes_.size(),padding+flat->mirror_size);
+    AbortRoot();
+    return {};
+  }
+  std::fill_n(free.begin(),padding,std::byte{});
+  buffer_.records_[records_].flat_offset=bytes_+std::uint32_t(padding);
+  flat_capacity_=std::uint32_t(available);
+  return free.subspan(padding,available);
+}
+
+bool CaptureValueWriter::FinishFlatRoot(std::uint32_t bytes) noexcept {
+  const auto *flat=FindFlatLayout(root_.layout);
+  if(!open_ || !flat_capacity_ || !flat || bytes<flat->mirror_size || bytes>flat_capacity_)
+    return Fail(CaptureFailure::InvalidTransaction);
+  auto &record=buffer_.records_[records_];
+  record.flat_bytes=bytes;
+  bytes_=record.flat_offset+bytes;
+  flat_capacity_=0;
+  return FinishRoot();
 }
 bool CaptureValueWriter::Put(const CodecLocation &location,CaptureCellKind kind,ScalarKind scalar,
     std::uint32_t count,std::uint16_t aux,std::span<const std::byte> value) noexcept {
@@ -453,7 +488,7 @@ bool CaptureValueWriter::PutLinks(const CodecLocation &location,bool resource,st
 }
 bool CaptureValueWriter::FinishRoot() noexcept {
   if(diagnostic_.reason!=CaptureFailure::None){AbortRoot();return false;}
-  if(!open_||sealed_)return Fail(CaptureFailure::InvalidTransaction);
+  if(!open_||sealed_||flat_capacity_)return Fail(CaptureFailure::InvalidTransaction);
   auto &record=buffer_.records_[records_];record.cell_count=cells_-record.first_cell;
   if(shared_body_&&!buffer_.body_clone_ranges_.empty())buffer_.body_clone_ranges_[records_]={mark_paths_,paths_-mark_paths_,
     mark_bytes_,bytes_-mark_bytes_,first_reference_cell_,last_reference_end_};
@@ -463,6 +498,7 @@ bool CaptureValueWriter::FinishRoot() noexcept {
 void CaptureValueWriter::AbortRoot() noexcept {
   if(!open_)return;
   cells_=mark_cells_;paths_=mark_paths_;bytes_=mark_bytes_;open_=false;shared_body_=false;
+  flat_capacity_=0;
   if(!buffer_.body_clone_ranges_.empty())buffer_.body_clone_ranges_[records_]={};
   Fail(CaptureFailure::Incomplete);
 }
@@ -533,7 +569,7 @@ CapturedBodySource::CapturedBodySource(const CapturePacket &packet,std::uint32_t
     std::span<std::uint32_t> index_scratch)
     :packet_(packet),resolver_(resolver),scratch_(scratch) {
   if(record>=packet.records.size())SourceGap("record_index");record_=packet.records[record];
-  if(record_.first_cell>packet.cells.size() || record_.cell_count>packet.cells.size()-record_.first_cell ||
+  if(record_.flat_bytes || record_.first_cell>packet.cells.size() || record_.cell_count>packet.cells.size()-record_.first_cell ||
      record_.cell_count>index_scratch.size()||Overlap(packet.bytes,scratch))SourceGap("record_or_scratch_range");
   auto index=index_scratch.first(record_.cell_count);
   for(std::uint32_t i=0;i<index.size();++i){index[i]=record_.first_cell+i;const auto &cell=packet.cells[index[i]];

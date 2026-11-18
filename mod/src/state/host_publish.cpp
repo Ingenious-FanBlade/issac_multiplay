@@ -3,6 +3,7 @@
 #include "core/deferred_values.h"
 #include "state_host_fields.inc"
 #include <algorithm>
+#include <bit>
 #include <bitset>
 #include <cstring>
 #include <map>
@@ -16,6 +17,38 @@ bool Same(std::span<const std::byte> a,std::span<const std::byte> b){return a.si
 using Key=std::tuple<std::uint16_t,std::uint64_t,std::uint64_t>;
 Key Identity(CaptureSubject s){return {s.space,s.local,s.use};}
 Key Identity(PresentationMember s){return {std::uint16_t(s.space),s.id,s.use};}
+
+constexpr std::uint32_t kMissingMember=std::uint32_t(kNullIndex)+1;
+// 只索引本帧实际成员和沿用身份。开放寻址使用连续空间，容量记入 Workspace。
+class FrameMemberLookup {
+  struct Entry {Key identity;std::uint32_t index=kMissingMember;};
+public:
+  explicit FrameMemberLookup(std::size_t count)
+    : memory_(memory::Reserve(memory::Pool::Workspace,
+        std::bit_ceil(2*count+1)*sizeof(Entry),"host_frame_links")),
+      entries_(std::bit_ceil(2*count+1)) {}
+
+  void Add(Key key,std::uint32_t index) noexcept {
+    auto &entry=entries_[Slot(key)];
+    if(entry.index==kMissingMember)entry={key,index};
+  }
+
+  std::uint32_t Find(Key key) const noexcept {return entries_[Slot(key)].index;}
+
+private:
+  std::size_t Slot(Key key) const noexcept {
+    const auto [space,local,use]=key;
+    auto value=(local*0x9e3779b97f4a7c15ull)^std::rotl(use*0xbf58476d1ce4e5b9ull,21)^space;
+    value^=value>>32;
+    const auto mask=entries_.size()-1;
+    auto slot=std::size_t(value)&mask;
+    while(entries_[slot].index!=kMissingMember && entries_[slot].identity!=key)slot=(slot+1)&mask;
+    return slot;
+  }
+
+  memory::Lease memory_;
+  std::vector<Entry> entries_;
+};
 // 原生身份 revision 从0起步，线上 shape 保留0为无效；只在封存边界做一一映射。
 std::uint64_t WireShape(CaptureSubject subject){
   if(subject.space==1||subject.space==2){
@@ -307,37 +340,45 @@ HostStateSnapshotRef HostStateCapture::Capture(const CapturePacket &packet,std::
     out->resource_epoch=new_run?1:prior->resource_epoch+unsigned(resource_changed);
   }
   FrameContext context(*out);
-  // 解析器只在编码器实际访问链接字段时登记。固定工作区避开 noexcept 回调中的分配。
+  // 只按当前包的身份目录查一次。正文与平铺补丁都用直接编号表，保留沿用与不存在的区别。
+  FrameMemberLookup member_lookup(out->members.size()+packet.records.size());
+  for(const auto &entry:out->members)member_lookup.Add(Identity(entry.identity),entry.index);
+  for(const auto &entry:packet.records)if(entry.retained)member_lookup.Add(Identity(entry.subject),kNullIndex);
+  const auto refs_memory=memory::Reserve(memory::Pool::Workspace,packet.references.size()*sizeof(std::uint32_t),"host_frame_reference_indices");
+  std::vector<std::uint32_t> reference_indices;
+  reference_indices.reserve(packet.references.size());
+  for(const auto &ref:packet.references)reference_indices.push_back(member_lookup.Find({ref.space,ref.local,ref.use}));
+  refs_memory->Resize(reference_indices.capacity()*sizeof(std::uint32_t));
+  // 解析器只在编码器实际访问链接字段时登记，无 noexcept 回调内分配。
   struct Resolve {
-    const CapturePacket &packet;
-    const HostStateSnapshot &snapshot;
+    std::span<const std::uint32_t> reference_indices;
+    std::span<const HostStateResource> resources;
     std::array<std::uint16_t,kHostMemberIndices> refs{};
     std::bitset<kHostMemberIndices> seen;
     std::size_t count=0;
     std::uint32_t resource_prefix=0;
     bool collect=true,missing_reference=false;
-  } resolve{packet,*out};
+  } resolve{reference_indices,out->resources};
   CaptureLinkResolver resolver{&resolve,[](void *p,CaptureSubject,bool resource,std::uint8_t table,CaptureLink link,std::uint16_t &value) noexcept {
     auto &r=*static_cast<Resolve *>(p);if(link.kind==CapturedReferenceKind::Null){if(link.handle)return false;value=kNullIndex;return true;}
     if((link.kind!=CapturedReferenceKind::Identity&&link.kind!=CapturedReferenceKind::Pending)||!link.handle)return false;
     if(resource){
-      for(const auto &e:r.snapshot.resources)if(e.handle==link.handle&&e.key.table==table){
-        value=e.key.index;
-        if(r.collect)r.resource_prefix=(std::max)(r.resource_prefix,std::uint32_t(&e-r.snapshot.resources.data()+1));
-        return true;
-      }
-      return false;
+      if(link.handle>r.resources.size())return false;
+      const auto &entry=r.resources[std::size_t(link.handle-1)];
+      if(entry.handle!=link.handle || entry.key.table!=table)return false;
+      value=entry.key.index;
+      if(r.collect)r.resource_prefix=(std::max)(r.resource_prefix,std::uint32_t(link.handle));
+      return true;
     }
-    if(link.handle>r.packet.references.size())return false;const auto &ref=r.packet.references[std::size_t(link.handle-1)];
-    for(const auto &e:r.snapshot.members)if(e.identity.space==ref.space&&e.identity.id==ref.local&&e.identity.use==ref.use){
-      value=e.index;
+    if(link.handle>r.reference_indices.size())return false;
+    const auto translated=r.reference_indices[std::size_t(link.handle-1)];
+    if(translated<kNullIndex){
+      value=std::uint16_t(translated);
       if(r.collect&&!r.seen[value]){r.seen[value]=true;r.refs[r.count++]=value;}
       return true;
     }
     // 首次出现但布局尚未确认的沿用成员没有线上编号。只由字段编码器决定能否用空引用。
-    if(std::any_of(r.packet.records.begin(),r.packet.records.end(),[&](const auto &root){
-        return root.retained&&root.subject.space==ref.space&&root.subject.local==ref.local&&root.subject.use==ref.use;
-      })){
+    if(translated==kNullIndex){
       r.missing_reference=true;
       value=kNullIndex;
       return true;
@@ -347,8 +388,9 @@ HostStateSnapshotRef HostStateCapture::Capture(const CapturePacket &packet,std::
   std::optional<FrameContext> reuse_context;
   for(std::uint32_t i=0;i<packet.records.size();++i){const auto &r=packet.records[i];if(r.event_sequence||r.retained)continue;
     if(r.layout==195)continue; // 纯身份锚点没有正文，不伪造零长状态记录。
-    const auto member=std::find_if(out->members.begin(),out->members.end(),[&](const auto &m){return Identity(m.identity)==Identity(r.subject);});
-    if(member==out->members.end()||member->identity.shape!=WireShape(r.subject)||member->identity.layout!=r.layout){
+    const auto member_index=member_lookup.Find(Identity(r.subject));
+    const auto *member=member_index<kNullIndex?MemberAt(*out,std::uint16_t(member_index)):nullptr;
+    if(!member||member->identity.shape!=WireShape(r.subject)||member->identity.layout!=r.layout){
       if(!ordinary)continue;
       Fail("world_member_changed");
     }

@@ -91,29 +91,39 @@ bool EntitySource::Impl::ReuseResource(NativeResourceKey key,CaptureLink &out,vo
     bool (*parse)(void *) noexcept,bool cross_frame) noexcept {
   const auto serial=services.reads->Serial();
   if(!serial)return false;
-  if(serial!=memo_serial){memo_serial=serial;memo_used=0;}
-  if(key.kind!=NativeResourceSource::Image){
-    key.space=facts.subject.space;key.local=facts.subject.local;key.use=facts.subject.use;key.shape=facts.subject.shape;
+  const auto &w=window.witness;
+  const auto category=unsigned(key.kind);
+  const bool stable=key.kind==NativeResourceSource::Item || key.kind==NativeResourceSource::Config;
+  // 只有已核整局地址稳定的配置允许无内容证言命中。scope／代次／写水位更迭时撤销。
+  if(memo_scope!=w.scope || memo_generation!=w.generation || memo_epoch!=reuse_epoch){
+    memo_used=0;
+    memo_scope=w.scope;
+    memo_generation=w.generation;
+    memo_epoch=reuse_epoch;
   }
   const auto find=[&](auto end){
     return std::lower_bound(resource_memos.begin(),end,key,[](const auto &entry,const auto &wanted){return entry.key<wanted;});
   };
-  auto end=resource_memos.begin()+memo_used;
-  auto at=find(end);
-  const auto category=unsigned(key.kind);
-  // 录制外层证明时不能用没有输入证据的同段命中。
+  // 外层需要完整输入证明时，从真实来源读一遍，或复用下面带完整证言的条目。
   bool recording_inputs=false;
   for(auto *record=input_recorder;record;record=record->parent)recording_inputs|=record->input.evidence.valid;
-  if(!recording_inputs&&at!=end&&at->key==key){out=at->link;++stats.resource_hits[category];return true;}
+  if(stable&&!recording_inputs){
+    const auto end=resource_memos.begin()+memo_used;
+    const auto at=find(end);
+    if(at!=end&&at->key==key){out=at->link;++stats.resource_hits[category];return true;}
+  }
 
   NativeResourceReuse *entry=nullptr;
   if(cross_frame&&!resource_reuse.empty()){
     const auto slot=(std::uint64_t(key.address)/4+std::uint64_t(key.owner)/16+category*31u)%resource_reuse.size();
     entry=&resource_reuse[std::size_t(slot)];
   }
-  const bool hit=entry&&entry->epoch==reuse_epoch&&entry->scope==window.witness.scope&&entry->key==key&&InputsMatch(entry->input);
+  // 动态资源即使在同一读段也必须核完整输入。覆盖不到的记录正常重读。
+  const bool hit=entry&&entry->epoch==reuse_epoch&&entry->scope==w.scope&&entry->generation==w.generation&&
+    entry->key==key&&InputsMatch(entry->input);
   if(hit){
-    out=entry->link;++stats.resource_frame_hits[category];
+    out=entry->link;
+    if(entry->serial==serial)++stats.resource_hits[category];else ++stats.resource_frame_hits[category];
     ReplayInput(entry->input);
   }else{
     ++stats.resource_parses[category];
@@ -128,15 +138,18 @@ bool EntitySource::Impl::ReuseResource(NativeResourceKey key,CaptureLink &out,vo
       }
       // 原解析登记了结构证言时照常走该解析入口，保留本根的 Verify 责任。
       if(input.evidence.valid&&input.evidence.count&&witness_used==start&&services.reads->Serial()==serial){
-        entry->key=key;entry->scope=window.witness.scope;entry->epoch=reuse_epoch;entry->link=out;
+        entry->key=key;entry->scope=w.scope;entry->generation=w.generation;
+        entry->epoch=reuse_epoch;entry->serial=serial;entry->link=out;
         entry->input.evidence=input.evidence;
         std::copy_n(input.ranges.begin(),input.evidence.count,entry->input.ranges.begin());
         std::copy_n(input.bytes.begin(),input.evidence.used,entry->input.bytes.begin());
       }
     }else if(!parse(context))return false;
   }
-  // 解析可能先登记依赖，返回后重新定位。同段目录保持独立的生命周期和命中统计。
-  end=resource_memos.begin()+memo_used;at=find(end);
+  if(!stable)return true;
+  // 解析可能先登记依赖，返回后重新定位稳定配置的键。
+  const auto end=resource_memos.begin()+memo_used;
+  const auto at=find(end);
   if(at!=end&&at->key==key)at->link=out;
   else if(memo_used<resource_memos.size()){
     std::move_backward(at,end,end+1);*at={key,out};++memo_used;

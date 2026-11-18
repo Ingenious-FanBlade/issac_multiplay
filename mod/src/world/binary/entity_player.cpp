@@ -56,6 +56,48 @@ bool EntitySource::Impl::Incubus(std::uint32_t familiar,std::int32_t &amount,Cap
 }
 
 // 每个叶子只写当前数字路径的一项，所有有符号窄化、掩码及可空关系都显式处理。
+// 原生字段到规范值的转换独立于正文编码，帧换算只使用本次窗口的 game_frame。
+bool EntitySource::Impl::BasicConversion(EntityRead recipe,const CaptureRoot &root,std::uint64_t address,std::uint32_t mask,
+    std::uint64_t &result,CaptureDiagnostic &d) noexcept {
+  switch(recipe){
+    case EntityRead::Mask:
+    case EntityRead::Order:{
+      std::uint32_t raw=0;
+      if(!Value(address,raw,d))return false;
+      result=recipe==EntityRead::Mask?raw&mask:raw;
+      return true;
+    }
+    case EntityRead::Bool:{
+      std::uint8_t raw=0;
+      if(!Value(address,raw,d))return false;
+      result=raw!=0;
+      return true;
+    }
+    case EntityRead::Expire:{
+      std::int32_t raw=0;
+      if(!Value(address,raw,d))return false;
+      result=std::bit_cast<std::uint32_t>(ExpireFrame(window.witness.game_frame,raw));
+      return true;
+    }
+    case EntityRead::Flying:{
+      std::uint8_t engaged=0,raw=0;
+      if(!Value(address+1,engaged,d) || engaged>1 || (engaged && (!Value(address,raw,d) || raw>1)))
+        return FailCapture(d,CaptureFailure::InvalidValue,root);
+      result=engaged?raw:255u;
+      return true;
+    }
+    case EntityRead::Water:{
+      std::uint8_t engaged=0;
+      std::uint32_t raw=0;
+      if(!Value(address+4,engaged,d) || engaged>1)return FailCapture(d,CaptureFailure::InvalidValue,root);
+      if(engaged && !Value(address,raw,d))return false;
+      result=engaged?(std::uint64_t{1}<<32)|raw:0;
+      return true;
+    }
+    default:return FailCapture(d,CaptureFailure::MissingHandler,root);
+  }
+}
+
 bool EntitySource::Impl::Leaf(const CaptureFieldAccess &a,CaptureValueWriter &writer,CaptureDiagnostic &d) noexcept {
   evidence_layout=a.root.layout;evidence_field=a.field.index;
   const auto recipe=Recipe(a.field);CheckReuseRecipe(recipe);
@@ -82,14 +124,10 @@ bool EntitySource::Impl::Leaf(const CaptureFieldAccess &a,CaptureValueWriter &wr
       if(const auto *map=PlayerMap(a);map&&a.field.index==host_field::PlayerCostumeMap::layer_id){result=std::bit_cast<std::uint32_t>(map->layer);break;}
       if(size!=a.field.native_size || !Read(address,std::span(bytes).first(std::size_t(size)),d))return Reject(a,d,CaptureFailure::InvalidValue);
       return writer.PutScalar(a.location,a.format.scalar,a.format.components,std::span(bytes).first(std::size_t(size)));
-    case EntityRead::Mask:{std::uint32_t raw=0;if(!Value(address,raw,d))return false;result=raw&a.field.value_mask;break;}
-    case EntityRead::Bool:{std::uint8_t raw=0;if(!Value(address,raw,d))return false;result=raw?1u:0u;break;}
-    case EntityRead::Order:{std::uint32_t raw=0;if(!Value(address,raw,d))return false;result=raw;break;}
-    case EntityRead::Expire:{std::int32_t raw=0;if(!Value(address,raw,d))return false;result=std::bit_cast<std::uint32_t>(ExpireFrame(a.window.witness.game_frame,raw));break;}
-    case EntityRead::Flying:{std::uint8_t engaged=0,raw=0;if(!Value(std::uint64_t(a.root.address)+5,engaged,d)||engaged>1)return Reject(a,d,CaptureFailure::InvalidValue);
-      if(engaged && (!Value(std::uint64_t(a.root.address)+4,raw,d)||raw>1))return Reject(a,d,CaptureFailure::InvalidValue);result=engaged?raw:255u;break;}
-    case EntityRead::Water:{std::uint8_t engaged=0;std::uint32_t raw=0;if(!Value(std::uint64_t(a.root.address)+12,engaged,d)||engaged>1)return Reject(a,d,CaptureFailure::InvalidValue);
-      if(engaged && !Value(std::uint64_t(a.root.address)+8,raw,d))return false;result=engaged?(std::uint64_t{1}<<32)|raw:0;break;}
+    case EntityRead::Mask:case EntityRead::Bool:case EntityRead::Order:case EntityRead::Expire:
+    case EntityRead::Flying:case EntityRead::Water:
+      if(!BasicConversion(recipe,a.root,address,a.field.value_mask,result,d))return Reject(a,d,CaptureFailure::InvalidValue);
+      break;
     case EntityRead::QueueFlags:{std::uint32_t raw=0;if(!Value(address,raw,d))return false;result=(raw&2)?1u:0u;break;}
     case EntityRead::CostumeIndex:{if(const auto *map=PlayerMap(a)){result=map->index;break;}
       std::int32_t raw=0;if(!Value(address,raw,d) || raw< -1 || raw>=65535)return Reject(a,d,CaptureFailure::InvalidValue);

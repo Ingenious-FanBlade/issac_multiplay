@@ -105,6 +105,11 @@ std::vector<CaptureVtableBinding> ReadVtables(MemoryReader memory,std::span<cons
 }
 
 // 冷准备构造全部绑定、arena、资源目录与拓扑保留区，逐帧不调用账本。
+EntityRead FindEntityRead(std::string_view name) noexcept {
+  for(const auto &binding:recipes)if(binding.name==name)return binding.read;
+  return EntityRead::None;
+}
+
 EntitySource::Impl::Impl(MemoryReader m,std::thread::id t,EntityServices s,EntitySourceCapacity c)
     :memory(m),thread(t),services(s),capacity(c) {
   if(t==std::thread::id{} || !s.current || !s.reference || !s.reads || !c.scratch_bytes || !c.witnesses || !c.resources ||
@@ -133,7 +138,7 @@ EntitySource::Impl::Impl(MemoryReader m,std::thread::id t,EntityServices s,Entit
   for(std::size_t i=0;i<Fields().size();++i){const auto &f=Fields()[i];if(!supported[f.layout])continue;
     auto recipe=EntityRead::None;const std::string_view name=f.handler?f.handler:"";
     if(f.operation==Operation::Reference)recipe=EntityRead::Reference;
-    for(const auto &binding:recipes)if(binding.name==name){recipe=binding.read;break;}
+    if(const auto named=FindEntityRead(name);named!=EntityRead::None)recipe=named;
     if(name=="room_door_slots_read")recipe=EntityRead::Scene;
     if(name=="display_value_read")recipe=EntityRead::Display;
     if(recipe==EntityRead::None)recipe=GridRecipe(name);
@@ -172,7 +177,8 @@ EntitySource::Impl::Impl(MemoryReader m,std::thread::id t,EntityServices s,Entit
       auto &self=*static_cast<Impl *>(p);if(!self.active || self.window.witness!=w || table!=3 || !link.handle || link.handle>self.resource_used)return false;
       const auto &r=self.resources[std::size_t(link.handle-1)];if(r.table!=3 || r.kind!=7)return false;
       out={r.values[0],r.values[1],std::bit_cast<std::int32_t>(r.values[2])};return true;},capture::CaptureExecutionCounts});
-  memory_charge->Resize(sizeof(*this)+512+reads.capacity()*sizeof(EntityRead)+scratch.capacity()+
+  const auto flat_bytes=BindFlatTear();
+  memory_charge->Resize(sizeof(*this)+512+flat_bytes+reads.capacity()*sizeof(EntityRead)+scratch.capacity()+
     witnesses.capacity()*sizeof(NativeReadWitness)+witness_order.capacity()*sizeof(std::uint32_t)+
     resources.capacity()*sizeof(NativeResource)+resource_order.capacity()*sizeof(std::uint32_t)+resource_bytes.capacity()+
     config_owners.capacity()*sizeof(NativeConfigOwner)+animation_layers.capacity()*sizeof(NativeAnimationLayer)+
@@ -321,8 +327,18 @@ bool EntitySource::CaptureOrdinary(const CaptureWitness &w,EntityFacts f,Capture
   return CaptureRootValues(w,f,BodyStream::World,writer,d,true,0,true,&resolved_layout,reusable_base);
 }
 // 一个同步调用持有结构 arena 和证言表。两套选块的执行状态各自重置，原生来源保留至联合复核完成。
+bool EntitySource::CaptureOrdinaryFlat(const CaptureWitness &w,EntityFacts f,CaptureValueWriter &writer,
+    CaptureDiagnostic &d,std::uint16_t &resolved_layout) noexcept {
+  if(w.phase!=CapturePhase::Ordinary){
+    FailCapture(d,CaptureFailure::InvalidWindow,{f.subject,f.address});
+    return writer.Fail(d);
+  }
+  return CaptureRootValues(w,f,BodyStream::World,writer,d,true,0,false,&resolved_layout,0,true);
+}
+
 bool EntitySource::CaptureRootValues(const CaptureWitness &w,EntityFacts f,BodyStream stream,CaptureValueWriter &writer,
-    CaptureDiagnostic &d,bool reliable,std::uint64_t candidate_topology,bool pair_player,std::uint16_t *resolved_layout,std::uint64_t reusable_base) noexcept {
+    CaptureDiagnostic &d,bool reliable,std::uint64_t candidate_topology,bool pair_player,std::uint16_t *resolved_layout,
+    std::uint64_t reusable_base,bool flat) noexcept {
   auto &s=*impl_;
   if(std::this_thread::get_id()!=s.thread){FailCapture(d,CaptureFailure::WrongThread,{f.subject,f.address});return writer.Fail(d);}
   if(s.active){s.services.reads->Revoke();FailCapture(d,CaptureFailure::Reentrant,{f.subject,f.address});return writer.Fail(d);}
@@ -371,6 +387,11 @@ bool EntitySource::CaptureRootValues(const CaptureWitness &w,EntityFacts f,BodyS
   root.extent=layout->native_size;
   if(!root.address || root.extent>(std::uint64_t{1}<<32)-root.address){FailCapture(d,CaptureFailure::AddressRange,root);return writer.Fail(d);}
   s.root_layout=root.layout;
+  if(flat){
+    capture::Cost execution(capture::CostPart::FieldExecution);
+    end.accepted=s.ExecuteFlatTear(root,writer,d);
+    return end.accepted;
+  }
   const bool shared_streams=pair_player&&root.layout==197;
   if(root.layout==197){
     if(!f.player_ready){FailCapture(d,CaptureFailure::MissingQualification,root);return writer.Fail(d);}
@@ -451,6 +472,7 @@ void EntitySource::InvalidateReuse() noexcept {
     for(auto &entry:s.root_reuse)entry.epoch=0;
     for(auto &entry:s.resource_reuse)entry.epoch=0;
     s.reuse_epoch=1;
+    s.memo_used=0;s.memo_epoch=0;
   }
 }
 void EntitySource::Invalidate() noexcept {auto &s=*impl_;if(std::this_thread::get_id()!=s.thread)return;
