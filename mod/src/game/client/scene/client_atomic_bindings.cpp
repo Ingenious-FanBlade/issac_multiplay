@@ -358,8 +358,11 @@ const char *NativeBindings::DescribeMembers(const ClientAtomicInputs &in) {
     }
     const auto r=shadow->Find(obj.member.identity);if(!r)return "binary_native_member_entity_record";
     auto &m=members_.emplace_back();m.object=init.object;m.type=init.type;m.variant=init.variant;m.subtype=init.subtype;
-    const auto *flags=r->Field(15);if(!flags||!flags->present)return "binary_native_member_entity_flags";
-    m.add_update=m.update=(Read<std::uint64_t>(flags->bytes)&8)==0;
+    if(entity.flat_init)m.add_update=m.update=(entity.flat_init->flags&8)==0;
+    else {
+      const auto *flags=r->Field(15);if(!flags||!flags->present)return "binary_native_member_entity_flags";
+      m.add_update=m.update=(Read<std::uint64_t>(flags->bytes)&8)==0;
+    }
     if(obj.domain==D::Player){
       const auto p=std::find_if(plan.Players().begin(),plan.Players().end(),[n](const auto &v){return v.object==n;});if(p==plan.Players().end())return "binary_native_member_player_record";
       init.player_type=p->player_type;m.valid=p->membership&1;m.room=p->membership&2;m.render=p->membership&4;m.update=p->membership&8;
@@ -367,6 +370,13 @@ const char *NativeBindings::DescribeMembers(const ClientAtomicInputs &in) {
     ordered.emplace_back(entity.order,std::uint32_t(members_.size()-1));
     draw_order_.emplace_back(reinterpret_cast<std::uintptr_t>(init.object),entity.order);
     if(init.fresh){
+      if(const auto &flat=entity.flat_init){
+        init.position=flat->position;init.velocity=flat->velocity;
+        init.spawner_type=flat->spawner_type;init.spawner_variant=flat->spawner_variant;
+        if(flat->parent<in.objects.size()&&in.objects[flat->parent].borrowed)init.parent=Object(in,flat->parent);
+        if(flat->spawner<in.objects.size()&&in.objects[flat->spawner].borrowed)init.spawner=Object(in,flat->spawner);
+        continue;
+      }
       const auto pose=obj.domain==D::Player?(body?body->Find(obj.member.identity):std::nullopt):r;
       // 普通 World 可以先于新身体的 Body 抵达。初始姿态用中性值，首份 Body 补写。
       if(pose){

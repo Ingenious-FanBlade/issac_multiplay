@@ -139,11 +139,15 @@ void FrameContexts(const StateFrameView &frame,bool reliable) {
   } else if (reliable!=(!frame.sections[0].context.base_version)) Fail("frame_reliability_does_not_match_lane");
 }
 void Record(const StateRecordPayload &record,const PresentationBatchContext &section,const StateFrameCodecContext &context,
-    BodyCodecScratch &scratch,BodyCodecLimits &remaining) {
+    BodyCodecScratch &scratch,BodyCodecLimits &remaining,bool encoding=false) {
   const auto member=context.Member(section.member_epoch,record.member);
   if (record.member==kNullIndex || !member || member->layout!=record.layout || !member->id || !member->use || !member->shape ||
       !IsStateMemberLayout(record.layout) || record.layout==195) Fail("record_member_or_layout");
   if(FlatRecordLayout(section.layout_version,record.layout)){
+    if(!encoding){
+      if(!context.FlatRecordHandled(record,section))Fail("flat_record_unhandled");
+      return;
+    }
     if(record.mask || record.bytes.empty() || record.set_mode>FlatSetMode::All ||
        (!section.base_version && record.set_mode!=FlatSetMode::All))Fail("flat_record_mode");
     return; // 信任本进程组装的镜像；字段校验由客机后台完成。
@@ -317,7 +321,14 @@ StateFrameView InspectStateFrame(const StateScope &scope,std::span<const std::by
     for (std::size_t j=0;j<n;++j) {
       if(frame.layout_version>=kFlatRecordContractVersion){
         const auto id=std::uint16_t(Bits(input.Peek(4).subspan(2)));
-        if(FlatRecordLayout(frame.layout_version,id))Fail("flat_record_decode_pending");
+        if(FlatRecordLayout(frame.layout_version,id)){
+          const auto header=input.Take(kFlatRecordHeaderBytes);
+          const auto size=std::size_t(Bits(header.subspan(4,4)));
+          scratch.records[records+j]={std::uint16_t(Bits(header.first(2))),id,0,input.Take(size),
+            FlatSetMode(std::to_integer<unsigned>(header[8]))};
+          Visit(remaining,4);
+          continue;
+        }
       }
       const auto r=Read<StateRecordHeaderField>(kW_StateRecordHeader,input.Take(kW_StateRecordHeaderBytes));
       scratch.records[records+j]={std::uint16_t(r[std::size_t(StateRecordHeaderField::member)]),std::uint16_t(r[std::size_t(StateRecordHeaderField::layout)]),
@@ -372,8 +383,9 @@ bool DecodeStateFrameStep(StateFrameView &frame,const StateFrameCodecContext &co
     // 只有成功才推进游标；typed scratch 扩容后可从同一记录继续。
     auto next=cursor.remaining;
     Record(record,s.context,context,scratch.body,next);
-    Visit(next,std::uint32_t(StateRecordHeaderField::count));
-    cursor.remaining=next;cursor.position+=kW_StateRecordHeaderBytes+record.bytes.size();++cursor.record;
+    const bool flat=FlatRecordLayout(s.context.layout_version,record.layout)!=nullptr;
+    Visit(next,flat?4u:std::uint32_t(StateRecordHeaderField::count));
+    cursor.remaining=next;cursor.position+=(flat?kFlatRecordHeaderBytes:kW_StateRecordHeaderBytes)+record.bytes.size();++cursor.record;
     return false;
   }
   for(std::size_t i=0;i<s.retained_members.size();i+=2)
@@ -447,7 +459,7 @@ std::span<const std::byte> EncodeStateFrameInto(StateFrameView &frame,std::span<
     At(v,StateSectionHeaderField::event_count)=s.presentation.events.size();At(v,StateSectionHeaderField::event_watermark)=c.event_watermark;
     Write(kW_StateSectionHeader,v,output.subspan(position,kW_StateSectionHeaderBytes));position+=kW_StateSectionHeaderBytes;Visit(remaining,std::uint32_t(StateSectionHeaderField::count));
     for (const auto &r:s.records) {
-      Record(r,c,context,scratch.body,remaining);
+      Record(r,c,context,scratch.body,remaining,true);
       if(r.set_mode==FlatSetMode::Legacy){
         Values<StateRecordHeaderField> rv{};
         At(rv,StateRecordHeaderField::member)=r.member;At(rv,StateRecordHeaderField::layout)=r.layout;

@@ -1,6 +1,7 @@
 #pragma once
 #include <chrono>
 #include "state/client_tables.h"
+#include "state/client_flat.h"
 
 namespace cs::state {
 struct ClientShadowStorage;
@@ -48,6 +49,7 @@ public:
   std::uint16_t Member() const noexcept;
   const PresentationMember &Identity() const noexcept;
   std::uint32_t Mask() const noexcept;
+  const ClientFlatImageRef &Flat() const noexcept;
   std::optional<ClientShadowBlockView> Block(std::uint8_t) const noexcept;
   // 块相同须同时满足内容和解析出的引用语义，不能只比较 wire 序号或地址。
   bool SameBlock(ClientShadowRecordView,std::uint8_t) const noexcept;
@@ -84,6 +86,8 @@ public:
   std::optional<std::uint16_t> RecordPosition(const PresentationMember &) const noexcept;
   const ClientMemberSnapshotRef &Members() const noexcept;
   const ClientResourceSnapshotRef &Resources() const noexcept;
+  std::span<const ClientFlatFault> FlatFaults() const noexcept;
+  const ClientFlatFault *FlatFault(const PresentationMember &) const noexcept;
   // 比较实际根和引用编号；资源目录同 run 只追加，旧引用必须在目标表存在。
   bool MemberClosureCompatible(const ClientMemberSnapshotRef &) const noexcept;
   bool ResourceClosureCompatible(const ClientResourceSnapshotRef &) const noexcept;

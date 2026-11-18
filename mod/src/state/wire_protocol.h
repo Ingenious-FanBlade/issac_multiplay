@@ -81,6 +81,8 @@ public:
   virtual std::optional<PresentationMember> Member(std::uint32_t epoch,std::uint16_t index) const = 0;
   // member=FFFF用于结果值；其余为当前根的同候选共享投影／同epoch配置上下文。
   virtual const BodyCodecContext *BodyContext(const PresentationBatchContext &,std::uint16_t member) const = 0;
+  // 完整镜像由 shadow 按对象解码或隔离后交回。通用帧解析器不能自行接受平铺正文。
+  virtual bool FlatRecordHandled(const StateRecordPayload &,const PresentationBatchContext &) const noexcept {return false;}
 };
 struct StateFrameScratch {
   std::span<StateRecordPayload> records;

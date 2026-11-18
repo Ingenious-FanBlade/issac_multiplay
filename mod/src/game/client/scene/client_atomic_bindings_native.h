@@ -127,6 +127,11 @@ unsigned ClientBinaryReadSpecial(const ClientNativeRoots &,const ClientBinarySpe
 bool ClientBinaryRetireSpecial(const ClientBinarySpecialWrite &,ClientBinarySpecialUndo &) noexcept;
 std::size_t ClientBinarySpecialCharge(const ClientBinarySpecialWrite &) noexcept;
 void *ClientBinaryLayer(void *,unsigned) noexcept;
+// 平铺程序只在当前安装窗口解析真实 owner，跨 SEH 边界后不会借到失效地址。
+void *ClientBinaryFlatLayer(void *,unsigned) noexcept;
+void *ClientBinaryFlatPlus(void *,unsigned) noexcept;
+bool ClientBinaryClearFlatReference(void *) noexcept;
+bool ClientBinaryCommitFlatSpecial(const ClientBinarySpecialWrite &,ClientBinarySpecialUndo &) noexcept;
 // 按最终 Sprite／Layer flags 配置本地图像顶点格式，并清理不兼容的原生空闲批次。
 bool ClientBinaryLayerGraphics(void *layer,bool repair,bool &written) noexcept;
 void *ClientBinaryPlus(void *,unsigned,ClientNativeReadWindow *reads=nullptr) noexcept;

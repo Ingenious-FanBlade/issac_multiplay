@@ -134,6 +134,7 @@ ClientInstallBinding ClientStateInstallPlan::Binding(std::uint32_t index)const n
   return RebaseBinding(record,data_[record]->bindings[index-records_[record].first_binding]);
 }
 std::optional<ClientInstallBinding> ClientStateInstallPlan::BindingForValue(std::uint32_t record,std::uint32_t local)const noexcept {
+  if(record>=data_.size()||!data_[record])return {};
   const auto &links=data_[record]->bindings;
   const auto i=std::lower_bound(links.begin(),links.end(),local,[](const auto &link,auto value){return link.value<value;});
   if(i==links.end()||i->value!=local)return {};
@@ -217,6 +218,7 @@ std::uint32_t ClientStateInstallPlan::MemberRecordCount()const noexcept {
   return n;
 }
 bool ClientStateInstallPlan::SameStructure(const ClientStateInstallPlan &o)const noexcept {
+  if(has_flat_records_||o.has_flat_records_)return false;
   if(objects_.size()!=o.objects_.size()||entities_.size()!=o.entities_.size()||players_.size()!=o.players_.size()||
      groups_.size()!=o.groups_.size()||anchors_.size()!=o.anchors_.size()||grids_.size()!=o.grids_.size()||
      descriptors_.size()!=o.descriptors_.size()||native_needs_.size()!=o.native_needs_.size()||
@@ -696,6 +698,26 @@ struct ClientInstallBuilder final:BodyNodeObserver {
       ClientInstallRecord r;r.object=object;r.layout=root.Identity().layout;r.stream=BodyStream(stream);
       r.context=state->Context();r.members=state->Members();r.resources=state->Resources();r.mask=root.Mask();
       const auto previous=target.previous[stream]?target.previous[stream]->Find(root.Identity()):std::nullopt;
+      if(const auto &image=root.Flat()){
+        const auto *layout=FlatRecordLayout(r.context.layout_version,r.layout);
+        Require(layout,"client_plan_flat_layout");
+        auto flat=std::allocate_shared<ClientFlatWritePlan>(ClientStateAllocator<ClientFlatWritePlan>(out->Memory()),out->Memory());
+        flat->image=image;
+        if(previous)flat->compare_base=previous->Flat();
+        flat->skip=state->FlatFault(root.Identity())!=nullptr;
+        flat->full=!r.context.base_version||!flat->compare_base||out->objects_[object].action!=ClientInstallAction::Reuse||
+          (stream==0&&(std::uint32_t(root.Member())+r.context.target_version)%32==0);
+        if(!flat->full&&!flat->skip)
+          ClientFlatWriteGroups(*layout,*image,flat->compare_base.get(),flat->groups,out->Memory());
+        r.flat=std::move(flat);
+        out->has_flat_records_=true;
+        OpenRecord(std::move(r));
+        // 平铺记录跳过字段遍历，但两个并行索引仍按全部记录编号对齐。
+        out->data_.push_back(nullptr);
+        fresh.push_back(nullptr);
+        ++item;
+        return false;
+      }
       for(unsigned b=0;b<32;++b)if(r.mask&(std::uint32_t(1)<<b))if(const auto block=root.Block(std::uint8_t(b))){
         const auto bit=std::uint32_t(1)<<b;
         r.blocks[b]={block->version,block->game_frame,block->source_revision,{0,std::uint32_t(block->bytes.size()),block->bytes.data()}};
@@ -1085,8 +1107,33 @@ void ClientInstallBuilder::Players() {
   }
   if(target.candidate->State(BodyStream::World))for(std::uint32_t i=0;i<out->objects_.size();++i) {
     const auto domain=out->objects_[i].domain;if(domain!=ClientInstallDomain::Entity&&domain!=ClientInstallDomain::Player)continue;
-    const auto r=Root(i);BodySourceFieldInfo config;Require(DescribeBodySourceField(r.Identity().layout,F::Entity::selected_config,config),"client_plan_entity_configuration_plan");
+    const auto r=Root(i);
     out->objects_[i].description=std::uint32_t(out->entities_.size());
+    if(const auto &image=r.Flat()){
+      const auto *layout=FindFlatLayout(r.Identity().layout);
+      Require(layout,"client_plan_flat_entity");
+      const auto value=[&](std::string_view name){return ClientFlatNamed(*layout,*image,name);};
+      const auto u32=[&](std::string_view name){return Exact<std::uint32_t>(value(name));};
+      const auto link=[&](std::string_view name){
+        const auto slot=value(name);
+        Require(slot.size()==4,"client_plan_flat_initial_reference");
+        const auto *ref=image->Link(std::uint32_t(slot.data()-image->Bytes().data()));
+        if(!ref)return kClientPlanNone;
+        return Object(ref->member);
+      };
+      auto &e=out->entities_.emplace_back();
+      e.object=i;e.type=u32("type");e.variant=u32("variant");e.subtype=u32("subtype");
+      e.init_seed=u32("init_seed");e.order=u32("authority_order");
+      e.configuration={4,std::uint16_t(u32("selected_config"))};
+      auto &init=e.flat_init.emplace();
+      init.flags=Exact<std::uint64_t>(value("flags"));
+      init.position={Exact<float>(value("position.x")),Exact<float>(value("position.y"))};
+      init.velocity={Exact<float>(value("velocity.x")),Exact<float>(value("velocity.y"))};
+      init.spawner_type=u32("spawner_type");init.spawner_variant=u32("spawner_variant");
+      init.parent=link("parent");init.spawner=link("spawner");
+      continue;
+    }
+    BodySourceFieldInfo config;Require(DescribeBodySourceField(r.Identity().layout,F::Entity::selected_config,config),"client_plan_entity_configuration_plan");
     out->entities_.push_back({i,Number<std::uint32_t>(r,F::Entity::type),Number<std::uint32_t>(r,F::Entity::variant),Number<std::uint32_t>(r,F::Entity::subtype),
       Number<std::uint32_t>(r,F::Entity::init_seed),Number<std::uint32_t>(r,F::Entity::authority_order),{config.resource_table,Number<std::uint16_t>(r,F::Entity::selected_config)}});
   }
@@ -1240,6 +1287,7 @@ bool ClientInstallBuilder::CommandStep() {
   const auto end=(std::min)(count,item+128);
   for(;item<end;++item){
     const auto record=count-1-item;
+    if(!out->data_[record])continue;
     const auto base=out->records_[record].first_field;
     const auto &fields=out->data_[record]->stage_fields;
     for(auto i=fields.rbegin();i!=fields.rend();++i)out->stage_fields_.push_back(base+*i);

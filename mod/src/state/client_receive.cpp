@@ -81,6 +81,7 @@ struct ClientStateReceiver::Impl {
   std::uint64_t last_table_sequence=0,ack_due=0,resync_due=0;
   struct BadFrame {std::string reason;unsigned count=0;};
   std::array<BadFrame,2> bad_frames;
+  std::uint8_t flat_recovery=0;
   Impl(std::shared_ptr<ClientStateMemory> m,std::span<const ClientShadowLayoutBinding> registry,
        const ClientStatePreparation &p,ClientStateReceiveDelivery &d)
     :memory(std::move(m)),bindings(ClientStateAllocator<ClientMemberLayoutBinding>(memory)),
@@ -171,6 +172,16 @@ struct ClientStateReceiver::Impl {
     const auto ack=shadow.RetainReceived(candidate);
     const auto streams=StateTargetStreams(candidate->Target());
     for(unsigned i=0;i<2;++i)if(streams&(1u<<i))bad_frames[i]={};
+    for(unsigned i=0;i<2;++i)if(const auto state=candidate->State(BodyStream(i))){
+      flat_recovery&=std::uint8_t(~(1u<<i));
+      for(const auto &fault:state->FlatFaults()){
+        ClientApplyMetrics::Issue issue;
+        issue.route=candidate->Target().route.route;issue.member=fault.identity.id;
+        issue.layout=fault.layout;issue.field=fault.field;
+        memory->ApplyMetrics().FirstIssue(std::uint8_t(1u<<i),issue,"flat_decode",fault.reason.data());
+        if(fault.count>=StateBudgets().decode_failure_limit)flat_recovery|=std::uint8_t(1u<<i);
+      }
+    }
     std::array<std::byte,256> bytes{};
     if(delivery.Control(StateMessageKind::AppliedAck,EncodeStateAppliedAckInto(ack,bytes)))
       // 与接收至原生发布共用收包时刻，分别统计两个终点。
@@ -450,7 +461,8 @@ struct ClientStateReceiver::Impl {
     ClientStateVector<StateRecordPayload> records{ClientStateAllocator<StateRecordPayload>(memory,memory::Pool::Workspace)};
     ClientStateVector<StateEventView> ev{ClientStateAllocator<StateEventView>(memory,memory::Pool::Workspace)};
     ClientStateVector<std::uint16_t> order{ClientStateAllocator<std::uint16_t>(memory,memory::Pool::Workspace)};
-    records.resize(std::min<std::size_t>(65535,bytes.size()/12));ev.resize(512);order.resize(records.size());
+    const auto header=LayoutVersion()>=kFlatRecordContractVersion?kFlatRecordHeaderBytes:12;
+    records.resize(std::min<std::size_t>(65535,bytes.size()/header));ev.resize(512);order.resize(records.size());
     StateFrameScratch scratch{records,ev,order,{}};
     const auto frame=InspectStateFrame(route.scope,bytes,shadow.ReceivedEvents(),scratch,{std::uint32_t(StateMessageBodyLimit(lane)),262144,32,lane==StateLane::Baseline});
     if(StateFrameLane(frame)!=lane)Fail(StateReadiness::InvalidEncoding,"client_receive_frame_lane");
@@ -510,7 +522,7 @@ void ClientStateReceiver::Open(const StateRoute &route,StateAgreement agreement,
   auto &s=*impl_;s.Thread();s.Collect();if(s.active||s.Occupied(3)||s.ResourcesInFlight()||!s.retired.empty()||!s.preparation.Available()||!s.shadow.Drained()||!s.tables.Drained()||!CompatibleStateAgreement(agreement))Fail(StateReadiness::Lifecycle,"client_receive_open_busy_or_native_unavailable");
   s.tables.Open(route,agreement,generation);s.shadow.Open(route,agreement);s.events.Open(route);s.route=route;s.active=true;
   s.last_table_sequence=0;
-  s.bad_frames={};s.ack_due=s.resync_due=0;
+  s.bad_frames={};s.flat_recovery=0;s.ack_due=s.resync_due=0;
   s.recovery_requested=s.uncertain_event=s.slice_pending=false;
 }
 void ClientStateReceiver::Close() {
@@ -635,6 +647,10 @@ void ClientStateReceiver::Pump(std::uint64_t now,bool allow_waiting) {
 #ifdef ISAACCS_E2E
     if(!slot->slice_end_us)slot->slice_end_us=ClientApplyMetrics::Now();
 #endif
+  }
+  if(s.flat_recovery){
+    const auto streams=s.flat_recovery;s.flat_recovery=0;
+    s.Recover(streams,StateResyncReason::Dependency);
   }
   if(now>=s.ack_due){s.Reack();s.ack_due=now+StateBudgets().ack_repeat_ms;}
   if(s.recovery_requested&&now>=s.resync_due)if(const auto request=s.shadow.RecoveryRequest()) {

@@ -1,6 +1,7 @@
 #include "game/client/scene/client_atomic_install.h"
 #include "game/client/scene/client_atomic_bindings.h"
 #include "game/client/scene/client_atomic_bindings_native.h"
+#include "game/client/scene/client_flat_install.h"
 #include "game/client/scene/client_lifetime.h"
 #include "game/client/scene/client_read_window.h"
 #include "game/client/display/client_display_native.h"
@@ -225,6 +226,8 @@ public:
     bool has_previous_write=false;
     // 仅 Manager 使用。漂移后的下一次应用重写整根，其他记录仍可按块求差。
     mutable bool rewrite=false;
+    std::shared_ptr<ClientFlatNativeState> flat;
+    bool flat_full=false;
   };
   struct ReadbackEntry {
     std::uint64_t key;
@@ -243,9 +246,11 @@ public:
   std::array<std::uint32_t,2> versions{};
   S::ClientStateVector<Record> records;
   S::ClientStateVector<std::uint32_t> by_identity;
+  S::ClientStateVector<std::uint32_t> flat_records;
   std::shared_ptr<const Order> order;
   explicit ClientSceneFieldIndex(const std::shared_ptr<S::ClientStateMemory> &m):
-    records(S::ClientStateAllocator<Record>(m)),by_identity(S::ClientStateAllocator<std::uint32_t>(m)) {}
+    records(S::ClientStateAllocator<Record>(m)),by_identity(S::ClientStateAllocator<std::uint32_t>(m)),
+    flat_records(S::ClientStateAllocator<std::uint32_t>(m)) {}
   const Record *Find(S::BodyStream stream,const S::PresentationMember &identity) const noexcept {
     const auto key=std::tie(stream,identity);
     const auto at=std::lower_bound(by_identity.begin(),by_identity.end(),key,[&](auto index,const auto &wanted){
@@ -347,6 +352,7 @@ struct ClientSceneAtomicInstaller::Impl {
   bool final_scene=false;
   std::uint64_t read_checks=0,read_bytes=0;
   std::uint64_t pure_write_bytes=0,skipped_world_bytes=0;
+  std::uint32_t flat_drift_cursor=0;
   const char *reason="binary_atomic_idle";
   std::array<char,192> failure{};
   Impl(std::shared_ptr<S::ClientStateMemory> m,ClientSceneMainPreparation &p,ClientAtomicInstallBindings *b,
@@ -786,6 +792,20 @@ struct ClientSceneAtomicInstaller::Impl {
         source->Find(r.stream,object.identity):nullptr;
       field_index->records[n]={object.identity,object.instance,r.stream,prior&&prior->instance==object.instance&&!prior->rewrite};
       field_index->by_identity.push_back(n);
+      if(r.flat){
+        auto &applied=field_index->records[n];
+        applied.flat=std::allocate_shared<ClientFlatNativeState>(S::ClientStateAllocator<ClientFlatNativeState>(memory));
+        if(prior&&prior->instance==object.instance&&prior->flat){
+          applied.flat->written=prior->flat->written;
+          applied.flat->edges=prior->flat->edges;
+          applied.flat->count=prior->flat->count;
+          applied.flat->references_uncertain=prior->flat->references_uncertain;
+        }
+        applied.flat_full=r.flat->full||!object.borrowed||!applied.has_previous_write||
+          applied.flat->written!=r.flat->compare_base;
+        field_index->flat_records.push_back(n);
+        continue;
+      }
       // 静止记录只保留逐批必须维持的叶：实体引用（退休拆边要找到它）和到期帧换算（剩余帧随展示帧变化）。
       const bool still=Quiet(n);
       for(std::uint32_t local=0;local<r.value_count;++local){
@@ -900,7 +920,7 @@ struct ClientSceneAtomicInstaller::Impl {
     std::uint64_t count=0,absorbed_count=0;std::size_t saved=0;
     for(std::uint32_t n=0;n<plan.Records().size();++n){
       const auto &r=plan.Records()[n];
-      if(r.event!=S::kClientPlanNone||r.stream!=S::BodyStream::World||!r.context.base_version||r.object>=objects.size())continue;
+      if(r.flat||r.event!=S::kClientPlanNone||r.stream!=S::BodyStream::World||!r.context.base_version||r.object>=objects.size())continue;
       if(r.structure_mask|r.dependency_mask)continue;
       // 值块有变化的记录只能被吸收（设计 10.6 节二期），强制刷新事务不吸收。
       if(r.value_mask&&!absorb)continue;
@@ -1409,6 +1429,83 @@ struct ClientSceneAtomicInstaller::Impl {
     memory->ApplyMetrics().Volume(S::StateTargetStreams(plan.Target()),S::ClientApplyVolume::FastLeaves,count);
     return Ready(written,"binary_absorb_written");
   }
+  struct FlatWindow {Impl &owner;std::uint32_t object;bool installed=false;};
+  bool FlatCurrent(std::uint32_t index,bool installed) noexcept {
+    if(!Current(*batch)||index>=objects.size())return false;
+    const auto &o=objects[index];
+    if(!o.address||o.unbound||Rejected(index))return false;
+    if(!installed)return preparation.PendingObjectCurrent(*batch,index,o.address,o.instance,true);
+    std::uint64_t instance=0;
+    return preparation.InstalledObject(*batch,index,&instance)==o.address&&instance==o.instance;
+  }
+  ClientFlatNativeContext FlatContext(FlatWindow &window,std::uint32_t frame) noexcept {
+    return {roots,resources,frame,&window,[](void *p) noexcept {
+      auto &w=*static_cast<FlatWindow *>(p);return w.owner.FlatCurrent(w.object,w.installed);
+    },[](void *p,const S::PresentationMember &id) noexcept {
+      auto &w=*static_cast<FlatWindow *>(p);const auto plan=w.owner.scene->State().Objects();
+      const auto it=std::lower_bound(plan.begin(),plan.end(),id,[](const auto &obj,const auto &key){return obj.member.identity<key;});
+      if(it==plan.end()||it->member.identity!=id)return ClientFlatTarget{id};
+      const auto index=std::uint32_t(it-plan.begin());
+      if(!w.owner.FlatCurrent(index,w.installed))return ClientFlatTarget{id};
+      const auto &o=w.owner.objects[index];
+      return ClientFlatTarget{id,o.address,o.instance};
+    },[](void *p,const ClientAtomicWrite &write,ClientAtomicReadRegion &region) noexcept {
+      auto &w=*static_cast<FlatWindow *>(p);auto &s=w.owner;
+      return !s.root_scalars||!s.root_scalars->NeedsSnapshot(s.roots,write.destination,write.size)||s.root_scalars->Save(write,region);
+    }};
+  }
+  bool FlatIssue(std::uint32_t n,const ClientFlatNativeResult &result) noexcept {
+    written|=result.written;
+    pure_write_bytes+=result.bytes;
+    if(!result.reason)return true;
+    const auto &record=scene->State().Records()[n];
+    field_index->records[n].rewrite=true;
+    S::ClientApplyMetrics::Issue issue;
+    issue.route=batch->ticket.route.route;issue.ticket=batch->ticket.serial;
+    issue.member=objects[record.object].identity.id;issue.instance=objects[record.object].instance;
+    issue.layout=result.layout;issue.field=result.field;
+    memory->ApplyMetrics().FirstIssue(std::uint8_t(1u<<unsigned(record.stream)),issue,"flat_write",result.reason);
+    return RejectObject(record.object,ClientMemberFailure::Native,result.reason);
+  }
+  enum class FlatPass { Values, Graphics, References };
+  bool InstallFlat(FlatPass pass) noexcept {
+    for(const auto n:field_index->flat_records){
+      const auto &plan=scene->State().Records()[n];
+      const auto index=plan.object;
+      if(Rejected(index)||objects[index].unbound)continue;
+      auto &entry=field_index->records[n];
+      const auto *layout=S::FlatRecordLayout(plan.context.layout_version,plan.layout);
+      if(!layout)return false;
+      auto &object=objects[index];
+      if(plan.flat->skip){
+        entry.rewrite=true;
+        if(!object.borrowed&&!RejectObject(index,ClientMemberFailure::Stale,"flat_skipped_without_live_instance"))return false;
+        continue;
+      }
+      if(!FlatCurrent(index,false)){
+        if(!RejectObject(index,ClientMemberFailure::Stale,"flat_live_instance_changed"))return false;
+        continue;
+      }
+#ifdef ISAACCS_E2E
+      if(pass==FlatPass::Values&&(ClientEntityTestFault("binary-object-write")||ClientTearWriteTestFault(object.identity.id))){
+        if(!RejectObject(index,ClientMemberFailure::Native,"binary_e2e_flat_object_write"))return false;
+        entry.rewrite=true;
+        continue;
+      }
+#endif
+      FlatWindow window{*this,index};
+      const auto context=FlatContext(window,plan.context.game_frame);
+      if(pass==FlatPass::Values){
+        if(!FlatIssue(n,ClientWriteFlatTear(context,object.address,*layout,*plan.flat,entry.flat_full,*entry.flat)))return false;
+      }else if(pass==FlatPass::Graphics){
+        if(!FlatIssue(n,ClientCheckFlatTear(context,object.address,*layout,*plan.flat,*entry.flat,0,true,entry.flat_full)))return false;
+      }else{
+        if(!FlatIssue(n,ClientBindFlatTear(context,object.address,*layout,*plan.flat,entry.flat_full,*entry.flat)))return false;
+        if(!Rejected(index))entry.flat->written=plan.flat->image;
+      }
+    }
+    return true;
+  }
   S::ClientStateNativeStep InstallNow(bool display=false) noexcept {
     PageMetrics pages(*this);
     // 被吸收记录的条目下标在分类时取得；写程序表其后若被刷新或清空，本批在写入前拒绝。
@@ -1594,13 +1691,18 @@ struct ClientSceneAtomicInstaller::Impl {
       if(!callback_boundary())return Fail("binary_atomic_lifecycle_during_install");
       const auto result=RunAbsorbed();
       if(!result.ready)return result;
+      if(!initialized){
+        if(!Step(bindings.Initialize(*batch,Inputs())))return Failed(written,reason);
+        initialized=true;
+      }
+      if(!InstallFlat(FlatPass::Values))return Fail("flat_native_value_window");
     }
     {
       S::ClientApplyTimer measured(memory->ApplyMetrics(),metric_streams,S::ClientApplyStage::NativeFinish);
       if(!Step(bindings.FinishFields(Inputs(),S::StateTargetStreams(scene->State().Target()))))return Failed(written,reason);
     }
     if(display){display_installed=true;return Ready(written,"binary_live_display_fields_installed");}
-    if(!initialized&&!Step(bindings.Initialize(*batch,Inputs())))return Failed(written,reason);
+    if(!InstallFlat(FlatPass::Graphics)||!InstallFlat(FlatPass::References))return Fail("flat_native_finish_window");
     if(!Step(bindings.InstallMembers(*batch,Inputs())))return Failed(written,reason);
     installed=true;display_installed=!deferred_display;reason="binary_atomic_installed";return Ready(written,reason);
   }
@@ -1654,6 +1756,7 @@ struct ClientSceneAtomicInstaller::Impl {
       bool complete=true;
       for(std::uint32_t n=0;n<members;++n){
         const auto &r=plan.Records()[n];
+        if(r.flat){complete=false;continue;}
         if(r.stream!=S::BodyStream::World||r.object>=objects.size())continue;
         const auto &o=objects[r.object];
         if(!o.address)continue;
@@ -1752,6 +1855,20 @@ struct ClientSceneAtomicInstaller::Impl {
     using R=ClientAtomicReadback;
     const auto streams=std::uint8_t(1u<<unsigned(stream));ReadMetrics measured(*this,streams);
     try {
+      if(!costumes&&stream==S::BodyStream::World&&!published.flat_records.empty()){
+        const auto tick=std::uint64_t(published.versions[0])+flat_drift_cursor++;
+        const auto index=published.flat_records[tick%published.flat_records.size()];
+        const auto &current=published.records[index];
+        const auto &record=scene->State().Records()[index];
+        if(!current.rewrite&&current.flat&&current.flat->written&&FlatCurrent(record.object,true)){
+          FlatWindow window{*this,record.object,true};
+          const auto context=FlatContext(window,record.context.game_frame);
+          const auto *layout=S::FindFlatLayout(record.layout);
+          const auto probe=ClientCheckFlatTear(context,objects[record.object].address,*layout,*record.flat,
+            *current.flat,std::uint32_t(tick/published.flat_records.size()),false,true);
+          if(probe.reason){current.rewrite=true;memory->ApplyMetrics().Volume(streams,S::ClientApplyVolume::Drift);}
+        }
+      }
       const auto &readback=published.order->readback;
       const auto group=(std::uint64_t(costumes)<<8)|std::uint64_t(stream);
       const auto first=std::lower_bound(readback.begin(),readback.end(),group,[](const auto &e,auto s){return (e.key>>40)<s;});
@@ -1786,6 +1903,30 @@ struct ClientSceneAtomicInstaller::Impl {
       return at!=leaving.end()&&at->identity==object.identity&&at->instance==object.instance&&at->address==object.address;
     };
     const auto &plan=scene->State();
+    if(field_index)for(const auto n:field_index->flat_records){
+      const auto &record=plan.Records()[n];
+      const auto &object=objects[record.object];
+      if(!object.address||object.unbound)continue;
+      auto &state=*field_index->records[n].flat;
+      const bool root_leaving=retiring(object);
+      const bool external=(!leaving.empty()&&state.references_uncertain)||
+        std::any_of(state.edges.begin(),state.edges.begin()+state.count,[&](const auto &edge){
+          if(!edge.target.address)return false;
+          const auto at=std::lower_bound(leaving.begin(),leaving.end(),edge.target.identity,
+            [](const auto &entry,const auto &id){return entry.identity<id;});
+          return at!=leaving.end()&&at->identity==edge.target.identity&&at->address==edge.target.address&&at->instance==edge.target.instance;
+        });
+      if(!root_leaving&&!external)continue;
+      // 失败根会在首批发布前回收，此时证言来自准备中的保管账。
+      if(published){
+        std::uint64_t instance=0;
+        if(preparation.InstalledObject(*batch,record.object,&instance)!=object.address||instance!=object.instance)return false;
+      }else if(root_leaving){
+        if(!preparation.OwnsFailedObject(*batch,record.object,object.address,object.instance))return false;
+      }else if(!preparation.PendingObjectCurrent(*batch,record.object,object.address,object.instance,true))return false;
+      const auto *layout=S::FindFlatLayout(record.layout);
+      if(!layout||!ClientClearFlatTear(object.address,*layout,state,root_leaving,leaving))return false;
+    }
     // 先拆边，再按安装逆序摘附件。父容器恢复原头部后，旧元素地址可能已失效。
     for(auto &op:operations){
       if(!op.done||op.restored||op.duplicate)continue;
@@ -1956,6 +2097,18 @@ struct ClientSceneAtomicInstaller::Impl {
       auto &s=*static_cast<Impl *>(p);if(n>=s.objects.size())return false;s.objects[n].retire_root=retire_root;return true;
     }))return Failed(written,"binary_atomic_retirement_ownership_unavailable");
     if(!quiesced){if(!bindings.Quiesce(*batch,Inputs()))return {false,false,false,"binary_atomic_quiescing"};quiesced=true;}
+    if(field_index)for(const auto n:field_index->flat_records){
+      const auto &record=scene->State().Records()[n];
+      const auto &object=objects[record.object];
+      auto &state=*field_index->records[n].flat;
+      if(state.undo.storage||state.undo.uncertain){
+        if(!ClientBinaryCommitFlatSpecial(state.interrupted,state.undo))return Failed(written,"flat_native_retire_special");
+        state.special_charge.reset();
+      }
+      if(!object.retire_root||!object.address||object.unbound)continue;
+      const auto *layout=S::FindFlatLayout(record.layout);
+      if(!layout||!ClientClearFlatTear(object.address,*layout,state,true,{}))return Failed(written,"flat_native_retire_references");
+    }
     // 装载／选择器可能交换图层数组。按照安装顺序统一反向拆除普通与特殊字段。
     for(std::size_t n=operations.size();n>0;--n){auto &op=Ordered(n-1);if(!op.done||op.restored)continue;
       if(op.delegated){

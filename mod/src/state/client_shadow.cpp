@@ -2,6 +2,7 @@
 #include "state/client_events.h"
 #include "state/client_validation.h"
 #include <algorithm>
+#include <cstdio>
 #include <cstring>
 #include <map>
 #include <tuple>
@@ -81,17 +82,20 @@ struct ClientShadowRecordData final {
   PresentationMember identity;
   std::uint32_t mask=0,member_epoch=0,resource_epoch=0,visits=0;
   std::array<std::shared_ptr<const ClientShadowBlockData>,32> blocks{};
+  ClientFlatImageRef flat;
   ClientStateVector<BodyFieldView> fields;
   ClientStateVector<ProjectionFact> facts;
 };
 // 完整目标保留准确两表与当前时钟；未变化record可共享，成员顺序只作数字索引。
 struct ClientShadowStateData final {
   explicit ClientShadowStateData(const std::shared_ptr<ClientStateMemory> &memory)
-      :records(ClientStateAllocator<std::shared_ptr<const ClientShadowRecordData>>(memory)) {}
+      :records(ClientStateAllocator<std::shared_ptr<const ClientShadowRecordData>>(memory)),
+       flat_faults(ClientStateAllocator<ClientFlatFault>(memory)) {}
   PresentationBatchContext context;
   ClientMemberSnapshotRef members;
   ClientResourceSnapshotRef resources;
   ClientStateVector<std::shared_ptr<const ClientShadowRecordData>> records;
+  ClientStateVector<ClientFlatFault> flat_faults;
   std::shared_ptr<const ClientStateVector<std::uint16_t>> order;
   std::shared_ptr<const ClientStateVector<ClientShadowDependency>> dependencies;
   std::optional<std::uint16_t> Position(const PresentationMember &identity) const noexcept {
@@ -126,9 +130,13 @@ struct ClientShadowStateData final {
     if(!dirty&&base&&base->dependencies){dependencies=base->dependencies;return;}
     using Edges=ClientStateVector<ClientShadowDependency>;
     auto edges=std::allocate_shared<Edges>(ClientStateAllocator<Edges>(memory),ClientStateAllocator<ClientShadowDependency>(memory));
-    for(const auto &record:records)for(const auto &block:record->blocks)if(block)for(const auto &link:block->links)
-      edges->push_back({link.resource?PresentationMember{}:link.member,record->identity,
-        link.resource?link.entry.key:ResourceKey{},block->view.block,link.resource});
+    for(const auto &record:records){
+      for(const auto &block:record->blocks)if(block)for(const auto &link:block->links)
+        edges->push_back({link.resource?PresentationMember{}:link.member,record->identity,
+          link.resource?link.entry.key:ResourceKey{},block->view.block,link.resource});
+      if(record->flat)for(const auto &link:record->flat->links)
+        edges->push_back({link.member,record->identity,link.resource,255,link.is_resource});
+    }
     const auto key=[](const auto &edge){return std::tuple(edge.is_resource,edge.member,edge.resource,edge.consumer,edge.block);};
     std::sort(edges->begin(),edges->end(),[&](const auto &a,const auto &b){return key(a)<key(b);});
     edges->erase(std::unique(edges->begin(),edges->end()),edges->end());
@@ -138,6 +146,7 @@ struct ClientShadowStateData final {
 std::uint16_t ClientShadowRecordView::Member() const noexcept {return data_->member;}
 const PresentationMember &ClientShadowRecordView::Identity() const noexcept {return data_->identity;}
 std::uint32_t ClientShadowRecordView::Mask() const noexcept {return data_->mask;}
+const ClientFlatImageRef &ClientShadowRecordView::Flat() const noexcept {return data_->flat;}
 std::optional<ClientShadowBlockView> ClientShadowRecordView::Block(std::uint8_t block) const noexcept {
   return block<32 && data_->blocks[block]?std::optional(data_->blocks[block]->view):std::nullopt;
 }
@@ -250,6 +259,11 @@ std::optional<std::uint16_t> ClientShadowState::RecordPosition(const Presentatio
 }
 const ClientMemberSnapshotRef &ClientShadowState::Members() const noexcept {return data_->members;}
 const ClientResourceSnapshotRef &ClientShadowState::Resources() const noexcept {return data_->resources;}
+std::span<const ClientFlatFault> ClientShadowState::FlatFaults() const noexcept {return data_->flat_faults;}
+const ClientFlatFault *ClientShadowState::FlatFault(const PresentationMember &identity) const noexcept {
+  const auto at=std::find_if(data_->flat_faults.begin(),data_->flat_faults.end(),[&](const auto &f){return f.identity==identity;});
+  return at==data_->flat_faults.end()?nullptr:&*at;
+}
 bool ClientShadowState::MemberClosureCompatible(const ClientMemberSnapshotRef &target) const noexcept {
   if(!target||target->Route()!=data_->members->Route())return false;
   if(target==data_->members)return true;
@@ -259,6 +273,7 @@ bool ClientShadowState::MemberClosureCompatible(const ClientMemberSnapshotRef &t
   };
   for(const auto &record:data_->records){
     if(!same(record->member,record->identity))return false;
+    if(record->flat)for(const auto &link:record->flat->links)if(!link.is_resource&&!same(link.index,link.member))return false;
     for(const auto &block:record->blocks)if(block)for(const auto &link:block->links)
       if(!link.resource&&!same(link.index,link.member))return false;
   }
@@ -271,8 +286,12 @@ bool ClientShadowState::ResourceClosureCompatible(const ClientResourceSnapshotRe
   if(directory.session!=data_->context.scope.session||directory.run!=data_->context.scope.run)return false;
   // 同 run 单调追加，较新目录覆盖全部早期键；倒序检查实际消费的键。
   if(directory.epoch>=data_->resources->Directory().epoch)return true;
-  for(const auto &record:data_->records)for(const auto &block:record->blocks)if(block)for(const auto &link:block->links)
-    if(link.resource&&!FindResource(directory,link.entry.key))return false;
+  for(const auto &record:data_->records){
+    if(record->flat)for(const auto &link:record->flat->links)
+      if(link.is_resource&&!FindResource(directory,link.resource))return false;
+    for(const auto &block:record->blocks)if(block)for(const auto &link:block->links)
+      if(link.resource&&!FindResource(directory,link.entry.key))return false;
+  }
   return true;
 }
 std::span<const ClientShadowDependency> ClientShadowState::MemberConsumers(const PresentationMember &member) const noexcept {
@@ -336,7 +355,8 @@ struct ShadowScratch final {
        member_order(ClientStateAllocator<std::uint16_t>(memory,memory::Pool::Workspace)),
        facts(ClientStateAllocator<ProjectionFact>(memory,memory::Pool::Workspace)),
        combined(ClientStateAllocator<ProjectionFact>(memory,memory::Pool::Workspace)),fields(ClientStateAllocator<BodyFieldView>(memory,memory::Pool::Workspace)) {
-    records.resize((std::min)(std::size_t(kW_frame_records),size/kW_StateRecordHeaderBytes));member_order.resize(records.size());
+    const auto head=LayoutVersion()>=kFlatRecordContractVersion?kFlatRecordHeaderBytes:kW_StateRecordHeaderBytes;
+    records.resize((std::min)(std::size_t(kW_frame_records),size/head));member_order.resize(records.size());
     events.resize((std::min)(std::size_t(kW_max_audio_events),size/kW_StateAudioEventHeaderBytes));
     // 普通的 Player 联合帧会产生数十项投影事实，预留基础工作区，避免逐帧抛异常扩容。
     fields.resize(BodySourceMaximumFields());facts.resize(128);
@@ -463,7 +483,7 @@ struct ClientShadowBuildWork final {
     const auto &before=decode_inputs[stream];const auto &after=roots[stream];
     if(!after||!after->Context().base_version||!before){dependencies_changed[stream]=true;return;}
     auto &out=invalidated[stream];
-    const auto append=[&](auto consumers){for(const auto &edge:consumers)out.emplace_back(edge.consumer,edge.block);};
+    const auto append=[&](auto consumers){for(const auto &edge:consumers)if(edge.block<32)out.emplace_back(edge.consumer,edge.block);};
     if(before->Members()!=after->Members()){
       dependencies_changed[stream]=true;
       const auto target=after->Members()->Directory();
@@ -536,6 +556,12 @@ struct ClientShadowStorage final {
     Thread();if(input.empty())Fail(StateReadiness::InvalidReference,"shadow_empty_layout_bindings");bindings.reserve(input.size());
     for(const auto &value:input){if(!value.space)Fail(StateReadiness::InvalidReference,"shadow_invalid_member_space");
       Binding bound;bound.input=value;bound.masks={Mask(value.layout,BodyStream::World),Mask(value.layout,BodyStream::Body)};
+      if(const auto *flat=FlatRecordLayout(LayoutVersion(),value.layout)){
+        for(unsigned stream=0;stream<2;++stream)bound.masks[stream]=
+          std::any_of(flat->stream_fields[stream].begin(),flat->stream_fields[stream].end(),[](auto bits){return bits!=0;});
+        bindings.push_back(bound);
+        continue;
+      }
       for(const auto &budget:LayoutBudgets())if(budget.layout==value.layout){bound.record_bytes=budget.record_bytes;break;}
       if(value.metadata_only)bound.masks={};
       const auto *layout=FindLayout(value.layout);bool world_first=false,body_first=false;
@@ -826,6 +852,14 @@ struct ClientShadowStorage final {
         record=state->data_->Find(identity->identity);const auto &paired=candidate.states_[1-Stream(context.stream)];other=paired?paired->data_->Find(identity->identity):nullptr;}
       body.emplace(state->Resources(),other,record);return &*body;
     }
+    bool FlatRecordHandled(const StateRecordPayload &record,const PresentationBatchContext &context) const noexcept override {
+      const auto &state=candidate.states_[unsigned(context.stream)];
+      if(!state)return false;
+      const auto *entry=FindStateMember(state->Members()->Directory(),record.member);
+      if(!entry)return false;
+      const auto root=state->Find(entry->identity);
+      return state->FlatFault(entry->identity)||(root&&root->Flat());
+    }
     const ClientStateCandidate &candidate;
     mutable std::optional<ShadowBodyContext> body;
   };
@@ -922,7 +956,48 @@ struct ClientShadowStorage final {
           const auto at=std::lower_bound(records.begin(),records.end(),entry.index,[](const auto &r,auto i){return r.member<i;});
           const auto *record=at!=records.end()&&at->member==entry.index?&*at:nullptr;
           const auto &section=w.frame.sections[w.frame.section_count==2?stream:0];
-          if(section.Retains(entry.index)&&!base&&!record){w.dependencies_changed[stream]=true;continue;}
+          const bool retained_without_image=section.Retains(entry.index)&&!base&&!record;
+          if(const auto *flat=FlatRecordLayout(section.context.layout_version,entry.identity.layout)){
+            const auto &target=*w.roots[stream];
+            const auto *tainted=bases[stream]?w.decode_inputs[stream]->FlatFault(entry.identity):nullptr;
+            if(retained_without_image&&!tainted){w.dependencies_changed[stream]=true;continue;}
+            try{
+              if(tainted&&(!record||record->set_mode!=FlatSetMode::All))
+                Fail(StateReadiness::InvalidEncoding,tainted->reason.data(),entry.index,tainted->layout,tainted->field);
+              if(!record){
+                if(!base||!base->flat)Fail(StateReadiness::InvalidEncoding,"flat_member_without_image",entry.index,flat->id);
+                if(!section.Retains(entry.index)&&!ClientFlatLinksCurrent(*base->flat,target.Members(),target.Resources()))
+                  Fail(StateReadiness::InvalidReference,"flat_inherited_link_rebound",entry.index,flat->id);
+                if(base->member==entry.index)made[stream]=base;
+              }
+              if(!made[stream]){
+                auto next=std::allocate_shared<ClientShadowRecordData>(ClientStateAllocator<ClientShadowRecordData>(memory),memory);
+                next->member=entry.index;next->identity=entry.identity;
+                next->member_epoch=target.Context().member_epoch;next->resource_epoch=target.Context().resource_epoch;
+                next->flat=record?DecodeClientFlat(*flat,*record,section,base?base->flat:ClientFlatImageRef{},
+                  target.Members(),target.Resources(),memory,w.remaining):base->flat;
+                if(base&&base->member==entry.index&&base->flat==next->flat)made[stream]=base;
+                else made[stream]=std::move(next);
+              }
+            }catch(const ClientShadowError &error){
+              if(error.Readiness()==StateReadiness::Budget)throw;
+              const auto latest=DecodeBase(stream,received_versions[stream]);
+              const auto *old_fault=latest?latest->FlatFault(entry.identity):nullptr;
+              auto &fault=w.roots[stream]->data_->flat_faults.emplace_back();
+              fault.identity=entry.identity;fault.member=entry.index;
+              fault.layout=error.LayoutId()?error.LayoutId():flat->id;fault.field=error.FieldId();
+              fault.count=1;
+              if(old_fault&&std::string_view(old_fault->reason.data())==error.what())
+                fault.count=old_fault->count+unsigned(old_fault->count<UINT32_MAX);
+              std::snprintf(fault.reason.data(),fault.reason.size(),"%s",error.what());
+              // 允许原生继续显示前值；损坏基线带显式标记，下一份增量不能假装补齐缺失字段。
+              if(base&&base->member==entry.index)made[stream]=base;
+            }
+            if(made[stream])w.roots[stream]->data_->records.push_back(made[stream]);
+            if(base!=made[stream])w.dependencies_changed[stream]=true;
+            continue;
+          }
+          if(retained_without_image){w.dependencies_changed[stream]=true;continue;}
           const auto invalidated=w.InvalidatedBlocks(stream,entry.identity);
           if(w.frame.section_count==1&&base&&(invalidated&~(record?record->mask:0u)))
             Fail(StateReadiness::InvalidReference,"shadow_inherited_consumer_missing",entry.index,entry.identity.layout);
@@ -1115,7 +1190,8 @@ ClientStateCandidateRef ClientStateShadow::ForWorldApplication(const ClientState
   auto &s=*storage_;s.Thread();
   if(!candidate->states_[0])return candidate;
   const auto *previous=s.Installed(0);
-  if(previous&&previous->context.member_epoch==candidate->states_[0]->Context().member_epoch){
+  const auto &source=*candidate->states_[0]->data_;
+  if(source.flat_faults.empty()&&previous&&previous->context.member_epoch==candidate->states_[0]->Context().member_epoch){
     const auto &fresh=candidate->states_[0]->data_->records;
     if(std::equal(previous->records.begin(),previous->records.end(),fresh.begin(),fresh.end(),
         [](const auto &a,const auto &b){return a->identity==b->identity;}))return candidate;
@@ -1123,6 +1199,22 @@ ClientStateCandidateRef ClientStateShadow::ForWorldApplication(const ClientState
   // 接收时可能还有更早的主线程票据。成员差分只相对真正应用后的目录生成。
   auto result=std::allocate_shared<ClientStateCandidate>(ClientStateAllocator<ClientStateCandidate>(s.memory),s.memory);
   result->packet_=candidate->packet_;result->states_=candidate->states_;
+  if(!source.flat_faults.empty()){
+    // 只在应用视图沿用真正装过的实例。坏记录从未安装时也不会因收到更新而触发创建。
+    auto view=std::allocate_shared<ClientShadowState>(ClientStateAllocator<ClientShadowState>(s.memory),s.memory);
+    auto &out=*view->data_;
+    out.context=source.context;out.members=source.members;out.resources=source.resources;
+    out.flat_faults=source.flat_faults;out.records=source.records;
+    for(const auto &fault:out.flat_faults){
+      auto at=std::lower_bound(out.records.begin(),out.records.end(),fault.member,[](const auto &r,auto i){return r->member<i;});
+      const auto old=previous&&source.context.base_version?previous->FindRef(fault.identity):nullptr;
+      const bool replace=at!=out.records.end()&&(*at)->member==fault.member;
+      if(old&&old->member==fault.member){if(replace)*at=old;else out.records.insert(at,old);}
+      else if(replace)out.records.erase(at);
+    }
+    out.Index(nullptr);out.IndexDependencies(s.memory,nullptr,true);
+    result->states_[0]=view;s.states.push_back(view);
+  }
   s.Changes(*result);s.candidates.push_back(result);
   return result;
 }
@@ -1178,6 +1270,7 @@ ClientStateCandidateRef ClientStateShadow::DeferUnreadyObjects(const ClientState
   auto &out=*view->data_;
   const auto &in=*proposed->data_;
   out.context=in.context;out.members=in.members;out.resources=in.resources;
+  out.flat_faults=in.flat_faults;
   out.records=in.records;
   const auto directory=in.members->Directory();
   const auto extent=directory.entries.empty()?0u:unsigned(directory.entries.back().index)+1;
@@ -1195,6 +1288,7 @@ ClientStateCandidateRef ClientStateShadow::DeferUnreadyObjects(const ClientState
       record.reset();deferred=true;return true;
     }
     if(last->member!=record->member)return false;
+    if(last->flat&&!ClientFlatLinksCurrent(*last->flat,out.members,out.resources))return false;
     for(const auto &block:last->blocks)if(block)for(const auto &link:block->links)if(!link.resource){
       const auto *member=FindStateMember(directory,link.index);
       if(!member||member->identity!=link.member)return false;
@@ -1203,6 +1297,13 @@ ClientStateCandidateRef ClientStateShadow::DeferUnreadyObjects(const ClientState
   };
   for(auto &record:out.records){
     bool pending=false;
+    if(record->flat){
+      if(proposed->FlatFault(record->identity))continue;
+      for(const auto &link:record->flat->links)if(link.is_resource){
+        const auto readiness=tables.ResourceState(in.context.resource_epoch,link.resource);
+        pending|=readiness==ClientResourceState::Unprepared||readiness==ClientResourceState::Pending;
+      }
+    }
     for(const auto &block:record->blocks)if(block)for(const auto &link:block->links)if(link.resource){
       const auto readiness=tables.ResourceState(in.context.resource_epoch,link.entry.key);
       pending|=readiness==ClientResourceState::Unprepared||readiness==ClientResourceState::Pending;
@@ -1212,6 +1313,8 @@ ClientStateCandidateRef ClientStateShadow::DeferUnreadyObjects(const ClientState
   if(!deferred)return {};
   // 依赖尚未创建目标的记录按相同规则沿用，实际挂引用由第 3 步承接。
   const auto needs_missing=[&](const RecordRef &record){
+    if(record->flat)for(const auto &link:record->flat->links)
+      if(!link.is_resource&&link.index<missing.size()&&missing[link.index])return true;
     for(const auto &block:record->blocks)if(block)for(const auto &link:block->links)
       if(!link.resource&&link.index<missing.size()&&missing[link.index])return true;
     return false;

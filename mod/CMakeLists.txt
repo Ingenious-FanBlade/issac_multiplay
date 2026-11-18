@@ -69,6 +69,7 @@ add_library(isaac_cs_state STATIC src/state/layout.cpp src/state/nested.cpp src/
   src/state/capture.cpp src/state/capture_values.cpp src/state/flat_capture.cpp src/state/capture_exchange.cpp src/state/capture_executor.cpp src/state/production_cache.cpp src/state/events.cpp src/state/host_publish.cpp
   src/state/flat_encode.cpp src/state/flat_simd_sse2.cpp $<TARGET_OBJECTS:isaac_cs_flat_avx2>
   src/state/client_memory.cpp src/state/client_tables.cpp src/state/client_shadow.cpp src/state/client_events.cpp src/state/client_receive.cpp src/state/client_validation.cpp src/state/client_plan.cpp src/state/client_apply.cpp
+  src/state/client_flat.cpp
   "${GENERATED}/state_capture.inc" "${GENERATED}/state_wire.inc" "${GENERATED}/state_flat.inc"
   "${GENERATED}/state_client.inc" "${GENERATED}/state_members.inc" "${GENERATED}/state_body_codec.inc" "${GENERATED}/state_resource_protocol.inc" "${GENERATED}/state_protocol.inc" "${GENERATED}/state_budget.inc")
 set_source_files_properties(src/state/flat_simd_sse2.cpp PROPERTIES COMPILE_OPTIONS "/arch:SSE2")
@@ -188,6 +189,7 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
   src/game/client/scene/client_preparation.cpp
   src/game/client/scene/client_field_staging.cpp src/game/client/scene/client_field_staging_native.cpp
   src/game/client/scene/client_atomic_install.cpp src/game/client/scene/client_atomic_install_native.cpp
+  src/game/client/scene/client_flat_install.cpp
   src/game/client/scene/client_binary_scene.cpp
   src/game/client/scene/client_atomic_bindings.cpp src/game/client/scene/client_atomic_bindings_native.cpp
   src/game/client/scene/client_native_bridge.cpp

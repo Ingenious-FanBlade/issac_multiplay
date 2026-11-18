@@ -1012,6 +1012,31 @@ bool ClientBinaryApplySpecial(const ClientNativeRoots &roots,const ClientBinaryS
   __try {return ApplySpecial(roots,w,u);}
   __except(EXCEPTION_EXECUTE_HANDLER){return false;}
 }
+void *ClientBinaryFlatLayer(void *root,unsigned index) noexcept {
+  __try {return ClientBinaryLayer(root,index);}
+  __except(EXCEPTION_EXECUTE_HANDLER){return nullptr;}
+}
+void *ClientBinaryFlatPlus(void *root,unsigned layout) noexcept {
+  __try {return ClientBinaryPlus(root,layout);}
+  __except(EXCEPTION_EXECUTE_HANDLER){return nullptr;}
+}
+bool ClientBinaryClearFlatReference(void *slot) noexcept {
+  if(!ClientBinaryInstallationScopeActive(true)||!slot)return false;
+  __try {
+    static_cast<EntityPtr *>(slot)->SetReference(nullptr);
+    return true;
+  }__except(EXCEPTION_EXECUTE_HANDLER){return false;}
+}
+static bool RetireSpecial(const ClientBinarySpecialWrite &,ClientBinarySpecialUndo &) noexcept;
+bool ClientBinaryCommitFlatSpecial(const ClientBinarySpecialWrite &write,ClientBinarySpecialUndo &undo) noexcept {
+  if(!ClientBinaryInstallationScopeActive(false)&&!ClientBinaryInstallationScopeActive(true))return false;
+  // Apply 已把完成构造的旧承载换出时，后续活对象 setter 的失败不妨碍释放该旧承载。
+  if(undo.committed&&undo.uncertain)return false;
+  if(undo.applied)undo.uncertain=false;
+  undo.committed=true;
+  __try {return RetireSpecial(write,undo);}
+  __except(EXCEPTION_EXECUTE_HANDLER){return false;}
+}
 bool ClientBinaryLayerGraphics(void *object,bool repair,bool &written) noexcept {
   __try {return ApplyLayerGraphics(object,repair,written);}
   __except(EXCEPTION_EXECUTE_HANDLER){return false;}
@@ -1109,8 +1134,8 @@ unsigned ClientBinaryReadSpecial(const ClientNativeRoots &roots,const ClientBina
   __try {return ReadSpecial(roots,w);}
   __except(EXCEPTION_EXECUTE_HANDLER){return 3;}
 }
-bool ClientBinaryRetireSpecial(const ClientBinarySpecialWrite &w,ClientBinarySpecialUndo &u) noexcept {
-  if(!ClientBinaryInstallationScopeActive(true)||u.uncertain)return false;
+static bool RetireSpecial(const ClientBinarySpecialWrite &w,ClientBinarySpecialUndo &u) noexcept {
+  if(u.uncertain)return false;
   if(!u.applied)return true;
   u.uncertain=true;
   try {
@@ -1148,6 +1173,9 @@ bool ClientBinaryRetireSpecial(const ClientBinarySpecialWrite &w,ClientBinarySpe
     }
     u.storage=nullptr;u.applied=false;u.uncertain=false;return true;
   }catch(...){return false;}
+}
+bool ClientBinaryRetireSpecial(const ClientBinarySpecialWrite &w,ClientBinarySpecialUndo &u) noexcept {
+  return ClientBinaryInstallationScopeActive(true)&&RetireSpecial(w,u);
 }
 std::size_t ClientBinarySpecialCharge(const ClientBinarySpecialWrite &w) noexcept {
   using Kind=ClientBinarySpecial;

@@ -35,6 +35,14 @@ struct ClientInstallSlice {
 struct ClientInstallBlock {std::uint32_t version=0,game_frame=0;std::uint64_t source_revision=0;ClientInstallSlice bytes;};
 // World 只为实际存在的块存储三个结束下标，首块从记录起点开始。
 struct ClientInstallBlockEnd {std::uint32_t field=0,value=0,binding=0;};
+// 镜像记录独立于暂存字段；compare_base 供主线程核对是否确实写过计算差分所用的前值。
+struct ClientFlatWritePlan {
+  explicit ClientFlatWritePlan(const std::shared_ptr<ClientStateMemory> &memory)
+    :groups(ClientStateAllocator<std::uint32_t>(memory)) {}
+  ClientFlatImageRef image,compare_base;
+  ClientStateVector<std::uint32_t> groups;
+  bool full=false,skip=false;
+};
 struct ClientInstallRecord {
   std::uint32_t object=kClientPlanNone,event=kClientPlanNone;
   std::uint16_t layout=0;
@@ -51,6 +59,7 @@ struct ClientInstallRecord {
   std::uint32_t changed_mask=0;
   std::uint32_t value_mask=0,structure_mask=0,dependency_mask=0;
   ClientInstallSlice bytes;
+  std::shared_ptr<const ClientFlatWritePlan> flat;
 };
 // 每个实际字段只登记一次；合法空集合也生成操作，条件缺席保留为显式清理语义。
 // definition是可信Fields()索引，native写入仍由对应数字owner执行，不能直接按offset复制。
@@ -85,6 +94,13 @@ struct ClientInstallGrid {
 struct ClientInstallEntity {
   std::uint32_t object=0,type=0,variant=0,subtype=0,init_seed=0,order=0;
   ResourceKey configuration;
+  // 平铺根所需的构造事实由后台从镜像直接读取，仍由现有构造与名册 owner 消费。
+  struct FlatInit {
+    std::array<float,2> position{},velocity{};
+    std::uint64_t flags=0;
+    std::uint32_t spawner_type=0,spawner_variant=0,parent=kClientPlanNone,spawner=kClientPlanNone;
+  };
+  std::optional<FlatInit> flat_init;
 };
 struct ClientInstallPlayer {
   std::uint32_t object=0,group=kClientPlanNone,topology=0;
@@ -218,6 +234,7 @@ private:
   ClientStateVector<ClientInstallBlockEnd> block_ends_;
   ClientStateVector<ClientInstallPath> paths_;
   std::uint32_t normalized_path_count_=0;
+  bool has_flat_records_=false;
   ClientStateVector<std::shared_ptr<const ClientInstallRecordData>> data_;
   ClientStateVector<std::uint32_t> field_records_,value_records_,binding_records_,private_records_;
   ClientInstallBinding RebaseBinding(std::uint32_t record,ClientInstallBinding)const noexcept;

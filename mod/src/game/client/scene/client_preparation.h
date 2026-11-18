@@ -42,7 +42,7 @@ public:
   using ResourceVisitor=bool (*)(void *,state::ResourceKey,void *) noexcept;
   bool InspectStaged(const state::ClientStateApplyBatch &,void *,ObjectVisitor,ResourceVisitor,ClientSceneFieldStaging::Visitor) noexcept;
   bool StagedCurrent(const state::ClientStateApplyBatch &)const noexcept;
-  bool PendingObjectCurrent(const state::ClientStateApplyBatch &,std::uint32_t,void *,std::uint64_t)const noexcept;
+  bool PendingObjectCurrent(const state::ClientStateApplyBatch &,std::uint32_t,void *,std::uint64_t,bool after_init=false)const noexcept;
   ClientMemberFailure StagedFailure(const state::ClientStateApplyBatch &,std::uint32_t)const noexcept;
   bool OwnsFailedObject(const state::ClientStateApplyBatch &,std::uint32_t,void *,std::uint64_t)const noexcept;
   bool ReleaseFailedObject(const state::ClientStateApplyBatch &,std::uint32_t,void *,std::uint64_t) noexcept;

@@ -144,6 +144,11 @@ struct ClientTargetCheckWork final {
       if(own&&member<own->RecordCount()){
         const auto record=own->Record(member);
         if(!links)links.emplace(tables,own->Members(),own->Resources());
+        if(const auto &flat=record.Flat()){
+          for(const auto &link:flat->links)if(link.is_resource)links->roots.push_back(link.resource);
+          ++member;
+          return false;
+        }
         if(!started_record){
           if(record.Identity().layout==197&&candidate.Target().count==2){
             const auto &other=target.effective[1-stream];

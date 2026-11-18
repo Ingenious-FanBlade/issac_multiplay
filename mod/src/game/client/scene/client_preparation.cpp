@@ -603,13 +603,15 @@ bool ClientSceneMainPreparation::InspectStaged(const S::ClientStateApplyBatch &b
   return true;
 }
 bool ClientSceneMainPreparation::PendingObjectCurrent(const S::ClientStateApplyBatch &b,std::uint32_t index,
-    void *address,std::uint64_t instance)const noexcept {
+    void *address,std::uint64_t instance,bool after_init)const noexcept {
   const auto &s=*impl_;auto &w=s.Pending(b);
   if(!s.Current(b)||w.batch.get()!=&b||index>=w.objects.size())return false;
   const auto &slot=w.objects[index];
   if(!slot.required||slot.instance!=instance)return false;
-  return slot.reuse?slot.borrowed==address&&s.BorrowCurrent(w,index,true):
-    ClientStagedObjectBorrow(slot.native)==address;
+  if(slot.reuse)return slot.borrowed==address&&s.BorrowCurrent(w,index,true);
+  // Init 后 _exists 已可置位，直到登记名册前仍由本票据保管，按 owner 与 vptr 核验。
+  const auto owned=after_init?ClientStagedObjectOwnedAddress(slot.native):ClientStagedObjectBorrow(slot.native);
+  return owned==address;
 }
 ClientMemberFailure ClientSceneMainPreparation::StagedFailure(const S::ClientStateApplyBatch &b,std::uint32_t n)const noexcept {
   const auto &w=impl_->Pending(b);
