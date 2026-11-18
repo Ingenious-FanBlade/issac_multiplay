@@ -387,7 +387,7 @@ bool EntitySource::CaptureRootValues(const CaptureWitness &w,EntityFacts f,BodyS
   root.extent=layout->native_size;
   if(!root.address || root.extent>(std::uint64_t{1}<<32)-root.address){FailCapture(d,CaptureFailure::AddressRange,root);return writer.Fail(d);}
   s.root_layout=root.layout;
-  if(flat){
+  if(flat || (pair_player && FlatRecordLayout(LayoutVersion(),root.layout))){
     capture::Cost execution(capture::CostPart::FieldExecution);
     end.accepted=s.ExecuteFlatTear(root,writer,d);
     return end.accepted;

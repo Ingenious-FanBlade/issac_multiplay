@@ -8,10 +8,10 @@ public:
   FlatTranslation(CaptureSubject subject,CaptureLinkResolver resolver,CaptureDiagnostic &diagnostic) noexcept
     :root_{subject},resolver_(resolver),diagnostic_(diagnostic) {}
 
-  bool Translate(const FlatLayout &layout,std::span<std::byte> bytes) noexcept {
+  bool Translate(const FlatLayout &layout,std::span<std::byte> bytes,std::span<FlatTailSpan> tails) noexcept {
     if(bytes.size()<layout.mirror_size)return Fail(layout.id,kNullIndex,CaptureFailure::InvalidValue);
     auto rest=bytes.subspan(layout.mirror_size);
-    if(!Instance(layout,bytes.first(layout.mirror_size),rest,0))return false;
+    if(!Instance(layout,bytes.first(layout.mirror_size),rest,0,tails,bytes.data()))return false;
     return rest.empty() || Fail(layout.id,kNullIndex,CaptureFailure::CountMismatch);
   }
 
@@ -21,9 +21,11 @@ private:
     return FailCapture(diagnostic_,reason,root_,field);
   }
 
-  bool Instance(const FlatLayout &layout,std::span<std::byte> main,std::span<std::byte> &rest,unsigned depth) noexcept {
+  bool Instance(const FlatLayout &layout,std::span<std::byte> main,std::span<std::byte> &rest,unsigned depth,
+                std::span<FlatTailSpan> tails={},std::byte *image=nullptr) noexcept {
     if(depth>=kFlatMaxDepth)return Fail(layout.id,kNullIndex,CaptureFailure::TraversalBudget);
     for(const auto &patch:layout.patches){
+      const auto *start=rest.data();
       auto slot=main.subspan(patch.mirror_offset,patch.size);
       const auto resource=patch.kind==FlatPatchKind::Resource;
       if(resource || patch.kind==FlatPatchKind::Reference){
@@ -37,6 +39,12 @@ private:
         if(patch.header!=FlatHeader::Owner ||
            (word && (word!=(kFlatOwnerPresent|patch.child_layout) || !Children(patch.child_layout,1,rest,depth))))
           return Fail(layout.id,patch.field,CaptureFailure::UnknownLayout);
+      }
+      if(!tails.empty() && (patch.kind==FlatPatchKind::Container || patch.kind==FlatPatchKind::Owner)){
+        const auto index=layout.fields[patch.field].tail;
+        if(index>=tails.size())return Fail(layout.id,patch.field,CaptureFailure::InvalidTransaction);
+        const auto size=std::uint32_t(rest.data()-start);
+        tails[index]={size?std::uint32_t(start-image):0,size};
       }
     }
     return true;
@@ -101,13 +109,13 @@ private:
 }
 
 bool TranslateFlatCapture(const CapturePacket &packet,const CaptureRecord &record,CaptureLinkResolver resolver,
-    std::span<std::byte> output,CaptureDiagnostic &diagnostic) noexcept {
+    std::span<std::byte> output,std::span<FlatTailSpan> tails,CaptureDiagnostic &diagnostic) noexcept {
   const auto *layout=FindFlatLayout(record.layout);
-  if(!layout || record.retained || !record.flat_bytes || record.flat_offset>packet.bytes.size() ||
+  if(!layout || layout->tail_fields.size()!=tails.size() || record.retained || !record.flat_bytes || record.flat_offset>packet.bytes.size() ||
      record.flat_bytes>packet.bytes.size()-record.flat_offset || record.flat_bytes>output.size())
     return FailCapture(diagnostic,CaptureFailure::InvalidTransaction,{record.subject,0,0,record.layout});
   const auto image=output.first(record.flat_bytes);
   std::memmove(image.data(),packet.bytes.data()+record.flat_offset,image.size());
-  return FlatTranslation(record.subject,resolver,diagnostic).Translate(*layout,image);
+  return FlatTranslation(record.subject,resolver,diagnostic).Translate(*layout,image,tails);
 }
 }

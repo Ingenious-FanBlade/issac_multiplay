@@ -61,11 +61,17 @@ add_custom_command(OUTPUT "${GENERATED}/state_capture.inc" "${GENERATED}/state_w
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/observation-expansion/grid-catalog.json"
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/observation-expansion/run-catalog.json"
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-21/stream-catalog.json" VERBATIM)
+# AVX2 独立为机器码目标，链接期优化不能把它内联到 SSE2 基线路径。
+add_library(isaac_cs_flat_avx2 OBJECT src/state/flat_simd_avx2.cpp)
+target_compile_options(isaac_cs_flat_avx2 PRIVATE /arch:AVX2 /W4 /Zi /utf-8)
+set_property(TARGET isaac_cs_flat_avx2 PROPERTY INTERPROCEDURAL_OPTIMIZATION FALSE)
 add_library(isaac_cs_state STATIC src/state/layout.cpp src/state/nested.cpp src/state/owned_payload.cpp src/state/entity_extension.cpp src/state/entity_counters.cpp src/state/npc_presentation.cpp src/state/body_codec.cpp src/state/resource_protocol.cpp src/state/wire_protocol.cpp src/state/acceptance.cpp src/state/budget.cpp
   src/state/capture.cpp src/state/capture_values.cpp src/state/flat_capture.cpp src/state/capture_exchange.cpp src/state/capture_executor.cpp src/state/production_cache.cpp src/state/events.cpp src/state/host_publish.cpp
+  src/state/flat_encode.cpp src/state/flat_simd_sse2.cpp $<TARGET_OBJECTS:isaac_cs_flat_avx2>
   src/state/client_memory.cpp src/state/client_tables.cpp src/state/client_shadow.cpp src/state/client_events.cpp src/state/client_receive.cpp src/state/client_validation.cpp src/state/client_plan.cpp src/state/client_apply.cpp
   "${GENERATED}/state_capture.inc" "${GENERATED}/state_wire.inc" "${GENERATED}/state_flat.inc"
   "${GENERATED}/state_client.inc" "${GENERATED}/state_members.inc" "${GENERATED}/state_body_codec.inc" "${GENERATED}/state_resource_protocol.inc" "${GENERATED}/state_protocol.inc" "${GENERATED}/state_budget.inc")
+set_source_files_properties(src/state/flat_simd_sse2.cpp PROPERTIES COMPILE_OPTIONS "/arch:SSE2")
 target_include_directories(isaac_cs_state PUBLIC src PRIVATE "${GENERATED}")
 target_include_directories(isaac_cs_world PRIVATE "${GENERATED}")
 target_compile_features(isaac_cs_state PUBLIC cxx_std_20)

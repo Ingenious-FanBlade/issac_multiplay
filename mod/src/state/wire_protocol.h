@@ -1,5 +1,6 @@
 #pragma once
 #include "state/frame_events.h"
+#include "state/flat_layout.h"
 
 namespace cs::state {
 // 与旧Range／JSON入口隔离。这里只接收重组完成的正文，连接与route取外层可信封套。
@@ -47,12 +48,14 @@ const StateMemberEntry *FindStateMember(const StateMemberDirectory &,std::uint16
 StateMemberDirectory MergeStateMemberTableInto(const StateMemberDirectory &,const StateMemberTable &,
     std::span<StateMemberEntry>,const StateMemberTransitions &);
 
-// records仅借用完整的块正文；投影事实不跨记录借用同一scratch，完整影子须重新合并校验。
+// records 借用块正文或平铺字段集合和值区。两种类型按合同版本与根布局确定记录头。
 struct StateRecordPayload {
   std::uint16_t member=0, layout=0;
   std::uint32_t mask=0;
   std::span<const std::byte> bytes;
+  FlatSetMode set_mode=FlatSetMode::Legacy;
 };
+std::size_t StateRecordHeaderBytes(const StateRecordPayload &) noexcept;
 struct StateSectionView {
   PresentationBatchContext context;
   std::span<const StateRecordPayload> records;

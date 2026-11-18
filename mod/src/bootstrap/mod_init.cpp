@@ -4,6 +4,7 @@
 #include "game/observation/world_bridge.h"
 #include "hooks/random_runtime.h"
 #include "game/client/display/client_display_memory.h"
+#include "state/flat_simd.h"
 namespace cs {
 DWORD MainThread = 0;
 uintptr_t Base = 0;
@@ -65,6 +66,15 @@ MOD_EXPORT int ModInit() noexcept {
           "schema=1 enabled=1 control=%u port=%u host_port=%u log_level=%s",
           Settings.control, Settings.control_port, Settings.host_port,
           Settings.log_level.c_str());
+    bool force_sse2=false;
+#ifdef ISAACCS_E2E
+    wchar_t sse2_setting[2]{};
+    force_sse2=GetEnvironmentVariableW(L"ISAACCS_FLAT_FORCE_SSE2",sse2_setting,2)==1 && sse2_setting[0]==L'1';
+#endif
+    const auto &flat_cpu=state::FlatKernels(force_sse2);
+    Trace("flat_simd","kernel=%s avx2_available=%u popcnt=%u forced_sse2=%u",
+          flat_cpu.uses_avx2?"avx2":"sse2",unsigned(flat_cpu.avx2_available),
+          unsigned(flat_cpu.has_popcnt),unsigned(force_sse2));
     PrepareBindings();
     game::InitializeWorldBridge();
     RegisterHooks();

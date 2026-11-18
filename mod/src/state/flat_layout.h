@@ -1,8 +1,12 @@
 #pragma once
 #include "state/layout.h"
+#include <array>
 
 namespace cs::state {
 enum class FlatStream : std::uint8_t { World, Body };
+enum class FlatSetMode : std::uint8_t { Bitmap=0, Deltas=1, All=2, Legacy=255 };
+inline constexpr std::size_t kFlatRecordHeaderBytes=9;
+inline constexpr std::uint16_t kFlatRecordContractVersion=85;
 enum class FlatPatchKind : std::uint8_t {
   Copy, Zero, Reference, Resource, Container, Owner, Convert
 };
@@ -25,7 +29,7 @@ struct FlatValidation {
 struct FlatField {
   const char *name;
   std::uint32_t offset, size;
-  std::uint16_t group, components;
+  std::uint16_t group, components, tail; // 无附加段的字段使用 kNullIndex。
   ScalarKind scalar;
   FlatStream stream;
   FlatPatchKind kind;
@@ -101,7 +105,11 @@ struct FlatLayout {
   std::span<const FlatWriteGroup> write_groups;
   std::span<const FlatCountGroup> count_groups;
   std::span<const FlatZeroConstraint> zero_constraints;
+  std::span<const std::uint16_t> tail_fields; // 从附加段索引反查字段序号。
+  std::array<std::span<const std::uint32_t>,2> stream_fields;
 };
 
 const FlatLayout *FindFlatLayout(std::uint16_t id) noexcept;
+// 正式握手仍由 LayoutVersion 决定；只为已接线根选择新记录格式。
+const FlatLayout *FlatRecordLayout(std::uint16_t version,std::uint16_t id) noexcept;
 }

@@ -472,7 +472,8 @@ def emit_type(output, flat, data, symbol, codec_scalar, scalar_bits, resource_id
         return emit_array(output, 'std::uint16_t', symbol + suffix,
                           (str(leaves[i].ordinal) for i in indices), compact=True)
 
-    fields, patches = [], []
+    fields, patches, tails = [], [], []
+    streams = {flow: [0] * ((len(leaves) + 31) // 32) for flow in ('world', 'body')}
     for index in data['ordered']:
         leaf = leaves[index]
         ordinal = leaf.ordinal
@@ -493,7 +494,12 @@ def emit_type(output, flat, data, symbol, codec_scalar, scalar_bits, resource_id
         table = resource_ids.get(leaf.target, 255)
         if leaf.kind == 'Resource':
             require(table != 255, flat.name + '.' + leaf.path, '资源槽缺少目录表号')
-        fields.append(braces(quote(leaf.path), leaf.offset, leaf.width, leaf.group, components,
+        tail = NO_INDEX
+        if leaf.kind in {'Container', 'Owner'}:
+            tail = len(tails)
+            tails.append(index)
+        streams[leaf.stream][ordinal // 32] |= 1 << (ordinal % 32)
+        fields.append(braces(quote(leaf.path), leaf.offset, leaf.width, leaf.group, components, tail,
                              'ScalarKind::' + scalar, 'FlatStream::' + leaf.stream.title(), operation,
                              str(leaf.shape).lower(), 'FlatValueRule::' + leaf.value_rule, validation))
         if leaf.kind == 'Copy' and leaf.seeded:
@@ -540,6 +546,10 @@ def emit_type(output, flat, data, symbol, codec_scalar, scalar_bits, resource_id
     zero_table = emit_array(output, 'FlatZeroConstraint', symbol + 'ZeroConstraints',
                             [braces(leaves[selector].ordinal, empty, indexes(f'ZeroFields{i}', fields))
                              for i, (selector, empty, fields) in enumerate(flat.zero_constraints)])
+    tail_table = indexes('TailFields', tails)
+    stream_tables = [emit_array(output, 'std::uint32_t', symbol + flow.title() + 'Fields',
+                                (f'0x{word:08x}u' for word in words), compact=True)
+                     for flow, words in streams.items()]
     output.append('constexpr FlatLayout ' + symbol + ' = ' +
                   braces(flat.root['layout'], data['mirror_size'], field_table, byte_table, copy_table, patch_table,
-                         scope_table, group_table, count_table, zero_table) + ';\n')
+                         scope_table, group_table, count_table, zero_table, tail_table, braces(*stream_tables)) + ';\n')

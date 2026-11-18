@@ -100,6 +100,66 @@ const StateMemberEntry *MemberAt(const HostStateSnapshot &snapshot,std::uint16_t
   const auto at=std::lower_bound(members.begin(),members.end(),index,[](const auto &entry,auto n){return entry.index<n;});
   return at!=members.end()&&at->index==index?&*at:nullptr;
 }
+bool Retains(const HostStateSnapshot &snapshot,std::uint16_t index) noexcept {
+  const auto at=std::lower_bound(snapshot.retained_members.begin(),snapshot.retained_members.end(),index,
+    [](const auto &root,auto value){return root.member<value;});
+  return at!=snapshot.retained_members.end() && at->member==index;
+}
+
+// 普通来源、资源投影及回执共用目录字段。回执只保存后续差分和成员租约所需的元数据。
+void CopyFrameDirectory(HostStateSnapshot &target,const HostStateSnapshot &source) {
+  target.witness=source.witness;
+  target.ordinary=source.ordinary;
+  target.flat_versions=source.flat_versions;
+  target.member_epoch=source.member_epoch;
+  target.resource_epoch=source.resource_epoch;
+  target.member_indices=source.member_indices;
+  target.members=source.members;
+  target.retained_members=source.retained_members;
+  target.event_watermark=source.event_watermark;
+}
+
+std::shared_ptr<const HostStateRecord> FlatRecordReceipt(const HostStateRecord &record) {
+  auto meta=std::make_shared<HostStateRecord>();
+  meta->member=record.member;
+  meta->stream=record.stream;
+  meta->topology=record.topology;
+  meta->binding=record.binding;
+  meta->member_refs=record.member_refs;
+  meta->resource_prefix=record.resource_prefix;
+  meta->flat_suspended=record.flat_suspended;
+  meta->memory=memory::Reserve(memory::Pool::Values,sizeof(HostStateRecord)+128+
+    meta->member_refs.capacity()*sizeof(std::uint16_t),"host_flat_receipt_record");
+  return meta;
+}
+
+HostStateSnapshotRef FlatReceipt(const HostStateSnapshot &source) {
+  if(std::none_of(source.records.begin(),source.records.end(),[](const auto &r){return bool(r->flat);}))return {};
+  auto receipt=memory::DeferredValue<HostStateSnapshot>();
+  CopyFrameDirectory(*receipt,source);
+  receipt->resources=source.resources;
+  receipt->records.reserve(source.records.size());
+  for(const auto &record:source.records)
+    receipt->records.push_back(record->flat_receipt?record->flat_receipt:record);
+  receipt->memory=memory::Reserve(memory::Pool::Values,SnapshotBytes(*receipt),"host_flat_receipt");
+  return receipt;
+}
+
+void MarkRetained(HostStateSnapshot &target,const HostStateSnapshot *before,const CaptureRecord &record,
+                  std::uint16_t member,CaptureFailure reason) {
+  const auto key=Identity(record.subject);
+  const auto matches=[&](const HostRetainedRoot &root){return Key(root.space,root.local,root.use)==key;};
+  if(std::any_of(target.retained_members.begin(),target.retained_members.end(),matches))return;
+  HostRetainedRoot retained{member,1,reason,record.subject.space,record.subject.local,record.subject.use};
+  if(before){
+    const auto old=std::find_if(before->retained_members.begin(),before->retained_members.end(),matches);
+    if(old!=before->retained_members.end()){
+      retained.first=old->first;
+      retained.count=old->count+unsigned(old->count!=UINT32_MAX);
+    }
+  }
+  target.retained_members.push_back(retained);
+}
 // 完整根先解码得到共享owner存在性，随后增量投影也只能读取该根的同一份事实。
 class FrameContext final:public StateFrameCodecContext,public BodyCodecContext {
 public:
@@ -139,6 +199,16 @@ std::shared_ptr<const HostStateRecord> RetainRecord(const std::shared_ptr<const 
   if(std::all_of(old->member_refs.begin(),old->member_refs.end(),[&](auto index){
       return SameReference(prior,target,index);
     }))return old;
+  if(old->flat){
+    // 沿用保持镜像与戳。引用已失效时禁止携带旧值，等下次真实采集再解除。
+    if(old->flat_suspended)return old;
+    auto next=std::make_shared<HostStateRecord>(*old);
+    next->flat_suspended=true;
+    next->flat_receipt=FlatRecordReceipt(*next);
+    next->memory=memory::Reserve(memory::Pool::Values,sizeof(HostStateRecord)+128+
+      next->member_refs.capacity()*sizeof(std::uint16_t),"host_flat_retained_record");
+    return next;
+  }
 
   std::size_t size=0;
   for(const auto &block:old->blocks)size+=block.payload->bytes.size();
@@ -221,6 +291,9 @@ private:
 
 struct HostStateCapture::Impl {
   Scratch scratch;
+  FlatCompareScratch flat_scratch;
+  FlatVersions flat_clock{}; // 撤销 Body 候选不回收曾发送的版本号。
+  bool body_comparison_reset=false;
   memory::Lease index_memory=memory::Reserve(memory::Pool::Workspace,kOrdinaryCaptureCells*sizeof(std::uint32_t),"host_capture_cell_index");
   std::vector<std::uint32_t> index=std::vector<std::uint32_t>(kOrdinaryCaptureCells);
   Impl(){index_memory->Resize(index.capacity()*sizeof(std::uint32_t));}
@@ -229,6 +302,7 @@ struct HostStateCapture::Impl {
   std::map<Key,HostMemberIndexRef> identities;
   std::vector<std::uint16_t> free_indices;
   std::atomic<std::uint32_t> index_high_water{0},index_reused{0};
+  std::atomic<std::uint32_t> flat_padding_failures{0};
   memory::Lease memory=memory::Reserve(memory::Pool::Values,0,"host_state_member_ids");
 };
 HostStateCapture::HostStateCapture():impl_(std::make_unique<Impl>()){}
@@ -236,20 +310,31 @@ HostStateCapture::~HostStateCapture()=default;
 void HostStateCapture::Reset() noexcept {
   auto &s=*impl_;s.latest.reset();s.ordinary.reset();s.identities.clear();std::vector<std::uint16_t>().swap(s.free_indices);s.memory->Resize(0);
   s.index_high_water.store(0,std::memory_order_relaxed);s.index_reused.store(0,std::memory_order_relaxed);
+  s.flat_padding_failures.store(0,std::memory_order_relaxed);
+  s.flat_clock={};s.body_comparison_reset=false;
 }
-void HostStateCapture::DiscardBody() noexcept {impl_->latest=impl_->ordinary;}
+void HostStateCapture::DiscardBody() noexcept {
+  auto &s=*impl_;
+  if(s.latest!=s.ordinary)s.body_comparison_reset=true;
+  s.latest=s.ordinary;
+}
 HostStateSnapshotRef HostStateCapture::Latest() const noexcept{return impl_->latest;}
 HostMemberIndexStats HostStateCapture::MemberIndexStats() const noexcept {
   return {impl_->index_high_water.load(std::memory_order_relaxed),impl_->index_reused.load(std::memory_order_relaxed)};
 }
+std::uint32_t HostStateCapture::FlatPaddingFailures() const noexcept {
+  return impl_->flat_padding_failures.load(std::memory_order_relaxed);
+}
 HostStateSnapshotRef HostStateCapture::Capture(const CapturePacket &packet,std::span<const HostStateResource> resources,void *qualification,bool (*current)(void *) noexcept,
     HostCaptureTiming timing){
-  auto &s=*impl_;ScratchJob job{s.scratch};s.scratch.Ensure(2u<<20);if(!ValidCaptureWitness(packet.witness))Fail("invalid_capture");const bool ordinary=packet.witness.phase==CapturePhase::Ordinary;
+  auto &s=*impl_;ScratchJob job{s.scratch};s.scratch.Ensure((2u<<20)+31);if(!ValidCaptureWitness(packet.witness))Fail("invalid_capture");const bool ordinary=packet.witness.phase==CapturePhase::Ordinary;
   if(!ordinary&&packet.witness.phase!=CapturePhase::PlayerPost)Fail("unsupported_capture_phase");
   const auto prior=s.latest;
+  const bool flat_contract=LayoutVersion()>=kFlatRecordContractVersion;
   // Worker 允许普通槽替换中间快照。配对 World 若已被替换，本拍 Body 自行退出。
   if(!ordinary&&(!prior||prior->witness.scope!=packet.witness.scope||prior->ordinary.revision!=packet.witness.required_revision))return {};
   const bool new_run=!prior||prior->witness.scope.session!=packet.witness.scope.session||prior->witness.scope.run!=packet.witness.scope.run||prior->witness.generation!=packet.witness.generation;
+  const bool same_scope=!new_run&&prior->witness.scope==packet.witness.scope;
   decltype(s.identities) ids;
   std::vector<std::uint16_t> free_indices;
   std::shared_ptr<HostStateMemberIndices> indices;
@@ -258,6 +343,14 @@ HostStateSnapshotRef HostStateCapture::Capture(const CapturePacket &packet,std::
   // 主线程可能归还最后一个邮箱引用；整个快照的析构交给既有纯值回收线程。
   auto out=memory::DeferredValue<HostStateSnapshot>();out->memory=memory::Reserve(memory::Pool::Values,0,"host_state_snapshot");out->witness=packet.witness;
   out->ordinary=ordinary?packet.witness:prior->ordinary;
+  if(flat_contract){
+    out->flat_versions=new_run?FlatVersions{}:s.flat_clock;
+    // Ordinary 具有两流同窗样本；PlayerPost 只推进 Body，不改已经发布的 World 戳。
+    for(unsigned n=ordinary?0u:1u;n<2;++n){
+      if(out->flat_versions[n]==kFlatMaxVersion)Fail("flat_stream_version_exhausted");
+      ++out->flat_versions[n];
+    }
+  }
   out->baseline_request_revision=ordinary&&packet.request_baseline?packet.witness.revision:
     prior&&prior->witness.scope==packet.witness.scope?prior->baseline_request_revision:0;
   out->structure_revision=new_run?packet.witness.revision:prior->structure_revision;
@@ -272,21 +365,8 @@ HostStateSnapshotRef HostStateCapture::Capture(const CapturePacket &packet,std::
       i=ids.erase(i);
     }
     indices=std::make_shared<HostStateMemberIndices>(packet.records.size());
-    const bool same_scope=!new_run&&prior->witness.scope==packet.witness.scope;
     const auto retain=[&](const CaptureRecord &record,std::uint16_t member){
-      const auto key=Identity(record.subject);
-      const auto matches=[&](const HostRetainedRoot &root){return Key(root.space,root.local,root.use)==key;};
-      auto &retained=out->retained_members;
-      if(std::any_of(retained.begin(),retained.end(),matches))return;
-      HostRetainedRoot value{member,1,record.retained_reason,record.subject.space,record.subject.local,record.subject.use};
-      if(same_scope){
-        const auto before=std::find_if(prior->retained_members.begin(),prior->retained_members.end(),matches);
-        if(before!=prior->retained_members.end()){
-          value.first=before->first;
-          value.count=before->count+unsigned(before->count!=UINT32_MAX);
-        }
-      }
-      retained.push_back(value);
+      MarkRetained(*out,same_scope?prior.get():nullptr,record,member,record.retained_reason);
     };
     for(const auto &record:packet.records)if(!record.event_sequence){
       const auto previous=(same_scope&&record.retained)?std::find_if(prior->members.begin(),prior->members.end(),[&](const auto &member){
@@ -340,6 +420,35 @@ HostStateSnapshotRef HostStateCapture::Capture(const CapturePacket &packet,std::
     out->resource_epoch=new_run?1:prior->resource_epoch+unsigned(resource_changed);
   }
   FrameContext context(*out);
+  // 按成员号和流定位上一帧与当前候选，平铺采集无需逐根扫描两个快照。
+  using RecordRef=std::shared_ptr<const HostStateRecord>;
+  struct RecordSlot {const RecordRef *prior=nullptr;std::size_t output=SIZE_MAX;};
+  std::vector<std::array<RecordSlot,2>> record_slots;
+  memory::Lease slot_memory;
+  if(flat_contract && (!out->members.empty() || (prior&&!prior->members.empty()))){
+    const auto hi=(std::max)(out->members.empty()?0:out->members.back().index,prior&& !prior->members.empty()?prior->members.back().index:0);
+    slot_memory=memory::Reserve(memory::Pool::Workspace,(std::size_t(hi)+1)*sizeof(record_slots[0]),"host_flat_capture_record_slots");
+    record_slots.resize(std::size_t(hi)+1);
+    slot_memory->Resize(record_slots.capacity()*sizeof(record_slots[0]));
+    if(!new_run)for(const auto &record:prior->records)
+      record_slots[record->member.index][unsigned(record->stream)].prior=&record;
+    for(std::size_t i=0;i<out->records.size();++i){
+      const auto &record=out->records[i];
+      record_slots[record->member.index][unsigned(record->stream)].output=i;
+    }
+  }
+  const auto store=[&](RecordRef record){
+    if(!record_slots.empty()){
+      auto &slot=record_slots[record->member.index][unsigned(record->stream)].output;
+      if(slot==SIZE_MAX){slot=out->records.size();out->records.push_back(std::move(record));}
+      else out->records[slot]=std::move(record);
+      return;
+    }
+    const auto found=std::find_if(out->records.begin(),out->records.end(),[&](const auto &entry){
+      return entry->member.index==record->member.index&&entry->stream==record->stream;
+    });
+    if(found==out->records.end())out->records.push_back(std::move(record));else *found=std::move(record);
+  };
   // 只按当前包的身份目录查一次。正文与平铺补丁都用直接编号表，保留沿用与不存在的区别。
   FrameMemberLookup member_lookup(out->members.size()+packet.records.size());
   for(const auto &entry:out->members)member_lookup.Add(Identity(entry.identity),entry.index);
@@ -395,6 +504,8 @@ HostStateSnapshotRef HostStateCapture::Capture(const CapturePacket &packet,std::
       Fail("world_member_changed");
     }
     const auto stream=r.stream==BodyStream::Value?BodyStream::World:r.stream;
+    const auto *flat=FlatRecordLayout(LayoutVersion(),r.layout);
+    if(bool(flat)!=bool(r.flat_bytes))Fail("capture_record_format_mismatch");
     if(r.reusable_base){
       if(!ordinary||stream!=BodyStream::World||r.layout!=host_field::EntityTear::kLayout||!s.ordinary||
          s.ordinary->ordinary.revision!=r.reusable_base||s.ordinary->ordinary.scope!=packet.witness.scope||
@@ -405,44 +516,83 @@ HostStateSnapshotRef HostStateCapture::Capture(const CapturePacket &packet,std::
       });
       if(old==s.ordinary->records.end())Fail("host_root_reuse_record_missing");
       const auto reused=RetainRecord(*old,*s.ordinary,*out,reuse_context,s.scratch);
-      out->records.push_back(reused);
+      store(reused);
       if(reused==*old)out->reusable_roots.push_back(member->identity);
       continue;
     }
     if(!ordinary&&r.layout==197){const auto world=std::find_if(prior->records.begin(),prior->records.end(),[&](const auto &entry){return entry->member.index==member->index&&entry->stream==BodyStream::World;});
       if(world==prior->records.end()||(*world)->topology!=r.subject.topology||(*world)->binding!=r.subject.binding||
          std::any_of(prior->retained_members.begin(),prior->retained_members.end(),[&](const auto &root){return root.member==member->index;}))continue;}
-    if(!ordinary)has_body=true;
     resolve.count=0;resolve.resource_prefix=0;resolve.missing_reference=false;
-    const auto source=[&]{CaptureSample indexing(timing,HostCapturePhase::Index);
-      return CapturedBodySource(packet,i,resolver,s.scratch.links,s.index);}();
-    auto scratch=s.scratch.Body();
-    const auto body=[&]{CaptureSample encoding(timing,HostCapturePhase::Encode);
-      return EncodeBodyInto(r.layout,r.mask,stream,source,s.scratch.output,scratch,&context.resource_context,Limits());}();
     auto record=std::make_shared<HostStateRecord>();record->member=*member;record->stream=stream;record->topology=r.subject.topology;record->binding=r.subject.binding;
-    record->projections.assign(body.facts.begin(),body.facts.end());
+    std::shared_ptr<const HostStateRecord> old;
+    if(!record_slots.empty()){
+      const auto *entry=record_slots[member->index][unsigned(stream)].prior;
+      if(entry&&(*entry)->member.identity==member->identity)old=*entry;
+    }else if(!new_run&&prior)
+      for(const auto &entry:prior->records)if(entry->member.identity==member->identity&&entry->stream==stream){old=entry;break;}
+    if(flat){
+      CaptureDiagnostic diagnostic;
+      s.flat_scratch.Prepare(*flat);
+      auto output=std::span(s.scratch.output);
+      const auto padding=(32u-(reinterpret_cast<std::uintptr_t>(output.data())&31u))&31u;
+      output=output.subspan(padding);
+      {
+        CaptureSample encoding(timing,HostCapturePhase::Encode);
+        if(TranslateFlatCapture(packet,r,resolver,output,s.flat_scratch.tails,diagnostic)){
+          const bool previous_valid=same_scope&&old&&!(stream==BodyStream::Body&&s.body_comparison_reset);
+          record->flat=UpdateFlatImage(*flat,output.first(r.flat_bytes),s.flat_scratch.tails,
+            previous_valid?old->flat:HostFlatImageRef{},out->flat_versions,s.flat_scratch,
+            {r.subject,0,0,r.layout},diagnostic);
+          if(!record->flat && diagnostic.reason==CaptureFailure::InvalidValue)
+            s.flat_padding_failures.fetch_add(1,std::memory_order_relaxed);
+        }
+      }
+      if(!record->flat){
+        for(std::size_t j=0;j<resolve.count;++j)resolve.seen[resolve.refs[j]]=false;
+        if(ordinary){
+          MarkRetained(*out,same_scope?prior.get():nullptr,r,member->index,diagnostic.reason);
+          if(same_scope&&old)store(RetainRecord(old,*prior,*out,reuse_context,s.scratch));
+        }
+        continue;
+      }
+    }else{
+      const auto source=[&]{CaptureSample indexing(timing,HostCapturePhase::Index);
+        return CapturedBodySource(packet,i,resolver,s.scratch.links,s.index);}();
+      auto scratch=s.scratch.Body();
+      const auto body=[&]{CaptureSample encoding(timing,HostCapturePhase::Encode);
+        return EncodeBodyInto(r.layout,r.mask,stream,source,s.scratch.output,scratch,&context.resource_context,Limits());}();
+      record->projections.assign(body.facts.begin(),body.facts.end());
+      for(const auto &block:std::span(body.blocks).first(body.block_count)){
+        HostStateBlock next{block.block,packet.witness.revision,{}};
+        if(old)for(const auto &b:old->blocks)if(b.block==block.block&&Same(b.payload->bytes,block.bytes)){next=b;break;}
+        if(!next.payload)next.payload=Own(block.bytes);
+        record->blocks.push_back(std::move(next));
+      }
+    }
+    if(!ordinary)has_body=true;
     std::sort(resolve.refs.begin(),resolve.refs.begin()+resolve.count);
     record->member_refs.assign(resolve.refs.begin(),resolve.refs.begin()+resolve.count);
     for(const auto index:record->member_refs)resolve.seen[index]=false;
     record->resource_prefix=resolve.resource_prefix;
-    std::shared_ptr<const HostStateRecord> old;
-    if(!new_run&&prior)for(const auto &entry:prior->records)if(entry->member.identity==member->identity&&entry->stream==stream){old=entry;break;}
+    if(flat && old && record->flat==old->flat && !old->flat_suspended && record->member==old->member &&
+       record->topology==old->topology && record->binding==old->binding &&
+       record->resource_prefix==old->resource_prefix && record->member_refs==old->member_refs){
+      store(old);
+      continue;
+    }
+    if(flat)record->flat_receipt=FlatRecordReceipt(*record);
     // P6／P7结构变化不必升级member shape；仍须先共同提交同拓扑world与body。
     if(ordinary&&r.layout==197&&stream==BodyStream::World&&(!old||old->topology!=record->topology||old->binding!=record->binding))out->structure_revision=packet.witness.revision;
-    for(const auto &block:std::span(body.blocks).first(body.block_count)){
-      HostStateBlock next{block.block,packet.witness.revision,{}};
-      if(old)for(const auto &b:old->blocks)if(b.block==block.block&&Same(b.payload->bytes,block.bytes)){next=b;break;}
-      if(!next.payload)next.payload=Own(block.bytes);record->blocks.push_back(std::move(next));
-    }
     record->memory=memory::Reserve(memory::Pool::Values,sizeof(HostStateRecord)+record->blocks.capacity()*sizeof(HostStateBlock)+record->projections.capacity()*sizeof(ProjectionFact)+record->member_refs.capacity()*sizeof(std::uint16_t)+128,"host_state_record");
     // 一根的所有物理块由采集计划一次提供；不能把缺块当成已退休。
-    const auto found=std::find_if(out->records.begin(),out->records.end(),[&](const auto &entry){return entry->member.index==member->index&&entry->stream==stream;});
-    if(ordinary&&stream==BodyStream::World&&r.layout==host_field::EntityTear::kLayout&&!resolve.missing_reference)
+    if(!flat&&ordinary&&stream==BodyStream::World&&r.layout==host_field::EntityTear::kLayout&&!resolve.missing_reference)
       out->reusable_roots.push_back(member->identity);
-    if(found==out->records.end())out->records.push_back(std::move(record));else *found=std::move(record);
+    store(std::move(record));
   }
   if(!ordinary&&!has_body)return {};
   if(ordinary){
+    std::sort(out->retained_members.begin(),out->retained_members.end(),[](const auto &a,const auto &b){return a.member<b.member;});
     std::sort(out->reusable_roots.begin(),out->reusable_roots.end());
     resolve.collect=false;
     StateEventQueue events;events.Reset(packet.event_first_sequence?packet.event_first_sequence-1:0);auto scratch=s.scratch.Body();
@@ -452,6 +602,7 @@ HostStateSnapshotRef HostStateCapture::Capture(const CapturePacket &packet,std::
     for(const auto &e:segment.events){HostStateEvent event{e,Own(e.payload)};event.value.payload=event.payload->bytes;out->events.push_back(std::move(event));}
     out->member_indices=std::move(indices);
   }
+  if(flat_contract)out->flat_receipt=FlatReceipt(*out);
   out->memory->Resize(SnapshotBytes(*out));
   if(current&&!current(qualification))Fail("capture_revoked_during_encoding");
   if(ordinary){
@@ -460,13 +611,14 @@ HostStateSnapshotRef HostStateCapture::Capture(const CapturePacket &packet,std::
     s.index_high_water.store(high_water,std::memory_order_relaxed);s.index_reused.store(reused,std::memory_order_relaxed);
     s.ordinary=out;
   }
+  s.flat_clock=out->flat_versions;s.body_comparison_reset=false;
   s.latest=out;return out;
 }
 
 namespace {
 // 自身和每条真实成员引用必须在相同号码仍代表相同完整身份。资源目录按实际来源前缀追加。
 bool RecordCompatible(const HostStateRecord &record,const HostStateSnapshot &from,const HostStateSnapshot &to) noexcept {
-  if(record.resource_prefix>to.resources.size())return false;
+  if(record.flat_suspended||record.resource_prefix>to.resources.size())return false;
   if(from.member_epoch==to.member_epoch)return true;
   const auto *root=MemberAt(to,record.member.index);
   if(!root||root->identity!=record.member.identity)return false;
@@ -482,12 +634,9 @@ HostStateSnapshotRef ProjectResourcePrefix(const HostStateSnapshotRef &source,co
   if(!epoch||count>source->resources.size())return {};
   if(source->resource_epoch<=epoch)return source;
   auto projected=memory::DeferredValue<HostStateSnapshot>();
-  projected->witness=source->witness;projected->ordinary=source->ordinary;
-  projected->member_epoch=source->member_epoch;projected->resource_epoch=epoch;
-  projected->member_indices=source->member_indices;projected->members=source->members;
+  CopyFrameDirectory(*projected,*source);
+  projected->resource_epoch=epoch;
   projected->resources.assign(source->resources.begin(),source->resources.begin()+count);
-  projected->event_watermark=source->event_watermark;
-  projected->retained_members=source->retained_members;
   projected->records=source->records;
   const auto extent=source->members.empty()?0u:unsigned(source->members.back().index)+1;
   using RecordRef=std::shared_ptr<const HostStateRecord>;
@@ -535,6 +684,7 @@ HostStateSnapshotRef ProjectResourcePrefix(const HostStateSnapshotRef &source,co
   std::erase_if(projected->records,[](const auto &record){return !record;});
   std::sort(projected->retained_members.begin(),projected->retained_members.end(),
     [](const auto &a,const auto &b){return a.member<b.member;});
+  projected->flat_receipt=FlatReceipt(*projected);
   projected->memory=memory::Reserve(memory::Pool::Values,SnapshotBytes(*projected),"host_resource_projected_snapshot");
   return projected;
 }
@@ -569,6 +719,7 @@ struct HostStatePublisher::Impl {
     const HostStateMessage *operator->() const noexcept{return value.get();}};
   memory::Lease memory=memory::Reserve(memory::Pool::Values,sizeof(Impl)+192*sizeof(SentOwner),"host_state_peer");
   Scratch scratch;
+  FlatEncodeScratch flat_scratch;
   StateRoute route;
   HostStateSnapshotRef source,ordinary_source;
   // ACK 移走发送账本；实际已确认的两流来源与编码所用目录继续独立保留。
@@ -682,7 +833,7 @@ std::shared_ptr<const HostStateMessage> HostStatePublisher::Next(std::uint64_t n
     ResourceCodecScratch scratch{s.scratch.Body()};
     const auto encoded=EncodeResourceTableInto({s.route.scope,LayoutVersion(),source.resource_epoch,s.resource_base,
       directory.entries},s.scratch.output,scratch);
-    message->source=s.ordinary_source;message->kind=StateMessageKind::Resources;
+    message->source=source.flat_receipt?source.flat_receipt:s.ordinary_source;message->kind=StateMessageKind::Resources;
     message->lane=StateLane::Context;message->payload=Own(encoded);
     return s.pending=message;
   }
@@ -739,6 +890,7 @@ std::shared_ptr<const HostStateMessage> HostStatePublisher::Next(std::uint64_t n
     for(const auto &record:s.received_frames[n].values->records)
       if(unsigned(record->stream)==n)prior[n][record->member.index]=record.get();
   }
+  memory::Lease flat_payload_memory;
   std::vector<std::vector<std::byte>> payloads;payloads.reserve(snapshot.records.size());
   std::array<std::vector<StateRecordPayload>,2> records;
   for(const auto &record:snapshot.records){
@@ -748,6 +900,17 @@ std::shared_ptr<const HostStateMessage> HostStatePublisher::Next(std::uint64_t n
     const auto *old=prior[n].empty()?nullptr:prior[n][record->member.index];
     const bool rebound=!full&&(!old||old->member.identity!=record->member.identity||
       !RecordCompatible(*old,*s.received_frames[n].values,tables));
+    if(const auto *flat=FlatRecordLayout(LayoutVersion(),record->member.identity.layout)){
+      if(!record->flat || record->flat_suspended)continue;
+      const auto *ack=full?nullptr:s.received_frames[n].values.get();
+      // ACK 已越过沿用或资源延后的帧时，源版本不是这个成员实际收到的版本。
+      const bool all=full||paired_player||rebound||(ack&&Retains(*ack,record->member.index));
+      auto data=EncodeFlatRecord(*flat,*record->flat,FlatStream(n),ack?ack->flat_versions[n]:0,all,s.flat_scratch,flat_payload_memory);
+      if(!data)continue;
+      payloads.push_back(std::move(data->bytes));
+      records[n].push_back({record->member.index,record->member.identity.layout,0,payloads.back(),data->mode});
+      continue;
+    }
     if(!full&&!rebound&&old==record.get())continue;
     // Peer 曾沿用某个根时，源采集 revision 已前进，仍须用实际收到的旧块求差。
     for(const auto &b:record->blocks){
@@ -780,7 +943,7 @@ std::shared_ptr<const HostStateMessage> HostStatePublisher::Next(std::uint64_t n
     retained.push_back(std::byte(root.member&0xff));retained.push_back(std::byte(root.member>>8));
   }
   std::uint64_t fixed=52+(joint?104:52)+member_update.size()+retained.size()*unsigned(joint?2:1);
-  for(unsigned n=0;n<2;++n)for(const auto &r:records[n])fixed+=12+r.bytes.size();
+  for(unsigned n=0;n<2;++n)for(const auto &r:records[n])fixed+=StateRecordHeaderBytes(r)+r.bytes.size();
   const auto limit=StateMessageBodyLimit(joint?StateLane::Baseline:StateLane::World);
   const auto recover=[&]{return Recover(s.route,{s.route.scope,3,StateResyncReason::Budget,confirmed[0].target,confirmed[1].target});};
   if(fixed+(joint||stream==0?StateEventQueueHeaderBytes():0)>limit){
@@ -831,6 +994,7 @@ std::shared_ptr<const HostStateMessage> HostStatePublisher::Next(std::uint64_t n
   }
   if(s.acknowledgements->PinnedBodyBytes()+bytes.size()>StateBudgets().sent_target_bytes)return {};
   message->payload=Own(bytes);frame.encoded=message->payload->bytes;message->target=DescribeStateTarget(s.route,frame);message->kind=StateMessageKind::Frame;message->lane=StateFrameLane(frame);
+  if(snapshot.flat_receipt)message->source=message->tables=snapshot.flat_receipt;
   return s.pending=message;
 }
 void HostStatePublisher::AbandonPending(const std::shared_ptr<const HostStateMessage> &message) noexcept {if(impl_->pending==message)impl_->pending.reset();}

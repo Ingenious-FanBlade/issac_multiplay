@@ -25,9 +25,12 @@ std::uint64_t Bits(std::span<const std::byte> bytes) {
 class Cursor {
 public:
   explicit Cursor(std::span<const std::byte> bytes):bytes_(bytes) {}
-  std::span<const std::byte> Take(std::size_t count) {
+  std::span<const std::byte> Peek(std::size_t count) const {
     if (count>bytes_.size()-position_) Fail("truncated_message");
-    const auto value=bytes_.subspan(position_,count);position_+=count;return value;
+    return bytes_.subspan(position_,count);
+  }
+  std::span<const std::byte> Take(std::size_t count) {
+    const auto value=Peek(count);position_+=count;return value;
   }
   std::size_t Position() const { return position_; }
 private:
@@ -140,6 +143,12 @@ void Record(const StateRecordPayload &record,const PresentationBatchContext &sec
   const auto member=context.Member(section.member_epoch,record.member);
   if (record.member==kNullIndex || !member || member->layout!=record.layout || !member->id || !member->use || !member->shape ||
       !IsStateMemberLayout(record.layout) || record.layout==195) Fail("record_member_or_layout");
+  if(FlatRecordLayout(section.layout_version,record.layout)){
+    if(record.mask || record.bytes.empty() || record.set_mode>FlatSetMode::All ||
+       (!section.base_version && record.set_mode!=FlatSetMode::All))Fail("flat_record_mode");
+    return; // 信任本进程组装的镜像；字段校验由客机后台完成。
+  }
+  if(record.set_mode!=FlatSetMode::Legacy)Fail("legacy_record_mode");
   auto limits=remaining;
   const auto body=DecodeBody(record.layout,record.mask,section.stream,record.bytes,scratch,context.BodyContext(section,record.member),limits);
   Visit(remaining,body.field_visits);
@@ -161,6 +170,9 @@ void Ack(const StateAppliedAck &ack) {
 } // namespace
 
 StateAgreement LocalStateAgreement() noexcept { return {kW_binary_state_capability,LayoutVersion()}; }
+std::size_t StateRecordHeaderBytes(const StateRecordPayload &record) noexcept {
+  return record.set_mode==FlatSetMode::Legacy?kW_StateRecordHeaderBytes:kFlatRecordHeaderBytes;
+}
 std::uint8_t StateBinaryEnvelopeFlag() noexcept { return std::uint8_t(kW_binary_payload_flag); }
 bool CompatibleStateAgreement(StateAgreement a) noexcept { return a.binary_state==kW_binary_state_capability && a.layout_version==LayoutVersion(); }
 
@@ -303,6 +315,10 @@ StateFrameView InspectStateFrame(const StateScope &scope,std::span<const std::by
        event_counts[i]>kW_max_audio_events-events||event_counts[i]>scratch.events.size()-events)Fail("frame_count_or_scratch");
     Visit(remaining,std::uint32_t(StateSectionHeaderField::count));
     for (std::size_t j=0;j<n;++j) {
+      if(frame.layout_version>=kFlatRecordContractVersion){
+        const auto id=std::uint16_t(Bits(input.Peek(4).subspan(2)));
+        if(FlatRecordLayout(frame.layout_version,id))Fail("flat_record_decode_pending");
+      }
       const auto r=Read<StateRecordHeaderField>(kW_StateRecordHeader,input.Take(kW_StateRecordHeaderBytes));
       scratch.records[records+j]={std::uint16_t(r[std::size_t(StateRecordHeaderField::member)]),std::uint16_t(r[std::size_t(StateRecordHeaderField::layout)]),
           std::uint32_t(r[std::size_t(StateRecordHeaderField::block_mask)]),input.Take(std::size_t(r[std::size_t(StateRecordHeaderField::record_bytes)]))};
@@ -409,7 +425,7 @@ std::span<const std::byte> EncodeStateFrameInto(StateFrameView &frame,std::span<
       Fail("frame_retained_encode");
     if (Overlap(std::as_bytes(s.records),output) ||
         Overlap(std::as_bytes(s.presentation.events),output)) Fail("frame_encode_metadata_overlap");
-    for (const auto &r:s.records) {size+=kW_StateRecordHeaderBytes+r.bytes.size();if (Overlap(r.bytes,output)) Fail("frame_record_overlap");}
+    for (const auto &r:s.records) {size+=StateRecordHeaderBytes(r)+r.bytes.size();if (Overlap(r.bytes,output)) Fail("frame_record_overlap");}
     if(s.context.stream==BodyStream::World)size+=StateEventQueueHeaderBytes();
     for (const auto &e:s.presentation.events) {size+=StateEventHeaderBytes()+e.payload.size();if (Overlap(e.payload,output)) Fail("frame_event_overlap");}
     events+=s.presentation.events.size();
@@ -431,10 +447,22 @@ std::span<const std::byte> EncodeStateFrameInto(StateFrameView &frame,std::span<
     At(v,StateSectionHeaderField::event_count)=s.presentation.events.size();At(v,StateSectionHeaderField::event_watermark)=c.event_watermark;
     Write(kW_StateSectionHeader,v,output.subspan(position,kW_StateSectionHeaderBytes));position+=kW_StateSectionHeaderBytes;Visit(remaining,std::uint32_t(StateSectionHeaderField::count));
     for (const auto &r:s.records) {
-      Record(r,c,context,scratch.body,remaining);Values<StateRecordHeaderField> rv{};
-      At(rv,StateRecordHeaderField::member)=r.member;At(rv,StateRecordHeaderField::layout)=r.layout;
-      At(rv,StateRecordHeaderField::block_mask)=r.mask;At(rv,StateRecordHeaderField::record_bytes)=r.bytes.size();
-      Write(kW_StateRecordHeader,rv,output.subspan(position,kW_StateRecordHeaderBytes));position+=kW_StateRecordHeaderBytes;
+      Record(r,c,context,scratch.body,remaining);
+      if(r.set_mode==FlatSetMode::Legacy){
+        Values<StateRecordHeaderField> rv{};
+        At(rv,StateRecordHeaderField::member)=r.member;At(rv,StateRecordHeaderField::layout)=r.layout;
+        At(rv,StateRecordHeaderField::block_mask)=r.mask;At(rv,StateRecordHeaderField::record_bytes)=r.bytes.size();
+        Write(kW_StateRecordHeader,rv,output.subspan(position,kW_StateRecordHeaderBytes));
+      }else{
+        const auto size=std::uint32_t(r.bytes.size());
+        for(unsigned j=0;j<2;++j){
+          output[position+j]=std::byte(r.member>>(j*8));
+          output[position+2+j]=std::byte(r.layout>>(j*8));
+        }
+        for(unsigned j=0;j<4;++j)output[position+4+j]=std::byte(size>>(j*8));
+        output[position+8]=std::byte(r.set_mode);
+      }
+      position+=StateRecordHeaderBytes(r);
       if (!r.bytes.empty()) std::memcpy(output.data()+position,r.bytes.data(),r.bytes.size());
       position+=r.bytes.size();Visit(remaining,std::uint32_t(StateRecordHeaderField::count));
     }

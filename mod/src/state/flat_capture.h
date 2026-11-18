@@ -8,6 +8,11 @@ namespace cs::state {
 inline constexpr std::uint32_t kFlatOwnerPresent=1u<<31;
 inline constexpr unsigned kFlatMaxDepth=32;
 
+// 完整镜像内的附加段范围。偏移只供线程内访问，字段上线只带规范头及此段字节。
+struct FlatTailSpan {
+  std::uint32_t offset=0,size=0;
+};
+
 inline std::uint32_t FlatWord(std::span<const std::byte> slot,std::size_t offset=0) noexcept {
   std::uint32_t value;
   std::memcpy(&value,slot.data()+offset,sizeof(value));
@@ -20,5 +25,5 @@ inline void SetFlatWord(std::span<std::byte> slot,std::uint32_t value,std::size_
 
 // 按同一补丁程序遍历纯值镜像。output 由调用方独占，失败时整根丢弃。
 bool TranslateFlatCapture(const CapturePacket &,const CaptureRecord &,CaptureLinkResolver,
-                          std::span<std::byte> output,CaptureDiagnostic &) noexcept;
+                          std::span<std::byte> output,std::span<FlatTailSpan> tails,CaptureDiagnostic &) noexcept;
 }

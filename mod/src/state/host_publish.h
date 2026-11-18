@@ -1,6 +1,7 @@
 #pragma once
 #include "state/acceptance.h"
 #include "state/events.h"
+#include "state/flat_encode.h"
 #include <atomic>
 #include <memory>
 #include <mutex>
@@ -23,6 +24,9 @@ struct HostStateRecord {
   std::uint64_t topology=0,binding=0;
   std::vector<HostStateBlock> blocks;
   std::vector<ProjectionFact> projections;
+  HostFlatImageRef flat;
+  std::shared_ptr<const HostStateRecord> flat_receipt; // 共享同一记录的无镜像元数据。
+  bool flat_suspended=false; // 沿用镜像的成员引用已失效，本帧只登记沿用。
   // 编码真正读到的成员号及所需资源前缀，用于跨代表的 Body 闭包判定。
   std::vector<std::uint16_t> member_refs;
   std::uint32_t resource_prefix=0;
@@ -42,6 +46,7 @@ struct HostStateSnapshot {
   CaptureWitness witness,ordinary;
   std::uint32_t member_epoch=0,resource_epoch=0;
   std::uint64_t structure_revision=0;
+  FlatVersions flat_versions{}; // 与 Peer 的线上目标号独立，由 ACK 的真实发送凭据关联。
   std::vector<StateMemberEntry> members;
   std::vector<HostRetainedRoot> retained_members; // 对象仍在，保留连续失败次数及首因。
   // 普通快照中值与引用均齐全的可复用根，按完整成员键排序。
@@ -53,6 +58,8 @@ struct HostStateSnapshot {
   std::vector<std::shared_ptr<const HostStateRecord>> records;
   std::uint64_t event_first=0,event_watermark=0;
   std::vector<HostStateEvent> events;
+  // 发送账本与 ACK 只借用目录、旧域值及平铺根元数据，不持有平铺镜像版本。
+  std::shared_ptr<const HostStateSnapshot> flat_receipt;
   // 网络owner向全部当前Peer交接成功后置位；仅表示接管，不代表安装／播放／ACK。
   mutable std::atomic<std::uint32_t> events_transferred{0};
 };
@@ -94,6 +101,7 @@ public:
       bool (*current)(void *) noexcept=nullptr,HostCaptureTiming={});
   HostStateSnapshotRef Latest() const noexcept;
   HostMemberIndexStats MemberIndexStats() const noexcept;
+  std::uint32_t FlatPaddingFailures() const noexcept;
 private:
   struct Impl;std::unique_ptr<Impl> impl_;
 };

@@ -1083,6 +1083,7 @@ BinaryEntityStats BinaryEntities::Statistics() const noexcept {auto &s=*impl_;au
   std::unique_lock lock(s.publish_status,std::try_to_lock);if(lock)out.publication_failure=s.publish_failure;return out;}
 std::string BinaryEntities::WorkerFields(unsigned page) const {
   const auto &s=*impl_;auto out=s.worker_metrics.Read().Fields("stream.capture_worker.",page);
+  out+="stream.capture_worker.flat_padding_failures="+std::to_string(s.publisher.FlatPaddingFailures())+"\n";
   out+="stream.source.entity_invalidations="+std::to_string(s.entity_invalidations)+"\n";
   out+="stream.source.sprite_invalidations="+std::to_string(s.sprite_invalidations)+"\n";
   out+="stream.source.sprite_history_preserved="+std::to_string(s.sprite_history_preserved)+"\n";

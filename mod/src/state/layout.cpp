@@ -53,6 +53,12 @@ const Layout *FindLayout(std::uint16_t id) noexcept {
 const FlatLayout *FindFlatLayout(std::uint16_t id) noexcept {
   return id < kFlatSlots.size() ? kFlatSlots[id] : nullptr;
 }
+const FlatLayout *FlatRecordLayout(std::uint16_t version,std::uint16_t id) noexcept {
+  // Tear 是首个接完 Host 采集的根。其余已生成描述随各自的采集程序接入。
+  if(version<kFlatRecordContractVersion || id!=kFlat125.id)return nullptr;
+  const auto *layout=FindLayout(id);
+  return layout && layout->flat_record ? FindFlatLayout(id) : nullptr;
+}
 const Field *FindField(std::uint16_t id, std::uint16_t index) noexcept {
   const auto *layout = FindLayout(id);
   if (!layout || index >= layout->field_count) return nullptr;
