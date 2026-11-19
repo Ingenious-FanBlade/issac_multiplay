@@ -697,6 +697,8 @@ std::string StatusFields() {
   n("current_tick", r ? r->pipeline.SimulationTick() : 0);
   n("ticks_standard", r ? r->ticks_standard : 0);
   n("ticks_odd", r ? r->ticks_odd : 0);
+  // 阶段0计时：对照ticks_standard/ticks_odd判断Authority tick为约60Hz还是约30Hz。
+  n("native_interpolation", NativeInterpolationState());
   n("a_bound", r && !r->finished && r->players[0].BoundValid());
   n("a_generation", r ? r->players[0].Generation() : 0);
   n("blocks", r ? r->blocks : 0);

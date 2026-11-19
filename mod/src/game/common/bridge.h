@@ -82,6 +82,8 @@ struct PhysicalActions {
 bool ClientManagerBoundary() noexcept;
 bool ClientBusy() noexcept;
 void ClientPollInput();
+// 原生插值选项：0=关，1=开，2=非主线程或Manager未就绪；只读诊断。
+unsigned NativeInterpolationState() noexcept;
 bool ClientUiBlocked() noexcept;
 // 仅当前原生HUD draw作用域供应服务器最终显示条件，不放行成就或任何持久写入。
 bool ClientMenuAvailable() noexcept;

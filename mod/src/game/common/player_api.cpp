@@ -4,6 +4,13 @@
 #include "runtime.h"
 
 namespace cs::game {
+// 只读原生选项“插值”（OptionsConfig._enableInterpolation，J273 Manager+0x2A1FB）。
+// 开启时Host每个Manager帧都有Authority tick（偶帧StandardRoom、奇帧OddPlayer），约60Hz；
+// 关闭时只有偶帧StandardRoom，约30Hz且一个tick内玩家走两个半步。0=关，1=开，2=不可读。
+unsigned NativeInterpolationState() noexcept {
+  if(!IsMain()||!g_Manager)return 2;
+  return g_Manager->_optionsConfig._enableInterpolation?1u:0u;
+}
 // 对应公开 EntityPlayer:IsHologram()；不推进动画、不修改角色或控制器。
 bool PlayerIsHologram(void *player) noexcept {
   return IsMain() && player &&

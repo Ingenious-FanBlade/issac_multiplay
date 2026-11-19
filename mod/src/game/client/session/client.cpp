@@ -64,6 +64,82 @@ struct InputTiming final {
     return core::NextInputTarget(tick+projection,core::input::InputRuntimeConfig{},target);
   }
 };
+// 预测插值阶段0的端到端延迟计时，只做客机诊断。
+// 不改线格式、输入、目标tick或显示。Host的Body/World不带发送时刻，
+// 所以“已生效”以ACK覆盖该序号为准，“已显示”以随后第一次Body发布进入原生为准。
+// 后者是上界近似：同一Manager返回窗口的ACK与Body是两条独立消息，Body也不标注输入序号。
+struct InputLatencyProbe final {
+  // 已发意图的发送记录，按序号取模存放；被覆盖或代次变化后的旧序号不再计时。
+  struct Sent final {std::uint64_t sequence=0,target=0,server_tick=0,sent_us=0;};
+  std::array<Sent,128> ring{};
+  // 发出到ACK覆盖该序号；起步（中性→非零移动）到ACK、到随后第一次Body发布。
+  replica::stream::Duration ack_us,onset_ack_us,onset_body_us;
+  // 发送时的提前量：target-server_tick（tick数）及按观测节拍折算的毫秒。
+  replica::stream::Duration lead_ticks,lead_ms;
+  std::uint64_t acked_through=0,ack_ring_miss=0;
+  // ACK的processed_tick相对该序号target：早于、恰好、晚于（晚于表示Host在更晚的tick才处理）。
+  std::uint64_t processed_early=0,processed_on_time=0,processed_late=0,processed_late_max=0;
+  // 起步检测：只跟踪一个未完成的起步；新起步顶替旧的时计入dropped，超过2秒未完成计入expired。
+  bool last_moving=false,onset_pending=false,onset_acked=false;
+  std::uint64_t onset_sequence=0,onset_us=0,onset_body_base=0;
+  std::uint64_t onsets=0,onsets_dropped=0,onsets_expired=0;
+  // 记录一次成功发送；rate为InputTiming观测到的Host节拍，未知时不记毫秒提前量。
+  void Record(std::uint64_t sequence,std::uint64_t target,std::uint64_t server_tick,bool moving,
+             std::uint64_t rate_ticks,std::uint64_t rate_ms) noexcept {
+    const auto now=replica::stream::MetricMicros();
+    ring[sequence%ring.size()]={sequence,target,server_tick,now};
+    const auto lead=target>server_tick?target-server_tick:0;
+    lead_ticks.Observe(lead);
+    if(rate_ticks&&rate_ms)lead_ms.Observe(lead*rate_ms/rate_ticks);
+    if(moving&&!last_moving){
+      if(onset_pending)++onsets_dropped;
+      onset_pending=true;onset_acked=false;onset_sequence=sequence;onset_us=now;++onsets;
+    }
+    last_moving=moving;
+  }
+  // ACK推进到processed；body_count为当时已发布的Body批次数，用来判定随后的第一次Body。
+  void Acked(std::uint64_t processed,std::uint64_t processed_tick,std::uint64_t body_count) noexcept {
+    if(processed<=acked_through)return;
+    acked_through=processed;
+    const auto now=replica::stream::MetricMicros();
+    const auto &s=ring[processed%ring.size()];
+    if(s.sequence!=processed){++ack_ring_miss;}
+    else {
+      ack_us.Observe(now-s.sent_us);
+      if(processed_tick<s.target)++processed_early;
+      else if(processed_tick==s.target)++processed_on_time;
+      else {++processed_late;processed_late_max=(std::max)(processed_late_max,processed_tick-s.target);}
+    }
+    if(onset_pending&&!onset_acked&&processed>=onset_sequence){
+      onset_ack_us.Observe(now-onset_us);onset_acked=true;onset_body_base=body_count;
+    }
+  }
+  // 本轮安装与显示推进之后调用；ACK之后出现的第一次Body发布即视为该起步首次可见。
+  void BodyObserved(std::uint64_t body_count) noexcept {
+    if(!onset_pending)return;
+    const auto now=replica::stream::MetricMicros();
+    if(onset_acked&&body_count>onset_body_base){onset_body_us.Observe(now-onset_us);onset_pending=false;return;}
+    if(now-onset_us>2000000){++onsets_expired;onset_pending=false;}
+  }
+  // 代次或绑定变化后旧序号与旧起步作废；直方图累计保留。
+  void Forget() noexcept {ring={};onset_pending=false;onset_acked=false;last_moving=false;}
+  // 诊断文本：计数、p50、p95、最大值（微秒或tick），前缀为stream.latency.。
+  std::string Fields() const {
+    std::string out;
+    const auto add=[&](const char *name,std::uint64_t value){out+="stream.latency."+std::string(name)+"="+std::to_string(value)+"\n";};
+    const auto hist=[&](const char *name,const replica::stream::Duration &d){
+      const std::string n(name);
+      add((n+"_count").c_str(),d.count);add((n+"_p50").c_str(),d.Percentile(50));
+      add((n+"_p95").c_str(),d.Percentile(95));add((n+"_max").c_str(),d.max_us);
+    };
+    hist("input_ack_us",ack_us);hist("lead_ticks",lead_ticks);hist("lead_ms",lead_ms);
+    hist("onset_ack_us",onset_ack_us);hist("onset_body_us",onset_body_us);
+    add("ack_ring_miss",ack_ring_miss);add("processed_early",processed_early);add("processed_on_time",processed_on_time);
+    add("processed_late",processed_late);add("processed_late_max",processed_late_max);
+    add("onsets",onsets);add("onsets_dropped",onsets_dropped);add("onsets_expired",onsets_expired);
+    return out;
+  }
+};
 // 主线程唯一持有的Client控制块；只保存自有输入值，设备地址仅用于同轮临时确认。
 struct ClientRuntime final {
   net::live::Client network;
@@ -103,6 +179,7 @@ struct ClientRuntime final {
   bool physical_neutral=false;
   bool focused=false,ui_blocked=false,input_ready=false;
   InputTiming timing;
+  InputLatencyProbe latency; // 阶段0纯诊断计时，不参与任何输入或显示判定
   ClientPlayerControlView control;
   unsigned neutral_loops=0;
   void *source=nullptr;
@@ -555,7 +632,7 @@ bool ClientManagerBoundary() noexcept {
           if(c.scope!=event.scope||c.route!=event.route||c.ordinal!=event.ordinal){Failure(c,"client_scope_conflict");break;}
           if(event.progress.eligibility_revision<c.progress.eligibility_revision)break;
           if(c.generation!=event.progress.generation) {
-            Neutral(c,true);c.network.RevokeInput();c.timing={};c.generation=event.progress.generation;c.last_tick=0;
+            Neutral(c,true);c.network.RevokeInput();c.timing={};c.latency.Forget();c.generation=event.progress.generation;c.last_tick=0;
             Trace("client","event=generation connection=%llu generation=%llu",c.connection,c.generation);
           }
           if(event.progress.server_tick<c.progress.server_tick)break;
@@ -566,6 +643,7 @@ bool ClientManagerBoundary() noexcept {
           if(event.progress.generation==c.generation&&event.progress.processed>=c.input_ack) {
             if(event.progress.processed>c.sequence){Failure(c,"client_ack_unsent");break;}
             c.input_ack=event.progress.processed;c.input_ack_tick=event.progress.processed_tick;
+            c.latency.Acked(c.input_ack,c.input_ack_tick,c.scene.AppliedBodyCount());
           }
           break;
         case net::live::Event::Type::Control:Failure(c,"client_world_on_notification_queue");break;
@@ -675,6 +753,7 @@ bool ClientManagerBoundary() noexcept {
           net::live::Intent intent{sample,c.generation,c.sequence+1,target,c.scope,c.route};
           if(c.network.Send(intent)) {
             ++c.sequence;++c.sent;c.last_target=target;c.last_tick=c.progress.server_tick;c.sample.edge_flags=0;
+            c.latency.Record(c.sequence,target,c.progress.server_tick,sample.move_x||sample.move_y,c.timing.rate_ticks,c.timing.rate_ms);
 #ifdef ISAACCS_E2E
             replica::stream::E2EInput("physical-input",{c.ordinal,0,0,sample.edge_flags,c.generation,c.sequence,target,c.progress.server_tick,{sample.move_x,sample.move_y,sample.aim_x,sample.aim_y}});
 #endif
@@ -694,6 +773,8 @@ bool ClientManagerBoundary() noexcept {
     // 输入owner已经完成唯一一次平台泵；显示根位于本轮world安装之后，音频／光标在相机后。
     // 失焦只封本端输入；显示仍消费 Host 状态。只有本地控制台／菜单阻断显示批次。
     if(!c.scene.AdvanceDisplay(c.ui_blocked))Failure(c,"client_display_schedule");
+    // 本轮Body已经进入原生，随后Render会显示；只读计数，不影响调度。
+    c.latency.BodyObserved(c.scene.AppliedBodyCount());
   } catch(const std::exception &error){Failure(c,error.what());}
   catch(...){Failure(c,"client_main_exception");}
   --client_depth;
@@ -877,6 +958,7 @@ std::string ClientStreamFields(unsigned page) {
   out+=c.network.TransmitMetrics().Fields("stream.transmit.",page);
   out+=c.network.Metrics().Fields("stream.receive.",page);
   if(c.binary)out+=c.binary->Diagnostics(page);
+  if(page==0)out+=c.latency.Fields();
   const auto t=c.network.TransferStatus();
   const auto add=[&](const char *name,std::uint64_t value){out+="stream."+std::string(name)+"="+std::to_string(value)+"\n";};
   add("fragments",t.fragments);add("duplicates",t.duplicates);add("conflicts",t.conflicts);add("decoded",t.decoded);add("decoded_bytes",t.decoded_bytes);add("decode_us",t.decode_us);add("expired",t.expired);add("ack_windows",t.ack_windows);

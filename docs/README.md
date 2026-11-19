@@ -1,3 +1,5 @@
+**2026-11-19 本机预测、显示插值与外推：P1 已决定，阶段 0 完成（仅编译，未运行）**：[设计文档](design/binary-state/prediction-interpolation.md)，[RE-P1—RE-P6 报告](design/binary-state/prediction-interpolation/RE-P/README.md)。逆向确认速度模型须复刻、覆盖层写 pos、附着激光要平移点表、Body 需每身体输入序号；勘误 Host 开插值时输入提前量约 33ms。新增客机 `stream.latency.*` 与 Host `native_interpolation` 诊断。P7 中 grid_paths 阻挡位补同步已决定（设计 5.3.1）；其余 P2—P9 待定，阶段 1 起未实施。
+
 **2026-11-17 最终一致修订，用户已同意 E1—E11**：[设计文档](design/binary-state/eventual-consistency-revision.md)把二进制状态同步改为最终一致：ACK 表示接收，客机在一帧内直接应用，失败按对象隔离，成员身份随帧携带；退役离线副本、跨帧切片、原子提交与读回。用户已同意 E1—E11（全部按推荐），已写入规范第17节；Host 采集改为按根隔离失败，采集侧按 H1—H5 优化。初版仅制定设计，实施见修订文档第 10 节。
 
 **2026-11-17 Host 采集 H1／H2 已实施**。[整帧可读区表](design/binary-state/10-frame-read-regions.md)按 Manager 帧共享各读取点的可读区，过期条目通过窄 SEH 作废并重查一次。实体／格子失败保留同一成员的上次值，形态不符或超预算的快槽跳过当拍 Body。见[第 10 步实施记录](design/binary-state/10-host-capture.md#2026-11-17-h1-和-h2-实施记录)，运行验证归第 15 步。
