@@ -53,7 +53,7 @@ struct Publication final {
 };
 class HostPeer final {
 public:
-  HostPeer(std::uint64_t session, unsigned ordinal, stream::RuntimeConfig config={});
+  HostPeer(std::uint64_t session, unsigned ordinal, stream::RuntimeConfig config={}, bool lobby=false);
   ~HostPeer();
   bool Receive(std::span<const std::uint8_t>, std::uint64_t, ReceivedInput &, const HostIdentity &);
   Packets Reply();
@@ -89,6 +89,7 @@ public:
   bool Stopped() const noexcept { return stopped_; }
   std::uint64_t LastReceive() const noexcept { return last_receive_; }
   std::uint64_t Nonce() const noexcept { return nonce_; }
+  unsigned LobbySelection() const noexcept { return lobby_selection_; }
 
 private:
   // 保留现有状态输出的数字顺序。
@@ -102,6 +103,8 @@ private:
   std::array<std::uint64_t,4> source_{};
   unsigned ordinal_;
   stream::RuntimeConfig config_;
+  bool lobby_ = false;
+  unsigned lobby_selection_ = 0;
   bool established_ = false, stopped_ = false, reply_ = false, ending_ = false;
   std::uint64_t nonce_ = 0, server_nonce_ = 0, transfer_ = 0, control_ = 0, roster_ = 0,
                 timing_ = 0, last_receive_ = 0, client_control_ = 0, roster_at_ = 0, timing_at_ = 0,
@@ -125,7 +128,9 @@ public:
   Client &operator=(const Client &) = delete;
   const char *Start(const std::string &, std::uint16_t, std::uint32_t, stream::RuntimeConfig config={},
       std::shared_ptr<const state::ClientStatePreparation> binary={},
-      std::shared_ptr<state::ClientStateMemory> binary_memory={}) noexcept;
+      std::shared_ptr<state::ClientStateMemory> binary_memory={}, bool lobby=false) noexcept;
+  bool SetLobbySelection(unsigned selection) noexcept;
+  std::uint64_t LobbyRoster() const noexcept;
   bool Send(const Intent &) noexcept;
   void RevokeInput() noexcept;
   // 停止旧世界接纳并撤输入；恢复请求须等主线程真实安全退休后另外排入。

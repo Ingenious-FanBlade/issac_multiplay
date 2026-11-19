@@ -54,8 +54,8 @@ const FlatLayout *FindFlatLayout(std::uint16_t id) noexcept {
   return id < kFlatSlots.size() ? kFlatSlots[id] : nullptr;
 }
 const FlatLayout *FlatRecordLayout(std::uint16_t version,std::uint16_t id) noexcept {
-  // Tear 是首个接完 Host 采集的根。其余已生成描述随各自的采集程序接入。
-  if(version<kFlatRecordContractVersion || id!=kFlat125.id)return nullptr;
+  // 此轮覆盖实体、Player 两条流和 Grid；控制组继续按全局元数据合同应用。
+  if(!UsesFlatRecordContract(version)||id==196)return nullptr;
   const auto *layout=FindLayout(id);
   return layout && layout->flat_record ? FindFlatLayout(id) : nullptr;
 }

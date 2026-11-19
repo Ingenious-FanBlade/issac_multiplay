@@ -28,6 +28,7 @@ std::uint32_t CaptureScalarWidth(ScalarKind kind) noexcept {
 }
 bool CaptureWindow::Check(const CaptureRoot &root,CaptureDiagnostic &out) const noexcept {
   if(out.reason!=CaptureFailure::None)return false;
+  if(synchronous_root)return true;
   if(std::this_thread::get_id()!=thread)return FailCapture(out,CaptureFailure::WrongThread,root);
   if(!ValidCaptureWitness(witness) || !current || !current(context,witness,root))return FailCapture(out,CaptureFailure::InvalidWindow,root);
   return true;

@@ -4,6 +4,7 @@
 #include <cstring>
 #include <set>
 #include "core/session.h"
+#include "core/lobby.h"
 #include "state/host_publish.h"
 
 namespace cs::replica::stream {
@@ -19,7 +20,7 @@ void WorldValue(const Value &v){Members(v,{"session","run","floor","dimension","
 void U(std::vector<std::uint8_t> &b,std::uint64_t n,unsigned width){for(unsigned i=0;i<width;++i)b.push_back(std::uint8_t(n>>(8*i)));}
 struct Reader {std::span<const std::uint8_t> b;std::size_t p=0;std::uint64_t U(unsigned n){if(n>b.size()-p)Fail("stream_truncated");std::uint64_t x=0;for(unsigned i=0;i<n;++i)x|=std::uint64_t(b[p++])<<(8*i);return x;}};
 // 6、8、22 为已经退役的报文编号，不再作为传输候选解析。
-bool KnownKind(Kind k){const auto n=unsigned(k);return n>=1&&n<=23&&n!=6&&n!=8&&n!=22;}
+bool KnownKind(Kind k){const auto n=unsigned(k);return n>=1&&n<=unsigned(Kind::LobbyRoster)&&n!=6&&n!=8&&n!=22;}
 void Scope(const Value &b){WorldValue(At(b,"world"));}
 }
 Lane MessageLane(const Message &m){
@@ -55,6 +56,8 @@ void ValidateMessage(const Message &m){
     case Kind::Hello:Members(b,{"capabilities","nonce","role"});Positive(b,{"nonce"});if(S(b["role"])!="Client")Fail("stream_hello_role");Negotiate(Capabilities(),b["capabilities"]);break;
     case Kind::Welcome:Members(b,{"capabilities","session","client_nonce","server_nonce","participant","role"});Positive(b,{"session","client_nonce","server_nonce"});if(N(b,"participant")<1||N(b,"participant")>3||S(b["role"])!="Authority")Fail("stream_welcome");Negotiate(Capabilities(),b["capabilities"]);break;
     case Kind::Ready:Members(b,{"client_nonce","server_nonce","sent_ms"});Positive(b,{"client_nonce","server_nonce"});N(b,"sent_ms");break;
+    case Kind::LobbySelection:Members(b,{"client_nonce","server_nonce","sent_ms","selection"});Positive(b,{"client_nonce","server_nonce"});N(b,"sent_ms");if(!core::ValidLobbySelection(N(b,"selection")))Fail("stream_lobby_selection");break;
+    case Kind::LobbyRoster:Members(b,{"roster"});if(!core::LobbyRoster::ValidPacket(N(b,"roster")))Fail("stream_lobby_roster");break;
     case Kind::ScenePrepare:Members(b,{"world","next_route","manifest","generation","native_domains","retained_domains","contract"});Scope(b);Positive(b,{"next_route","manifest","generation"});if(N(b,"next_route")!=m.route+1||S(b["contract"])!="binary-state-v1"||(N(b,"native_domains")&N(b,"retained_domains"))||(N(b,"native_domains")|N(b,"retained_domains"))!=2047)Fail("stream_prepare_contract");break;
     case Kind::ScenePrepared:Members(b,{"world","manifest","generation","native_domains","retained_domains","contract"});Scope(b);Positive(b,{"manifest","generation"});if(S(b["contract"])!="binary-state-v1"||(N(b,"native_domains")&N(b,"retained_domains"))||(N(b,"native_domains")|N(b,"retained_domains"))!=2047)Fail("stream_prepared_contract");break;
     case Kind::ReceiveAck:{Members(b,{"transfer","part_count","window","bitmap","complete"});Positive(b,{"transfer","part_count"});if(N(b,"part_count")>32768||N(b,"window")%256||N(b,"window")>=N(b,"part_count")||!b["bitmap"].IsArray()||b["bitmap"].Size()!=4||!b["complete"].IsBool())Fail("stream_receive_ack");const auto remaining=N(b,"part_count")-N(b,"window");bool all=true;for(unsigned i=0;i<4;++i){const auto bits=Unsigned(b["bitmap"][i]);const auto start=std::uint64_t(i)*64,valid=remaining>start?(std::min)(64ull,remaining-start):0ull;const auto mask=valid==64?UINT64_MAX:valid?((1ull<<valid)-1):0;if(bits&~mask)Fail("stream_receive_ack_tail");if(bits!=mask)all=false;}if(b["complete"].GetBool()&&(remaining>256||!all))Fail("stream_receive_ack_completion");break;}
@@ -73,7 +76,7 @@ void ValidateMessage(const Message &m){
 }
 void ValidateReceive(const Message &m,Direction dir,State state){
   ValidateMessage(m);if(state==State::Stopped)Fail("stream_stopped");
-  const bool to_host=m.kind==Kind::Hello||m.kind==Kind::Ready||m.kind==Kind::ScenePrepared||m.kind==Kind::ReceiveAck||m.kind==Kind::AppliedAck||m.kind==Kind::Resync||m.kind==Kind::Input||m.kind==Kind::Disconnect;
+  const bool to_host=m.kind==Kind::Hello||m.kind==Kind::Ready||m.kind==Kind::LobbySelection||m.kind==Kind::ScenePrepared||m.kind==Kind::ReceiveAck||m.kind==Kind::AppliedAck||m.kind==Kind::Resync||m.kind==Kind::Input||m.kind==Kind::Disconnect;
   const bool both=m.kind==Kind::Stop||m.kind==Kind::Disconnect||m.kind==Kind::Error||m.kind==Kind::Cancel||m.kind==Kind::Retire||m.kind==Kind::OperationAck;
   if(!both&&m.kind!=Kind::ScenePrepared&&(to_host!=(dir==Direction::ToAuthority)))Fail("stream_wrong_direction");
   if(state==State::Handshake&&m.kind!=Kind::Hello&&m.kind!=Kind::Welcome&&m.kind!=Kind::Error&&m.kind!=Kind::Stop&&m.kind!=Kind::Disconnect)Fail("stream_handshake_state");
@@ -87,6 +90,7 @@ Json Capabilities(){
   for(const auto *name:{"icsrf-v2","receive-ack-schema-v1","binary-control-v1"}){c["required"].PushBack(Value(name,a),a);c["supported"].PushBack(Value(name,a),a);}
   for(const auto *name:{"compact-payload-v2","array-slots-v1","small-bundle-v1","selective-receive-v1","reliable-operations-v1"}){c["required"].PushBack(Value(name,a),a);c["supported"].PushBack(Value(name,a),a);}
   c["supported"].PushBack(Value(kWorldBodyZstdCapability,a),a);
+  c["supported"].PushBack(Value(kLobbyCapability,a),a);
   const auto binary=std::string("binary-state-v1-layout-")+std::to_string(state::LayoutVersion());c["supported"].PushBack(Value(binary.c_str(),a),a);
   Put(c,"framing",Value(kFraming),a);Put(c,"stream_schema",Value(kSchema),a);Value compression(rapidjson::kArrayType);compression.PushBack(Value("none",a),a);compression.PushBack(Value("zstd-v1",a),a);Put(c,"compression",std::move(compression),a);
   Value world(rapidjson::kObjectType);const auto l=WorldLimits();for(const auto &[key,n]:std::initializer_list<std::pair<const char *,std::uint64_t>>{{"bytes",l.bytes},{"nodes",l.nodes},{"depth",l.depth},{"string_bytes",l.string_bytes},{"fragments",l.fragments},{"candidates",l.candidates},{"value_bytes",l.value_bytes},{"zstd_window_bytes",8ull<<20}})Put(world,key,Value(n),a);Put(c,"world_limits",std::move(world),a);Value fast(rapidjson::kObjectType);const auto f=WorldLimits(true);for(const auto &[key,n]:std::initializer_list<std::pair<const char *,std::uint64_t>>{{"bytes",f.bytes},{"nodes",f.nodes},{"candidates",65},{"fragments",64}})Put(fast,key,Value(n),a);Put(c,"fast_limits",std::move(fast),a);return c;
@@ -102,7 +106,7 @@ Json Negotiate(const Value &a,const Value &b){
     for(const auto &v:caps["supported"].GetArray())if(S(v)==feature)return true;
     return false;
   };
-  for(const auto *feature:{kWorldBodyZstdCapability,kStateTableDeltaCapability})
+  for(const auto *feature:{kWorldBodyZstdCapability,kStateTableDeltaCapability,kLobbyCapability})
     if(!supports(a,feature)||!supports(b,feature))
       for(auto i=c["supported"].Begin();i!=c["supported"].End();){
         if(S(*i)==feature)i=c["supported"].Erase(i);else ++i;

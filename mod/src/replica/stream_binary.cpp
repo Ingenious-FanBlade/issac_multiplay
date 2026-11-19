@@ -21,6 +21,8 @@ const Slots &Schema(Kind kind){
     {Kind::Hello,{{"capabilities",'t'},{"nonce",'u'},{"role",'s'}}},
     {Kind::Welcome,{{"capabilities",'t'},{"session",'u'},{"client_nonce",'u'},{"server_nonce",'u'},{"participant",'u'},{"role",'s'}}},
     {Kind::Ready,{{"client_nonce",'u'},{"server_nonce",'u'},{"sent_ms",'u'}}},
+    {Kind::LobbySelection,{{"client_nonce",'u'},{"server_nonce",'u'},{"sent_ms",'u'},{"selection",'u'}}},
+    {Kind::LobbyRoster,{{"roster",'u'}}},
     {Kind::ScenePrepare,{{"world",'w'},{"next_route",'u'},{"manifest",'u'},{"generation",'u'},{"native_domains",'u'},{"retained_domains",'u'},{"contract",'s'}}},
     {Kind::ScenePrepared,{{"world",'w'},{"manifest",'u'},{"generation",'u'},{"native_domains",'u'},{"retained_domains",'u'},{"contract",'s'}}},
     {Kind::ReceiveAck,{{"transfer",'u'},{"part_count",'u'},{"window",'u'},{"bitmap",'x'},{"complete",'b'}}},

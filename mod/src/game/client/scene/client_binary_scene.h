@@ -20,6 +20,7 @@ public:
   void Recover(state::StateResyncReason) noexcept;
   bool Drained() const noexcept;
   ClientPlayerControlView Control(unsigned ordinal) const noexcept;
+  std::string InstallTimingFields() const;
   std::string Diagnostics(unsigned page)const;
 private:
   struct Impl;

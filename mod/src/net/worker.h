@@ -22,6 +22,7 @@ struct WorkerConfig {
                 heartbeat_ms = std::uint32_t(replica::stream::RuntimeConfig{}.heartbeat_ms);
   replica::stream::RuntimeConfig stream;
   protocol::Text build = protocol::TextId("isaac.cs.tx-04-09");
+  bool lobby = false;
 };
 // 系统随机数生成的会话身份；主线程据此构造 Session，不能用对象地址替代。
 struct HostIdentity {
@@ -45,9 +46,10 @@ struct StartResult {
   StartError error = StartError::None;
   std::uint32_t native_error = 0;
   HostIdentity identity{};
+  std::string addresses;
   explicit operator bool() const noexcept { return error == StartError::None; }
 };
-enum class StopResult : std::uint32_t { Stopped, TimedOut, WaitFailed };
+enum class StopResult : std::uint32_t { Stopped, TimedOut, WaitFailed, Pending };
 enum class TerminalReason : std::uint32_t {
   None,
   Stop,
@@ -74,6 +76,7 @@ struct ReceivedInput {
 // 原子字段的独立快照，计数可能相差一个工作线程迭代，不承诺整结构同一瞬间。
 // terminal 是粘性状态，不经过可丢弃队列；停止后也必须让主线程读到真实原因。
 struct WorkerStatus {
+  unsigned lobby_selection = 0;
   // 共享socket在选定Peer之前的拒绝计数，不能误用某个Peer的foreign计数代替。
   std::uint64_t routing_rejected_packets=0;
   std::array<memory::Usage,3> replication_memory{};
@@ -128,12 +131,14 @@ public:
   Worker &operator=(const Worker &) = delete;
   StartResult Start(const WorkerConfig &config) noexcept;
   bool QueueAck(const protocol::Ack &ack) noexcept;
+  void CloseLobby() noexcept;
   bool PublishWorld(std::shared_ptr<const live::Publication>) noexcept;
   bool TryReceive(ReceivedInput &input, unsigned ordinal = 1) noexcept;
   // 单 Peer 退出只关闭自己的 Endpoint，监听线程和其他远端继续运行。
   void RequestPeerStop(unsigned ordinal, protocol::ByeReason reason) noexcept;
   void
   RequestStop(protocol::ByeReason reason = protocol::ByeReason::Stop) noexcept;
+  // wait_ms=0 只轮询线程退出。正常排空中的 Pending 不计为等待超时。
   StopResult Stop(protocol::ByeReason reason = protocol::ByeReason::Stop,
                   std::uint32_t wait_ms = 1000) noexcept;
   WorkerStatus Status(unsigned ordinal = 1) const noexcept;

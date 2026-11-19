@@ -1,0 +1,1311 @@
+[
+  {
+    "description": "Assemble an instruction to machine code bytes, optionally writing to memory",
+    "inputSchema": {
+      "properties": {
+        "address": {
+          "description": "Address context for assembly (affects relative offsets)",
+          "type": "string"
+        },
+        "instruction": {
+          "description": "Assembly instruction (e.g. 'nop', 'jmp 0x401000', 'mov eax, 1')",
+          "type": "string"
+        },
+        "write_to_memory": {
+          "default": false,
+          "description": "Write assembled bytes directly to target memory",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "instruction",
+        "address"
+      ],
+      "type": "object"
+    },
+    "name": "assembler_assemble"
+  },
+  {
+    "description": "Delete a bookmark at an address",
+    "inputSchema": {
+      "properties": {
+        "address": {
+          "description": "Address to remove bookmark from",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address"
+      ],
+      "type": "object"
+    },
+    "name": "bookmark_delete"
+  },
+  {
+    "description": "List all bookmarks",
+    "inputSchema": {
+      "properties": {},
+      "type": "object"
+    },
+    "name": "bookmark_list"
+  },
+  {
+    "description": "Set a bookmark at an address",
+    "inputSchema": {
+      "properties": {
+        "address": {
+          "description": "Address to bookmark",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address"
+      ],
+      "type": "object"
+    },
+    "name": "bookmark_set"
+  },
+  {
+    "description": "Remove a breakpoint",
+    "inputSchema": {
+      "properties": {
+        "address": {
+          "description": "Breakpoint address",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address"
+      ],
+      "type": "object"
+    },
+    "name": "breakpoint_delete"
+  },
+  {
+    "description": "Delete all breakpoints",
+    "inputSchema": {
+      "properties": {},
+      "type": "object"
+    },
+    "name": "breakpoint_delete_all"
+  },
+  {
+    "description": "Disable a breakpoint without removing it",
+    "inputSchema": {
+      "properties": {
+        "address": {
+          "description": "Breakpoint address",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address"
+      ],
+      "type": "object"
+    },
+    "name": "breakpoint_disable"
+  },
+  {
+    "description": "Enable a disabled breakpoint",
+    "inputSchema": {
+      "properties": {
+        "address": {
+          "description": "Breakpoint address",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address"
+      ],
+      "type": "object"
+    },
+    "name": "breakpoint_enable"
+  },
+  {
+    "description": "Get detailed information about a breakpoint",
+    "inputSchema": {
+      "properties": {
+        "address": {
+          "description": "Breakpoint address",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address"
+      ],
+      "type": "object"
+    },
+    "name": "breakpoint_get"
+  },
+  {
+    "description": "List all breakpoints",
+    "inputSchema": {
+      "properties": {},
+      "type": "object"
+    },
+    "name": "breakpoint_list"
+  },
+  {
+    "description": "Reset breakpoint hit counter",
+    "inputSchema": {
+      "properties": {
+        "address": {
+          "description": "Breakpoint address",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address"
+      ],
+      "type": "object"
+    },
+    "name": "breakpoint_reset_hitcount"
+  },
+  {
+    "description": "Set a breakpoint at specified address",
+    "inputSchema": {
+      "properties": {
+        "address": {
+          "description": "Breakpoint address",
+          "type": "string"
+        },
+        "hw_condition": {
+          "default": "execute",
+          "description": "Hardware access condition (only with type=hardware)",
+          "enum": [
+            "execute",
+            "write",
+            "readwrite"
+          ],
+          "type": "string"
+        },
+        "hw_size": {
+          "default": 1,
+          "description": "Hardware watch size in bytes (only with type=hardware; execute requires 1)",
+          "enum": [
+            1,
+            2,
+            4
+          ],
+          "type": "integer"
+        },
+        "mem_size": {
+          "default": 1,
+          "description": "Exact memory breakpoint range size in bytes (only with type=memory)",
+          "type": "integer"
+        },
+        "type": {
+          "default": "software",
+          "description": "Breakpoint type",
+          "enum": [
+            "software",
+            "hardware",
+            "memory"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "address"
+      ],
+      "type": "object"
+    },
+    "name": "breakpoint_set"
+  },
+  {
+    "description": "Set breakpoint condition expression",
+    "inputSchema": {
+      "properties": {
+        "address": {
+          "description": "Breakpoint address",
+          "type": "string"
+        },
+        "condition": {
+          "description": "Condition expression (e.g. 'cip==module.entry')",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address",
+        "condition"
+      ],
+      "type": "object"
+    },
+    "name": "breakpoint_set_condition"
+  },
+  {
+    "description": "Set breakpoint log message",
+    "inputSchema": {
+      "properties": {
+        "address": {
+          "description": "Breakpoint address",
+          "type": "string"
+        },
+        "log_text": {
+          "description": "Log message to print when breakpoint is hit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address",
+        "log_text"
+      ],
+      "type": "object"
+    },
+    "name": "breakpoint_set_log"
+  },
+  {
+    "description": "Toggle breakpoint state (enabled/disabled)",
+    "inputSchema": {
+      "properties": {
+        "address": {
+          "description": "Breakpoint address",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address"
+      ],
+      "type": "object"
+    },
+    "name": "breakpoint_toggle"
+  },
+  {
+    "description": "Compare two context snapshots and show differences",
+    "inputSchema": {
+      "properties": {
+        "snapshot1": {
+          "description": "First snapshot (from context.get_snapshot)",
+          "type": "object"
+        },
+        "snapshot2": {
+          "description": "Second snapshot (from context.get_snapshot)",
+          "type": "object"
+        }
+      },
+      "required": [
+        "snapshot1",
+        "snapshot2"
+      ],
+      "type": "object"
+    },
+    "name": "context_compare_snapshots"
+  },
+  {
+    "description": "Get basic context (registers and debugger state only)",
+    "inputSchema": {
+      "properties": {},
+      "type": "object"
+    },
+    "name": "context_get_basic"
+  },
+  {
+    "description": "Capture complete debugging context snapshot (registers, memory, stack, etc.)",
+    "inputSchema": {
+      "properties": {
+        "include_memory": {
+          "default": false,
+          "description": "Include memory dump in snapshot",
+          "type": "boolean"
+        },
+        "include_stack": {
+          "default": true,
+          "description": "Include stack data in snapshot",
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "name": "context_get_snapshot"
+  },
+  {
+    "description": "Attach debugger to an already-running process by PID. Uses DbgCmdExec(attach) + WaitForPause + DbgIsDebugging check. Prefer over script_execute('attach'). For PonPon: LEProc start + inject first, x32dbg already open.",
+    "inputSchema": {
+      "properties": {
+        "attach_break": {
+          "default": false,
+          "description": "After attach, wait until paused at system breakpoint (default false)",
+          "type": "boolean"
+        },
+        "detach_first": {
+          "default": true,
+          "description": "Detach/stop current session before attach if busy (default true)",
+          "type": "boolean"
+        },
+        "pid": {
+          "description": "Target process ID (e.g. MAIN_NoCD.EXE after inject)",
+          "type": "integer"
+        },
+        "timeout_ms": {
+          "default": 15000,
+          "description": "Max wait for pause after attach (default 15000)",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "pid"
+      ],
+      "type": "object"
+    },
+    "name": "debug_attach_pid"
+  },
+  {
+    "description": "Get current debugger state (stopped/running/paused) and instruction pointer",
+    "inputSchema": {
+      "properties": {},
+      "type": "object"
+    },
+    "name": "debug_get_state"
+  },
+  {
+    "description": "Start a new debug session by loading an executable (equivalent to x64dbg/x32dbg's 'Run' button). Works regardless of current debug state — use this to relaunch the target after a crash, exit, or manual stop. If 'path' is omitted, falls back to the most recently observed debuggee path.",
+    "inputSchema": {
+      "properties": {
+        "arguments": {
+          "default": "",
+          "description": "Command-line arguments passed to the debuggee (optional).",
+          "type": "string"
+        },
+        "current_dir": {
+          "default": "",
+          "description": "Working directory for the debuggee (optional).",
+          "type": "string"
+        },
+        "path": {
+          "default": "",
+          "description": "Absolute path to the executable to debug. Optional — if omitted, the last observed debuggee path is reused.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "name": "debug_init"
+  },
+  {
+    "description": "Pause program execution",
+    "inputSchema": {
+      "properties": {},
+      "type": "object"
+    },
+    "name": "debug_pause"
+  },
+  {
+    "description": "Restart debugging session. Works even after the debuggee has exited/crashed as long as the target path has been observed in the current plugin session.",
+    "inputSchema": {
+      "properties": {},
+      "type": "object"
+    },
+    "name": "debug_restart"
+  },
+  {
+    "description": "Continue execution until next breakpoint or exception",
+    "inputSchema": {
+      "properties": {},
+      "type": "object"
+    },
+    "name": "debug_run"
+  },
+  {
+    "description": "Run until reaching specified address",
+    "inputSchema": {
+      "properties": {
+        "address": {
+          "description": "Target address (hex format, e.g. '0x401000')",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address"
+      ],
+      "type": "object"
+    },
+    "name": "debug_run_to"
+  },
+  {
+    "description": "Execute single instruction (step into calls)",
+    "inputSchema": {
+      "properties": {},
+      "type": "object"
+    },
+    "name": "debug_step_into"
+  },
+  {
+    "description": "Execute until return from current function",
+    "inputSchema": {
+      "properties": {},
+      "type": "object"
+    },
+    "name": "debug_step_out"
+  },
+  {
+    "description": "Execute single instruction (step over calls)",
+    "inputSchema": {
+      "properties": {},
+      "type": "object"
+    },
+    "name": "debug_step_over"
+  },
+  {
+    "description": "Stop debugging and close target process",
+    "inputSchema": {
+      "properties": {},
+      "type": "object"
+    },
+    "name": "debug_stop"
+  },
+  {
+    "description": "Disassemble instructions at address",
+    "inputSchema": {
+      "properties": {
+        "address": {
+          "description": "Starting address",
+          "type": "string"
+        },
+        "count": {
+          "default": 10,
+          "description": "Number of instructions",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "address"
+      ],
+      "type": "object"
+    },
+    "name": "disassembly_at"
+  },
+  {
+    "description": "Disassemble entire function",
+    "inputSchema": {
+      "properties": {
+        "address": {
+          "description": "Address within function",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address"
+      ],
+      "type": "object"
+    },
+    "name": "disassembly_function"
+  },
+  {
+    "description": "Disassemble a range of addresses",
+    "inputSchema": {
+      "properties": {
+        "end": {
+          "description": "End address",
+          "type": "string"
+        },
+        "max_instructions": {
+          "default": 10000,
+          "description": "Maximum instructions to disassemble",
+          "type": "integer"
+        },
+        "start": {
+          "description": "Start address",
+          "type": "string"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "type": "object"
+    },
+    "name": "disassembly_range"
+  },
+  {
+    "description": "Analyze module and detect packer",
+    "inputSchema": {
+      "properties": {
+        "module": {
+          "description": "Module name or base address (optional, defaults to main module)",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "name": "dump_analyze_module"
+  },
+  {
+    "description": "Detect Original Entry Point (OEP) by scanning for unpacker stub transfer patterns",
+    "inputSchema": {
+      "properties": {
+        "module": {
+          "description": "Module name or base address",
+          "type": "string"
+        }
+      },
+      "required": [
+        "module"
+      ],
+      "type": "object"
+    },
+    "name": "dump_detect_oep"
+  },
+  {
+    "description": "List dumpable memory regions",
+    "inputSchema": {
+      "properties": {
+        "module_base": {
+          "description": "Optional module base address filter",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "name": "dump_get_dumpable_regions"
+  },
+  {
+    "description": "Dump arbitrary memory region to file",
+    "inputSchema": {
+      "properties": {
+        "address": {
+          "description": "Start address",
+          "type": "string"
+        },
+        "as_raw_binary": {
+          "default": false,
+          "description": "Store bytes as-is without PE rebuild",
+          "type": "boolean"
+        },
+        "output_path": {
+          "description": "Output file path",
+          "type": "string"
+        },
+        "size": {
+          "description": "Size in bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "address",
+        "size",
+        "output_path"
+      ],
+      "type": "object"
+    },
+    "name": "dump_memory_region"
+  },
+  {
+    "description": "Dump module to file with PE header reconstruction and optional OEP override",
+    "inputSchema": {
+      "properties": {
+        "auto_detect_oep": {
+          "default": false,
+          "description": "Try to auto-detect OEP via pattern analysis",
+          "type": "boolean"
+        },
+        "dump_full_image": {
+          "default": false,
+          "description": "Dump full image including non-committed pages",
+          "type": "boolean"
+        },
+        "module": {
+          "description": "Module name or base address",
+          "type": "string"
+        },
+        "oep": {
+          "description": "Force this address as the new entry point (hex)",
+          "type": "string"
+        },
+        "output_path": {
+          "description": "Output file path",
+          "type": "string"
+        },
+        "rebuild_pe": {
+          "default": true,
+          "description": "Rebuild PE headers and align sections",
+          "type": "boolean"
+        },
+        "remove_integrity_check": {
+          "default": true,
+          "description": "Clear PE checksum",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "module",
+        "output_path"
+      ],
+      "type": "object"
+    },
+    "name": "dump_module"
+  },
+  {
+    "description": "Evaluate an x64dbg/x32dbg expression (math, symbols, registers, memory dereferences like [csp+8])",
+    "inputSchema": {
+      "properties": {
+        "expression": {
+          "description": "Expression to evaluate (e.g. 'cip+5', '[csp+8]', 'kernel32.base')",
+          "type": "string"
+        }
+      },
+      "required": [
+        "expression"
+      ],
+      "type": "object"
+    },
+    "name": "eval_expression"
+  },
+  {
+    "description": "Get function boundaries (start, end, size) at an address",
+    "inputSchema": {
+      "properties": {
+        "address": {
+          "description": "Address within the function",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address"
+      ],
+      "type": "object"
+    },
+    "name": "function_get"
+  },
+  {
+    "description": "List all recognized functions in the debuggee",
+    "inputSchema": {
+      "properties": {
+        "module": {
+          "description": "Filter by module name (optional)",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "name": "function_list"
+  },
+  {
+    "description": "Allocate new memory in target process",
+    "inputSchema": {
+      "properties": {
+        "size": {
+          "description": "Size in bytes to allocate",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "size"
+      ],
+      "type": "object"
+    },
+    "name": "memory_allocate"
+  },
+  {
+    "description": "List all memory regions in the process",
+    "inputSchema": {
+      "properties": {},
+      "type": "object"
+    },
+    "name": "memory_enumerate"
+  },
+  {
+    "description": "Free previously allocated memory",
+    "inputSchema": {
+      "properties": {
+        "address": {
+          "description": "Address of memory to free",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address"
+      ],
+      "type": "object"
+    },
+    "name": "memory_free"
+  },
+  {
+    "description": "Get information about memory region at address",
+    "inputSchema": {
+      "properties": {
+        "address": {
+          "description": "Address to query",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address"
+      ],
+      "type": "object"
+    },
+    "name": "memory_get_info"
+  },
+  {
+    "description": "Read memory from specified address",
+    "inputSchema": {
+      "properties": {
+        "address": {
+          "description": "Memory address (hex format)",
+          "type": "string"
+        },
+        "encoding": {
+          "default": "hex",
+          "description": "Output encoding",
+          "enum": [
+            "hex",
+            "ascii",
+            "base64"
+          ],
+          "type": "string"
+        },
+        "size": {
+          "description": "Number of bytes to read",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "address",
+        "size"
+      ],
+      "type": "object"
+    },
+    "name": "memory_read"
+  },
+  {
+    "description": "Search for byte pattern in memory",
+    "inputSchema": {
+      "properties": {
+        "end": {
+          "description": "End address (optional)",
+          "type": "string"
+        },
+        "max_results": {
+          "default": 1000,
+          "description": "Maximum results to return",
+          "type": "integer"
+        },
+        "pattern": {
+          "description": "Search pattern (hex with ?? wildcards, e.g. '48 8B ?? C3')",
+          "type": "string"
+        },
+        "start": {
+          "description": "Start address (optional)",
+          "type": "string"
+        }
+      },
+      "required": [
+        "pattern"
+      ],
+      "type": "object"
+    },
+    "name": "memory_search"
+  },
+  {
+    "description": "Write data to memory",
+    "inputSchema": {
+      "properties": {
+        "address": {
+          "description": "Target address (hex format)",
+          "type": "string"
+        },
+        "data": {
+          "description": "Data to write",
+          "type": "string"
+        },
+        "encoding": {
+          "default": "hex",
+          "description": "Data encoding",
+          "enum": [
+            "hex",
+            "ascii",
+            "base64"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "address",
+        "data"
+      ],
+      "type": "object"
+    },
+    "name": "memory_write"
+  },
+  {
+    "description": "Get detailed module information",
+    "inputSchema": {
+      "properties": {
+        "module": {
+          "description": "Module name or base address",
+          "type": "string"
+        }
+      },
+      "required": [
+        "module"
+      ],
+      "type": "object"
+    },
+    "name": "module_get"
+  },
+  {
+    "description": "List exported functions of a module",
+    "inputSchema": {
+      "properties": {
+        "module": {
+          "description": "Module name or base address",
+          "type": "string"
+        }
+      },
+      "required": [
+        "module"
+      ],
+      "type": "object"
+    },
+    "name": "module_get_exports"
+  },
+  {
+    "description": "List imported functions of a module",
+    "inputSchema": {
+      "properties": {
+        "module": {
+          "description": "Module name or base address",
+          "type": "string"
+        }
+      },
+      "required": [
+        "module"
+      ],
+      "type": "object"
+    },
+    "name": "module_get_imports"
+  },
+  {
+    "description": "Get main executable module information",
+    "inputSchema": {
+      "properties": {},
+      "type": "object"
+    },
+    "name": "module_get_main"
+  },
+  {
+    "description": "List all loaded modules",
+    "inputSchema": {
+      "properties": {},
+      "type": "object"
+    },
+    "name": "module_list"
+  },
+  {
+    "description": "List all applied patches (byte-level modifications)",
+    "inputSchema": {
+      "properties": {},
+      "type": "object"
+    },
+    "name": "patch_list"
+  },
+  {
+    "description": "Restore original bytes at a patched address",
+    "inputSchema": {
+      "properties": {
+        "address": {
+          "description": "Address to restore original bytes",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address"
+      ],
+      "type": "object"
+    },
+    "name": "patch_restore"
+  },
+  {
+    "description": "Read value of a single register",
+    "inputSchema": {
+      "properties": {
+        "name": {
+          "description": "Register name (e.g. 'rax'/'eax', 'rip'/'eip', 'eflags')",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    },
+    "name": "register_get"
+  },
+  {
+    "description": "Read multiple registers at once",
+    "inputSchema": {
+      "properties": {
+        "names": {
+          "description": "Array of register names",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "names"
+      ],
+      "type": "object"
+    },
+    "name": "register_get_batch"
+  },
+  {
+    "description": "List all registers with their current values",
+    "inputSchema": {
+      "properties": {
+        "general_only": {
+          "default": false,
+          "description": "Only return general purpose registers",
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "name": "register_list"
+  },
+  {
+    "description": "Write value to a register",
+    "inputSchema": {
+      "properties": {
+        "name": {
+          "description": "Register name",
+          "type": "string"
+        },
+        "value": {
+          "description": "New value (hex format)",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "value"
+      ],
+      "type": "object"
+    },
+    "name": "register_set"
+  },
+  {
+    "description": "Execute single x64dbg/x32dbg script command",
+    "inputSchema": {
+      "properties": {
+        "command": {
+          "description": "x64dbg/x32dbg command to execute (e.g. 'bp 401000')",
+          "type": "string"
+        }
+      },
+      "required": [
+        "command"
+      ],
+      "type": "object"
+    },
+    "name": "script_execute"
+  },
+  {
+    "description": "Execute multiple x64dbg/x32dbg commands in sequence",
+    "inputSchema": {
+      "properties": {
+        "commands": {
+          "description": "Array of x64dbg/x32dbg commands",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "stop_on_error": {
+          "default": true,
+          "description": "Stop execution if a command fails",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "commands"
+      ],
+      "type": "object"
+    },
+    "name": "script_execute_batch"
+  },
+  {
+    "description": "Get result of last script execution",
+    "inputSchema": {
+      "properties": {},
+      "type": "object"
+    },
+    "name": "script_get_last_result"
+  },
+  {
+    "description": "Get stack pointer values (RSP/RBP on x64, ESP/EBP on x86)",
+    "inputSchema": {
+      "properties": {},
+      "type": "object"
+    },
+    "name": "stack_get_pointers"
+  },
+  {
+    "description": "Get stack trace (call stack)",
+    "inputSchema": {
+      "properties": {},
+      "type": "object"
+    },
+    "name": "stack_get_trace"
+  },
+  {
+    "description": "Check if address is on the stack",
+    "inputSchema": {
+      "properties": {
+        "address": {
+          "description": "Address to check",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address"
+      ],
+      "type": "object"
+    },
+    "name": "stack_is_on_stack"
+  },
+  {
+    "description": "Read stack frame data at specified address",
+    "inputSchema": {
+      "properties": {
+        "address": {
+          "description": "Stack frame address (hex format)",
+          "type": "string"
+        },
+        "size": {
+          "description": "Number of bytes to read (max 64KB)",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "address",
+        "size"
+      ],
+      "type": "object"
+    },
+    "name": "stack_read_frame"
+  },
+  {
+    "description": "Get symbol name from address",
+    "inputSchema": {
+      "properties": {
+        "address": {
+          "description": "Address to lookup",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address"
+      ],
+      "type": "object"
+    },
+    "name": "symbol_from_address"
+  },
+  {
+    "description": "Get comment at address",
+    "inputSchema": {
+      "properties": {
+        "address": {
+          "description": "Address to query",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address"
+      ],
+      "type": "object"
+    },
+    "name": "symbol_get_comment"
+  },
+  {
+    "description": "List symbols in a module",
+    "inputSchema": {
+      "properties": {
+        "module": {
+          "description": "Module name (optional, defaults to main module)",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "name": "symbol_list"
+  },
+  {
+    "description": "Resolve symbol name to address",
+    "inputSchema": {
+      "properties": {
+        "symbol": {
+          "description": "Symbol name (e.g. 'kernel32.GetProcAddress')",
+          "type": "string"
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "type": "object"
+    },
+    "name": "symbol_resolve"
+  },
+  {
+    "description": "Search symbols by pattern",
+    "inputSchema": {
+      "properties": {
+        "pattern": {
+          "description": "Search pattern (supports wildcards)",
+          "type": "string"
+        }
+      },
+      "required": [
+        "pattern"
+      ],
+      "type": "object"
+    },
+    "name": "symbol_search"
+  },
+  {
+    "description": "Set comment at address",
+    "inputSchema": {
+      "properties": {
+        "address": {
+          "description": "Address for comment",
+          "type": "string"
+        },
+        "comment": {
+          "description": "Comment text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address",
+        "comment"
+      ],
+      "type": "object"
+    },
+    "name": "symbol_set_comment"
+  },
+  {
+    "description": "Set user-defined label at address",
+    "inputSchema": {
+      "properties": {
+        "address": {
+          "description": "Address for label",
+          "type": "string"
+        },
+        "label": {
+          "description": "Label text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address",
+        "label"
+      ],
+      "type": "object"
+    },
+    "name": "symbol_set_label"
+  },
+  {
+    "description": "Get detailed thread information",
+    "inputSchema": {
+      "properties": {
+        "thread_id": {
+          "description": "Thread ID",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "thread_id"
+      ],
+      "type": "object"
+    },
+    "name": "thread_get"
+  },
+  {
+    "description": "Get total number of threads",
+    "inputSchema": {
+      "properties": {},
+      "type": "object"
+    },
+    "name": "thread_get_count"
+  },
+  {
+    "description": "Get current thread information",
+    "inputSchema": {
+      "properties": {},
+      "type": "object"
+    },
+    "name": "thread_get_current"
+  },
+  {
+    "description": "List all threads in debugged process",
+    "inputSchema": {
+      "properties": {},
+      "type": "object"
+    },
+    "name": "thread_list"
+  },
+  {
+    "description": "Resume a suspended thread",
+    "inputSchema": {
+      "properties": {
+        "thread_id": {
+          "description": "Thread ID to resume",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "thread_id"
+      ],
+      "type": "object"
+    },
+    "name": "thread_resume"
+  },
+  {
+    "description": "Suspend a thread",
+    "inputSchema": {
+      "properties": {
+        "thread_id": {
+          "description": "Thread ID to suspend",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "thread_id"
+      ],
+      "type": "object"
+    },
+    "name": "thread_suspend"
+  },
+  {
+    "description": "Switch to different thread",
+    "inputSchema": {
+      "properties": {
+        "thread_id": {
+          "description": "Thread ID to switch to",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "thread_id"
+      ],
+      "type": "object"
+    },
+    "name": "thread_switch"
+  },
+  {
+    "description": "Get cross-references (callers, jumps, data refs) to an address",
+    "inputSchema": {
+      "properties": {
+        "address": {
+          "description": "Target address to find references to",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address"
+      ],
+      "type": "object"
+    },
+    "name": "xref_get"
+  }
+]

@@ -2456,6 +2456,12 @@
           "name": "P1展示属性",
           "sequence": "world",
           "fields": [
+            "_maxfiredelay",
+            "_shotspeed",
+            "_damage",
+            "_tearrange",
+            "_movespeed",
+            "_luck",
             "_canFly"
           ]
         },
@@ -2609,6 +2615,16 @@
           "sequence": "body",
           "fields": [
             "_costumeSpriteDescs#3"
+          ]
+        },
+        {
+          "id": 25,
+          "name": "P9本机预测对账：已处理输入序号、tick与半帧相位",
+          "sequence": "body",
+          "fields": [
+            "input_sequence",
+            "input_tick",
+            "input_phase"
           ]
         }
       ],

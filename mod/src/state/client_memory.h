@@ -68,6 +68,9 @@ public:
   void RequestBlockSample()const noexcept{sample_requested_.store(true,std::memory_order_release);}
   bool TakeBlockSampleRequest()noexcept{return sample_requested_.exchange(false,std::memory_order_acq_rel);}
   void SetBlockSample(const std::array<std::uint64_t,3> &)noexcept;
+  // World、Body 分别统计到实际原生发布为止的安装样本。
+  struct InstallTiming {std::uint64_t count=0,total_us=0;};
+  std::array<InstallTiming,2> ReadInstallTiming() const noexcept;
   std::string Fields(unsigned page)const;
 private:
   struct Stage {

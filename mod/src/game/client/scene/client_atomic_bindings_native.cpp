@@ -560,6 +560,8 @@ bool ClientBinaryEntityRetire(const ClientNativeRoots &roots,void *object,unsign
     if(*reinterpret_cast<void **>(Bytes(&e)+0x310))return false;
     if(!category){
       ClientPlayerIsolationScope scope(ClientPlayerOperation::Retire);if(!scope.Ready())return false;
+      // HUD 在 World 间保存原生 Player 指针；实际回收前撤销仍指向此实例的显示槽。
+      for(auto &hud:g_Game->_hud._playerHUD)if(hud._player==object)hud._player=nullptr;
       auto &p=static_cast<Entity_Player &>(e);p._twinPlayer.SetReference(nullptr);p._backupPlayer=nullptr;p._heldEntity=nullptr;
       // Player只进入基类清理，避免玩法装备及玩家管理器副作用。
       reinterpret_cast<void (__thiscall *)(Entity *)>(Base+0x2a8000)(&e);
@@ -895,7 +897,6 @@ static bool ApplySpecial(const ClientNativeRoots &roots,const ClientBinarySpecia
         auto &sprite=*static_cast<ANM2 *>(w.parent);auto *file=static_cast<ANM2 *>(w.resource);
         if(file&&sprite._loaded&&sprite._filename==file->_filename)return true;
         if(!file&&!sprite._loaded)return true;
-        if(w.shared_player_sprite)return false; // 换文件会重建 World 图层，由联合事务接管。
         return ReplaceSprite(sprite,file,u)&&sprite._loaded==bool(file);
       }
       case Kind::Animation:return SetAnimation(*static_cast<AnimationState *>(w.parent),static_cast<AnimationData *>(w.resource),u,w.shared_player_sprite);
@@ -1019,6 +1020,19 @@ void *ClientBinaryFlatLayer(void *root,unsigned index) noexcept {
 void *ClientBinaryFlatPlus(void *root,unsigned layout) noexcept {
   __try {return ClientBinaryPlus(root,layout);}
   __except(EXCEPTION_EXECUTE_HANDLER){return nullptr;}
+}
+// 这些槽是借用指针，EntityPtr 则由独立的原生反向树维护。
+bool ClientBinaryFlatBorrow(void *slot,void *target,bool player,bool check) noexcept {
+  __try {
+    const bool active=ClientBinaryInstallationScopeActive(false)||
+      (!target&&!check&&ClientBinaryInstallationScopeActive(true));
+    if(!active||!slot||
+       (target&&player&&!static_cast<Entity *>(target)->ToPlayer()))return false;
+    auto &value=*static_cast<void **>(slot);
+    if(check)return value==target;
+    value=target;
+    return true;
+  }__except(EXCEPTION_EXECUTE_HANDLER){return false;}
 }
 bool ClientBinaryClearFlatReference(void *slot) noexcept {
   if(!ClientBinaryInstallationScopeActive(true)||!slot)return false;

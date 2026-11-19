@@ -183,7 +183,23 @@ bool HostBusy() noexcept {
 }
 std::uint64_t LiveCaptureSession() noexcept {
   auto *r=Runtime();if(!r||r->mode!=core::SessionMode::Host||r->finished||r->retiring||r->failure)return 0;
+  // 大厅阶段先准备生命周期采集。没有 run 时不会采集或发布游戏世界。
   std::uint64_t session=0;std::memcpy(&session,r->session.Identity().session.data(),sizeof(session));return session?session:1;
+}
+// 属性栏使用 Authority 的本地控制组，包括该组下的多个身体。
+bool HostOwnsFoundHudPlayer(const void *player) noexcept {
+  const auto *r=Runtime();
+  return r&&r->topology[0].Contains(const_cast<void *>(player),false);
+}
+// 相机只使用当前房间内已确认属于房主的身体，绑定撤销时回到原生跟随。
+bool HostOwnsCameraPlayer(const void *room,const void *player) noexcept {
+  const auto *r=Runtime();
+  if(!r||r->mode!=core::SessionMode::Host||r->finished||r->retiring||r->failure||r->control_lifecycle_depth)return false;
+  const auto &group=r->topology[0];
+  if(!group.known||!group.run||!group.unique||group.room.room!=room)return false;
+  for(unsigned i=0;i<group.body_count;++i)
+    if(group.bodies[i].player==player)return group.bodies[i].active;
+  return false;
 }
 bool Armed() noexcept { return Busy() && solo->core_started; }
 bool RuntimeHealthy() noexcept {
@@ -266,6 +282,8 @@ const char *StartHost(const net::WorkerConfig &config, int character) noexcept {
     return "wrong_boundary";
   if (Busy())
     return "busy";
+  if (config.lobby && !LobbyCanListen())
+    return "lobby_requires_main_menu";
   if (!ContextHealthy() || !Capabilities[size_t(Group::Observe)] ||
       PointerCount() != 8 || !OddPatchInstalled() || !HostPatchesInstalled() ||
       !Capabilities[size_t(Group::Join)])
@@ -278,9 +296,14 @@ const char *StartHost(const net::WorkerConfig &config, int character) noexcept {
     next->join.character = character;
     next->peer.session_generation = ++generation;
     next->loop = manager_loop;
-    const auto started = next->network.Start(config);
+    auto started = next->network.Start(config);
     if (!started)
       return net::StartErrorName(started.error);
+    if (config.lobby) {
+      next->lobby.roster = {core::LobbyPhase::Waiting, 1};
+      next->lobby.addresses = std::move(started.addresses);
+      next->lobby.port = config.port;
+    }
     for (auto &remote : next->remotes) {
       remote.peer.identity = started.identity;
       remote.peer.session_generation = generation;
@@ -353,6 +376,7 @@ void BeginManager(uint64_t loop) noexcept {
       FailRuntime("foreign_callback");
     if (!r->finished) {
       PollPeer(*r);
+      RefreshHostLobby(*r);
       armed_public = Armed();
       if (Armed())
         RefreshLifecycle(*r, false);
@@ -411,17 +435,19 @@ void EndManager(bool normal) noexcept {
         device_ok &= !remote.cleanup_failed;
         player_ok &= remote.retired;
       }
-    const bool peer_ok = StopPeer(*r);
-    if (!device_ok || !player_ok || !peer_ok) {
+    const auto peer_stop = PollPeerStop(*r);
+    if (!device_ok || !player_ok || peer_stop == net::StopResult::WaitFailed) {
       r->cleanup_failed = true;
       EndLoadingEpisode(*r, "retirement_incomplete");
       FinishPersistenceWindows("retirement_incomplete");
       // 清理未完成也要输出已收集的查询覆盖，避免证据随 Retiring 丢失。
       PublishQueryCoverage(*r);
-      Trace("retirement_error", "device=%u player=%u peer=%u loop=%llu",
-            device_ok, player_ok, peer_ok, r->loop);
+      Trace("retirement_error", "device=%u player=%u peer=%u peer_wait_failed=%u loop=%llu",
+            device_ok, player_ok, peer_stop == net::StopResult::Stopped,
+            peer_stop == net::StopResult::WaitFailed, r->loop);
       return; // 保留未知现场及常驻对象，不重复原生移除，不把失败报告为 Idle。
     }
+    if (peer_stop != net::StopResult::Stopped) return;
     for (unsigned i = 0; i < r->session.ParticipantLimit(); ++i)
       r->players[i].Retire();
     if (r->core_started)
@@ -570,6 +596,8 @@ std::string SourceStreamFields(unsigned page){
       "\nstream.source.capture_origin="+stats.failure.origin.file_name()+":"+std::to_string(stats.failure.origin.line())+
       "\nstream.source.capture_detail="+stats.failure.detail.data()+
       "\nstream.source.read_copies="+std::to_string(stats.reads.copies)+
+      "\nstream.source.snapshot_reads="+std::to_string(stats.native.snapshot_reads)+
+      "\nstream.source.snapshot_fallbacks="+std::to_string(stats.native.snapshot_fallbacks)+
       "\nstream.source.read_bytes="+std::to_string(stats.reads.bytes)+
       "\nstream.source.read_queries="+std::to_string(stats.reads.queries)+
       "\nstream.source.read_hits="+std::to_string(stats.reads.hits)+
@@ -588,6 +616,7 @@ std::string SourceStreamFields(unsigned page){
       "\nstream.source.shared_player_reviews="+std::to_string(stats.native.shared_player_reviews)+
       "\nstream.source.witnesses="+std::to_string(stats.native.witnesses)+
       "\nstream.source.witness_rechecks="+std::to_string(stats.native.rechecks)+
+      "\nstream.source.source_changed="+std::to_string(stats.source_changed)+
       "\nstream.source.legacy_attempts="+std::to_string(c->collector?c->collector->LegacyAttempts():0)+
       "\nstream.source.replaced="+std::to_string(stats.exchange.replaced)+
       "\nstream.source.revoked="+std::to_string(stats.exchange.revoked)+
@@ -607,6 +636,14 @@ std::string SourceStreamFields(unsigned page){
     out+=key+".parses="+std::to_string(stats.native.resource_parses[i])+"\n";
     out+=key+".hits="+std::to_string(stats.native.resource_hits[i])+"\n";
     out+=key+".frame_hits="+std::to_string(stats.native.resource_frame_hits[i])+"\n";
+    out+=key+".instance_hits="+std::to_string(stats.native.resource_instance_hits[i])+"\n";
+    out+=key+".shared_hits="+std::to_string(stats.native.resource_shared_hits[i])+"\n";
+  }
+  constexpr const char *layers[]={"sprite","layer","animation","image","config"};
+  for(unsigned i=0;i<stats.native.resource_cache_capacity.size();++i){
+    const auto key=std::string("stream.source.resource_cache.")+layers[i];
+    out+=key+".capacity="+std::to_string(stats.native.resource_cache_capacity[i])+"\n";
+    out+=key+".high_water="+std::to_string(stats.native.resource_cache_high_water[i])+"\n";
   }
   return out+source->WorkerFields(page);
 }

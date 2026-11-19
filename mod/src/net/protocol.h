@@ -110,6 +110,8 @@ struct Input {
 // accepted/processed 为 sequence 高水位，processed_source
 // 为本次实际来源，可为零。
 struct Ack {
+  // 只供 ICSR 大厅状态广播，既有 ICSN 的 ACK 编码不读取此字段。
+  std::uint64_t lobby_roster = 0;
   // 仅ICSR roster使用的主线程输入资格；历史ICSN布局保持不变。
   bool input_enabled = false;
   bool authority_paused = false;

@@ -7,6 +7,10 @@ enum class FlatStream : std::uint8_t { World, Body };
 enum class FlatSetMode : std::uint8_t { Bitmap=0, Deltas=1, All=2, Legacy=255 };
 inline constexpr std::size_t kFlatRecordHeaderBytes=9;
 inline constexpr std::uint16_t kFlatRecordContractVersion=85;
+// 85 是独立的平铺试验合同。86 继续使用 84 的块编码，增加属性栏输入。
+constexpr bool UsesFlatRecordContract(std::uint16_t version) noexcept {
+  return version==kFlatRecordContractVersion;
+}
 enum class FlatPatchKind : std::uint8_t {
   Copy, Zero, Reference, Resource, Container, Owner, Convert
 };
@@ -42,8 +46,12 @@ struct FlatField {
 struct FlatCopySegment {
   std::uint32_t native_offset, mirror_offset, size;
   const char *read_requirement;
+  FlatStream stream;
 };
-struct FlatWriteSegment { std::uint32_t mirror_offset, native_offset, size; };
+struct FlatWriteSegment {
+  std::uint32_t mirror_offset, native_offset, size;
+  FlatStream stream;
+};
 
 // 条件依赖同一镜像内的字段。命中失败时清零整个槽并跳过该槽的原生写入。
 struct FlatCondition {
@@ -75,6 +83,7 @@ struct FlatPatch {
   const char *host, *client, *target, *count_source, *read_requirement;
   std::span<const FlatCondition> conditions;
   std::span<const std::uint16_t> choices;
+  std::uint16_t recipe_field; // 同源原生读取 recipe 的字段索引。
 };
 
 // groups 的下标也是字段的组号。同组可以包含来自两条流的完整镜像值。

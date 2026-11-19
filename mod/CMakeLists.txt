@@ -29,7 +29,7 @@ target_include_directories(isaac_cs_net PUBLIC src)
 target_compile_features(isaac_cs_net PUBLIC cxx_std_20)
 target_compile_definitions(isaac_cs_net PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
 target_compile_options(isaac_cs_net PRIVATE /W4 /Zi /utf-8 /EHsc)
-target_link_libraries(isaac_cs_net PUBLIC isaac_cs_core PRIVATE ws2_32 bcrypt)
+target_link_libraries(isaac_cs_net PUBLIC isaac_cs_core PRIVATE ws2_32 bcrypt iphlpapi)
 # world 采集：纯值模型/身份/存储/写入/观察策略。不依赖 SDK、游戏头或
 # runtime.h，也不调用任何原生函数；SDK-facing 接线在后续 game/world_bridge。
 add_library(isaac_cs_world STATIC src/world/model.cpp src/world/identity.cpp
@@ -170,6 +170,7 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
   src/binding/world_layout.cpp src/hooks/registry.cpp src/hooks/context.cpp
   src/hooks/pointer_patch.cpp src/hooks/odd_patch.cpp src/hooks/host_patch.cpp src/hooks/exit_patch.cpp
   src/game/common/context.cpp src/game/common/player_api.cpp
+  src/game/authority/lobby.cpp
   src/game/observation/sources/loot.cpp
   src/game/observation/sources/observation.cpp src/game/participants/topology.cpp
   src/game/authority/tick.cpp src/game/input/input_a.cpp
@@ -183,6 +184,8 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
   src/game/participants/device_k.cpp src/game/participants/join.cpp src/game/participants/peer.cpp
   src/game/input/input_lease.cpp src/game/authority/persistence.cpp
   src/game/client/session/client.cpp src/game/client/scene/client_scene.cpp
+  src/game/client/presentation/client_motion_overlay.cpp src/game/client/presentation/client_motion_overlay_native.cpp
+  src/game/client/presentation/client_motion_predict.cpp
   src/game/client/display/client_display_native.cpp
   src/game/client/display/client_display_memory.cpp
   src/game/client/scene/client_preparation_native.cpp
@@ -216,7 +219,7 @@ if(ISAACCS_BUILD_E2E_TOOLS)
    src/game/client/player/client_player_weapon_native.cpp
    src/game/client/resources/client_resource_shaders_native.cpp
    src/game/tests/client_e2e_native.cpp src/game/tests/client_entity_e2e.cpp
-   src/game/tests/client_player_e2e.cpp src/game/tests/random_e2e.cpp)
+   src/game/tests/client_player_e2e.cpp src/game/tests/random_e2e.cpp src/game/tests/e09_compare.cpp)
   target_compile_definitions(zhlIsaacCS PRIVATE ISAACCS_E2E=1)
   target_compile_definitions(zhlIsaacCS PRIVATE "ISAACCS_REPOSITORY_ROOT=\"${CMAKE_CURRENT_SOURCE_DIR}/..\"")
   set(ISAACCS_DLL_OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/../out/repentogon/e2e")
@@ -241,6 +244,7 @@ set_source_files_properties(src/game/observation/sources/loot.cpp
   src/game/client/entity/client_entity_adapters_native.cpp src/game/client/entity/client_entity_pool_native.cpp
   src/game/client/entity/client_entity_npc_native.cpp
   src/game/client/display/client_display_native.cpp
+  src/game/client/presentation/client_motion_overlay_native.cpp
   src/game/tests/client_e2e_native.cpp
   src/game/observation/sources/lua_entity.cpp src/game/observation/sources/display_observation.cpp
   src/game/client/room/client_room_native.cpp src/game/client/room/client_map_native.cpp

@@ -13,17 +13,22 @@ struct ClientFlatNativeContext {
   const ClientNativeRoots &roots;
   std::span<const ClientAtomicResource> resources;
   std::uint32_t frame=0;
+  state::BodyStream stream=state::BodyStream::World;
+  bool fresh=false;
+  const state::ClientFlatImage *player_world=nullptr; // Body 借用同一拓扑的 World 服装映射。
   void *context=nullptr;
   bool (*current)(void *) noexcept=nullptr;
   ClientFlatTarget (*target)(void *,const state::PresentationMember &) noexcept=nullptr;
   bool (*snapshot)(void *,const ClientAtomicWrite &,ClientAtomicReadRegion &) noexcept=nullptr;
 };
 struct ClientFlatNativeState {
-  struct Edge {std::uint32_t offset=0;ClientFlatTarget target;};
-  // Tear 的引用槽全部在根内。同一实例续用时先沿用上次登记的真实边。
-  std::array<Edge,8> edges{};
-  std::uint8_t count=0;
+  explicit ClientFlatNativeState(const std::shared_ptr<state::ClientStateMemory> &memory)
+    :edges(state::ClientStateAllocator<ClientFlatTarget>(memory)) {}
+  // 退休时从活 owner 重新定位；这里不保存可能随着 resize 失效的槽地址。
+  state::ClientStateVector<ClientFlatTarget> edges;
   bool references_uncertain=true;
+  state::BodyStream stream=state::BodyStream::World;
+  std::uint32_t costume_topology=0;
   state::ClientFlatImageRef written;
   // 特殊调用异常后持有原生回退承载的最后证言，禁止当成已提交旧值使用。
   ClientBinarySpecialWrite interrupted;
@@ -36,12 +41,12 @@ struct ClientFlatNativeResult {
   std::uint32_t bytes=0;
   bool written=false;
 };
-ClientFlatNativeResult ClientWriteFlatTear(const ClientFlatNativeContext &,void *,const state::FlatLayout &,
+ClientFlatNativeResult ClientWriteFlat(const ClientFlatNativeContext &,void *,const state::FlatLayout &,
     const state::ClientFlatWritePlan &,bool full,ClientFlatNativeState &) noexcept;
-ClientFlatNativeResult ClientBindFlatTear(const ClientFlatNativeContext &,void *,const state::FlatLayout &,
+ClientFlatNativeResult ClientBindFlat(const ClientFlatNativeContext &,void *,const state::FlatLayout &,
     const state::ClientFlatWritePlan &,bool full,ClientFlatNativeState &) noexcept;
-ClientFlatNativeResult ClientCheckFlatTear(const ClientFlatNativeContext &,void *,const state::FlatLayout &,
+ClientFlatNativeResult ClientCheckFlat(const ClientFlatNativeContext &,void *,const state::FlatLayout &,
     const state::ClientFlatWritePlan &,ClientFlatNativeState &,std::uint32_t sample,bool graphics,bool full) noexcept;
-bool ClientClearFlatTear(void *,const state::FlatLayout &,ClientFlatNativeState &,
+bool ClientClearFlat(void *,const state::FlatLayout &,ClientFlatNativeState &,
                          bool retiring,std::span<const ClientLiveRetirement>) noexcept;
 }

@@ -3,6 +3,10 @@
 #include <bit>
 #include <cmath>
 #include <cstring>
+#ifdef ISAACCS_E2E
+#include "replica/stream_e2e.h"
+#include "runtime.h"
+#endif
 
 namespace cs::game {
 namespace {
@@ -38,6 +42,9 @@ struct BinaryDisplayCapture::Impl {
   // Start之后不再保存Player地址；完成关联可跨房，身份只能取本次接受时的稳定值。
   struct Transition {std::array<std::uint32_t,5> args{};CaptureReferenceEntry player;std::uint64_t sequence=0;bool active=false;};
   Transition transition;std::uint64_t next_transition=0;
+#ifdef ISAACCS_E2E
+  bool transition_observed=false;
+#endif
   // 演出身份跨房和事件退休保留，普通world每次从真实RoomTransition采当前帧。
   struct Boss {std::uint32_t owner=0,first=0,second=0;std::int32_t room=0,dimension=0;std::uint64_t generation=0;};
   Boss boss;std::uint64_t next_boss=0;
@@ -354,6 +361,14 @@ bool BinaryDisplayCapture::Observe(BinaryProductionKind kind,std::uint32_t objec
        !s.Scalar(root,F::RoomTransitionEvent::completed,ScalarKind::U8,done))return false;
   }else return true;
   if(!s.EventStore(layout,cosmetic,source,references))return false;
+#ifdef ISAACCS_E2E
+  if(layout==453&&replica::stream::E2ETraceEnabled()){
+    const auto &request=s.transition.args;
+    Trace("e39-route","phase=%s sequence=%llu requested=%d direction=%d animation=%d dimension=%d scope_room=%llu frame=%u",
+      kind==K::TransitionFinish?"finish":"start",s.transition.sequence,int(request[0]),int(request[1]),int(request[2]),
+      int(request[4]),w.scope.room,w.game_frame);
+  }
+#endif
   if(kind==K::TransitionFinish)s.transition.active=false;
   return true;
 }
@@ -433,6 +448,21 @@ bool BinaryDisplayCapture::Prepare(const CaptureWitness &w,EntityFacts &facts,En
     std::move(s.intentions.begin()+1,s.intentions.begin()+s.intention_count,s.intentions.begin());--s.intention_count;
   }
   s.Begin(w,facts,read,d);
+#ifdef ISAACCS_E2E
+  // 在 ordinary 窗口读取原生阶段，诊断读取失败不影响正式采集。
+  if(replica::stream::E2ETraceEnabled()&&read.read){
+    std::array<std::int32_t,8> value{};
+    if(read.read(read.context,std::uint64_t(facts.address)+0x1b83c,std::as_writable_bytes(std::span(value)))&&
+       (value[0]||s.transition_observed)){
+      std::int32_t boss=0;std::uint8_t hud=0;
+      read.read(read.context,std::uint64_t(facts.address)+0x1ba74,std::as_writable_bytes(std::span(&boss,1)));
+      read.read(read.context,std::uint64_t(facts.address)+0x22e90,std::as_writable_bytes(std::span(&hud,1)));
+      Trace("e39-host","revision=%llu frame=%u scope_room=%llu mode=%d counter=%d duration=%d progress=%08x direction=%d target=%d dimension=%d animation=%d boss=%d hud=%u",
+        w.revision,w.game_frame,w.scope.room,value[0],value[1],value[2],unsigned(value[3]),value[4],value[5],value[6],value[7],boss,unsigned(hud));
+      s.transition_observed=value[0]!=0;
+    }
+  }
+#endif
   // 先绑定更早接受的音频意图，再给不调用ChangeRoom的animation 11／16等发送最终关联。
   if(s.transition.active){std::int32_t mode=0;if(!s.Value(std::uint64_t(facts.address)+0x1b83c,mode))return false;
     if(!mode){std::array<std::uint32_t,8> args{};

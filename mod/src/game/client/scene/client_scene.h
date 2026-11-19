@@ -5,6 +5,7 @@
 #include "game/client/scene/client_lifetime.h"
 #include "game/client/player/client_player_diagnostics.h"
 #include "game/client/display/client_display_native.h"
+#include "game/client/presentation/client_motion_overlay.h"
 #include "state/client_shadow.h"
 #include <array>
 #include <atomic>
@@ -89,6 +90,7 @@ public:
   // 正式二进制批次借用已有 Game／Room；完整提交后才开放显示。
   void BeginBinary() noexcept {binary_scene_=true;}
   bool BinaryScene() const noexcept {return binary_scene_;}
+  bool HasInstalledBinaryDisplay() const noexcept {return ClientDisplayHasWorld(display_);}
   void PublishBinary(state::ClientStateBlockTableRef,std::uint8_t streams) noexcept;
   void SuspendBinaryDisplay() noexcept {binary_published_=false;published_blocks_.reset();ClientDisplaySuspend(display_);}
   state::ClientStateBlockTableRef PublishedBlocks()const noexcept {return DisplayReady()?published_blocks_:nullptr;}
@@ -102,10 +104,19 @@ public:
   bool BinaryDisplayComplete()const noexcept {return ClientDisplayCheckPublication(display_);}
   bool RetireBinaryDisplay(bool preserve_audio=false) noexcept;
   bool PreserveBinaryRoom() noexcept;
+  bool RenderBinaryHistory(const ClientBorrowToken &) noexcept;
   bool DiscardBinaryHistory() noexcept;
   bool ReleaseBinaryDisplayRoots(bool keep_history=false) noexcept;
   void AbortBinaryDisplay() noexcept {ClientDisplayAbortPending(display_);}
   bool AdvanceDisplay(bool local_blocked) noexcept;
+  // 预测插值阶段 1：World 发布后登记玩家身体与控制组序号；显示推进前给出本机序号与 Host 暂停状态。
+  void SetMotionPlayers(const ClientMotionPlayer *players,unsigned count) noexcept {motion_.SetPlayers(players,count);}
+  void SetMotionContext(unsigned local_ordinal,bool paused) noexcept {motion_ordinal_=local_ordinal;motion_paused_=paused;}
+  std::string MotionFields() const {return motion_.Fields();}
+  // 阶段 2：成功发送的输入意图交给本机身体预测（设计 5.4 待确认输入环）。
+  void RecordMotionInput(std::uint64_t generation,std::uint64_t sequence,std::uint64_t target,std::int16_t move_x,std::int16_t move_y) noexcept {
+    motion_.RecordInput(generation,sequence,target,move_x,move_y);
+  }
   bool BeginNativeRender() noexcept;
   void EndNativeRender() noexcept;
   bool RouteNativeRender(bool begin) noexcept;
@@ -177,6 +188,10 @@ private:
   ClientSceneState state_=ClientSceneState::Waiting;
   replica::Scope waiting_scope_{};
   ClientDisplayNative *display_=nullptr;
+  // 显示覆盖层：只在相机与 Game::Render 作用域内写显示值，其余时间原生对象保持权威值。
+  ClientMotionOverlay motion_;
+  unsigned motion_ordinal_=0;
+  bool motion_paused_=false,motion_render_=false;
   // 主线程发布入口和一次 Render 的持有式借用。原生可写性仍由场景借用票据管理。
   state::ClientStateBlockTableRef published_blocks_,render_blocks_;
   bool binary_scene_=false,binary_published_=false,display_history_=false;

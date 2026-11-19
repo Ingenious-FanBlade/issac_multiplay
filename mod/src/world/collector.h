@@ -52,7 +52,7 @@ struct NativeCaptureWindow {
   std::uint32_t game=0,room_address=0,game_frame=0,body_slot=kNoOrdinal;
   bool ordinary=false;
   std::uint64_t wrong_thread=0,native_exception=0;
-  bool production=false,production_outer=false;
+  bool production=false,production_outer=false,room_transition=false;
   bool operator==(const NativeCaptureWindow &) const = default;
 };
 
@@ -129,7 +129,7 @@ public:
                       const PlayerAnchor &after, std::uint64_t tick,
                       bool normal, bool body_reached) noexcept;
   bool PlayerPost(std::uint32_t slot,PlayerPostWitness &out) noexcept;
-  bool NativeOrdinary(NativeCaptureWindow &) noexcept;
+  bool NativeOrdinary(NativeCaptureWindow &,std::uint64_t completed_tick=0) noexcept;
   // 独立正常显示／音频观察窗口，不要求模拟tick；不据此授予任意Player字段资格。
   bool NativeProduction(NativeCaptureWindow &,std::uint64_t owner) noexcept;
   bool NativePostMatches(const core::TickPostState &) const noexcept;
@@ -139,9 +139,12 @@ public:
   bool NativeBody(std::uint32_t slot,NativeCaptureWindow &,PlayerPostWitness &) noexcept;
   bool NativeBodyInOrdinary(std::uint32_t slot,const NativeCaptureWindow &,NativeCaptureWindow &,PlayerPostWitness &) noexcept;
   bool NativeWindowCurrent(const NativeCaptureWindow &,bool recheck_production_roots=true) noexcept;
+  bool NativeTransitionPlayer(const NativeCaptureWindow &,const Identity &) noexcept;
+  PlayerLifeWitness BeginPlayerLife(std::uint32_t address,bool ghost) noexcept;
+  void CompletePlayerLife(const PlayerLifeWitness &) noexcept;
   bool NativeCurrent(const NativeCaptureWindow &,std::uint32_t address,std::uint64_t local,
                      std::uint64_t use,std::uint64_t shape,ObjectDomain domain=ObjectDomain::Entity,
-                     const NativeSource *reader=nullptr,bool grid_already_qualified=false) noexcept;
+                     const NativeSource *reader=nullptr,bool grid_already_qualified=false,bool transition_roster_player=false) noexcept;
   // 20 项观察入口的 call/parent 值；错线程只在观察策略层置原子故障位。
   std::uint32_t ObserveEnter(Observation observation, std::uint32_t object,
                             const std::uint32_t *args, std::uint32_t count) noexcept;
@@ -246,6 +249,12 @@ private:
   Authority authority_{};
   std::uint32_t authority_count_ = 0, game_frame_ = 0, grid_width_ = 0;
   std::array<Phase, 4> phases_{};
+  // 已正常更新的 Player 实例可跨房继续承载显示。此证言不恢复输入 slot 或 PlayerPost。
+  struct PlayerDisplayWitness {
+    std::uint64_t run=0,local=0,use=0,shape=0;
+    std::uint32_t address=0,seed=0;
+  };
+  std::array<PlayerDisplayWitness,kControlAnchorCapacity> transition_players_{};
   std::array<Call, 64> calls_{};
   // 只跨同一ObservationScope构造中的control_enter→enter两步；按深度与实参消耗，不能复用。
   std::array<PlayerReplaceState,64> player_replace_before_control_{};

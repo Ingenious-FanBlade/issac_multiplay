@@ -262,25 +262,29 @@ struct ClientSceneMainPreparation::Impl {
       case ClientPreparationStatus::Missing:entry->result=S::ClientResourceState::MissingLocalResource;break;case ClientPreparationStatus::Failed:entry->result=S::ClientResourceState::Failed;break;}
     feedback=entry->result;
   }
-  bool BorrowCurrent(const Work &w,std::size_t i,bool live=false)const noexcept {
+  bool BorrowCurrent(const Work &w,std::size_t i,bool live=false,bool allow_absent_world_entity=false)const noexcept {
     const auto &o=w.objects[i];if(!o.required)return true;
     if(o.reuse){
       const auto &id=o.morph_source.id?o.morph_source:w.plan->State().Objects()[i].member.identity;
       void *address=nullptr;
       std::uint64_t instance=0;
-      return ResolveInstalled(id,address,instance,live)&&address==o.borrowed&&instance==o.instance;
+      const auto &plan=w.plan->State();
+      const bool allow_absent=allow_absent_world_entity&&(S::StateTargetStreams(plan.Target())&1)!=0&&
+        plan.Objects()[i].domain==S::ClientInstallDomain::Entity;
+      return ResolveInstalled(id,address,instance,live,allow_absent)&&address==o.borrowed&&instance==o.instance;
     }
     return
       !o.native||ClientStagedObjectCurrent(o.native,roots);
   }
-  bool ResolveInstalled(const S::PresentationMember &id,void *&address,std::uint64_t &instance,bool live=false)const noexcept {
+  bool ResolveInstalled(const S::PresentationMember &id,void *&address,std::uint64_t &instance,
+      bool live=false,bool allow_absent_entity=false)const noexcept {
     for(auto i=installed.rbegin();i!=installed.rend();++i){
       if((*i)->retiring||(*i)->batch->cancelled.load(std::memory_order_acquire))continue;
       const auto n=ObjectIndex(*(*i)->plan,id);
       if(n>=(*i)->objects.size())continue;
       const auto &o=(*i)->objects[n];
       if(!o.native||!o.instance)continue;
-      address=live?ClientStagedObjectLiveAddress(o.native):ClientStagedObjectOwnedAddress(o.native);
+      address=live?ClientStagedObjectLiveAddress(o.native,allow_absent_entity):ClientStagedObjectOwnedAddress(o.native);
       if(live&&!address)return false;
       if(address){instance=o.instance;return true;}
     }
@@ -313,7 +317,9 @@ struct ClientSceneMainPreparation::Impl {
           !S::ClientCostumeDirectoryMatches(s.Effective(S::BodyStream::World),installed_world,o.member.identity)){
         out.required=false;continue;
       }
-      const bool borrowed=Structural(o.domain)&&ResolveInstalled(o.member.identity,out.borrowed,out.instance,true);
+      // World 名册中的同身份池槽可跨 exists=false 的过渡帧复用，直到名册明确移除它。
+      const bool borrowed=Structural(o.domain)&&ResolveInstalled(o.member.identity,out.borrowed,out.instance,true,
+        world&&o.domain==S::ClientInstallDomain::Entity);
       if(Structural(o.domain)&&!borrowed&&!world){out.required=false;continue;}
       if(borrowed){
         out.reuse=true;in.borrowed=out.borrowed;
@@ -457,7 +463,7 @@ S::ClientStateNativeStep ClientSceneMainPreparation::StageObjects(const S::Clien
     if(!slot.required){++w.object_cursor;continue;}
     if(!s.Current(b))return Fail("binary_stage_lifecycle_during_construct");
     if(slot.reuse){
-      if(!s.BorrowCurrent(w,i,true)){
+      if(!s.BorrowCurrent(w,i,true,true)){
         slot.required=false;slot.failure=ClientMemberFailure::Stale;
       }
     }
@@ -603,12 +609,12 @@ bool ClientSceneMainPreparation::InspectStaged(const S::ClientStateApplyBatch &b
   return true;
 }
 bool ClientSceneMainPreparation::PendingObjectCurrent(const S::ClientStateApplyBatch &b,std::uint32_t index,
-    void *address,std::uint64_t instance,bool after_init)const noexcept {
+    void *address,std::uint64_t instance,bool after_init,bool allow_absent_world_entity)const noexcept {
   const auto &s=*impl_;auto &w=s.Pending(b);
   if(!s.Current(b)||w.batch.get()!=&b||index>=w.objects.size())return false;
   const auto &slot=w.objects[index];
   if(!slot.required||slot.instance!=instance)return false;
-  if(slot.reuse)return slot.borrowed==address&&s.BorrowCurrent(w,index,true);
+  if(slot.reuse)return slot.borrowed==address&&s.BorrowCurrent(w,index,true,allow_absent_world_entity);
   // Init 后 _exists 已可置位，直到登记名册前仍由本票据保管，按 owner 与 vptr 核验。
   const auto owned=after_init?ClientStagedObjectOwnedAddress(slot.native):ClientStagedObjectBorrow(slot.native);
   return owned==address;
@@ -748,6 +754,12 @@ void *ClientSceneMainPreparation::FindLiveMember(const S::PresentationMember &id
   const auto &s=*impl_;void *address=nullptr;instance=0;
   return s.Window()&&s.ResolveInstalled(identity,address,instance,true)?address:nullptr;
 }
+#ifdef ISAACCS_E2E
+void *ClientSceneMainPreparation::FindWorldMemberForReadback(const S::PresentationMember &identity)const noexcept {
+  const auto &s=*impl_;void *address=nullptr;std::uint64_t instance=0;
+  return s.Window()&&s.ResolveInstalled(identity,address,instance,true,true)?address:nullptr;
+}
+#endif
 bool ClientSceneMainPreparation::VisitRetirementObjects(const S::ClientStateApplyBatch &b,void *context,RetirementObjectVisitor visit) noexcept {
   auto &s=*impl_;auto &w=s.Pending(b);if(!s.Thread()||!visit||s.visitors||!s.Window())return false;
   const auto *installed=s.InstalledBatch(b);if(installed?!installed->retiring:w.batch.get()!=&b)return false;

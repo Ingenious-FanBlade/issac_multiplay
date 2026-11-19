@@ -7,6 +7,7 @@
 #include "game/common/binary_effect_e2e.h"
 #ifdef ISAACCS_E2E
 #include "game/tests/client_entity_e2e.h"
+#include "game/tests/e09_compare.h"
 #endif
 #include "world/observe.h"
 #include "state/budget.h"
@@ -288,7 +289,7 @@ struct BinaryEntities::Impl {
       reader.copy=[](void *p,std::uint64_t address,void *out,std::size_t size) noexcept {return static_cast<Impl *>(p)->Copy(address,out,size);};
       // NativeCurrent 已核窗口。Grid 首次资格检查始终借用当段的受保护读取。
       if(!capture.collector->NativeCurrent(reading_window,f.identity_address?f.identity_address:f.address,f.subject.local,f.subject.use,f.subject.shape,
-         grid?world::ObjectDomain::Grid:world::ObjectDomain::Entity,grid?&reader:nullptr,grid&&grid_already_qualified))
+         grid?world::ObjectDomain::Grid:world::ObjectDomain::Entity,grid?&reader:nullptr,grid&&grid_already_qualified,f.roster!=kNullIndex))
         return reject(capture.collector->NativeWindowCurrent(reading_window)?"identity":"window");}
     else if(!capture.collector->NativeWindowCurrent(reading_window))return reject("window");
     else if(reading_window.production){if(w.scope.run!=reading_window.run || w.scope.room!=reading_window.room || !f.ready)return reject("production");}
@@ -336,6 +337,11 @@ struct BinaryEntities::Impl {
   void Control(EntityFacts &f) noexcept {
     auto *runtime=Runtime();f.group_known=true;
     if(!runtime || runtime->finished || runtime->retiring || runtime->failure)return;
+    // 预测插值 5.7：tick 与相位对所有身体相同。Host 开插值时偶帧 StandardRoom、奇帧 OddPlayer 各走一个半步；
+    // 关插值时 StandardRoom 一个 tick 内走两个半步，样本落在奇半帧之后。
+    {const bool odd=runtime->boundary.kind==core::TickKind::OddPlayer;const bool interpolating=NativeInterpolationState()!=0;
+      f.input_tick=std::uint32_t(runtime->clock.Current());
+      f.input_phase=std::uint8_t((odd||!interpolating?1u:0u)|((interpolating?1u:2u)<<1));}
     unsigned found=4,body_index=0;bool unknown=false;
     for(unsigned ordinal=0;ordinal<runtime->session.ParticipantLimit();++ordinal){if(!runtime->session.HasParticipant(ordinal))continue;
       const auto &topology=runtime->topology[ordinal];
@@ -349,19 +355,27 @@ struct BinaryEntities::Impl {
     f.ordinal=std::uint8_t(found);f.role=std::uint8_t(body.role);f.control_flags=(body.active?1u:0u)|
       (runtime->players[found].BoundValid()&&body.CanConsume()?2u:0u);
     f.group=group.group_link;f.participant=group.participant_link;f.control_session=group.session;f.binding_revision=group.binding;
+    f.input_sequence=std::uint32_t(runtime->players[found].LastProcessedSequence());
     f.subject.binding=group.binding;
   }
-  bool Groups() noexcept {
+  bool Groups(CaptureDiagnostic &diagnostic) noexcept {
     auto *runtime=Runtime();for(auto &group:groups){group.count=0;group.present=false;}
     if(!runtime || runtime->finished || runtime->retiring || runtime->failure)return true;
     for(unsigned ordinal=0;ordinal<runtime->session.ParticipantLimit();++ordinal){if(!runtime->session.HasParticipant(ordinal))continue;
       const auto &topology=runtime->topology[ordinal];auto &group=groups[ordinal];
-      if(!topology.known || !topology.unique || topology.fault!=TopologyFault::None || topology.room!=runtime->topology[0].room)return false;
-      const auto session=SessionGeneration(*runtime);if(!session)return false;
-      if(group.session!=session){if(next_related>UINT64_MAX-2)return false;group.session=session;group.participant=++next_related;group.group=++next_related;}
-      group.binding=runtime->players[ordinal].Generation();if(!group.binding)return false;
+      if(!topology.known || !topology.unique || topology.fault!=TopologyFault::None || topology.room!=runtime->topology[0].room){
+        // 控制组未取到同房唯一身份时记录具体分支，避免全局采集停住后只剩无来源的错误码。
+        FailCapture(diagnostic,CaptureFailure::MissingQualification,{});
+        std::snprintf(diagnostic.detail.data(),diagnostic.detail.size(),
+          "group=%u known=%u unique=%u fault=%s room_match=%u reason=%s",ordinal,unsigned(topology.known),
+          unsigned(topology.unique),TopologyFaultName(topology.fault),unsigned(topology.room==runtime->topology[0].room),topology.reason);
+        return false;
+      }
+      const auto session=SessionGeneration(*runtime);if(!session)return FailCapture(diagnostic,CaptureFailure::MissingQualification,{});
+      if(group.session!=session){if(next_related>UINT64_MAX-2)return FailCapture(diagnostic,CaptureFailure::SequenceExhausted,{});group.session=session;group.participant=++next_related;group.group=++next_related;}
+      group.binding=runtime->players[ordinal].Generation();if(!group.binding)return FailCapture(diagnostic,CaptureFailure::MissingQualification,{});
       const auto participant=Register({9,group.participant,1}),control=Register({10,group.group,1});
-      if(participant.kind==CapturedReferenceKind::Invalid || control.kind==CapturedReferenceKind::Invalid)return false;
+      if(participant.kind==CapturedReferenceKind::Invalid || control.kind==CapturedReferenceKind::Invalid)return FailCapture(diagnostic,CaptureFailure::ReferencePending,{});
       group.participant_link=participant.handle;group.group_link=control.handle;group.present=true;
     }
     return true;
@@ -446,7 +460,7 @@ struct BinaryEntities::Impl {
     if(!reads.Begin([](void *context) noexcept {
          return ForeignResourceCurrent(static_cast<Impl *>(context)->reading_foreign_resource);},this))return false;
     // 上一段的复制结果可能在根尾水位复核前暂存到了资源缓存；新水位必须丢弃这些证明。
-    if(foreign!=reading_foreign_resource)source.InvalidateReuse();
+    if(foreign!=reading_foreign_resource){source.InvalidateReuse();source.ClearResourceCaches();}
     reading_foreign_resource=foreign;
     reading_window=w;reading_witness=v;reading_resource_mutation=resource;collecting=true;
     return true;
@@ -481,6 +495,7 @@ struct BinaryEntities::Impl {
       else std::snprintf(d.detail.data(),d.detail.size(),"current=executor reads=%u collecting=%u phase=%u subject=%u/%llu",
         unsigned(reads.Good()),unsigned(collecting),unsigned(reading_witness.phase),unsigned(d.subject.space),static_cast<unsigned long long>(d.subject.local));
     }
+    if(d.reason==CaptureFailure::SourceChanged)++stats.source_changed;
     ++stats.gaps;stats.failure=d;
   }
   void ObjectFailure(EntityFacts &root,CaptureDiagnostic diagnostic) noexcept {
@@ -489,6 +504,7 @@ struct BinaryEntities::Impl {
     if(!diagnostic.layout)diagnostic.layout=root.layout;
     if(diagnostic.reason==CaptureFailure::InvalidWindow&&!diagnostic.detail[0])diagnostic.detail=current_failure;
     if(!stats.object_failures)stats.first_object_failure=diagnostic;
+    if(diagnostic.reason==CaptureFailure::SourceChanged)++stats.source_changed;
     ++stats.object_failures;
   }
   // 实体／格子的 World 和 Body 共享回卷点。成员存在性由独立来源复核。
@@ -520,7 +536,9 @@ struct BinaryEntities::Impl {
   }
   // 正式采集按原生列表顺序登记成员；显式诊断有完整值时可共享其首遍，段尾总会独立复核。
   bool Member(unsigned source,std::uint32_t address,std::uint32_t index) noexcept {
-    const auto flags=source<=5||source==7?1u|(source==3?2u:0u)|(source==2?4u:0u):0u;
+    // _tempEL 只保留原生暂存成员的见证。已离开活动列表的炸弹等对象不能靠暂存条目再次发布。
+    if(source==5)return true;
+    const auto flags=source<=4||source==7?1u|(source==3?2u:0u)|(source==2?4u:0u):0u;
     return !(source==8&&index>=kNullIndex)&&Add(address,flags,source==8?std::uint16_t(index):kNullIndex);
   }
   bool Members(bool check) noexcept {
@@ -731,6 +749,8 @@ bool BinaryEntities::Active() const noexcept {return impl_->stats.active;}
 void BinaryEntities::Active(bool active) noexcept {auto &s=*impl_;if(!s.Main() || active==s.stats.active)return;
   if(active&&(!StreamResourceHooksInstalled()||!BinaryDisplayCaptureHooksInstalled())){s.Failure({CaptureFailure::MissingQualification});return;}
   s.CancelCandidates();s.EndRead();s.fast_keys={};s.fast_addresses={};s.last_ordinary=0;s.published_count=0;s.source.Invalidate();
+  s.source.ClearResourceCaches();
+  s.source.ConfigureSharedResourceHooks(active?StreamSharedResourceHooks():0u);
   s.production_depth=0;
   s.display.Reset(true);
   s.display_run=0;
@@ -747,20 +767,21 @@ void BinaryEntities::FrameBegin() noexcept {auto &s=*impl_;if(!s.Main())return;s
 void BinaryEntities::FrameEnd() noexcept {auto &s=*impl_;if(!s.Main())return;
   const bool pending=s.ordinary.seal.read_serial||std::any_of(s.bodies.begin(),s.bodies.end(),[](const auto &body){return body.seal.read_serial!=0;});
   s.CancelCandidates();s.EndRead();if(pending)s.Failure({CaptureFailure::Incomplete});}
-bool BinaryEntities::Prepare(bool normal) noexcept {
+bool BinaryEntities::Prepare(bool normal,std::uint64_t completed_tick) noexcept {
   auto &s=*impl_;if(!s.Main() || !s.stats.active || !normal || !s.capture.collector)return false;
   if(s.preparing||s.collecting){s.prepare_revoked=true;s.reads.Revoke();s.Failure({CaptureFailure::Reentrant});return false;}
   s.preparing=true;s.prepare_revoked=false;
   struct EndPrepare {Impl &owner;~EndPrepare(){owner.EndRead();owner.prepare_reading=false;owner.preparing=false;}} end_prepare{s};
   s.root_used=0;
-  if(!s.Groups()){world::NativeCaptureWindow unavailable;if(s.capture.collector->NativeOrdinary(unavailable))capture::Candidate(true,false);
+  CaptureDiagnostic group_failure;
+  if(!s.Groups(group_failure)){world::NativeCaptureWindow unavailable;if(s.capture.collector->NativeOrdinary(unavailable))capture::Candidate(true,false);
     if(s.ordinary_failures<StateBudgets().capture_failure_limit)++s.ordinary_failures;
-    s.Failure({CaptureFailure::MissingQualification});return false;}
+    s.Failure(group_failure);return false;}
   // 只有真实 PlayerPost 在 getter 边界之后且同一 ordinary 只读段内成立，才允许快槽克隆该身体的值。
   struct OrdinaryBody {world::NativeCaptureWindow window;world::PlayerPostWitness post;std::uint32_t record=UINT32_MAX;};
   std::array<OrdinaryBody,world::kControlAnchorCapacity> ordinary_bodies{};
   world::NativeCaptureWindow window;
-  if(s.capture.collector->NativeOrdinary(window)){
+  if(s.capture.collector->NativeOrdinary(window,completed_tick)){
     if((s.run && s.run!=window.run) || (s.room && s.room!=window.room))Invalidate();s.run=window.run;s.room=window.room;
     auto &p=s.ordinary;p.window=window;p.resource_change=s.resource_mutation;p.witness=s.Witness(window,CapturePhase::Ordinary);
     CaptureFailure reason;
@@ -771,7 +792,7 @@ bool BinaryEntities::Prepare(bool normal) noexcept {
       // 概率仍走原有具名 native owner。getter 可能重入，先调用再重新核真实根与水位。
       BinaryDisplayInputs inputs;world::NativeCaptureWindow after;
       success=QueryBinaryDisplayInputs(reinterpret_cast<void *>(window.game),reinterpret_cast<void *>(window.room_address),inputs)&&!s.prepare_revoked&&
-        s.capture.collector->NativeOrdinary(after)&&after==window&&p.window==window&&p.resource_change==s.resource_mutation&&s.ReadWindow(p)&&s.SceneRead(false);
+        s.capture.collector->NativeOrdinary(after,completed_tick)&&after==window&&p.window==window&&p.resource_change==s.resource_mutation&&s.ReadWindow(p)&&s.SceneRead(false);
       if(success){
         p.witness.scope.floor=s.floor;p.witness.scope.dimension=s.floor*3+s.scene.dimension+1;s.reading_witness=p.witness;
         for(unsigned slot=0;slot<ordinary_bodies.size();++slot){auto &shared=ordinary_bodies[slot];
@@ -792,6 +813,13 @@ bool BinaryEntities::Prepare(bool normal) noexcept {
         // 采集实体失败只回卷当前根的两个流，成员集合仍由同一窗口确认。
         for(std::uint32_t i=0;i<s.root_used&&success;++i){
           auto &facts=s.roots[i];
+          // 转场不产生新的 PlayerPost。只允许当前名册内已见证、同一 use/shape 的 Player 继续提供显示。
+          if(window.room_transition&&facts.roster!=kNullIndex&&!facts.ready)
+            if(const auto *id=s.capture.identities.Find(world::ObjectDomain::Entity,facts.address);
+               id&&s.capture.collector->NativeTransitionPlayer(window,*id)){
+              // 原生名册成员仍是已初始化的显示载体。输入资格仍由当前绑定单独计算。
+              facts.ready=facts.player_ready=facts.activation_qualified=true;
+            }
           if(s.Register(facts.subject).kind==CapturedReferenceKind::Invalid){
             success=FailCapture(diagnostic,CaptureFailure::ReferencePending,{facts.subject});break;
           }
@@ -813,6 +841,8 @@ bool BinaryEntities::Prepare(bool normal) noexcept {
 #endif
           if(!captured){
             facts.layout=layout;
+            // 新房的首次 World 不能沿用上一房的 Player 记录补齐名册。
+            if(window.room_transition&&facts.roster!=kNullIndex){success=false;break;}
             if(!s.RetainFailedRoot(writer,checkpoint,facts,diagnostic)){success=false;break;}
             ++p.roots;continue;
           }
@@ -897,7 +927,7 @@ bool BinaryEntities::Prepare(bool normal) noexcept {
     else if(!record)reuse=Reuse::NoSharedBody;
     else if(!same_topology)reuse=Reuse::Subject;
     else if(shared.window!=window||shared.post!=body||window.game_frame!=ordinary.window.game_frame)reuse=Reuse::Window;
-    else if(!record->fast_body)reuse=Reuse::TooLarge;
+    else if(!record->fast_body&&!record->flat_bytes)reuse=Reuse::TooLarge;
     else if(!s.OrdinaryBodySourceCurrent(ordinary))reuse=Reuse::Stale;
     capture::CountBodyReuse(reuse);
     // 同页表并不延长某一身体的 World 结构资格。超出快槽预算时直接省略本拍。
@@ -912,7 +942,8 @@ bool BinaryEntities::Prepare(bool normal) noexcept {
     // Acquire 已登记快槽身份，即使本拍无正文也保留该槽供同一身体续用。
     s.fast_keys[lane]=f.subject;s.fast_addresses[lane]=f.address;
     CaptureDiagnostic diagnostic;bool success=false;
-    if(reuse==Reuse::Match){
+    // 平铺 Body 按本次 PlayerPost 证言采集，目录句柄属于当前窗口。
+    if(reuse==Reuse::Match&&!record->flat_bytes){
       capture::Cost clone(capture::CostPart::BodyClone);
       capture::BodyCloneCounts work;
       if(!s.OrdinaryBodySourceCurrent(ordinary)||s.ordinary.ticket.Values()!=ordinary_writer)
@@ -930,14 +961,19 @@ bool BinaryEntities::Prepare(bool normal) noexcept {
     }
     if(!success){
       if(diagnostic.reason==CaptureFailure::None)diagnostic=writer->Diagnostic();
-      if(diagnostic.reason==CaptureFailure::SourceChanged||diagnostic.reason==CaptureFailure::ValueBudget)
+      if(diagnostic.reason==CaptureFailure::SourceChanged||diagnostic.reason==CaptureFailure::ValueBudget){
+        if(diagnostic.reason==CaptureFailure::SourceChanged)++s.stats.source_changed;
         ++s.stats.body_skipped;
-      else s.Failure(diagnostic.reason==CaptureFailure::None?CaptureDiagnostic{CaptureFailure::SourceChanged,f.subject}:diagnostic);
+      }else s.Failure(diagnostic.reason==CaptureFailure::None?CaptureDiagnostic{CaptureFailure::SourceChanged,f.subject}:diagnostic);
       capture::Candidate(false,false);p={};continue;}
     f.subject=p.ticket.Values()->Root().subject;p.facts=f;p.anchor={f.subject,f.address,0,197};p.roots=1;
     s.fast_keys[lane]=f.subject;s.fast_addresses[lane]=f.address;
   }
   return s.ordinary.seal.read_serial!=0;
+}
+void BinaryEntities::CommitTransition() noexcept {
+  // Manager 已正常返回，且这一窗口没有待提交的玩法 tick 或 PlayerPost。
+  if(impl_->ordinary.window.room_transition)Commit(false,{});
 }
 void BinaryEntities::Commit(bool committed,const core::TickPostState &post) noexcept {
   auto &s=*impl_;if(!s.Main() || !s.stats.active)return;
@@ -950,7 +986,8 @@ void BinaryEntities::Commit(bool committed,const core::TickPostState &post) noex
     // Manager 尾部 Prepare 到时钟提交之间只处理纯值。实体、Grid 与场景根已在写完时复核；
     // 真实 Game／Room、Authority 窗口和资源水位仍需与封存值一致。
     world::NativeCaptureWindow current;
-    bool valid=match&&s.capture.collector->NativeOrdinary(current)&&current==ordinary.window;
+    const bool transition=ordinary.window.room_transition;
+    bool valid=(match||transition)&&s.capture.collector->NativeOrdinary(current,transition?ordinary.window.tick:0)&&current==ordinary.window;
     if(valid&&s.ordinary_failures>=StateBudgets().capture_failure_limit){
       if(auto *writer=ordinary.ticket.Values())writer->RequestBaseline();
       else valid=false;
@@ -1043,6 +1080,7 @@ void BinaryEntities::ResourceChanged(std::uint32_t address,const char *operation
   if(s.collecting||s.prepare_reading||s.ordinary.seal.read_serial){s.reads.Revoke();s.prepare_revoked=true;}
   std::uint32_t owner=0;CaptureSubject subject;
   if(s.source.UsesSprite(address,owner,subject)){++s.sprite_invalidations;
+    s.source.ForgetSpriteResources(subject);
     const auto *id=subject.space==1?s.capture.identities.Find(world::ObjectDomain::Entity,owner):nullptr;
     const bool obsolete=subject.space==1&&id&&(id->local_id!=subject.local||id->use!=subject.use);
     const bool transient=subject.space==1&&id&&id->local_id==subject.local&&id->use==subject.use&&
@@ -1060,6 +1098,15 @@ void BinaryEntities::ResourceChanged(std::uint32_t address,const char *operation
     const auto length=std::min(std::strlen(operation),s.last_sprite_operation.size()-1);
     std::copy_n(operation,length,s.last_sprite_operation.begin());s.last_sprite_operation[length]=0;
     Invalidate();}
+}
+// 清扫只撤销受影响的共享层。正在采集的候选仍服从原读段撤销规则。
+void BinaryEntities::SharedResourceChanged(bool animation) noexcept {
+  auto &s=*impl_;if(!s.Main()||!s.stats.active)return;
+  s.source.SharedResourceChanged(animation);
+  const bool body_pending=std::any_of(s.bodies.begin(),s.bodies.end(),[](const auto &p){return p.seal.read_serial!=0;});
+  if(s.collecting||s.prepare_reading||s.ordinary.seal.read_serial||body_pending){
+    s.reads.Revoke();s.prepare_revoked=true;s.CancelCandidates();
+  }
 }
 // Init进入即退休旧floor候选；多层嵌套合并一个episode，异常不恢复读取资格。
 void BinaryEntities::FloorBoundary(bool entering,bool normal) noexcept {auto &s=*impl_;if(!s.Main())return;
@@ -1279,6 +1326,9 @@ void BinaryEntities::Background(bool stopping) noexcept {auto &s=*impl_;if(std::
       if(!value)continue;
       s.published_resources=std::move(resources);
       s.publication->Publish(value,packet->witness.phase==CapturePhase::Ordinary);
+#ifdef ISAACCS_E2E
+      E09Host(*value,*packet);
+#endif
       {std::lock_guard lock(s.publish_status);s.publish_failure={};}
       ++(packet->witness.phase==CapturePhase::Ordinary?s.worker_ordinary:s.worker_body);
       if(packet->witness.phase==CapturePhase::Ordinary){s.transfer_source=std::move(value);s.transferring=std::move(ticket);break;}

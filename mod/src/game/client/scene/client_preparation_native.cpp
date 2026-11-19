@@ -424,7 +424,7 @@ void *ClientStagedObjectOwnedAddress(const ClientStagedObject *o) noexcept {
     return o->object&&(!o->vptr||*static_cast<void **>(o->object)==o->vptr)?o->object:nullptr;
   }__except(EXCEPTION_EXECUTE_HANDLER){return nullptr;}
 }
-void *ClientStagedObjectLiveAddress(const ClientStagedObject *o) noexcept {
+void *ClientStagedObjectLiveAddress(const ClientStagedObject *o,bool allow_absent_entity) noexcept {
   __try {
     auto *address=ClientStagedObjectOwnedAddress(o);
     if(!address)return nullptr;
@@ -435,8 +435,8 @@ void *ClientStagedObjectLiveAddress(const ClientStagedObject *o) noexcept {
     }
     if(o->input.kind!=ClientStagedKind::Entity&&o->input.kind!=ClientStagedKind::Player)return address;
     const auto *entity=static_cast<const Entity *>(address);
-    // Player 使用独立分配，合法的未入册身体可无 valid；池对象必须同时存活且未退役。
-    if((o->input.kind==ClientStagedKind::Entity&&(!entity->_valid||!entity->_exists))||
+    // Player 使用独立分配，可以尚未入册。池对象始终要有效；World 安装可写 exists 标志直到该成员正式离场。
+    if((o->input.kind==ClientStagedKind::Entity&&(!entity->_valid||(!allow_absent_entity&&!entity->_exists)))||
         entity->_type!=o->input.type||entity->_variant!=o->input.variant||
         entity->_subtype!=o->input.subtype||entity->_initSeed!=o->input.seed)return nullptr;
     return address;

@@ -4,6 +4,7 @@
 #include <ws2tcpip.h>
 #include <windows.h>
 #include <bcrypt.h>
+#include <iphlpapi.h>
 // clang-format on
 #include "net/worker.h"
 #include "net/endpoint.h"
@@ -47,6 +48,43 @@ bool SameAddress(const sockaddr_in &a, const sockaddr_in &b) noexcept {
 bool Nonzero(const Id &id) noexcept {
   return std::any_of(id.begin(), id.end(), [](auto b) { return b != 0; });
 }
+// 绑定所有接口时返回已启用的 IPv4 地址，供同一局域网的客机选择。
+std::string LobbyAddresses(const WorkerConfig &config) {
+  if (config.bind_address != "0.0.0.0") return config.bind_address;
+  ULONG size = 15 * 1024;
+  std::vector<unsigned char> buffer(size);
+  constexpr ULONG flags = GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_DNS_SERVER;
+  for (unsigned attempt = 0; attempt < 3; ++attempt) {
+    auto *adapters = reinterpret_cast<IP_ADAPTER_ADDRESSES *>(buffer.data());
+    const auto result = GetAdaptersAddresses(AF_INET, flags, nullptr, adapters, &size);
+    if (result == ERROR_BUFFER_OVERFLOW && size <= 1024 * 1024) {
+      buffer.resize(size);
+      continue;
+    }
+    if (result != NO_ERROR) break;
+    std::vector<std::string> addresses;
+    for (auto *adapter = adapters; adapter; adapter = adapter->Next) {
+      if (adapter->OperStatus != IfOperStatusUp || adapter->IfType == IF_TYPE_SOFTWARE_LOOPBACK) continue;
+      for (auto *ip = adapter->FirstUnicastAddress; ip; ip = ip->Next) {
+        const auto *value = ip->Address.lpSockaddr;
+        if (!value || value->sa_family != AF_INET || ip->Address.iSockaddrLength < sizeof(sockaddr_in)) continue;
+        const auto *address = reinterpret_cast<const sockaddr_in *>(value);
+        char text[INET_ADDRSTRLEN]{};
+        if (InetNtopA(AF_INET, &address->sin_addr, text, sizeof(text)) &&
+            std::find(addresses.begin(), addresses.end(), text) == addresses.end())
+          addresses.emplace_back(text);
+      }
+    }
+    std::string display;
+    for (const auto &address : addresses) {
+      if (!display.empty()) display += ", ";
+      display += address;
+    }
+    if (!display.empty()) return display;
+    break;
+  }
+  return "127.0.0.1";
+}
 } // namespace
 
 // socket、Endpoint 与 RTT 环只有网络线程使用；跨线程只共享队列和原子发布值。
@@ -58,6 +96,8 @@ struct Worker::State {
   unsigned ordinal = 0;
   // 父状态独占 socket 和线程；三个子状态各自独占协议、队列、nonce 和 ACK 环。
   std::array<std::unique_ptr<State>, core::kMaximumParticipants> peers{};
+  std::atomic<bool> lobby_closed{false};
+  std::atomic<unsigned> lobby_selection{0};
   sockaddr_in peer{};
   Endpoint endpoint{};
   // ICSR与历史输入工具共用监听socket，但每槽只选择一种协议与独立身份。
@@ -308,11 +348,12 @@ struct Worker::State {
       if (!game_peer) {
         std::uint64_t session = 0; std::memcpy(&session, identity.session.data(), sizeof(session));
         if (!session) session = 1;
-        game_peer = std::make_unique<live::HostPeer>(session, ordinal,config.stream);
+        game_peer = std::make_unique<live::HostPeer>(session, ordinal,config.stream,config.lobby);
         game_candidate = true; candidate_since = now; peer = source;
       }
       ReceivedInput input{};
       const bool delivered = game_peer->Receive(bytes, now, input, identity);
+      if(config.lobby)lobby_selection.store(game_peer->LobbySelection(),std::memory_order_release);
       SendGame(game_peer->Reply(), now);
       if (game_peer->Nonce()) {
         locked = true; game_candidate = false;
@@ -455,7 +496,7 @@ struct Worker::State {
           break;
         }
       if (live::IsPacket(packet)) {
-        if (!target) for (unsigned i=1;i<peers.size();++i) {
+        if (!target && !lobby_closed.load(std::memory_order_acquire)) for (unsigned i=1;i<peers.size();++i) {
           auto &p=*peers[i];
           if (!p.locked && !p.game_candidate && p.terminal.load(std::memory_order_acquire)==TerminalReason::None) {
             target=&p;break;
@@ -479,6 +520,7 @@ struct Worker::State {
         } else foreign_packets.fetch_add(1,std::memory_order_relaxed);
         continue;
       }
+      if (config.lobby) continue;
       if (target && target->game_peer) { foreign_packets.fetch_add(1,std::memory_order_relaxed);continue; }
       if (!target) {
         Message hello{};
@@ -802,6 +844,7 @@ StartResult Worker::Start(const WorkerConfig &config) noexcept {
     if (bind(state->socket, reinterpret_cast<const sockaddr *>(&address),
              sizeof(address)))
       return {StartError::Bind, static_cast<std::uint32_t>(WSAGetLastError())};
+    auto addresses = config.lobby ? LobbyAddresses(config) : std::string{};
     for (unsigned i = 1; i < core::kMaximumParticipants; ++i) {
       auto peer = std::make_unique<State>();
       peer->owns_transport = false;
@@ -841,10 +884,14 @@ StartResult Worker::Start(const WorkerConfig &config) noexcept {
     transfer.release();
     thread_ = thread;
     state_ = std::move(state);
-    return {StartError::None, 0, state_->identity};
+    return {StartError::None, 0, state_->identity, std::move(addresses)};
   } catch (...) {
     return {StartError::Allocation};
   }
+}
+void Worker::CloseLobby() noexcept {
+  if (state_ && state_->config.lobby)
+    state_->lobby_closed.store(true, std::memory_order_release);
 }
 bool Worker::QueueAck(const protocol::Ack &ack) noexcept {
   if (!state_ || ack.client_id < 2 ||
@@ -903,6 +950,7 @@ StopResult Worker::Stop(protocol::ByeReason reason,
     return StopResult::Stopped;
   }
   if (waited == WAIT_TIMEOUT) {
+    if (!wait_ms) return StopResult::Pending;
     state_->wait_timeouts.fetch_add(1, std::memory_order_relaxed);
     return StopResult::TimedOut;
   }
@@ -922,6 +970,7 @@ WorkerStatus Worker::Status(unsigned ordinal) const noexcept {
   result.terminal = s.terminal.load(std::memory_order_acquire);
   result.running = s.running.load(std::memory_order_acquire);
   result.state = s.published_state.load(std::memory_order_acquire);
+  result.lobby_selection = s.lobby_selection.load(std::memory_order_acquire);
   result.peer_locked = s.published_locked.load(std::memory_order_acquire);
   result.stream_config=s.config.stream;result.stream_stale=s.stream_stale.load();result.stream_metrics=s.stream_metrics.Read();result.encoder_metrics=s.encoder_metrics.Read();
   {std::lock_guard lock(s.stream_status_mutex);result.stream_transfer=s.stream_transfer;result.stream_limits=s.stream_limits;result.stream_fast_limits=s.stream_fast_limits;}

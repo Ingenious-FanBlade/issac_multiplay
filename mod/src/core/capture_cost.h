@@ -28,6 +28,9 @@ void CountBodyReuse(BodyReuse) noexcept;
 void CountBodyClone(bool success,const BodyCloneCounts &) noexcept;
 bool CostBegin(CostPart) noexcept;
 void CostEnd() noexcept;
+// Host 主线程采集窗口的累计计数与耗时，供 HUD 计算最近窗口均值。
+struct CaptureTiming {std::uint64_t count=0,total_us=0;};
+CaptureTiming ReadCaptureTiming() noexcept;
 std::string CostFields(unsigned page);
 class Cost final {
 public:

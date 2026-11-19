@@ -1,0 +1,69 @@
+First candidates:
+119 cs::game::`anonymous namespace'::WritableRange
+96 cs::game::ReadMemory
+90 cs::world::QueryNativeReadRegion
+56 cs::game::`anonymous namespace'::DisplayFree
+55 cs::game::ClientExactIndex<std::pair<unsigned int,unsigned int> >::find
+53 cs::game::ClientExactIndex<std::pair<unsigned int,unsigned int> >::emplace
+48 truncf
+44 cs::game::InBlockedContext
+31 cs::game::ClientSceneAtomicInstaller::Impl::Leaf
+22 truncf
+22 `string'
+19 std::vector<cs::game::ClientSceneAtomicInstaller::Impl::InstanceAddress,cs::state::ClientStateAllocator<cs::game::ClientSceneAtomicInstaller::Impl::InstanceAddress> >::_Resize<std::_Value_init_tag>
+13 cs::game::ClientSceneAtomicInstaller::Impl::SortReadback
+13 cs::state::DescribeBodySourceField
+12 cs::events
+11 cs::game::ClientSceneAtomicInstaller::Impl::PublishNow
+11 cs::game::ClientSceneAtomicInstaller::Impl::Add
+10 truncf
+10 truncf
+10 operator new
+10 cs::game::`anonymous namespace'::Lookup::emplace
+9 cs::game::ClientExactIndex<std::pair<unsigned int,unsigned int> >::find
+9 cs::game::ClientRendererHandles
+9 cs::game::`anonymous namespace'::DisplayMalloc
+8 cs::game::ClientExactIndex<std::tuple<unsigned int,unsigned short,unsigned short,unsigned short,unsigned short> >::emplace
+8 cs::game::`anonymous namespace'::CheckComparable
+8 cs::game::ClientSceneAtomicInstaller::Impl::SortOperations
+8 cs::game::ClientSceneAtomicInstaller::Impl::Add
+7 H_manager_render::Wrapper::hook
+7 std::vector<cs::game::ClientSceneAtomicInstaller::Impl::ReadbackEntry,cs::state::ClientStateAllocator<cs::game::ClientSceneAtomicInstaller::Impl::ReadbackEntry> >::_Emplace_one_at_back<cs::game::ClientSceneAtomicInstaller::Impl::ReadbackEntry>
+7 cs::game::ClientSceneAtomicInstaller::Impl::ResolveWrites
+7 std::_Tree_val<std::_Tree_simple_types<std::pair<unsigned int const ,unsigned int> > >::_Erase_tree<std::pmr::polymorphic_allocator<std::_Tree_node<std::pair<unsigned int const ,unsigned int>,void *> > >
+Candidate chains (not unwound):
+55 cs::game::`anonymous namespace'::WritableRange -> _except_handler4_noexcept -> truncf -> cs::game::`anonymous namespace'::Window -> cs::game::ClientPreparationWindow -> cs::game::ClientSceneMainPreparation::Impl::Current
+52 cs::game::ClientExactIndex<std::pair<unsigned int,unsigned int> >::find -> cs::game::ClientSceneAtomicInstaller::Impl::Describe
+44 cs::world::QueryNativeReadRegion -> truncf -> cs::game::ClientNativeReadWindow::Copy -> cs::game::ClientSceneAtomicInstaller::Impl::ResolveInstance -> cs::game::ClientBinaryPlus
+41 cs::game::ClientExactIndex<std::pair<unsigned int,unsigned int> >::emplace -> cs::game::ClientSceneAtomicInstaller::Impl::Describe -> _Init_thread_header
+41 cs::game::`anonymous namespace'::WritableRange -> truncf -> `cs::game::ClientSceneAtomicInstaller::Impl::InstallNow'::`2'::<lambda_1>::operator() -> cs::game::ClientSceneAtomicInstaller::Impl::InstallNow -> `string'
+37 truncf -> cs::game::ClientScene::NativeDisplay -> cs::game::ClientScene::RouteNativeRender -> cs::game::ClientRenderScope::ClientRenderScope -> H_manager_render::Wrapper::hook -> H_manager_render::record
+33 cs::game::`anonymous namespace'::DisplayFree -> truncf -> H_manager_render::Wrapper::hook -> H_manager_render::record
+32 truncf
+25 cs::world::QueryNativeReadRegion -> truncf -> cs::game::ClientNativeReadWindow::Copy -> cs::game::ClientBinaryPlus -> `cs::game::ClientSceneAtomicInstaller::Impl::Inputs'::`2'::<lambda_1>::<lambda_invoker_cdecl>
+24 cs::events
+22 cs::game::ReadMemory -> truncf -> cs::game::ClientSceneAtomicInstaller::Impl::Describe
+21 cs::game::InBlockedContext -> cs::game::ClientScene::Enter -> truncf -> cs::game::ClientScene::Borrow
+20 cs::game::InBlockedContext -> cs::game::ClientScene::Enter -> truncf -> cs::game::ClientScene::Borrow -> cs::replica::stream::E2EIsolation -> cs::game::ClientDispatchScope::ClientDispatchScope
+19 std::vector<cs::game::ClientSceneAtomicInstaller::Impl::InstanceAddress,cs::state::ClientStateAllocator<cs::game::ClientSceneAtomicInstaller::Impl::InstanceAddress> >::_Resize<std::_Value_init_tag> -> cs::game::ClientSceneAtomicInstaller::Impl::PurePathWindow::PurePathWindow -> truncf -> `cs::game::ClientSceneAtomicInstaller::Impl::RepairNow'::`7'::<lambda_5>::operator()<std::_Vector_iterator<std::_Vector_val<std::_Simple_types<cs::game::ClientSceneAtomicInstaller::Impl::ReadbackEntry> > >,std::_Vector_iterator<std::_Vector_val<std::_Simple_types<cs::game::ClientSceneAtomicInstaller::Impl::ReadbackEntry> > > > -> cs::game::ClientSceneAtomicInstaller::Impl::RepairNow
+19 cs::game::ClientSceneAtomicInstaller::Impl::SortReadback
+19 cs::game::ClientSceneAtomicInstaller::Impl::PublishNow -> `string' -> cs::game::ClientDispatchBefore -> truncf -> `cs::game::ClientSceneAtomicInstaller::Publish'::`2'::<lambda_1>::<lambda_invoker_cdecl> -> cs::game::ClientSceneMainPreparation::ApplyInstallation
+18 cs::game::ClientSceneFieldStaging::Impl::Slot::Slot -> cs::game::ClientSceneFieldStaging::Describe -> cs::state::ClientStateMemoryResource::`vftable' -> cs::state::ClientStateMemory::Allocate -> std::pmr::monotonic_buffer_resource::`vftable' -> truncf
+15 cs::game::ClientSceneAtomicInstaller::Impl::ResolveWrites
+13 cs::game::`anonymous namespace'::WritableRange -> cs::game::ClientRendererHandles -> truncf -> cs::game::`anonymous namespace'::Window -> cs::game::ClientPreparationWindow
+12 cs::game::`anonymous namespace'::DisplayFree -> truncf
+12 cs::game::ClientExactIndex<std::pair<unsigned int,unsigned int> >::emplace -> _Init_thread_header -> cs::game::ClientSceneFieldStaging::Describe -> cs::state::ClientStateMemoryResource::`vftable' -> cs::state::ClientStateMemory::Allocate -> std::pmr::monotonic_buffer_resource::`vftable' -> truncf
+11 cs::game::ClientSceneAtomicInstaller::Impl::SortOperations
+10 truncf -> cs::memory::Charge::Resize
+10 truncf -> cs::game::ClientManagerBoundary
+10 cs::memory::Charge::Resize -> truncf -> cs::state::ClientStateMemory::Allocate
+10 cs::state::ClientStateAllocator<cs::game::ClientSceneMainPreparation::Impl::Need>::deallocate -> truncf -> std::vector<cs::state::CodecPathStep,cs::state::ClientStateAllocator<cs::state::CodecPathStep> >::~vector<cs::state::CodecPathStep,cs::state::ClientStateAllocator<cs::state::CodecPathStep> > -> std::_Destroy_range<cs::state::ClientStateAllocator<cs::game::ClientSceneFieldStaging::Impl::Slot> > -> cs::game::ClientSceneFieldStaging::Drain -> `cs::game::ClientSceneMainPreparation::Impl::DrainInstalled'::`2'::<lambda_1>::operator() -> cs::game::ClientSceneMainPreparation::Impl::DrainInstalled -> cs::game::ClientSceneMainPreparation::Impl::Impl
+10 `string'
+9 cs::game::ReadMemory -> truncf -> cs::game::ClientRendererHandles -> cs::game::ClientScene::ContextWindow -> cs::game::ClientManagerBoundary
+9 cs::world::QueryNativeReadRegion -> truncf -> cs::game::ClientNativeReadWindow::Copy -> cs::game::ClientBinaryInitFailure
+9 operator new -> cs::state::ClientStateMemory::Allocate
+9 cs::game::ReadMemory -> truncf -> cs::game::ClientRendererHandles -> cs::game::ClientScene::ContextWindow -> cs::game::ClientRenderScope::ClientRenderScope
+9 cs::game::ReadMemory -> truncf -> cs::game::ClientDeviceReturned -> cs::game::DeviceScope::Returned
+8 cs::game::ClientExactIndex<std::tuple<unsigned int,unsigned short,unsigned short,unsigned short,unsigned short> >::emplace -> cs::game::ClientSceneFieldStaging::Describe -> cs::state::ClientStateMemoryResource::`vftable' -> cs::state::ClientStateMemory::Allocate -> std::pmr::monotonic_buffer_resource::`vftable' -> cs::game::ClientScene::Leave -> truncf
+7 cs::game::ReadMemory -> truncf -> cs::game::ClientBinaryInitFailure -> cs::game::`anonymous namespace'::NativeBindings::DescribeMembers
+7 std::vector<cs::game::ClientSceneAtomicInstaller::Impl::ReadbackEntry,cs::state::ClientStateAllocator<cs::game::ClientSceneAtomicInstaller::Impl::ReadbackEntry> >::_Emplace_one_at_back<cs::game::ClientSceneAtomicInstaller::Impl::ReadbackEntry> -> truncf -> cs::game::ClientSceneAtomicInstaller::Impl::Describe

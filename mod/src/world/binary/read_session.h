@@ -17,11 +17,11 @@ public:
   void Revoke() noexcept;
   // 外部资源水位只撤销数据证言，页权限由共享表独立处理。
   void RevokeForResourceChange() noexcept {failed_=revoked_=true;}
-  // 普通／Body 同步根只做受保护复制，外部写水位移到根尾；独立读段仍逐次检查。
+  // 入口核定读段后借用其序号，外部写水位移到根尾；独立读段仍逐次检查。
   class RootRead final {
   public:
-    RootRead(CaptureReadSession &session,bool defer) noexcept:session_(session) {session_.defer_resource_check_=defer;}
-    ~RootRead() {session_.defer_resource_check_=false;}
+    RootRead(CaptureReadSession &session,bool defer) noexcept:session_(session) {session_.deferred_serial_=defer?session_.serial_:0;}
+    ~RootRead() {session_.deferred_serial_=0;}
     RootRead(const RootRead &)=delete;
     RootRead &operator=(const RootRead &)=delete;
   private:
@@ -29,7 +29,7 @@ public:
   };
   bool ReviewRoot() noexcept;
   bool ContinueAfterObjectFailure() noexcept;
-  bool Good() const noexcept { return active_&&!failed_&&(defer_resource_check_||!current_||current_(owner_)); }
+  bool Good() const noexcept { return active_&&!failed_&&(deferred_serial_||!current_||current_(owner_)); }
   std::uint64_t Serial() const noexcept { return Good()?serial_:0; }
   // 优化探测失败交回正常读取，不能因此把本根标成采集失败。
   bool Probe(std::uint64_t address,std::span<std::byte> output) noexcept;
@@ -39,9 +39,9 @@ public:
   const Counters &Statistics() const noexcept { return counters_; }
 private:
   bool Reject() noexcept {failed_=true;++counters_.failures;return false;}
-  std::uint64_t serial_=0;
+  std::uint64_t serial_=0,deferred_serial_=0;
   bool ExternalCurrent() noexcept;
-  bool active_=false,failed_=false,revoked_=false,defer_resource_check_=false;
+  bool active_=false,failed_=false,revoked_=false;
   bool (*current_)(void *) noexcept=nullptr;
   void *owner_=nullptr;
   Counters counters_;

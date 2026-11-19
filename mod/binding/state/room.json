@@ -1207,6 +1207,14 @@
             "shockwave_a",
             "shockwave_b"
           ]
+        },
+        {
+          "id": 14,
+          "name": "R5 预测地形：寻路cost派生阻挡类别112B",
+          "sequence": "world",
+          "fields": [
+            "grid_path_block"
+          ]
         }
       ],
       "conversions": {
@@ -1228,7 +1236,9 @@
         "room_wave_sprite_present_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；当前shockwave_overlay_sprite真实使用资格，不能按已分配非Null猜测；不调用Update／Init／Restore或写访客进度。",
         "room_wave_sprite_present_present": "wave_sprite_present==1",
         "room_shockwave_overlay_sprite_read": "Render强制Idle／临时帧；含特殊背景分支；同步决定：只发当前实际资源／必要层覆盖／显示结果；不推进动画，不把旧动画状态当稳定输入；在已理解主线程边界读取当前同world结果，封存为自有不可变字节；失效／缺源报Gap，不调用Lua／随机／生成器。",
-        "room_shockwave_overlay_sprite_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；Render强制Idle／临时帧；含特殊背景分支；同步决定：只发当前实际资源／必要层覆盖／显示结果；不推进动画，不把旧动画状态当稳定输入；不调用Update／Init／Restore或写访客进度。"
+        "room_shockwave_overlay_sprite_install": "解码完整值并核对同world、成员／资源版本及用途后交专用显示owner；Render强制Idle／临时帧；含特殊背景分支；同步决定：只发当前实际资源／必要层覆盖／显示结果；不推进动画，不把旧动画状态当稳定输入；不调用Update／Init／Restore或写访客进度。",
+        "room_grid_path_block_read": "由grid_paths（Room+0x76C，i32[448]）在采集窗口内派生的每格碰撞类别，每格2位、低位在前：0无、1PIT（3000—3999）、3SOLID（1000—2999或≥4000）、2保留；原始cost仍留Host；客机只存预测影子表，不写原生Room+0x76C",
+        "room_grid_path_block_install": "由grid_paths（Room+0x76C，i32[448]）在采集窗口内派生的每格碰撞类别，每格2位、低位在前：0无、1PIT（3000—3999）、3SOLID（1000—2999或≥4000）、2保留；原始cost仍留Host；客机只存预测影子表，不写原生Room+0x76C"
       },
       "validators": {
         "descriptor": {
@@ -1283,6 +1293,14 @@
           "evidence": "docs/design/binary-state/7-room-level.md；room-display-resource-design.md及对应原生账本",
           "host": "room_wave_sprite_present_read",
           "client": "room_wave_sprite_present_install"
+        },
+        {
+          "name": "grid_path_block",
+          "type": "u8[112]",
+          "semantics": "由grid_paths（Room+0x76C，i32[448]）在采集窗口内派生的每格碰撞类别，每格2位、低位在前：0无、1PIT（3000—3999）、3SOLID（1000—2999或≥4000）、2保留；原始cost仍留Host；客机只存预测影子表，不写原生Room+0x76C",
+          "evidence": "docs/design/binary-state/prediction-interpolation.md 5.3.1；RE-P2 collision.md 第3节；J273 Room::GetGridCollision 0x7E6AF0",
+          "host": "room_grid_path_block_read",
+          "client": "room_grid_path_block_install"
         }
       ],
       "companions": [

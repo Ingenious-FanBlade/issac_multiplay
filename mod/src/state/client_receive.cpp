@@ -12,6 +12,8 @@ namespace {
 bool SameTicket(StateApplyTicket a,StateApplyTicket b){return a.serial==b.serial&&a.route==b.route;}
 unsigned Slot(const StateTarget &t){return t.count==1&&t.sections[0].stream==BodyStream::World&&t.sections[0].base_version?0:1;}
 auto BodyPeriod(){return std::chrono::microseconds((1000000+StateBudgets().body_hz-1)/StateBudgets().body_hz);}
+// Body 等待位期限：两个 Body 周期，覆盖错过一次 Manager 钩子（增量应用设计 10.4.1）。
+auto BodyWaitLimit(){return 2*BodyPeriod();}
 }
 struct ClientStateReceiver::Impl {
   std::shared_ptr<ClientStateMemory> memory;
@@ -402,6 +404,7 @@ struct ClientStateReceiver::Impl {
     }
   }
   // 等待期限属于槽首次到达；重复和更新替换均不能让旧工作无限续命。
+  // 定时检查只在一次派发尝试之后进行（见 Pump），不抢在可派发的最新 Body 之前丢弃它。
   void ExpireBody() {
     if(body_waiting&&std::chrono::steady_clock::now()>=body_waiting->deadline){
       memory->ApplyMetrics().Wait(2,ClientApplyWait::BodyQueueExpired);body_waiting.reset();
@@ -422,15 +425,16 @@ struct ClientStateReceiver::Impl {
       metrics.Wait(2,ClientApplyWait::BodyReplaced);
     }else{
       body_waiting.emplace(memory);body_waiting->lane=StateLane::Body;
-      body_waiting->deadline=std::chrono::steady_clock::now()+BodyPeriod();
+      body_waiting->deadline=std::chrono::steady_clock::now()+BodyWaitLimit();
     }
     auto &queued=*body_waiting;queued.bytes.assign(bytes.begin(),bytes.end());
     queued.target=descriptor;queued.target.encoded=queued.bytes;queued.received_us=received;
     metrics.Wait(2,ClientApplyWait::BodyQueued);
   }
   // 即使 Manager 正忙也接收并确认 Body。只有将纯值交给原生的阶段占用票据。
+  // 过期检查不在这里做：先尝试派发，Pump 随后才判过期。
   void TryBody() {
-    ExpireBody();if(!body_waiting)return;
+    if(!body_waiting)return;
     auto &queued=*body_waiting;
     if(!queued.candidate){
       const auto decoded=Decode(StateLane::Body,queued.bytes,2,queued.decoding,std::chrono::steady_clock::time_point::max());
@@ -448,6 +452,7 @@ struct ClientStateReceiver::Impl {
       ReceiveCandidate(built.candidate,queued.received_us);queued.candidate=built.candidate;
       queued.target=built.candidate->Target();queued.bytes.clear();
     }
+    // 被本流在途票据挡住时排队等它完成，不顶替已交出的票据（10.4.1 已撤销该条）。
     if(Blocked(queued.target))return;
     if(!queued.preparing)queued.preparing.emplace(Target(shadow.SelectKnownBodyObjects(queued.candidate)));
     if(AdvancePreparation(*queued.preparing,std::chrono::steady_clock::time_point::max())&&
@@ -461,7 +466,7 @@ struct ClientStateReceiver::Impl {
     ClientStateVector<StateRecordPayload> records{ClientStateAllocator<StateRecordPayload>(memory,memory::Pool::Workspace)};
     ClientStateVector<StateEventView> ev{ClientStateAllocator<StateEventView>(memory,memory::Pool::Workspace)};
     ClientStateVector<std::uint16_t> order{ClientStateAllocator<std::uint16_t>(memory,memory::Pool::Workspace)};
-    const auto header=LayoutVersion()>=kFlatRecordContractVersion?kFlatRecordHeaderBytes:12;
+    const auto header=UsesFlatRecordContract(LayoutVersion())?kFlatRecordHeaderBytes:12;
     records.resize(std::min<std::size_t>(65535,bytes.size()/header));ev.resize(512);order.resize(records.size());
     StateFrameScratch scratch{records,ev,order,{}};
     const auto frame=InspectStateFrame(route.scope,bytes,shadow.ReceivedEvents(),scratch,{std::uint32_t(StateMessageBodyLimit(lane)),262144,32,lane==StateLane::Baseline});
@@ -572,7 +577,6 @@ void ClientStateReceiver::Pump(std::uint64_t now,bool allow_waiting) {
   auto &s=*impl_;s.Thread();s.Collect();if(!s.active)return;
   if(s.uncertain_event){if(!s.Occupied(3))Fail(StateReadiness::Lifecycle,"client_receive_uncertain_playback_stopped");return;}
   if(allow_waiting)s.slice_pending=false;
-  s.ExpireBody();
   const auto expired=s.pending.Expire(now);
   if(expired)s.memory->ApplyMetrics().Wait(expired,ClientApplyWait::Expired);
   for(unsigned i=0;i<2;++i)if(s.waiting[i]&&!s.pending.At(i)){
@@ -581,11 +585,15 @@ void ClientStateReceiver::Pump(std::uint64_t now,bool allow_waiting) {
   }
   for(auto &slot:s.work)if(slot.batch&&!slot.delivered&&!slot.awaiting_drain)slot.delivered=s.delivery.Apply(slot.batch);
   s.DeliverResources();
-  if(allow_waiting)try{s.TryBody();}
+  if(allow_waiting){
+    try{s.TryBody();}
     catch(const ClientShadowError &e){
       if(e.Readiness()!=StateReadiness::InvalidEncoding&&e.Readiness()!=StateReadiness::InvalidReference)throw;
       s.body_waiting.reset();s.InvalidFrame(2,e.what());
     }
+    // 派发尝试之后才判过期；只收包不派发的轮次不丢等待中的 Body。
+    s.ExpireBody();
+  }
   // 有界阶段之间返回网络循环，下一轮可先消费回执和新 Body。
   const auto slice=std::chrono::steady_clock::now()+std::chrono::milliseconds(2);
   const auto time_left=[&]{return allow_waiting&&std::chrono::steady_clock::now()<slice;};

@@ -42,7 +42,8 @@ public:
   using ResourceVisitor=bool (*)(void *,state::ResourceKey,void *) noexcept;
   bool InspectStaged(const state::ClientStateApplyBatch &,void *,ObjectVisitor,ResourceVisitor,ClientSceneFieldStaging::Visitor) noexcept;
   bool StagedCurrent(const state::ClientStateApplyBatch &)const noexcept;
-  bool PendingObjectCurrent(const state::ClientStateApplyBatch &,std::uint32_t,void *,std::uint64_t,bool after_init=false)const noexcept;
+  bool PendingObjectCurrent(const state::ClientStateApplyBatch &,std::uint32_t,void *,std::uint64_t,
+    bool after_init=false,bool allow_absent_world_entity=false)const noexcept;
   ClientMemberFailure StagedFailure(const state::ClientStateApplyBatch &,std::uint32_t)const noexcept;
   bool OwnsFailedObject(const state::ClientStateApplyBatch &,std::uint32_t,void *,std::uint64_t)const noexcept;
   bool ReleaseFailedObject(const state::ClientStateApplyBatch &,std::uint32_t,void *,std::uint64_t) noexcept;
@@ -63,6 +64,9 @@ public:
   // 读回模板只保存实例号。这里在当前已安装租约内重新取得真实根。
   void *InstalledObject(const state::ClientStateApplyBatch &,std::uint32_t,std::uint64_t *instance=nullptr)const noexcept;
   void *FindLiveMember(const state::PresentationMember &,std::uint64_t &instance)const noexcept;
+#ifdef ISAACCS_E2E
+  void *FindWorldMemberForReadback(const state::PresentationMember &)const noexcept;
+#endif
   bool ReleaseRetiredObject(const state::ClientStateApplyBatch &,std::uint32_t,std::uint64_t instance) noexcept;
   using RetirementObjectVisitor=bool (*)(void *,std::uint32_t,bool retire_root) noexcept;
   bool VisitRetirementObjects(const state::ClientStateApplyBatch &,void *,RetirementObjectVisitor) noexcept;

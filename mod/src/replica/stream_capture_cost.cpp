@@ -140,6 +140,11 @@ void FrameEnd() noexcept {
   static_assert(std::size(stages)==unsigned(CostPart::Count));
   for(unsigned i=0;i<std::size(stages);++i)if(costs.sampled[i])Observe(stages[i],costs.parts[i].wall,costs.parts[i].Cpu());
 }
+CaptureTiming ReadCaptureTiming() noexcept {
+  if(!capture_thread)return {};
+  const auto &wall=costs.metrics.duration[unsigned(CpuStage::MainCapture)];
+  return {wall.count,wall.total_us};
+}
 std::string CostFields(unsigned page){
   auto out=costs.metrics.Fields("stream.main.",page);
   const auto add=[&](const std::string &key,std::uint64_t value){out+="stream.main."+key+"="+std::to_string(value)+"\n";};

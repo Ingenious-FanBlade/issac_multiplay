@@ -1,4 +1,5 @@
 #include "IsaacRepentance.h"
+#include "binding/offsets.h"
 #include "game/client/display/client_display_native.h"
 #include "game/client/room/client_backdrop_native.h"
 #include "game/client/scene/client_lifetime.h"
@@ -9,16 +10,35 @@
 #include "runtime.h"
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cmath>
 #include <cstring>
 #include <list>
 #include <new>
 #include <tuple>
+#include <utility>
 #include <windows.h>
 #include <GL/gl.h>
 
 namespace cs::game {
 namespace {
+using RenderClock=std::chrono::steady_clock;
+constexpr auto kDoorFadeOut=std::chrono::milliseconds(50);
+constexpr auto kDoorFadeIn=std::chrono::milliseconds(70);
+constexpr int kBossRoom=5;
+
+// 普通门的本地显示时钟跨旧房退休保留；新房发布后才开始淡入。
+struct DoorFade final {
+  std::uint64_t source_scene=0,destination_scene=0;
+  int target_grid=0;
+  RenderClock::time_point fade_out{},fade_in{};
+  bool rendered_end=false;
+};
+struct DoorFadeFrame final {
+  const char *phase=nullptr;
+  float opacity=0;
+  bool draw_old_room=false;
+};
 template<class T> T Read(const void *p,unsigned offset){T v;std::memcpy(&v,static_cast<const std::byte *>(p)+offset,sizeof(v));return v;}
 template<class T> void Write(void *p,unsigned offset,const T &v){std::memcpy(static_cast<std::byte *>(p)+offset,&v,sizeof(v));}
 bool Graphics() noexcept {
@@ -50,6 +70,10 @@ struct RoomGraphicsKey final {
 struct ClientDisplayNative final {
   Game *game=nullptr;Room *room=nullptr;Manager *manager=nullptr;
   RoomDescriptor *descriptor=nullptr;
+#ifdef ISAACCS_E2E
+  std::uint64_t e39_revision=0;
+  bool e39_active=false;
+#endif
   Camera *owned_camera=nullptr;
   bool hud_loaded=false,root_uncertain=false,audio_uncertain=false;
   std::array<ANM2 *,2> owned_lights{};
@@ -91,8 +115,15 @@ struct ClientDisplayNative final {
   float last_sfx_option=-1,last_sfx_modifier=1;
   int previous_shake=0;
   int surface_width=0,surface_height=0;
-  KAGE_Graphics_ImageBase *captured_old=nullptr;
+  // 原生换房重建可以换掉 Game 里的强引用。本地过渡持有同图形上下文中的旧画面。
+  KAGE_SmartPointer_ImageBase captured_old;
+  HGLRC captured_context=nullptr;
+  ClientDisplayScopeValue captured_scope{};
   int captured_width=0,captured_height=0;
+  DoorFade door_fade;
+  std::uint64_t door_arrival_event_scene=0;
+  DoorFadeFrame render_door_fade;
+  int borrowed_transition_mode=0;
   ClientDisplayMemoryRef memory;
   void Save(void *root,unsigned offset,unsigned size){
     for(unsigned i=0;i<saved_count;++i)if(saved[i].root==root&&saved[i].offset==offset)return;
@@ -105,9 +136,13 @@ namespace {
 ClientDisplayNative *active=nullptr;
 thread_local ClientDisplayNative *capture_owner=nullptr;
 thread_local unsigned display_depth=0;
+thread_local unsigned hud_post_depth=0;
 thread_local unsigned fx_build_seed=0;
 thread_local bool boss_replay=false;
 struct DisplayScope final {DisplayScope(){++display_depth;}~DisplayScope(){--display_depth;}};
+// 只在已安装 World 的 HUD::PostUpdate 内提供 StatHUD 所需的 Host 资格值。
+// ZHL 的中转层会改变 Hook 可见的返回地址，不能用该地址判断原生调用点。
+struct HudPostScope final {HudPostScope(){++hud_post_depth;}~HudPostScope(){--hud_post_depth;}};
 ClientDisplayNative *DisplaySource() noexcept{return capture_owner?capture_owner:active;}
 template<class F> void Named(ClientEntry entry,F &&call) {
   if(ClientDispatchBefore(entry)!=ClientEntryDecision::CallOriginal)throw std::runtime_error("display_named_dispatch");
@@ -127,6 +162,69 @@ bool DisplayMismatch(ClientDisplayIssue *issue,const char *reason,std::uintptr_t
 }
 std::uintptr_t Address(const void *value) noexcept{return reinterpret_cast<std::uintptr_t>(value);}
 KAGE_SmartPointer_ImageBase &ImageSlot(unsigned) noexcept;
+bool DirectionalWalk(int animation,int direction) noexcept {
+  return animation==0&&direction>=0&&direction<4;
+}
+void ForgetRoomHistory(ClientDisplayNative &o) noexcept {
+  o.old_surface=o.new_surface=false;
+  o.captured_old={};o.captured_context=nullptr;
+  o.captured_scope={};o.door_fade={};
+}
+bool HistoryFitsViewport(const ClientDisplayNative &o) noexcept {
+  return o.old_surface&&o.captured_old.image&&o.captured_old.counter&&
+         o.captured_context==wglGetCurrentContext()&&int(g_WIDTH)==o.captured_width&&int(g_HEIGHT)==o.captured_height;
+}
+bool DoorArrivalHistory(const ClientDisplayNative &o,const ClientDisplayMetadata &d) noexcept {
+  const auto &old=o.captured_scope;
+  const auto &now=d.scope;
+  return HistoryFitsViewport(o)&&old.scene&&old.scene!=now.scene&&old.room!=now.room&&
+         old.session==now.session&&old.run==now.run&&old.floor==now.floor&&old.dimension==now.dimension&&
+         o.old_dimension==d.dimension&&o.descriptor&&o.descriptor->Data&&o.descriptor->Data->Type!=kBossRoom;
+}
+// 正常 World 仍照常安装 Host 字段；这里只用已提交的换房身份选择客户机视觉效果。
+void UpdateDoorFade(ClientDisplayNative &o,const ClientDisplayMetadata &d) noexcept {
+  auto &fade=o.door_fade;
+  const auto scene=d.scope.scene;
+  const bool walk=DirectionalWalk(d.transition_animation,d.transition_direction)&&!d.transition_boss;
+  if(d.transition_mode==1&&walk&&HistoryFitsViewport(o)&&o.captured_scope.scene==scene){
+    const auto &t=o.game->_roomTransition;
+    if(t._roomDimension==d.dimension&&t._roomIndex>=0&&t._roomIndex<169){
+      const auto *target=o.game->GetRoomByIdx(t._roomIndex,t._roomDimension);
+      if(target&&target->Data&&target->Data->Type!=kBossRoom&&target->GridIndex!=d.grid){
+        if(fade.source_scene!=scene||fade.target_grid!=target->GridIndex)fade={scene,0,target->GridIndex};
+        return;
+      }
+    }
+  }
+  if(fade.destination_scene==scene){
+    if(d.transition_mode&&(!walk||d.transition_mode!=3))fade={};
+    return;
+  }
+  if(DoorArrivalHistory(o,d)){
+    const bool expected=fade.source_scene==o.captured_scope.scene&&fade.target_grid==d.grid;
+    const bool arrived=d.transition_mode==3&&walk;
+    if(arrived||(!d.transition_mode&&(expected||o.door_arrival_event_scene==scene))){
+      if(!expected)fade={o.captured_scope.scene,0,d.grid};
+      fade.destination_scene=scene;
+      return;
+    }
+  }
+  if(fade.source_scene!=scene||!d.transition_mode||!walk)fade={};
+}
+DoorFadeFrame ReadDoorFade(ClientDisplayNative &o,bool ready,bool draw_history) noexcept {
+  auto &fade=o.door_fade;
+  if(!fade.source_scene)return {};
+  const auto now=RenderClock::now();
+  if(fade.fade_out==RenderClock::time_point{})fade.fade_out=now;
+  const auto elapsed=now-fade.fade_out;
+  if(elapsed<kDoorFadeOut)
+    return {"out",std::chrono::duration<float>(elapsed)/kDoorFadeOut,draw_history||ready};
+  if(!ready)return {"black",1,false};
+  if(fade.fade_in==RenderClock::time_point{})fade.fade_in=now;
+  const auto since_ready=now-fade.fade_in;
+  if(since_ready<kDoorFadeIn)return {"in",1-std::chrono::duration<float>(since_ready)/kDoorFadeIn,false};
+  return {"done",0,false};
+}
 // 离屏捕获只运行原生PreRender/Render和图形提交；不调用转场FSM或完整ChangeRoom。
 bool Capture(ClientDisplayNative &o,bool old) {
   if(!Graphics()||!RoomResourcesCurrent(o)||!o.room->_descriptor||!o.room->_descriptor->SpawnSeed)return false;
@@ -197,7 +295,8 @@ void ReleaseCamera(ClientDisplayNative &o) {
   o.owned_camera=nullptr;
 }
 void ConstructCamera(ClientDisplayNative &o,const ClientDisplayInjections &input) {
-  const auto scroll=o.room->_renderScrollOffset;
+  auto &scroll=o.room->_renderScrollOffset;
+  o.Save(&scroll,0,sizeof(scroll));
   BorrowValue<int> previous(o.game,0x18308,input.camera_previous_entry);
   BorrowValue<int> door(o.game,0x1831c,input.camera_entry_door);
   BorrowValue<int> return_room(o.game,0x18328,input.camera_return_focus?int(o.game->_currentRoomIdx):-1);
@@ -212,8 +311,10 @@ void ConstructCamera(ClientDisplayNative &o,const ClientDisplayInjections &input
   o.root_uncertain=true;
   camera->constructor(o.room);
   o.room->_Camera=camera;
+  // 中途加入和换房的首帧抓图也按本端身体定位；原生返房焦点及本端尚未绑定时沿用 Host 首帧值。
+  if(input.camera_return_focus||!ClientSnapLocalCamera(camera))
+    scroll=Vector(input.camera_initial_scroll[0],input.camera_initial_scroll[1]);
   o.root_uncertain=false;
-  o.room->_renderScrollOffset=scroll;
 }
 // J273 Room主题12可借Data->StageId提供另一楼层的FX配置。
 std::pair<int,int> FxStage(int stage,int type,int id,bool greed) noexcept {
@@ -594,7 +695,7 @@ bool DescribePlayerHud(const Game &game,std::array<Entity_Player *,8> &players) 
   for(auto *p:game._playerManager._playerList){
     if(!p||!p->_exists||p->_parent._ref||!primary(*p))continue;
     unsigned slot=0;
-    if(!ClientBinaryHudOrdinal(p,slot))return false;
+    if(!ClientBinaryPlayerOrdinal(p,slot))return false;
     players[slot]=p;
     auto *t=static_cast<Entity_Player *>(p->_twinPlayer._ref);
     if(t&&t->_exists&&t->_playerType!=40&&
@@ -672,17 +773,96 @@ void ClientDisplayAbortPending(ClientDisplayNative *o) noexcept {
   if(!o->written)o->saved_count=0;
 }
 bool ClientDisplayPreserveRoom(ClientDisplayNative *o,const ClientNativeRoots &r) noexcept {
-  if(!o||!o->installed||!Roots(*o,r)||!o->room->_descriptor->Data||o->rendering)return false;
+  if(!o||!o->installed||o->rendering)return false;
   try{
-    if(o->old_surface&&o->captured_old==Read<KAGE_Graphics_ImageBase *>(&o->game->_roomTransition,0x28)&&
-       int(g_WIDTH)==o->captured_width&&int(g_HEIGHT)==o->captured_height)return true;
+    // 同一图形代次且确属待退出房间的完整画面，可安全跨越已取消的原生写票。
+    const auto installed=ClientDisplayMeta(o->installed);
+    if(HistoryFitsViewport(*o)&&g_Game==o->game&&o->captured_scope.scene==installed.scope.scene&&
+       !Read<std::uint8_t>(o->game,0x25aac))return true;
+    if(!Roots(*o,r)||!o->room->_descriptor->Data)return false;
     if(!Capture(*o,true))return false;
     const auto *data=o->room->_descriptor->Data;
     o->old_scroll=o->room->_renderScrollOffset;o->old_surface=true;o->new_surface=false;
     o->old_grid=o->room->_descriptor->GridIndex;o->old_entry=int(o->game->_currentRoomIdx);o->old_dimension=int(o->game->_currentDimensionIdx);
     o->old_width=data->Width;o->old_height=data->Height;o->old_mirror=MirrorDimension(*o->game);
-    o->captured_old=Read<KAGE_Graphics_ImageBase *>(&o->game->_roomTransition,0x28);
+    o->captured_old=*reinterpret_cast<const KAGE_SmartPointer_ImageBase *>(
+      reinterpret_cast<const std::byte *>(&o->game->_roomTransition)+0x28);
+    o->captured_context=wglGetCurrentContext();
+    o->captured_scope=installed.scope;
     o->captured_width=int(g_WIDTH);o->captured_height=int(g_HEIGHT);
+#ifdef ISAACCS_E2E
+    if(replica::stream::E2ETraceEnabled())
+      Trace("e39-surface","side=old grid=%d dimension=%d width=%d height=%d",o->old_grid,o->old_dimension,o->captured_width,o->captured_height);
+#endif
+    return true;
+  }catch(...){return false;}
+}
+namespace {
+// 借用原生转场的混合和着色器，提交后恢复，外层 Manager 仍负责交换缓冲。
+struct TransitionBlend final {
+  using Setter=void (__thiscall *)(KAGE_Graphics_Manager *,BlendMode);
+  KAGE_Graphics_Manager &graphics=*__ptr_g_KAGE_Graphics_Manager;
+  Setter set=reinterpret_cast<Setter>(Read<void *const *>(&graphics,0)[14]);
+  BlendMode previous=graphics._blendMode;
+  KAGE_Graphics_Shader *shader=graphics._shader;
+  ~TransitionBlend(){graphics._shader=shader;set(&graphics,previous);}
+};
+DestinationQuad ScreenQuad() noexcept {
+  const float width=g_WIDTH,height=g_HEIGHT;
+  return {Vector(0,0),Vector(width,0),Vector(0,height),Vector(width,height)};
+}
+bool DrawOldRoom(const ClientDisplayNative &o) {
+  if(!HistoryFitsViewport(o)||!FlushDisplay())return false;
+  TransitionBlend blend;
+  blend.set(&blend.graphics,BlendMode(0,1,0,1,0));
+  blend.graphics._shader=nullptr;
+  const auto quad=ScreenQuad();
+  const KColor white(1,1,1,1);
+  auto *image=o.captured_old.image;
+  using DrawQuad=void (__thiscall *)(KAGE_Graphics_ImageBase *,const DestinationQuad *,const KColor *);
+  reinterpret_cast<DrawQuad>(Read<void *const *>(image,0)[7])(image,&quad,&white);
+  return FlushDisplay();
+}
+bool DrawDoorFade(const ClientDisplayNative &o,const DoorFadeFrame &frame,int native_mode=0) {
+  if(frame.draw_old_room&&!DrawOldRoom(o))return false;
+  if(frame.opacity>0){
+    if(!FlushDisplay())return false;
+    TransitionBlend blend;
+    // J273 RoomTransition::Render 的纯色四边形入口（0x827BA4），覆盖当前原生绘制目标。
+    auto *shape=ImageSlot(0x7e743c).image;
+    if(!shape)return false;
+    blend.set(&blend.graphics,BlendMode(0,Read<bool>(&blend.graphics,0x23)?1:6,7,1,7));
+    blend.graphics._shader=reinterpret_cast<KAGE_Graphics_Shader *>(Base+0x7ae1d8);
+    const auto quad=ScreenQuad();
+    const KColor black(0,0,0,frame.opacity);
+    using DrawSolid=void (__thiscall *)(KAGE_Graphics_ImageBase *,const DestinationQuad *,
+      const KColor *,const KColor *,const KColor *,const KColor *);
+    reinterpret_cast<DrawSolid>(Read<void *const *>(shape,0)[6])(shape,&quad,&black,&black,&black,&black);
+    if(!FlushDisplay())return false;
+  }
+#ifdef ISAACCS_E2E
+  if(frame.phase&&replica::stream::E2ETraceEnabled())
+    Trace("e39-door-fade","phase=%s opacity=%u source=%llu destination=%llu grid=%d old_image=%u mode=%d",
+      frame.phase,unsigned(frame.opacity*1000+0.5f),o.door_fade.source_scene,o.door_fade.destination_scene,
+      o.installed?ClientDisplayMeta(o.installed).grid:o.old_grid,unsigned(frame.draw_old_room),native_mode);
+#else
+  (void)native_mode;
+#endif
+  return true;
+}
+}
+// 等待同局新房时沿用旧图，普通门淡出后保持黑屏，仍由原生 Manager 提交。
+bool ClientDisplayRenderHistory(ClientDisplayNative *o) noexcept {
+  if(!o||!MainWindow()||TopOwner()!=Owner::Render||!Graphics()||g_Manager!=o->manager||!HistoryFitsViewport(*o))return false;
+  try{
+    const auto frame=ReadDoorFade(*o,false,true);
+    const bool drawn=frame.phase?DrawDoorFade(*o,frame):DrawOldRoom(*o);
+    if(!drawn)return false;
+#ifdef ISAACCS_E2E
+    if(!frame.phase&&replica::stream::E2ETraceEnabled())
+      Trace("e39-held-draw","scene=%llu grid=%d dimension=%d width=%d height=%d manager_state=%d",
+        o->captured_scope.scene,o->old_grid,o->old_dimension,o->captured_width,o->captured_height,g_Manager->_state);
+#endif
     return true;
   }catch(...){return false;}
 }
@@ -756,7 +936,7 @@ ClientDisplayStep ClientDisplayBeforeInstall(ClientDisplayNative *o,const Client
       if(!ClientDisplayPreserveRoom(o,r)){o->failed=true;if(active==o)active=nullptr;return {false,true,"display_old_surface_capture"};}
       if(room_changed)o->new_surface=false;
     }
-    if(o->installed&&!RoomResourcesCurrent(*o))o->old_surface=o->new_surface=false;
+    if(o->installed&&!RoomResourcesCurrent(*o))ForgetRoomHistory(*o);
     o->previous_shake=g_Game?Read<int>(g_Game,0x25a80):0;
     o->pending=target;return {true,capture_started,"display_prepared"};
   }catch(...){if(capture_started){o->failed=true;if(active==o)active=nullptr;}else if(!o->written)o->saved_count=0;
@@ -771,8 +951,10 @@ ClientDisplayStep ClientDisplayInstall(ClientDisplayNative *o,const ClientDispla
     const auto d=ClientDisplayMeta(target);auto *descriptor=static_cast<RoomDescriptor *>(r.descriptor);
     if(!d.spawn_seed||!descriptor->Data||descriptor->GridIndex!=d.grid||descriptor->Dimension!=d.dimension)return {false,false,"display_descriptor_binding"};
     if(o->game&&o->game!=r.game)return {false,false,"display_game_replaced"};
-    if(o->old_surface&&(o->captured_old!=Read<KAGE_Graphics_ImageBase *>(&g_Game->_roomTransition,0x28)||
-       int(g_WIDTH)!=o->captured_width||int(g_HEIGHT)!=o->captured_height))o->old_surface=o->new_surface=false;
+    if(o->old_surface&&(wglGetCurrentContext()!=o->captured_context||Read<std::uint8_t>(g_Game,0x25aac)||
+       int(g_WIDTH)!=o->captured_width||int(g_HEIGHT)!=o->captured_height)){
+      ForgetRoomHistory(*o);
+    }
     for(unsigned i=0;i<ClientDisplayMapCount(target);++i){const auto v=ClientDisplayMapAt(target,i);auto *native=MapDescriptor(*g_Game,v.slot);
       if(!native||native->GridIndex!=v.grid||native->Dimension!=v.dimension)return {false,false,"display_map_descriptor_binding"};}
     const auto built=BuildDisplayRoots(o,r);
@@ -819,7 +1001,7 @@ ClientDisplayStep ClientDisplayInstall(ClientDisplayNative *o,const ClientDispla
       o->period=d.frame/30;o->have_period=true;}
     o->old_frame=d.frame;o->map_dirty=o->map_dirty||map_changed;o->hud_dirty=o->hud_dirty||map_changed;
     // 同M换world使平均位置缓存失效；不伪造实体年龄，也不补调用玩家模拟。
-    Write(reinterpret_cast<void *>(Base+0x7d01e8),0,std::uint32_t(o->manager->_framecount-1));
+    Write(reinterpret_cast<void *>(Base+offset::PlayerCenterFrame),0,std::uint32_t(o->manager->_framecount-1));
     // 只填补本机生命周期下尚未初始化的图形缓存。
     o->root_uncertain=true;
     // 菜单遗留的 resize 请求会让首次 Game::Render 重建所有屏幕 surface。
@@ -874,6 +1056,11 @@ ClientDisplayStep ClientDisplayFinishInstall(ClientDisplayNative *o,const Client
      !Roots(*o,r)||!RoomResourcesCurrent(*o))return {false,false,"display_capture_resource_binding"};
   try{
     const auto d=ClientDisplayMeta(target);
+    if(o->old_surface&&d.transition_mode){
+      auto &old_target=*reinterpret_cast<KAGE_SmartPointer_ImageBase *>(
+        reinterpret_cast<std::byte *>(&o->game->_roomTransition)+0x28);
+      if(old_target.image!=o->captured_old.image)old_target=o->captured_old;
+    }
     // 中途加入只拥有当前房间。用它建立两张有效本地图，保持 Host 的阶段和滚动方向。
     if((d.transition_mode==2||d.transition_mode==3)&&!o->old_surface&&!ClientDisplayPreserveRoom(o,r)){
       o->failed=true;return {false,true,"display_transition_baseline_surface"};
@@ -881,16 +1068,29 @@ ClientDisplayStep ClientDisplayFinishInstall(ClientDisplayNative *o,const Client
     if(o->old_surface&&!o->new_surface){
       TransitionScroll(*o,d);
       if(!Capture(*o,false)){o->failed=true;return {false,true,"display_new_surface_capture"};}o->new_surface=true;
+#ifdef ISAACCS_E2E
+      if(replica::stream::E2ETraceEnabled()){
+        const auto &transition=o->game->_roomTransition;
+        Trace("e39-surface","side=new grid=%d dimension=%d frame=%u scroll_x=%.2f scroll_y=%.2f",d.grid,d.dimension,d.frame,
+          Read<float>(&transition,0x22c),Read<float>(&transition,0x230));
+      }
+#endif
     }
     // 首帧与任何重新构图都要走一次原生绘制，复用同批已生成的转场新图。
     if(o->capture_initial&&!o->new_surface&&!Capture(*o,false))return {false,true,"display_initial_surface_capture"};
-    if(!d.transition_mode){o->old_surface=false;o->new_surface=false;}
     if(!FlushDisplay()){o->failed=true;return {false,true,"display_install_cpu_borrow"};}
     o->surface_width=int(g_WIDTH);o->surface_height=int(g_HEIGHT);o->pending.reset();o->display_complete=true;o->capture_initial=false;
     return {true,true,"display_installed"};
   }catch(...){o->failed=true;if(active==o)active=nullptr;return {false,o->written,"display_install_exception"};}
 }
-void ClientDisplayPublish(ClientDisplayNative *o) noexcept {if(o&&o->display_complete&&o->installed)active=o;}
+void ClientDisplayPublish(ClientDisplayNative *o) noexcept {
+  if(!o||!o->display_complete||!o->installed)return;
+  const auto d=ClientDisplayMeta(o->installed);
+  UpdateDoorFade(*o,d);
+  if(!d.transition_mode&&(!o->door_fade.source_scene||o->door_fade.rendered_end))ForgetRoomHistory(*o);
+  o->door_arrival_event_scene=0;
+  active=o;
+}
 void ClientDisplaySuspend(ClientDisplayNative *o) noexcept {if(active==o)active=nullptr;}
 bool ClientDisplayFxRandom(const void *site,unsigned &value) noexcept {
   if(!IsMain()||!ClientBusy()||!fx_build_seed||reinterpret_cast<std::uintptr_t>(site)!=Base+0x568e96)return false;
@@ -904,6 +1104,7 @@ bool ClientDisplayRetire(ClientDisplayNative *o,bool preserve_target,bool preser
     if(ClientDisplayAudioHeld(o)&&!preserve_audio&&(g_Manager!=o->manager||!StopAudio(*o)))return false;
     if(o->written){
       if(g_Game!=o->game||g_Manager!=o->manager||o->game->_room!=o->room)return false;
+      ClearClientFoundHudSlots(&o->game->_hud._statHUD);
       if(o->boss_owned){
         if(o->boss_retire_entered)return false;
         o->boss_retire_entered=true;
@@ -933,7 +1134,10 @@ bool ClientDisplayRetire(ClientDisplayNative *o,bool preserve_target,bool preser
       }
     }
     o->written=false;o->saved_count=0;o->installed.reset();o->descriptor=nullptr;o->boss_generation=0;o->display_complete=false;
-    if(!preserve_audio){o->old_surface=o->new_surface=false;o->captured_old=nullptr;}
+    o->new_surface=false;
+    if(!preserve_audio)ForgetRoomHistory(*o);
+    else if(o->door_fade.destination_scene)o->door_fade={};
+    o->door_arrival_event_scene=0;
     if(!o->owned_camera&&!o->hud_loaded)o->room=nullptr;
     if(!preserve_target)o->pending.reset();
     return true;
@@ -942,7 +1146,7 @@ bool ClientDisplayRetire(ClientDisplayNative *o,bool preserve_target,bool preser
 bool ClientDisplayHasWorld(const ClientDisplayNative *o) noexcept {return o&&bool(o->installed);}
 bool ClientDisplayGraphicsChanged(const ClientDisplayNative *o) noexcept {
   return o&&o==active&&o->installed&&g_Game==o->game&&o->game->_room==o->room&&o->graphics_ready&&
-    (int(g_WIDTH)!=o->graphics_width||int(g_HEIGHT)!=o->graphics_height||RoomTargets(*o->room)!=o->room_graphics.targets||
+    (Read<std::uint8_t>(o->game,0x25aac)||int(g_WIDTH)!=o->graphics_width||int(g_HEIGHT)!=o->graphics_height||RoomTargets(*o->room)!=o->room_graphics.targets||
      ImageSlot(0x7e72b4).image!=o->history_surface);
 }
 bool ClientDisplayCurrent(const ClientDisplayNative *o,const ClientNativeRoots &r,ClientDisplayIssue *issue) noexcept {
@@ -1043,11 +1247,9 @@ bool ClientDisplayAngelShare(float &value) noexcept {
   if(!ClientNativeDisplayCallbacks()||!o||!o->installed||o->game!=g_Game)return false;
   value=ClientDisplayInputs(o->installed).angel;return true;
 }
-bool ClientDisplayDealQualified(const void *site,const void *game,bool &value) noexcept {
-  const auto caller=reinterpret_cast<std::uintptr_t>(site);
+bool ClientDisplayDealQualified(const void *game,bool &value) noexcept {
   const auto *o=DisplaySource();
-  if(!ClientNativeDisplayCallbacks()||!o||!o->installed||o->game!=game||
-     (caller!=Base+0x43d14a&&caller!=Base+0x43d755))return false;
+  if(!hud_post_depth||!ClientNativeDisplayCallbacks()||!o||!o->installed||o->game!=game)return false;
   value=ClientDisplayInputs(o->installed).deal_qualified;return true;
 }
 bool ClientDisplayProgressBlocked(const void *site,bool &value) noexcept {
@@ -1060,7 +1262,8 @@ void ClientDisplaySfxRefreshed(void *owner) noexcept {
   if(!ClientNativeDisplayActive()||!g_Manager||owner!=reinterpret_cast<std::byte *>(g_Manager)+0x2a160)return;
   auto *source=DisplaySource();source->last_sfx_option=g_Manager->_optionsConfig._sfxVolume;source->mixing_dirty=false;
 }
-bool ClientDisplayAdvance(ClientDisplayNative *o,const ClientNativeRoots &r,bool local_blocked) noexcept {
+bool ClientDisplayAdvance(ClientDisplayNative *o,const ClientNativeRoots &r,bool local_blocked,
+                          const ClientDisplayCameraHook &camera_hook) noexcept {
   if(!ClientDisplayCurrent(o,r)||TopOwner()!=Owner::Manager||!Graphics())return false;
   try{
     auto &m=*o->manager;const auto frame=m._framecount;
@@ -1072,13 +1275,22 @@ bool ClientDisplayAdvance(ClientDisplayNative *o,const ClientNativeRoots &r,bool
     if(!(frame&1)&&!local_blocked){
       const auto branch=ClientDisplayMeta(o->installed).branch;
       using Branch=ClientDisplayBranch;
+      const auto post_hud=[&]{
+        Named(ClientEntry::DisplayHudPostUpdate,[&]{
+          HudPostScope input_scope;
+          g._hud.PostUpdate();
+        });
+      };
       if(branch!=Branch::ConsoleHold){Named(ClientEntry::DisplayHudUpdate,[&]{g._hud.Update();});
-        if(Read<float>(&g,0x25b28)>0)Named(ClientEntry::DisplayHudPostUpdate,[&]{g._hud.PostUpdate();});
+        if(Read<float>(&g,0x25b28)>0)post_hud();
         if(branch==Branch::Normal||branch==Branch::RoomTransition){
           if(branch==Branch::RoomTransition)Named(ClientEntry::DisplayTransition,[&]{auto &t=g._roomTransition;if(t._unkStartRoomTransitionCond){t._versusScreenANM2.Update();
               for(auto &entry:t._extraLayerANM2s)entry.second.Update();}
             if(t._mode==2||t._mode==3){Write(&g,0x22e94,2);Write(&g,0x22e9c,2);}});
-          Named(ClientEntry::DisplayMinimapUpdate,[&]{g._minimap.Update();});
+          Named(ClientEntry::DisplayMinimapUpdate,[&]{
+            ClientMinimapInputScope input_scope;
+            g._minimap.Update();
+          });
           if(o->map_dirty){Named(ClientEntry::DisplayMinimapRefresh,[&]{g._minimap.Refresh();});o->map_dirty=false;}
           if(branch==Branch::Normal){Named(ClientEntry::DisplaySort,[&]{Sort(room);});
             Named(ClientEntry::DisplayFxUpdate,[&]{
@@ -1093,13 +1305,19 @@ bool ClientDisplayAdvance(ClientDisplayNative *o,const ClientNativeRoots &r,bool
                  (Read<std::uint8_t>(animation,0x34)&&!floor._animState._isPlaying)))floor.Play("Idle",true);
               auto *hell=reinterpret_cast<std::byte *>(&room)+0x776c;
               if(Read<std::uint8_t>(hell,0x118))reinterpret_cast<ANM2 *>(hell+4)->Update();});}
-          Named(ClientEntry::DisplayHudPostUpdate,[&]{g._hud.PostUpdate();});
+          post_hud();
         }else if(branch==Branch::PauseCountdown||branch==Branch::StageTransition||branch==Branch::ActiveOverlay||branch==Branch::SecondaryFade)
-          Named(ClientEntry::DisplayHudPostUpdate,[&]{g._hud.PostUpdate();});
+          post_hud();
       }
     }
     const bool minecart=g._roomTransition._mode!=0&&Read<int>(&g,0x1b858)==19;
     if(!local_blocked&&(!ClientDisplayMeta(o->installed).paused||minecart)&&room._Camera)Named(ClientEntry::DisplayCamera,[&]{
+      // 相机读到的是覆盖层的显示位置；作用域对象保证相机返回或抛出后写回权威值。
+      struct CameraOverlay final {
+        const ClientDisplayCameraHook &hook;bool on;
+        explicit CameraOverlay(const ClientDisplayCameraHook &h) noexcept:hook(h),on(h.enter&&h.exit&&h.enter(h.context)){}
+        ~CameraOverlay(){if(on)hook.exit(hook.context);}
+      } overlay(camera_hook);
       if(m._optionsConfig._cameraStyle==2){room._Camera->UpdateDrag2();if(frame&1)Write<std::uint8_t>(room._Camera,0x8c,0);}
       else{room._Camera->UpdateUltrasmooth(bool(frame&1));Write<std::uint8_t>(room._Camera,0x8c,0);}});
     // 暂停仅阻断相机；音乐仍按每个有效尾部周期一次，不随到包量补跑。
@@ -1117,6 +1335,15 @@ bool ClientDisplayRenderBegin(ClientDisplayNative *o,const ClientNativeRoots &r)
   // 活跃转场resize丢失旧画面时明确停止该显示事务，等待完整恢复；不画空surface。
   if(o->game->_roomTransition._mode&&(int(g_WIDTH)!=o->surface_width||int(g_HEIGHT)!=o->surface_height||Read<std::uint8_t>(o->game,0x25aac))){
     o->failed=true;active=nullptr;return false;}
+  const auto scene=ClientDisplayMeta(o->installed).scope.scene;
+  const auto &fade=o->door_fade;
+  o->render_door_fade={};
+  if(fade.source_scene==scene||fade.destination_scene==scene){
+    if(!fade.rendered_end)o->render_door_fade=ReadDoorFade(*o,fade.destination_scene==scene,false);
+    // 仅在原生绘制调用内选择正常房间分支，返回后归还 Host 的转场模式。
+    auto &mode=o->game->_roomTransition._mode;
+    if(mode==2||mode==3){o->borrowed_transition_mode=mode;mode=0;}
+  }
   o->rendering=true;++display_depth;return true;
 }
 bool ClientDisplayRouteRender(ClientDisplayNative *o,bool begin) noexcept {
@@ -1128,12 +1355,36 @@ bool ClientDisplayRouteRender(ClientDisplayNative *o,bool begin) noexcept {
 }
 void ClientDisplayRenderEnd(ClientDisplayNative *o,const ClientNativeRoots &r) noexcept {
   if(!o||!o->rendering)return;o->rendering=false;if(display_depth)--display_depth;
+  if(o->borrowed_transition_mode&&g_Game==o->game)o->game->_roomTransition._mode=o->borrowed_transition_mode;
+  const auto native_mode=std::exchange(o->borrowed_transition_mode,0);
+  const auto frame=std::exchange(o->render_door_fade,DoorFadeFrame{});
   if(!Roots(*o,r)){Trace("client_error","event=display_render_roots_changed");o->failed=true;if(active==o)active=nullptr;return;}
   // RE-5：只纠正已核Q8写集，不回放玩法；F在Render中只检查，从不借用或恢复。
   if(Read<std::uint32_t>(o->game,0x25a70)!=ClientDisplayMeta(o->installed).frame){
     Trace("client_error","event=display_render_frame_changed actual=%u expected=%u",Read<std::uint32_t>(o->game,0x25a70),ClientDisplayMeta(o->installed).frame);
     o->failed=true;if(active==o)active=nullptr;return;}
+#ifdef ISAACCS_E2E
+  // 记录原生 Render 真正消费的字段和本地 surface，发生在纠正写集之前。
+  if(replica::stream::E2ETraceEnabled()){
+    const auto d=ClientDisplayMeta(o->installed);
+    const auto &t=o->game->_roomTransition;
+    if(!native_mode&&(t._mode||o->e39_active)&&d.source_revision!=o->e39_revision){
+      Trace("e39-client","revision=%llu frame=%u scope_room=%llu grid=%d mode=%d expected_mode=%d counter=%d duration=%d progress=%08x direction=%d target=%d dimension=%d animation=%d old=%u new=%u old_grid=%d boss=%d hud=%u",
+        d.source_revision,d.frame,d.scope.room,d.grid,t._mode,d.transition_mode,Read<int>(&t,4),Read<int>(&t,8),Read<unsigned>(&t,12),
+        Read<int>(&t,16),Read<int>(&t,20),Read<int>(&t,24),Read<int>(&t,28),unsigned(o->old_surface),unsigned(o->new_surface),
+        o->old_grid,t._unkStartRoomTransitionCond,unsigned(Read<std::uint8_t>(o->game,0x22e90)));
+      o->e39_revision=d.source_revision;o->e39_active=t._mode!=0;
+    }
+  }
+#endif
   Reapply(*o);
+  if(frame.phase){
+    // 先绘制当前房间，再叠黑；极快装入仍用旧图把淡出画完。
+    try{
+      if(!DrawDoorFade(*o,frame,native_mode))o->door_fade={};
+      else if(frame.opacity==0&&o->door_fade.fade_in!=RenderClock::time_point{})o->door_fade.rendered_end=true;
+    }catch(...){o->door_fade={};}
+  }
   // 首次 Render 的缓存变化必须指明失效项，不能让外层 return mismatch 掩盖根因。
   if(!ClientDisplayCurrent(o,r))Trace("client_error",
     "event=display_render_current window=%u active=%u failed=%u resources=%u targets=%u viewport=%u shading=%u ray=%u history=%u fx=%u expected_fx=%u",
@@ -1384,6 +1635,8 @@ ClientDisplayStep ClientDisplayEventReplay(ClientDisplayNative *o,const ClientDi
     if(event.final_room<meta.scope.room)return {true,false,"binary_transition_covered_by_world"};
     const bool valid=event.final_room==meta.scope.room&&o->room&&o->room->_descriptor&&
       o->room->_descriptor->GridIndex==event.index&&int(o->game->_currentDimensionIdx)==event.dimension;
+    // 若第一份新房基线已越过原生滑动阶段，仍可用同目标的完成事件识别普通门。
+    if(valid&&DirectionalWalk(event.animation,event.direction))o->door_arrival_event_scene=meta.scope.scene;
     return {valid,false,valid?"binary_transition_state_current":"binary_transition_destination_mismatch"};
   }
   // Boss事件仍经可靠顺序消费；当前world基线决定实际显示代次，历史事件不会覆盖它。

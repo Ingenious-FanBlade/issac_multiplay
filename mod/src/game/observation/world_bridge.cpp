@@ -19,6 +19,14 @@
 #include <exception>
 
 namespace cs::game {
+StreamSharedResourceScope::StreamSharedResourceScope(bool animation) noexcept {
+  if(!IsMain()){foreign_=true;BinaryForeignResourceWrite(true);return;}
+  if(const auto capture=CurrentWorldRecording();capture&&capture->binary_entities)
+    capture->binary_entities->SharedResourceChanged(animation);
+}
+StreamSharedResourceScope::~StreamSharedResourceScope() noexcept {
+  if(foreign_)BinaryForeignResourceWrite(false);
+}
 // 背景资源重建使旧房间候选失效。构图和装饰隔离由 Backdrop 入口负责。
 void BinaryBackdropChanged(void *backdrop,bool current) noexcept {
   if(!current||!backdrop||!IsMain()||ClientBusy())return;
@@ -153,6 +161,14 @@ WorldEntityReconfigurationScope::~WorldEntityReconfigurationScope() noexcept {
 }
 void WorldEntityReconfigurationScope::Returned() noexcept {
   returned_=true;if(counters_.completed)counters_.completed->fetch_add(1,std::memory_order_relaxed);
+}
+WorldPlayerLifeSourceScope::WorldPlayerLifeSourceScope(void *player,bool ghost) noexcept {
+  if(!IsMain()||!HostBusy()||ClientBusy())return;
+  capture_=CurrentWorldRecording();
+  if(capture_&&capture_->collector)witness_=capture_->collector->BeginPlayerLife(world::PackWord(player),ghost);
+}
+void WorldPlayerLifeSourceScope::Returned() noexcept {
+  if(witness_.address&&capture_&&capture_->collector)capture_->collector->CompletePlayerLife(witness_);
 }
 WorldPlayerChildSourceScope::WorldPlayerChildSourceScope(void *object,unsigned kind,world::HookCounters counters,unsigned slot) noexcept
     :counters_(counters),exceptions_(std::uncaught_exceptions()) {
@@ -668,7 +684,10 @@ void WorldPreparePostState(bool normal) noexcept {
       capture::Cost legacy(capture::CostPart::Copy);
       prepared_post = collector->PreparePostState(normal);
     }else prepared_post=collector->PreparePostState(normal);
-    const bool binary_prepared=recording->binary_entities&&recording->binary_entities->Prepare(normal);
+    const auto *runtime=Runtime();
+    const auto completed_tick=runtime&&!runtime->retiring&&!runtime->finished&&!runtime->failure?runtime->clock.Completed():0;
+    const bool binary_prepared=recording->binary_entities&&recording->binary_entities->Prepare(normal,completed_tick);
+    if(binary_prepared)recording->binary_entities->CommitTransition();
     if(prepared_post.status!=core::PostStateStatus::Disabled)prepared_post=collector->NativePrepared(binary_prepared);
     frame_prepared = true;
     // 无 Authority 的 gap 已由采集器发布；没有 pending 世界值需要 core 提交。

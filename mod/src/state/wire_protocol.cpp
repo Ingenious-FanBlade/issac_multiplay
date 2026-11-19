@@ -319,7 +319,7 @@ StateFrameView InspectStateFrame(const StateScope &scope,std::span<const std::by
        event_counts[i]>kW_max_audio_events-events||event_counts[i]>scratch.events.size()-events)Fail("frame_count_or_scratch");
     Visit(remaining,std::uint32_t(StateSectionHeaderField::count));
     for (std::size_t j=0;j<n;++j) {
-      if(frame.layout_version>=kFlatRecordContractVersion){
+      if(UsesFlatRecordContract(frame.layout_version)){
         const auto id=std::uint16_t(Bits(input.Peek(4).subspan(2)));
         if(FlatRecordLayout(frame.layout_version,id)){
           const auto header=input.Take(kFlatRecordHeaderBytes);

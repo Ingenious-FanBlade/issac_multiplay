@@ -29,6 +29,7 @@ constexpr unsigned kEvents=65536;
 constexpr std::size_t kEventBytes=32u<<20;
 std::mutex mutex;
 std::atomic<bool> enabled{false};
+std::atomic<bool> compare_enabled{false};
 std::atomic<bool> drop_next{false};
 std::atomic<std::uint64_t> missed{0};
 std::atomic<bool> visual_requested{false};
@@ -41,8 +42,8 @@ struct Row {std::uint64_t cursor=0;std::shared_ptr<const std::string> value;};
 std::deque<Row> events;
 std::size_t event_bytes=0;
 std::uint64_t serial=0;
-void Add(Json row) noexcept {
- if(!enabled.load(std::memory_order_relaxed))return;
+void Add(Json row,bool comparison=false) noexcept {
+ if(!(comparison?compare_enabled:enabled).load(std::memory_order_relaxed))return;
  if(drop_next.exchange(false)){++missed;return;}
  // 编码在锁外，实际保留量同时受记录数和32MiB正文约束，未读溢出仍明确计丢失。
  try{
@@ -64,6 +65,58 @@ void E2EStreamProgress(const char *site,const std::array<std::uint64_t,8> &value
  if(!enabled)return;try{auto row=Base("stream-progress");auto &a=row.GetAllocator();Put(row,"site",site,a);
  constexpr const char *names[]={"revision","sequence","phase","prefix","started_ms","now_ms","native_target","age_ms"};
  for(unsigned i=0;i<values.size();++i)Put(row,names[i],Decimal(values[i],a),a);Add(std::move(row));}catch(...){++missed;}
+}
+void E2ECompareTrace(bool on) noexcept {
+ if(on)E2ETrace(false);
+ compare_enabled=on;
+}
+void E2ECompareFields(const char *role,unsigned stream,const state::StateScope &scope,
+    std::uint64_t revision,std::uint32_t frame,std::uint64_t tick,const std::array<std::uint64_t,4> &member,
+    std::span<const E09Field> fields) noexcept {
+ if(!compare_enabled)return;
+ try{
+  auto row=Base("e09-fields");auto &a=row.GetAllocator();
+  Put(row,"role",role,a);Put(row,"stream",Value(stream),a);Put(row,"revision",Decimal(revision,a),a);
+  Put(row,"frame",Value(frame),a);Put(row,"tick",Decimal(tick,a),a);
+  Value place(rapidjson::kArrayType),identity(rapidjson::kArrayType),values(rapidjson::kObjectType),native(rapidjson::kObjectType);
+  for(auto key:{scope.session,scope.run,scope.floor,scope.dimension,scope.room,scope.scene})place.PushBack(Decimal(key,a),a);
+  for(auto key:member)identity.PushBack(Decimal(key,a),a);
+  for(const auto &field:fields){
+   Put(values,field.name,Value(field.wire),a);
+   if(field.read)Put(native,field.name,Value(field.native),a);
+  }
+  Put(row,"scope",std::move(place),a);Put(row,"member",std::move(identity),a);
+  Put(row,"values",std::move(values),a);Put(row,"native",std::move(native),a);Add(std::move(row),true);
+ }catch(...){++missed;}
+}
+void E2ECompareSent(const state::HostStateMessage &message) noexcept {
+ if(!compare_enabled||!message.source||message.source->retained_members.empty())return;
+ try{
+  for(unsigned i=0;i<message.target.count;++i){
+   const auto &section=message.target.sections[i];
+   if(section.game_frame%3)continue;
+   for(const auto &kept:message.source->retained_members){
+    const auto &members=message.source->members;
+    const auto member=std::lower_bound(members.begin(),members.end(),kept.member,
+                                       [](const auto &entry,auto number){return entry.index<number;});
+    if(member==members.end()||member->index!=kept.member)continue;
+    auto row=Base("e09-retained");auto &a=row.GetAllocator();
+    Put(row,"stream",Value(unsigned(section.stream)),a);Put(row,"revision",Decimal(section.source_revision,a),a);
+    Put(row,"frame",Value(section.game_frame),a);Put(row,"reason",Value(unsigned(kept.first)),a);
+    Value id(rapidjson::kArrayType);const auto &key=member->identity;
+    for(auto value:std::array<std::uint64_t,4>{key.space,key.id,key.use,key.shape})id.PushBack(Decimal(value,a),a);
+    Put(row,"member",std::move(id),a);Add(std::move(row),true);
+   }
+  }
+ }catch(...){++missed;}
+}
+void E2ECompareRendered(unsigned stream,std::uint64_t revision,std::uint32_t frame) noexcept {
+ if(!compare_enabled)return;
+ try{
+  auto row=Base("e09-rendered");auto &a=row.GetAllocator();
+  Put(row,"stream",Value(stream),a);Put(row,"revision",Decimal(revision,a),a);Put(row,"frame",Value(frame),a);
+  Add(std::move(row),true);
+ }catch(...){++missed;}
 }
 void E2ETrace(bool on) noexcept {try{std::lock_guard lock(mutex);enabled=on;events.clear();event_bytes=0;missed=0;visual_requested=false;visual_until=0;visual_neutral_until=0;drop_next=false;}catch(...){++missed;}}
 void E2EObservationLoss() noexcept {drop_next=true;}

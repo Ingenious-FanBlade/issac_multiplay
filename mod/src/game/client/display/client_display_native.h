@@ -26,6 +26,9 @@ struct ClientDisplayScopeValue final {std::uint64_t session=0,run=0,floor=0,dime
 using ClientDisplayBranch=state::DisplayBranch;
 struct ClientDisplayMetadata final {
   ClientDisplayScopeValue scope;
+#ifdef ISAACCS_E2E
+  std::uint64_t source_revision=0;
+#endif
   std::uint32_t frame=0,time_base=0,spawn_seed=0;
   int grid=0,dimension=0;
   bool paused=false;ClientDisplayBranch branch=ClientDisplayBranch::Normal;float sfx=1;
@@ -47,6 +50,8 @@ struct ClientDisplayInjections final {
   bool backdrop_tutorial=false,camera_return_focus=false;
   std::uint8_t room_graphics_flags=0;
   std::array<float,2> camera_return_position{};
+  // 新建相机时供首次绘制使用的 Host 滚屏偏移。
+  std::array<float,2> camera_initial_scroll{};
   std::array<float,11> poop_fx_color{};
 };
 struct ClientDisplayMapValue final {
@@ -82,6 +87,7 @@ void ClientDisplayPublish(ClientDisplayNative *) noexcept;
 bool ClientDisplayReleaseRoots(ClientDisplayNative *) noexcept;
 void ClientDisplayAbortPending(ClientDisplayNative *) noexcept;
 bool ClientDisplayPreserveRoom(ClientDisplayNative *,const ClientNativeRoots &) noexcept;
+bool ClientDisplayRenderHistory(ClientDisplayNative *) noexcept;
 ClientNativeRoots ClientDisplayRoots(const ClientDisplayNative *) noexcept;
 bool ClientDisplayRetire(ClientDisplayNative *,bool preserve_target=false,bool preserve_audio=false) noexcept;
 bool ClientDisplayHasWorld(const ClientDisplayNative *) noexcept;
@@ -101,7 +107,14 @@ void ClientDisplayRecordMemoryIssue(const ClientDisplayMemoryRef &,const ClientD
     std::uint64_t route,std::uint64_t scene,std::uint32_t revision) noexcept;
 bool ClientDisplayGraphicsChanged(const ClientDisplayNative *) noexcept;
 bool ClientDisplayPaused(const ClientDisplayNative *,bool &) noexcept;
-bool ClientDisplayAdvance(ClientDisplayNative *,const ClientNativeRoots &,bool local_blocked) noexcept;
+// 相机阶段的显示覆盖层挂钩（预测插值设计 4.3）：enter 返回 true 时，相机调用返回（含异常）后必调 exit。
+struct ClientDisplayCameraHook final {
+  void *context=nullptr;
+  bool (*enter)(void *) noexcept=nullptr;
+  void (*exit)(void *) noexcept=nullptr;
+};
+bool ClientDisplayAdvance(ClientDisplayNative *,const ClientNativeRoots &,bool local_blocked,
+                          const ClientDisplayCameraHook &camera={}) noexcept;
 bool ClientDisplayRenderBegin(ClientDisplayNative *,const ClientNativeRoots &) noexcept;
 void ClientDisplayRenderEnd(ClientDisplayNative *,const ClientNativeRoots &) noexcept;
 bool ClientDisplayRouteRender(ClientDisplayNative *,bool begin) noexcept;
@@ -128,6 +141,7 @@ struct ClientDisplayEvent final {
   std::array<std::string_view,32> lines{};
   unsigned line_count=0;
   int index=0,dimension=0;
+  int animation=0,direction=-1;
   std::uint64_t final_room=0;
   bool completed=false;
 };

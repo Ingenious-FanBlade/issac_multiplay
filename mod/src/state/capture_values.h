@@ -101,8 +101,11 @@ public:
   // Begin固定根身份、流与真实块mask；Finish只封闭值事务，尚不代表正文或完整world合法。
   bool BeginRoot(CaptureSubject,std::uint16_t layout,BodyStream,std::uint32_t mask) noexcept;
   bool FinishRoot() noexcept;
-  std::span<std::byte> BeginFlatRoot(CaptureSubject,std::uint16_t layout,std::uint32_t max_bytes) noexcept;
+  std::span<std::byte> BeginFlatRoot(CaptureSubject,std::uint16_t layout,BodyStream,std::uint32_t max_bytes) noexcept;
   bool FinishFlatRoot(std::uint32_t bytes) noexcept;
+  void NoteFlatReference(std::uint64_t handle) noexcept {
+    if(handle>reference_limit_)reference_limit_=handle;
+  }
   void AbortRoot() noexcept;
   // 回卷同一对象的所有流，随后只提交身份标记。只由普通采集的对象根使用。
   struct RootCheckpoint {std::uint32_t records,cells,paths,bytes;std::uint64_t references;};

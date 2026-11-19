@@ -360,6 +360,33 @@ void PumpWorldCommands() noexcept {
     }
   } catch(...) { if(job) { Fail(*job,world::Reason::PrepareFailed,"capture_pump"); job->stopping=true; } }
 }
+bool WorldLiveStartReady(std::uint64_t session, const char *&error) noexcept {
+  error = CaptureError();
+  if (error || !session) return false;
+  if (!game::BinaryDisplayCaptureHooksInstalled()) {
+    error = "binary_display_capture_hooks_unavailable";
+    return false;
+  }
+  if (session == live_failed_session) {
+    error = *live_failed_stage ? live_failed_stage : "live_capture_prepare_failed";
+    return false;
+  }
+  if (!job || job->live_session != session) return false;
+  if (job->fault.load(std::memory_order_acquire) != world::Reason::None) {
+    const auto *stage = job->stage.load(std::memory_order_acquire);
+    error = *stage ? stage : "live_capture_prepare_failed";
+    return false;
+  }
+  if (!job->attached || job->stopping) return false;
+  const auto &capture = *job->recording;
+  if (!capture.live_consumer && std::strcmp(capture.live_request_reason, "stream_resource_hooks_unavailable") == 0) {
+    error = capture.live_request_reason;
+    return false;
+  }
+  return capture.live_consumer && capture.observation.Active() &&
+      capture.binary_entities && capture.binary_entities->Active() &&
+      capture.collector->Recording() && capture.collector->CurrentOuterToken() != 0;
+}
 const std::string &WorldCommandStatus() noexcept { return snapshot; }
 std::string ObservationCommand(const std::string &action) {
   if(!IsMain()) return "ok=0\nerror=wrong_thread\n";

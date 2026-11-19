@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <bcrypt.h>
 #include "net/live.h"
+#include "core/lobby.h"
 #include "replica/stream_e2e.h"
 #include "net/queue.h"
 #include "replica/stream_clock_e2e.h"
@@ -55,10 +56,15 @@ std::uint64_t Next(std::uint64_t &n) {
     Fail("live_sequence_exhausted");
   return ++n;
 }
-r::Json Capabilities(const s::RuntimeConfig &config,bool binary_host=false,bool binary_client=false) {
+r::Json Capabilities(const s::RuntimeConfig &config,bool binary_host=false,bool binary_client=false,bool lobby=false) {
   auto caps = s::Capabilities();
   // 真实DLL声明已接线的具名owner能力；纯模型Capabilities仍不冒充原生Client。
   auto &a=caps.GetAllocator();
+  if(!lobby) {
+    auto &supported=caps["supported"];
+    const auto it=std::find_if(supported.Begin(),supported.End(),[](const auto &item){return item==s::kLobbyCapability;});
+    if(it!=supported.End())supported.Erase(it);
+  }
   const auto binary=std::string("binary-state-v1-layout-")+std::to_string(state::LayoutVersion());
   // Host要求现行整数布局；Client完整接收／安装接通之前不声明此能力。
   if(binary_host)caps["required"].PushBack(r::Value(binary.c_str(),a),a);
@@ -348,6 +354,7 @@ struct HostPeer::Binary {
           const auto sent_us=s::MetricMicros();
           if(!publisher.Sent(message,now,sent_us))Fail("binary_sent_ledger_budget");
 #ifdef ISAACCS_E2E
+          s::E2ECompareSent(*message);
           // 显式诊断时确认真实单流发送及其目录；默认关闭，不在性能窗口逐帧记录。
           const auto &section=message->target.sections[0];
           s::E2EStreamProgress("binary_dynamic_sent",{route.route,unsigned(section.stream),section.base_version,
@@ -377,7 +384,8 @@ HostPeer::BinaryProgress HostPeer::StateProgress() const noexcept {
   result.body_dependency_blocks=binary_->publisher.BodyDependencyBlocks();
   result.world_window=binary_->publisher.WorldProgress();return result;
 }
-HostPeer::HostPeer(std::uint64_t session, unsigned ordinal, s::RuntimeConfig config) : ordinal_(ordinal),config_(config) {
+HostPeer::HostPeer(std::uint64_t session, unsigned ordinal, s::RuntimeConfig config, bool lobby)
+    : ordinal_(ordinal), config_(config), lobby_(lobby) {
   if(*config.Validate())Fail(config.Validate());
   operations_.Configure(config_);
   scope_ = {session, Random(), 1, 1, 1, 1, 1};
@@ -422,7 +430,8 @@ bool HostPeer::Receive(std::span<const std::uint8_t> bytes, std::uint64_t now, R
       last_receive_ = now;
       return false;
     }
-    auto agreed = s::Negotiate(Capabilities(config_,true), At(m.body, "capabilities"));
+    auto agreed = s::Negotiate(Capabilities(config_,true,false,lobby_), At(m.body, "capabilities"));
+    if(lobby_&&!Supports(agreed,s::kLobbyCapability))Fail("live_lobby_required");
     assembler_.Configure(Agreed(agreed));
     route_.negotiated = true;
     route_.zstd = Zstd(agreed);
@@ -448,13 +457,15 @@ bool HostPeer::Receive(std::span<const std::uint8_t> bytes, std::uint64_t now, R
     Fail("live_stale_connection");
   last_receive_ = now;
   if(binary_->episode.Status(now)==state::StateEpisodeStatus::Active&&!binary_->episode.Charge(state::MeasureStateDatagram(bytes.size()),now))Fail("binary_prepare_receive_budget");
-  if (m.kind == s::Kind::Ready) {
+  if (m.kind == s::Kind::Ready || m.kind == s::Kind::LobbySelection) {
+    if (lobby_ != (m.kind == s::Kind::LobbySelection)) Fail("live_lobby_mode");
     if (N(m.body, "client_nonce") != nonce_ || N(m.body, "server_nonce") != server_nonce_)
       Fail("live_ready_identity");
     if (m.sequence > client_control_) {
       client_control_ = m.sequence;
       echo_client_ms_ = N(m.body, "sent_ms");
       echo_server_ms_ = now;
+      if(lobby_)lobby_selection_=unsigned(N(m.body,"selection"));
       established_ = true;
     }
     return false;
@@ -584,6 +595,7 @@ Packets HostPeer::Progress(const protocol::Ack &p) {
   const bool changed = p.authority_paused!=sent_.authority_paused || p.generation != sent_.generation || enabled != sent_.input_enabled ||
                        p.session_state != sent_.session_state || p.roster_mask != sent_.roster_mask;
   const bool tick = p.server_tick != sent_.server_tick;
+  const bool lobby_changed = p.lobby_roster != sent_.lobby_roster;
   sent_ = p;
   sent_.input_enabled=enabled;
   if (changed || !eligibility_revision_)
@@ -593,8 +605,13 @@ Packets HostPeer::Progress(const protocol::Ack &p) {
     packets.insert(packets.end(), std::make_move_iterator(more.begin()),
                    std::make_move_iterator(more.end()));
   };
-  if (!roster_at_ || changed || now - roster_at_ >= (1000+config_.roster_hz-1)/config_.roster_hz) {
+  if (!roster_at_ || changed || lobby_changed || now - roster_at_ >= (1000+config_.roster_hz-1)/config_.roster_hz) {
     append(Pack(Roster(sent_, ordinal_, Next(roster_), route_, echo_client_ms_, echo_server_ms_)));
+    if (lobby_ && p.lobby_roster) {
+      auto lobby = Message(s::Kind::LobbyRoster, roster_);
+      N(lobby.body, "roster", p.lobby_roster, lobby.body.GetAllocator());
+      append(Pack(lobby));
+    }
     roster_at_ = now;
   }
   if (p.server_tick && p.generation &&
@@ -710,6 +727,11 @@ struct Client::State {
   r::Limits effective_limits{},effective_fast_limits{};
   std::uint64_t metrics_at=0;
   bool accept_world=true;
+  bool lobby=false;
+  std::atomic<unsigned> lobby_selection{0};
+  unsigned sent_lobby_selection=0;
+  std::uint64_t lobby_sequence=0;
+  std::atomic<std::uint64_t> lobby_roster{0};
   SpscQueue<Intent, 256> intents;
   OwnedQueue<Event, 32> events, world_controls;
   OwnedQueue<Event, 4> urgent_controls;
@@ -875,11 +897,15 @@ struct Client::State {
     Flush();
   }
   void Ready() {
-    auto m = Make(s::Kind::Ready, Next(control), route.connection, route.epoch);
+    auto m = Make(lobby?s::Kind::LobbySelection:s::Kind::Ready, Next(control), route.connection, route.epoch);
     auto &a = m.body.GetAllocator();
     N(m.body, "client_nonce", nonce, a);
     N(m.body, "server_nonce", server_nonce, a);
     N(m.body, "sent_ms", GetTickCount64(), a);
+    if(lobby) {
+      sent_lobby_selection=lobby_selection.load(std::memory_order_acquire);
+      N(m.body,"selection",sent_lobby_selection,a);
+    }
     SendMessage(m);
   }
   void Receive(s::Message m) {
@@ -893,7 +919,8 @@ struct Client::State {
       if (welcomed &&
           (route.connection != m.connection || ordinal != participant || server_nonce != server))
         Fail("live_welcome_conflict");
-      auto agreed = s::Negotiate(Capabilities(config,false,binary_preparation&&binary_preparation->Available()), m.body["capabilities"]);
+      auto agreed = s::Negotiate(Capabilities(config,false,binary_preparation&&binary_preparation->Available(),lobby), m.body["capabilities"]);
+      if(lobby&&!Supports(agreed,s::kLobbyCapability))Fail("live_lobby_required");
       assembler.Configure(Agreed(agreed));
       if (!welcomed) {
         scope = {N(m.body, "session"), m.connection, 1, 1, 1, 1, 1};
@@ -928,6 +955,16 @@ struct Client::State {
         m.kind != s::Kind::Stop && m.kind != s::Kind::Disconnect && m.kind != s::Kind::Cancel)
       return;
     last_receive = now;
+    if(m.kind==s::Kind::LobbyRoster) {
+      if(!lobby)Fail("live_lobby_mode");
+      const auto value=N(m.body,"roster");
+      if(!(core::LobbyRoster::Unpack(value).present&(1u<<ordinal)))Fail("live_lobby_roster_identity");
+      if(m.sequence>lobby_sequence) {
+        lobby_sequence=m.sequence;
+        lobby_roster.store(value,std::memory_order_release);
+      }
+      return;
+    }
     if (m.kind == s::Kind::OperationAck) {
       operations.Acknowledge(m, now);
       return;
@@ -1118,7 +1155,7 @@ struct Client::State {
     try {
       auto hello = Make(s::Kind::Hello, 1, 0, 0);
       auto &a = hello.body.GetAllocator();
-      Object(hello.body, "capabilities", Capabilities(config,false,binary_preparation&&binary_preparation->Available()), a);
+      Object(hello.body, "capabilities", Capabilities(config,false,binary_preparation&&binary_preparation->Available(),lobby), a);
       N(hello.body, "nonce", nonce, a);
       r::Put(hello.body, "role", std::string("Client"), a);
       last_receive = GetTickCount64();
@@ -1158,7 +1195,8 @@ struct Client::State {
             break;
         } else if (now - last_receive >= timeout)
           Fail("live_peer_timeout");
-        if (now - last_send >= config.heartbeat_ms && !ending) {
+        const bool selection_changed=lobby&&welcomed&&sent_lobby_selection!=lobby_selection.load(std::memory_order_acquire);
+        if (!ending && (selection_changed || now - last_send >= config.heartbeat_ms)) {
           if (welcomed)
             Ready();
           else
@@ -1280,13 +1318,14 @@ Client::~Client() {
 }
 const char *Client::Start(const std::string &ipv4, std::uint16_t port,
                           std::uint32_t timeout_ms,s::RuntimeConfig config,std::shared_ptr<const state::ClientStatePreparation> binary,
-                          std::shared_ptr<state::ClientStateMemory> binary_memory) noexcept {
+                          std::shared_ptr<state::ClientStateMemory> binary_memory,bool lobby) noexcept {
   if (*config.Validate())return config.Validate();
   if(config.peer_timeout_ms!=timeout_ms)return "live_timeout_configuration_conflict";
   if (state_ || !port || timeout_ms < 500 || timeout_ms > 60000)
     return "live_configuration";
   try {
     auto state = std::make_shared<State>();
+    state->lobby=lobby;
     state->binary_preparation=std::move(binary);
     state->binary_memory=binary_memory?std::move(binary_memory):
       state->binary_preparation?state::ClientStateMemory::Create():nullptr;
@@ -1324,6 +1363,14 @@ const char *Client::Start(const std::string &ipv4, std::uint16_t port,
   }
 }
 r::Limits Client::EffectiveLimits() const noexcept {if(!state_)return {};std::lock_guard lock(state_->transfer_mutex);return state_->effective_limits;}
+bool Client::SetLobbySelection(unsigned selection) noexcept {
+  if(!state_||!state_->lobby||!core::ValidLobbySelection(selection)||Finished()||state_->stop.load())return false;
+  state_->lobby_selection.store(selection,std::memory_order_release);
+  return true;
+}
+std::uint64_t Client::LobbyRoster() const noexcept {
+  return state_?state_->lobby_roster.load(std::memory_order_acquire):0;
+}
 r::Limits Client::EffectiveFastLimits() const noexcept {if(!state_)return {};std::lock_guard lock(state_->transfer_mutex);return state_->effective_fast_limits;}
 s::Metrics Client::TransmitMetrics() const noexcept {return state_?state_->transmit_mailbox.Read():s::Metrics{};}
 s::Metrics Client::Metrics() const noexcept {return state_?state_->metrics_mailbox.Read():s::Metrics{};}

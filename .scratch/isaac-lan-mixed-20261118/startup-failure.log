@@ -1,0 +1,18 @@
+isaac-lan v0.7.2 / Repentance+ 1.9.7.17.J460
+Attempt 1: Win32 automatic isolated launcher
+Attempt 2: WSL interop automatic isolated launcher
+Attempt 3: desktop Explorer launch; ControllerHotplug=0
+In each attempt Host exited before intro with 0xC0000005. No session started.
+Standalone Win32 DirectInput8Create: ANSI and Unicode both returned 0x80004005 before and after CoInitializeEx (0x00000000).
+Attempt 1
+[2026-11-18 19:18:51.812+08:00] [INFO] [pid=46368] bootstrap=PASS version=1.9.7.17.J460 isolation=profile_redirect
+[2026-11-18 19:18:53.057+08:00] [ERROR] [pid=46368] native_exception=c0000005 eip=0068db66 ecx=00000000 edx=00970000 scope=0 image=00020000 rva=0066db66 access=0 address=00000000
+[ERROR] - Warning: DirectInput8Create returned 0x80004005
+Attempt 2
+[2026-11-18 19:22:25.359+08:00] [INFO] [pid=29584] bootstrap=PASS version=1.9.7.17.J460 isolation=profile_redirect
+[2026-11-18 19:22:26.400+08:00] [ERROR] [pid=29584] native_exception=c0000005 eip=00f8db66 ecx=00000000 edx=00870000 scope=0 image=00920000 rva=0066db66 access=0 address=00000000
+[ERROR] - Warning: DirectInput8Create returned 0x80004005
+Attempt 3
+[2026-11-18 19:24:16.955+08:00] [INFO] [pid=21376] bootstrap=PASS version=1.9.7.17.J460 isolation=profile_redirect
+[2026-11-18 19:24:18.009+08:00] [ERROR] [pid=21376] native_exception=c0000005 eip=00fcdb66 ecx=00000000 edx=012b0000 scope=0 image=00960000 rva=0066db66 access=0 address=00000000
+[ERROR] - Warning: DirectInput8Create returned 0x80004005

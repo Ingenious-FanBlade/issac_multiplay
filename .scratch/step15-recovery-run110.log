@@ -1,0 +1,588 @@
+{"stream.source.ordinary": "6601", "stream.source.gaps": "506", "stream.source.member_indices.high_water": "184", "stream.source.member_indices.reused": "13532", "stream.source.capture_detail": "", "stream.source.reason": "", "client_state": "AwaitingWorld", "client.scene_state": "3", "client.applied_revision": "6388", "client.error": ""}
+{"stream.source.ordinary": "6902", "stream.source.gaps": "506", "stream.source.member_indices.high_water": "184", "stream.source.member_indices.reused": "14144", "stream.source.capture_detail": "", "stream.source.reason": "", "client_state": "AwaitingWorld", "client.scene_state": "3", "client.applied_revision": "6682", "client.error": ""}
+{"stream.source.ordinary": "7201", "stream.source.gaps": "506", "stream.source.member_indices.high_water": "184", "stream.source.member_indices.reused": "14752", "stream.source.capture_detail": "", "stream.source.reason": "", "client_state": "AwaitingWorld", "client.scene_state": "3", "client.applied_revision": "6976", "client.error": ""}
+{
+  "seconds": 30.766000300005544,
+  "rates": {
+    "host.completed_tick": 60.03380296397082,
+    "host.stream.source.ordinary": 30.03315318825611,
+    "host.stream.source.bodies": 120.13261275302445,
+    "host.stream.wire_bytes": 161377.59057354965,
+    "client.completed_tick": 0.0,
+    "client.stream.binary.world.publish.n": 28.96054057438982,
+    "client.stream.binary.body.publish.n": 30.553207788918556
+  },
+  "timings": {
+    "host.stream.capture_worker.duration.encode.": {
+      "n": 127531,
+      "mean_us": 43.07969826944037
+    },
+    "host.stream.capture_worker.duration.capture_index.": {
+      "n": 127531,
+      "mean_us": 28.052175549474246
+    },
+    "host.stream.capture_worker.duration.capture_queue_age.": {
+      "n": 2709,
+      "mean_us": 3299.0550018456997
+    },
+    "host.stream.shared_encoder.duration.encode.": {
+      "n": 2728,
+      "mean_us": 5.332844574780059
+    },
+    "host.stream.shared_encoder.duration.compress.": {
+      "n": 2728,
+      "mean_us": 72.18365102639297
+    },
+    "host.stream.shared_encoder.duration.queue.": {
+      "n": 2728,
+      "mean_us": 9.641129032258064
+    },
+    "host.stream.main.duration.main_capture.": {
+      "n": 1849,
+      "mean_us": 2163.5749053542454,
+      "p50_upper_us": 2047,
+      "p95_upper_us": 4095,
+      "p99_upper_us": 8191,
+      "over_2000_us": 924,
+      "over_4000_us": 42
+    },
+    "host.stream.main.duration.frame_interval.": {
+      "n": 1848,
+      "mean_us": 16667.036255411254,
+      "p50_upper_us": 32767,
+      "p95_upper_us": 32767,
+      "p99_upper_us": 32767,
+      "over_2000_us": 1848,
+      "over_4000_us": 1848
+    },
+    "host.stream.main.duration.source_native.": {
+      "n": 1848,
+      "mean_us": 335.2029220779221,
+      "p50_upper_us": 511,
+      "p95_upper_us": 1023,
+      "p99_upper_us": 1023,
+      "over_2000_us": 0,
+      "over_4000_us": 0
+    },
+    "host.stream.main.duration.scene_prepare.": {
+      "n": 924,
+      "mean_us": 140.28571428571428,
+      "p50_upper_us": 255,
+      "p95_upper_us": 255,
+      "p99_upper_us": 255,
+      "over_2000_us": 0,
+      "over_4000_us": 0
+    },
+    "host.stream.main.duration.topology_resources.": {
+      "n": 1847,
+      "mean_us": 126.0817541959935,
+      "p50_upper_us": 255,
+      "p95_upper_us": 255,
+      "p99_upper_us": 255,
+      "over_2000_us": 0,
+      "over_4000_us": 0
+    },
+    "host.stream.main.duration.entity_values.": {
+      "n": 923,
+      "mean_us": 1761.827735644637,
+      "p50_upper_us": 2047,
+      "p95_upper_us": 2047,
+      "p99_upper_us": 4095,
+      "over_2000_us": 52,
+      "over_4000_us": 0
+    },
+    "host.stream.main.duration.scene_values.": {
+      "n": 923,
+      "mean_us": 503.7963163596966,
+      "p50_upper_us": 511,
+      "p95_upper_us": 1023,
+      "p99_upper_us": 1023,
+      "over_2000_us": 0,
+      "over_4000_us": 0
+    },
+    "host.stream.main.duration.fast_body.": {
+      "n": 1848,
+      "mean_us": 225.74512987012986,
+      "p50_upper_us": 127,
+      "p95_upper_us": 511,
+      "p99_upper_us": 1023,
+      "over_2000_us": 0,
+      "over_4000_us": 0
+    },
+    "host.stream.main.duration.source_review.": {
+      "n": 1849,
+      "mean_us": 77.92212006489994,
+      "p50_upper_us": 63,
+      "p95_upper_us": 255,
+      "p99_upper_us": 255,
+      "over_2000_us": 0,
+      "over_4000_us": 0
+    },
+    "host.stream.main.duration.source_commit.": {
+      "n": 1849,
+      "mean_us": 31.539210383991346,
+      "p50_upper_us": 63,
+      "p95_upper_us": 63,
+      "p99_upper_us": 127,
+      "over_2000_us": 0,
+      "over_4000_us": 0
+    },
+    "host.stream.main.duration.ordinary_outer.": {
+      "n": 925,
+      "mean_us": 3513.6962162162163,
+      "p50_upper_us": 4095,
+      "p95_upper_us": 4095,
+      "p99_upper_us": 8191,
+      "over_2000_us": 925,
+      "over_4000_us": 43
+    },
+    "host.stream.main.duration.body_outer.": {
+      "n": 924,
+      "mean_us": 814.9729437229437,
+      "p50_upper_us": 1023,
+      "p95_upper_us": 2047,
+      "p99_upper_us": 2047,
+      "over_2000_us": 0,
+      "over_4000_us": 0
+    },
+    "host.stream.main.duration.topology_common.": {
+      "n": 1848,
+      "mean_us": 256.5416666666667,
+      "p50_upper_us": 255,
+      "p95_upper_us": 511,
+      "p99_upper_us": 511,
+      "over_2000_us": 0,
+      "over_4000_us": 0
+    },
+    "host.stream.main.duration.topology_groups.": {
+      "n": 1848,
+      "mean_us": 60.972943722943725,
+      "p50_upper_us": 63,
+      "p95_upper_us": 127,
+      "p99_upper_us": 127,
+      "over_2000_us": 0,
+      "over_4000_us": 0
+    },
+    "host.stream.main.duration.topology_lease.": {
+      "n": 1848,
+      "mean_us": 29.586038961038962,
+      "p50_upper_us": 31,
+      "p95_upper_us": 63,
+      "p99_upper_us": 63,
+      "over_2000_us": 0,
+      "over_4000_us": 0
+    },
+    "host.stream.main.duration.anchor_install.": {
+      "n": 1847,
+      "mean_us": 4.637791012452626,
+      "p50_upper_us": 7,
+      "p95_upper_us": 7,
+      "p99_upper_us": 7,
+      "over_2000_us": 0,
+      "over_4000_us": 0
+    },
+    "host.stream.main.duration.field_execution.": {
+      "n": 1847,
+      "mean_us": 1279.8630211153222,
+      "p50_upper_us": 2047,
+      "p95_upper_us": 4095,
+      "p99_upper_us": 4095,
+      "over_2000_us": 924,
+      "over_4000_us": 0
+    },
+    "host.stream.main.duration.joint_prepare.": {
+      "n": 924,
+      "mean_us": 98.41450216450217,
+      "p50_upper_us": 127,
+      "p95_upper_us": 255,
+      "p99_upper_us": 255,
+      "over_2000_us": 0,
+      "over_4000_us": 0
+    },
+    "host.stream.main.duration.body_clone.": {
+      "n": 923,
+      "mean_us": 13.327193932827736,
+      "p50_upper_us": 15,
+      "p95_upper_us": 31,
+      "p99_upper_us": 31,
+      "over_2000_us": 0,
+      "over_4000_us": 0
+    },
+    "host.stream.main.duration.ordinary_published_outer.": {
+      "n": 923,
+      "mean_us": 3514.300108342362,
+      "p50_upper_us": 4095,
+      "p95_upper_us": 4095,
+      "p99_upper_us": 8191,
+      "over_2000_us": 923,
+      "over_4000_us": 43
+    },
+    "host.stream.main.duration.body_published_outer.": {
+      "n": 923,
+      "mean_us": 815.0650054171181,
+      "p50_upper_us": 1023,
+      "p95_upper_us": 2047,
+      "p99_upper_us": 2047,
+      "over_2000_us": 0,
+      "over_4000_us": 0
+    },
+    "client.stream.receive.duration.decode.": {
+      "n": 6841,
+      "mean_us": 93.46703698289724
+    },
+    "client.stream.receive.duration.network.": {
+      "n": 16798,
+      "mean_us": 1829.2458626026907
+    },
+    "client.stream.binary.world.receive.": {
+      "n": 893,
+      "mean_us": 34.629339305711085
+    },
+    "client.stream.binary.world.decode_slice.": {
+      "n": 1090,
+      "mean_us": 1611.4440366972476
+    },
+    "client.stream.binary.world.validation_slice.": {
+      "n": 1256,
+      "mean_us": 85.64649681528662
+    },
+    "client.stream.binary.world.plan_slice.": {
+      "n": 3949,
+      "mean_us": 1756.3438845277285
+    },
+    "client.stream.binary.world.describe_slice.": {
+      "n": 924,
+      "mean_us": 84.81601731601732
+    },
+    "client.stream.binary.world.admit.": {
+      "n": 891,
+      "mean_us": 0.0
+    },
+    "client.stream.binary.world.main_prepare.": {
+      "n": 1782,
+      "mean_us": 1866.8333333333333
+    },
+    "client.stream.binary.world.prepared.": {
+      "n": 891,
+      "mean_us": 0.0
+    },
+    "client.stream.binary.world.install.": {
+      "n": 891,
+      "mean_us": 2566.193041526375,
+      "over_2000_us": 891,
+      "over_4000_us": 3
+    },
+    "client.stream.binary.world.readback.": {
+      "n": 5474,
+      "mean_us": 57.34800876872488
+    },
+    "client.stream.binary.world.publish.": {
+      "n": 891,
+      "mean_us": 0.0
+    },
+    "client.stream.binary.world.feedback.": {
+      "n": 891,
+      "mean_us": 1240.020202020202
+    },
+    "client.stream.binary.world.accept.": {
+      "n": 891,
+      "mean_us": 0.0
+    },
+    "client.stream.binary.world.ack.": {
+      "n": 891,
+      "mean_us": 0.0
+    },
+    "client.stream.binary.world.retire.": {
+      "n": 891,
+      "mean_us": 629.4365881032547
+    },
+    "client.stream.binary.world.end_to_end.": {
+      "n": 891,
+      "mean_us": 20705.21212121212,
+      "over_2000_us": 891,
+      "over_4000_us": 891
+    },
+    "client.stream.binary.world.manager.": {
+      "n": 1846,
+      "mean_us": 3445.4821235102927,
+      "over_2000_us": 896,
+      "over_4000_us": 891
+    },
+    "client.stream.binary.world.main_objects.": {
+      "n": 891,
+      "mean_us": 111.81257014590348
+    },
+    "client.stream.binary.world.main_fields.": {
+      "n": 891,
+      "mean_us": 64.2401795735129
+    },
+    "client.stream.binary.world.atomic_describe.": {
+      "n": 891,
+      "mean_us": 2419.547699214366
+    },
+    "client.stream.binary.world.seal.": {
+      "n": 891,
+      "mean_us": 596.8799102132435
+    },
+    "client.stream.binary.world.native_write.": {
+      "n": 891,
+      "mean_us": 1527.1279461279462
+    },
+    "client.stream.binary.world.native_publish.": {
+      "n": 891,
+      "mean_us": 315.9337822671156
+    },
+    "client.stream.binary.world.main_queue.": {
+      "n": 891,
+      "mean_us": 4155.837261503928
+    },
+    "client.stream.binary.world.commit_queue.": {
+      "n": 891,
+      "mean_us": 2.537598204264871
+    },
+    "client.stream.binary.world.atomic_inputs.": {
+      "n": 891,
+      "mean_us": 89.16498316498317
+    },
+    "client.stream.binary.world.atomic_index.": {
+      "n": 891,
+      "mean_us": 64.2682379349046
+    },
+    "client.stream.binary.world.atomic_fields.": {
+      "n": 891,
+      "mean_us": 278.1178451178451
+    },
+    "client.stream.binary.world.atomic_leaves.": {
+      "n": 891,
+      "mean_us": 1163.260381593715
+    },
+    "client.stream.binary.world.atomic_order.": {
+      "n": 891,
+      "mean_us": 587.3198653198654
+    },
+    "client.stream.binary.world.atomic_ranges.": {
+      "n": 891,
+      "mean_us": 235.57575757575756
+    },
+    "client.stream.binary.world.seal_attachments.": {
+      "n": 891,
+      "mean_us": 16.677890011223344
+    },
+    "client.stream.binary.world.seal_bindings.": {
+      "n": 891,
+      "mean_us": 508.17283950617286
+    },
+    "client.stream.binary.world.seal_roots.": {
+      "n": 891,
+      "mean_us": 60.49719416386083
+    },
+    "client.stream.binary.world.seal_hold.": {
+      "n": 891,
+      "mean_us": 10.490460157126824
+    },
+    "client.stream.binary.world.native_initialize.": {
+      "n": 891,
+      "mean_us": 51.47699214365881
+    },
+    "client.stream.binary.world.native_owners.": {
+      "n": 891,
+      "mean_us": 0.44556677890011226
+    },
+    "client.stream.binary.world.native_resolve.": {
+      "n": 891,
+      "mean_us": 308.1705948372615
+    },
+    "client.stream.binary.world.native_finish.": {
+      "n": 891,
+      "mean_us": 79.67115600448933
+    },
+    "client.stream.binary.body.receive.": {
+      "n": 942,
+      "mean_us": 33.382165605095544
+    },
+    "client.stream.binary.body.decode_slice.": {
+      "n": 1139,
+      "mean_us": 1544.5513608428446
+    },
+    "client.stream.binary.body.validation_slice.": {
+      "n": 1304,
+      "mean_us": 83.70168711656441
+    },
+    "client.stream.binary.body.plan_slice.": {
+      "n": 3998,
+      "mean_us": 1754.459979989995
+    },
+    "client.stream.binary.body.describe_slice.": {
+      "n": 973,
+      "mean_us": 80.62178828365879
+    },
+    "client.stream.binary.body.admit.": {
+      "n": 940,
+      "mean_us": 0.0
+    },
+    "client.stream.binary.body.main_prepare.": {
+      "n": 1880,
+      "mean_us": 1786.918085106383
+    },
+    "client.stream.binary.body.prepared.": {
+      "n": 940,
+      "mean_us": 0.0
+    },
+    "client.stream.binary.body.install.": {
+      "n": 940,
+      "mean_us": 2456.245744680851,
+      "over_2000_us": 891,
+      "over_4000_us": 3
+    },
+    "client.stream.binary.body.readback.": {
+      "n": 5523,
+      "mean_us": 56.13108817671555
+    },
+    "client.stream.binary.body.publish.": {
+      "n": 940,
+      "mean_us": 0.0
+    },
+    "client.stream.binary.body.feedback.": {
+      "n": 940,
+      "mean_us": 1220.536170212766
+    },
+    "client.stream.binary.body.accept.": {
+      "n": 940,
+      "mean_us": 0.0
+    },
+    "client.stream.binary.body.ack.": {
+      "n": 940,
+      "mean_us": 0.0
+    },
+    "client.stream.binary.body.retire.": {
+      "n": 940,
+      "mean_us": 603.3127659574468
+    },
+    "client.stream.binary.body.end_to_end.": {
+      "n": 940,
+      "mean_us": 20070.253191489363,
+      "over_2000_us": 940,
+      "over_4000_us": 940
+    },
+    "client.stream.binary.body.manager.": {
+      "n": 1846,
+      "mean_us": 3445.478873239437,
+      "over_2000_us": 896,
+      "over_4000_us": 891
+    },
+    "client.stream.binary.body.main_objects.": {
+      "n": 940,
+      "mean_us": 106.14574468085107
+    },
+    "client.stream.binary.body.main_fields.": {
+      "n": 940,
+      "mean_us": 61.52340425531915
+    },
+    "client.stream.binary.body.atomic_describe.": {
+      "n": 940,
+      "mean_us": 2316.364893617021
+    },
+    "client.stream.binary.body.seal.": {
+      "n": 940,
+      "mean_us": 570.7861702127659
+    },
+    "client.stream.binary.body.native_write.": {
+      "n": 940,
+      "mean_us": 1462.2648936170212
+    },
+    "client.stream.binary.body.native_publish.": {
+      "n": 940,
+      "mean_us": 303.23191489361704
+    },
+    "client.stream.binary.body.main_queue.": {
+      "n": 940,
+      "mean_us": 4234.875531914894
+    },
+    "client.stream.binary.body.commit_queue.": {
+      "n": 940,
+      "mean_us": 2.5095744680851064
+    },
+    "client.stream.binary.body.atomic_inputs.": {
+      "n": 940,
+      "mean_us": 85.58723404255319
+    },
+    "client.stream.binary.body.atomic_index.": {
+      "n": 940,
+      "mean_us": 62.61808510638298
+    },
+    "client.stream.binary.body.atomic_fields.": {
+      "n": 940,
+      "mean_us": 266.6010638297872
+    },
+    "client.stream.binary.body.atomic_leaves.": {
+      "n": 940,
+      "mean_us": 1112.1702127659576
+    },
+    "client.stream.binary.body.atomic_order.": {
+      "n": 940,
+      "mean_us": 561.7
+    },
+    "client.stream.binary.body.atomic_ranges.": {
+      "n": 940,
+      "mean_us": 225.88510638297873
+    },
+    "client.stream.binary.body.seal_attachments.": {
+      "n": 940,
+      "mean_us": 15.941489361702128
+    },
+    "client.stream.binary.body.seal_bindings.": {
+      "n": 940,
+      "mean_us": 485.41063829787237
+    },
+    "client.stream.binary.body.seal_roots.": {
+      "n": 940,
+      "mean_us": 57.65106382978723
+    },
+    "client.stream.binary.body.seal_hold.": {
+      "n": 940,
+      "mean_us": 10.764893617021277
+    },
+    "client.stream.binary.body.native_initialize.": {
+      "n": 940,
+      "mean_us": 48.81595744680851
+    },
+    "client.stream.binary.body.native_owners.": {
+      "n": 940,
+      "mean_us": 0.4319148936170213
+    },
+    "client.stream.binary.body.native_resolve.": {
+      "n": 940,
+      "mean_us": 296.5234042553191
+    },
+    "client.stream.binary.body.native_finish.": {
+      "n": 940,
+      "mean_us": 76.31276595744681
+    }
+  },
+  "final": {
+    "host": {
+      "state": "Active",
+      "last_error": "",
+      "client_state": "Off",
+      "stream.source.gaps": "506",
+      "stream.source.member_indices.high_water": "184",
+      "stream.source.member_indices.reused": "14758",
+      "stream.source.capture_detail": "",
+      "stream.source.reason": "",
+      "stream.first_failure": "",
+      "stream.pool.0": "74735837/75324274/536870912",
+      "stream.pool.1": "31781/124310/134217728",
+      "stream.pool.2": "7075646/10221374/134217728"
+    },
+    "client": {
+      "state": "AwaitingWorld",
+      "last_error": "",
+      "client_state": "AwaitingWorld",
+      "client.scene_state": "3",
+      "client.error": "",
+      "stream.pool.0": "25373084/34080760/536870912",
+      "stream.pool.1": "303498/469048/134217728",
+      "stream.pool.2": "63696/2208404/134217728"
+    }
+  }
+}

@@ -38,7 +38,7 @@ bool EntitySource::Impl::RockAnimation(CaptureLink &out,CaptureDiagnostic &d) no
     return FailCapture(d,CaptureFailure::ResourcePending,{facts.subject});
   return AnimationResource(facts.address+0x40,selected,out,d);
 }
-bool EntitySource::Impl::GridLeaf(const CaptureFieldAccess &a,CaptureValueWriter &writer,CaptureDiagnostic &d) noexcept {
+bool EntitySource::Impl::GridLeaf(const CaptureFieldAccess &a,EntityLeafSink writer,CaptureDiagnostic &d) noexcept {
   std::uint32_t value=0;const auto recipe=Recipe(a.field);
   if(recipe==EntityRead::RockAnimation){CaptureLink link;if(!RockAnimation(link,d))return false;return writer.PutLinks(a.location,true,a.format.resource_table,std::span(&link,1));}
   if(recipe==EntityRead::GridWater){

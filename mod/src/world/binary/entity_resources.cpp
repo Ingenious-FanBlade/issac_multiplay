@@ -95,13 +95,31 @@ bool EntitySource::Impl::FileResource(std::uint32_t address,bool selected,Captur
     *where={address,facts.address,facts.subject.local,facts.subject.use,facts.subject.space};}
   if(selected&&(!(player_sprite?Tracked(std::uint64_t(address)+0x109,loaded,d,{address,NativeEvidenceUse::Loaded}):
       Value(std::uint64_t(address)+0x109,loaded,d))||loaded>1))return FailCapture(d,CaptureFailure::InvalidValue,{facts.subject});
-  if(!loaded)return true;
-  return ResourceOnce({selected?NativeResourceSource::SelectedFile:NativeResourceSource::File,address},out,[&]{
-  std::array<std::byte,4096> bytes{};std::uint32_t size=0;
-  if(!StringAt(address,bytes,size,d,player_sprite,{address,NativeEvidenceUse::FileName}))return false;
-  if(!size)return !selected || FailCapture(d,CaptureFailure::ResourcePending,{facts.subject});
-  const auto path=Vfs(std::span(bytes).first(size),0);if(path.empty())return FailCapture(d,CaptureFailure::ResourcePending,{facts.subject});
-  NativeResource value;value.table=2;value.kind=0;return Intern(value,path,{},out,d);},!player_sprite);
+  auto *memo=selected?SpriteMemo(address,loaded!=0):nullptr;
+  if(!loaded){
+    if(memo&&memo->file_ready){memo->file_ready=false;memo->stamp=++resource_cache.stamp;memo->animations={};}
+    return true;
+  }
+  const auto parse=[&]{
+    std::array<std::byte,4096> bytes{};std::uint32_t size=0;
+    if(!StringAt(address,bytes,size,d,player_sprite,{address,NativeEvidenceUse::FileName}))return false;
+    if(!size)return !selected || FailCapture(d,CaptureFailure::ResourcePending,{facts.subject});
+    const auto path=Vfs(std::span(bytes).first(size),0);if(path.empty())return FailCapture(d,CaptureFailure::ResourcePending,{facts.subject});
+    NativeResource value;value.table=2;value.kind=0;return Intern(value,path,{},out,d);
+  };
+  if(!memo)return ResourceOnce({selected?NativeResourceSource::SelectedFile:NativeResourceSource::File,address},out,parse,!player_sprite);
+  std::array<std::byte,24> head;
+  // 文件名的 SSO 或堆指针、长度与容量都在 Sprite 头中。原地改写由 ANM2 Hook 撤销。
+  if(!Read(address,head,d))return false;
+  const auto kind=unsigned(NativeResourceSource::SelectedFile);
+  if(memo->file_ready&&memo->file_head==head){
+    out=memo->file;++stats.resource_instance_hits[kind];return true;
+  }
+  ++stats.resource_parses[kind];
+  if(!parse())return false;
+  if(memo->file_ready){memo->stamp=++resource_cache.stamp;memo->animations={};}
+  memo->file_ready=true;memo->file_head=head;memo->file=out;
+  return true;
 }
 // 只解释已核四种Image的尺寸getter对应成员，不执行虚函数或GPU读回。
 bool EntitySource::Impl::ImageGeometry(std::uint32_t image,std::array<std::uint32_t,4> &geometry,CaptureDiagnostic &d) noexcept {
@@ -190,7 +208,13 @@ bool EntitySource::Impl::AnimationResource(std::uint32_t owner,std::uint32_t ani
   if(file.kind==CapturedReferenceKind::Null)return FailCapture(d,CaptureFailure::ResourcePending,{facts.subject});
   NativeResourceKey key{NativeResourceSource::Animation,animation,owner};
   key.dependency=file.handle;
-  return ResourceOnce(key,out,[&]{
+  auto *memo=(resource_cache.observed&1u)?SpriteMemo(owner):nullptr;
+  const auto epoch=resource_cache.animation_epoch;
+  if(memo)for(const auto &entry:memo->animations)
+    if(entry.epoch==epoch&&entry.file==file.handle&&entry.address==animation){
+      out=entry.link;++stats.resource_instance_hits[unsigned(NativeResourceSource::Animation)];return true;
+    }
+  const bool parsed=ResourceOnce(key,out,[&]{
   NativeResource value;value.table=0;value.kind=6;value.links[0]=file.handle;
   std::array<std::uint32_t,4> layers{};
   if(!Value(std::uint64_t(animation)+0x18,layers,d)||
@@ -212,6 +236,11 @@ bool EntitySource::Impl::AnimationResource(std::uint32_t owner,std::uint32_t ani
   // Intern 已复制层目录，归还临时解析区，避免两流累积已消费的中间结果。
   const bool stored=Intern(value,std::span(name).first(length),rows,out,d);
   scratch_used=mark;return stored;});
+  if(parsed&&memo){
+    memo->animations[1]=memo->animations[0];
+    memo->animations[0]={epoch,file.handle,animation,out};
+  }
+  return parsed;
 }
 // 两种采集器共用 VFS 规范化及目录登记，构造产物不含原生字符串地址。
 bool EntitySource::Impl::ImagePathResource(std::uint32_t address,CaptureLink &out,CaptureDiagnostic &d) noexcept {
@@ -228,6 +257,33 @@ bool EntitySource::Impl::ImagePathResource(std::uint32_t address,CaptureLink &ou
     value.kind=state::kResourceImagePathKind;
     return Intern(value,path,{},out,d);
   });
+}
+
+// 图像选择还须验证控制块存在。图集等程序资源继续走当前 owner 解析。
+bool EntitySource::Impl::LayerImage(SpriteLayerResourceMemo *memo,const std::array<std::uint32_t,2> &head,
+    CaptureLink &out,CaptureDiagnostic &d) noexcept {
+  if(head[0]&&!head[1])return FailCapture(d,CaptureFailure::ResourcePending,{facts.subject,0,0,evidence_layout},evidence_field);
+  if(!(resource_cache.observed&2u))memo=nullptr;
+  const auto epoch=resource_cache.image_epoch;
+  if(memo&&memo->image_ready&&memo->image_epoch==epoch&&memo->image_head==head){
+    out=memo->image;++stats.resource_instance_hits[unsigned(NativeResourceSource::Image)];return true;
+  }
+  if(!ImageResource(head[0],out,d))return false;
+  if(memo&&(out.kind==CapturedReferenceKind::Null||resources[std::size_t(out.handle-1)].kind==1)){
+    memo->image_ready=true;memo->image_epoch=epoch;memo->image_head=head;memo->image=out;
+  }
+  return true;
+}
+bool EntitySource::Impl::LayerImagePath(SpriteLayerResourceMemo *memo,std::uint32_t address,
+    std::span<const std::byte> head,CaptureLink &out,CaptureDiagnostic &d) noexcept {
+  if(!memo||head.size()!=memo->path_head.size())return ImagePathResource(address,out,d);
+  if(memo->path_ready&&std::equal(head.begin(),head.end(),memo->path_head.begin())){
+    out=memo->path;++stats.resource_instance_hits[unsigned(NativeResourceSource::ImagePath)];return true;
+  }
+  if(!ImagePathResource(address,out,d))return false;
+  std::copy(head.begin(),head.end(),memo->path_head.begin());
+  memo->path_ready=true;memo->path=out;
+  return true;
 }
 
 bool EntitySource::Impl::ConfigResource(std::uint32_t pointer,CaptureLink &out,CaptureDiagnostic &d) noexcept {

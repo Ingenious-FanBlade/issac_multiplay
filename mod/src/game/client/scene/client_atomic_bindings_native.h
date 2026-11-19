@@ -130,6 +130,18 @@ void *ClientBinaryLayer(void *,unsigned) noexcept;
 // 平铺程序只在当前安装窗口解析真实 owner，跨 SEH 边界后不会借到失效地址。
 void *ClientBinaryFlatLayer(void *,unsigned) noexcept;
 void *ClientBinaryFlatPlus(void *,unsigned) noexcept;
+// 平铺写入在 Manager 窗口直接修改原生容器，调用方在扩缩以后重新查询元素地址。
+enum class ClientBinaryFlatSequence : unsigned { Vector,Deque,Inline,Records };
+bool ClientBinaryResizeFlat(void *,ClientBinaryFlatSequence,unsigned layout,unsigned stride,unsigned count) noexcept;
+void *ClientBinaryFlatElement(void *,ClientBinaryFlatSequence,unsigned layout,unsigned stride,
+                             unsigned count,unsigned index) noexcept;
+bool ClientBinaryFlatBorrow(void *slot,void *target,bool player,bool check) noexcept;
+bool ClientBinaryFlatShared(void *slot,unsigned layout,bool present,bool install,void *&payload) noexcept;
+bool ClientBinaryFlatWeapon(void *slot,unsigned layout,unsigned type,bool install,void *&payload) noexcept;
+enum class ClientBinaryFlatAssociative : unsigned { Map,Blocked,Innate };
+bool ClientBinaryFlatItems(void *slot,ClientBinaryFlatAssociative,const std::byte *entries,unsigned count) noexcept;
+using ClientBinaryFlatReferenceVisitor=bool (*)(void *context,void *slot) noexcept;
+bool ClientBinaryFlatOwnedReferences(void *slot,bool weapon,void *context,ClientBinaryFlatReferenceVisitor) noexcept;
 bool ClientBinaryClearFlatReference(void *) noexcept;
 bool ClientBinaryCommitFlatSpecial(const ClientBinarySpecialWrite &,ClientBinarySpecialUndo &) noexcept;
 // 按最终 Sprite／Layer flags 配置本地图像顶点格式，并清理不兼容的原生空闲批次。

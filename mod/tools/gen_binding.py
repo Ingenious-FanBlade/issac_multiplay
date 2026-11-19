@@ -529,6 +529,8 @@ struct CsEntityList {};
 struct CsRoom {};
 struct CsGraphics {};
 struct CsMinimapConfig {};
+struct CsAnimationCacheEntry {};
+struct CsImageCache {};
 struct CsStatHUD {};
 struct CsAudioStream {};
 struct CsMusic {};
@@ -557,6 +559,14 @@ def legacy_flags(row):
 def legacy_body(row):
     """既有入口的 wrapper 体（保持 tx-04-07 已验收的适配语义不变）。"""
     ident, ret, call = row['id'], row['ret'], row['call']
+    if ident in ('stream_cache_animation', 'stream_cache_image'):
+        return ['    // 共享资源释放前推进对应代次，保持 ABI 与原链调用次数。',
+                '    cs::game::ActualValueScope observation;',
+                '    record.calls.fetch_add(1, std::memory_order_relaxed);',
+                '    if(!observation.main) record.foreign.fetch_add(1, std::memory_order_relaxed);',
+                '    cs::game::StreamSharedResourceScope cache(%s);' % str(ident == 'stream_cache_animation').lower(),
+                '    %ssuper();' % ('auto result=' if ret != 'void' else ''),
+                '    record.completed.fetch_add(1, std::memory_order_relaxed);'] + (['    return result;'] if ret != 'void' else [])
     if ident.startswith('stream_resource_'):
         out = ['    // 只观察官方资源owner；Hook常驻，Host未采集时直接透传，原链恰好一次。',
                '    cs::game::ActualValueScope observation;',
@@ -606,6 +616,19 @@ def legacy_body(row):
         return ['    cs::game::ClientMapMirrorScope mirror(this);', '    if(!mirror.Ready()) return;',
                 '    cs::game::BinaryProductionScope binary(cs::game::BinaryProductionKind::MapCache,this,g_Manager);',
                 '    binary.Request();','    cs::CallScope scope(record);','    super();','    binary.Returned();']
+    if ident == 'client_minimap_map_input':
+        return ['    bool pressed=false;',
+                '    if(cs::game::ClientMinimapMapPressed(action,pressed)) return pressed;',
+                '    cs::CallScope scope(record);', '    return super(%s);' % call]
+    if ident == 'player_morph_to_coop_ghost':
+        return ['    cs::CallScope scope(record);', '    cs::game::WorldPlayerLifeSourceScope life(this,true);',
+                '    super();', '    life.Returned();']
+    if ident == 'display_found_hud_slot':
+        return ['    if(!cs::game::FoundHudSlotAllowed(this,player)) return -1;',
+                '    cs::CallScope scope(record);', '    return super(player);']
+    if ident == 'display_found_hud_render':
+        return ['    cs::game::FoundHudScope local(this,true);',
+                '    cs::CallScope scope(record);', '    return super(position);']
     if ident.startswith('client_grid_water_'):
         return ['    cs::CallScope scope(record);',
                 '    auto* result=super(out);',
@@ -650,8 +673,10 @@ def legacy_body(row):
         'binary_display_camera_drag':'DisplayCamera','binary_display_camera_smooth':'DisplayCamera',
         'binary_display_fx':'DisplayFxUpdate','binary_display_overlay_update':'GameUpdate'}
     if ident in display_paths:
-        return ['    cs::game::BinaryDisplayPathScope display{unsigned(cs::game::ClientEntry::%s)};' % display_paths[ident],
-                '    cs::CallScope scope(record);','    super(%s);' % call]
+        found_hud = ['    cs::game::FoundHudScope local(&this->_statHUD,false);'] if ident == 'binary_display_hud_post' else []
+        camera = ['    cs::game::LocalCameraScope local(this);'] if display_paths[ident] == 'DisplayCamera' else []
+        return ['    cs::game::BinaryDisplayPathScope display{unsigned(cs::game::ClientEntry::%s)};' % display_paths[ident]] + found_hud + camera + [
+                '    cs::CallScope scope(record);','    super(%s);' % call] + (['    local.Returned();'] if found_hud else [])
     display_requests={
         'binary_music_play':('MusicPlay','musicid, cs::game::BinaryFloatWord(volume), 0, 0, unsigned(cs::game::BinaryMusicQueueAdvance())'),
         'binary_music_crossfade':('MusicCrossfade','musicid, cs::game::BinaryFloatWord(faderate)'),
@@ -683,7 +708,7 @@ def legacy_body(row):
                 '    cs::CallScope scope(record);','    return super();']
     if ident=='client_display_deal_qualified':
         return ['    bool value=false;',
-                '    if(cs::game::ClientDisplayDealQualified(_ReturnAddress(),this,value)) return value;',
+                '    if(cs::game::ClientDisplayDealQualified(this,value)) return value;',
                 '    cs::CallScope scope(record);','    return super();']
     if ident=='binary_music_tick':
         return ['    cs::game::BinaryMusicTickScope music_tick;', '    cs::CallScope scope(record);', '    super();']
@@ -728,6 +753,11 @@ def legacy_body(row):
                 '    record.calls.fetch_add(1, std::memory_order_relaxed);',
                 '    super(%s);' % call,
                 '    record.completed.fetch_add(1, std::memory_order_relaxed);']
+    if ident == 'client_transition_menu_render':
+        return ['    if (cs::game::ClientRenderTransitionHold()) return;',
+                '    record.calls.fetch_add(1, std::memory_order_relaxed);',
+                '    super();',
+                '    record.completed.fetch_add(1, std::memory_order_relaxed);']
     if ident in outer_dispatch:
         entry=outer_dispatch[ident]
         out=['    cs::game::BinaryDisplayPathScope display{unsigned(cs::game::ClientEntry::%s)};' % entry]
@@ -736,7 +766,9 @@ def legacy_body(row):
              % (entry,' 0' if ret!='void' else ''),
              '    // 主动跳过单独由Client计数，观察调用只对应真正进入的原链。',
              '    record.calls.fetch_add(1, std::memory_order_relaxed);']
-        if ident=='client_transition_change':out.append('    cs::game::BinaryProductionScope transition(cs::game::BinaryProductionKind::TransitionFinish,this,g_Manager);')
+        if ident=='client_transition_change':
+            out += ['    cs::game::HourglassRoomScope hourglass(this);',
+                    '    cs::game::BinaryProductionScope transition(cs::game::BinaryProductionKind::TransitionFinish,this,g_Manager);']
         out.append('    %ssuper(%s);' % ('auto result = ' if ret!='void' else '',call))
         if ident=='client_transition_change':out.append('    transition.Returned();')
         out += ['    cs::game::ClientDispatchReturned(cs::game::ClientEntry::%s);' % entry,
@@ -919,10 +951,14 @@ def legacy_body(row):
             obj = 'nullptr' if row['static'] else 'this'
             lines.append('    cs::game::WorldBoundaryScope world_stage(cs::game::WorldBoundary::%s, %s);'
                          % (world_stage, obj))
-        if ident in ('restore', 'room_lifecycle', 'door_update', 'door_nested',
+        # 转场 Update 每拍只推进演出；实际换房由 door_nested / new_room 撤销旧房身份。
+        if ident in ('restore', 'room_lifecycle', 'door_nested',
                      'new_room', 'game_exit'):
-            boundary = 'RunEnd' if ident == 'game_exit' else 'Lifecycle'
-            lines.append('    cs::game::WorldBoundaryScope world_lifecycle(cs::game::WorldBoundary::%s);' % boundary)
+            if ident == 'game_exit':
+                lines += ['    const bool run_exit = !cs::game::HourglassRestoreActive();',
+                          '    cs::game::WorldBoundaryScope world_lifecycle(run_exit ? cs::game::WorldBoundary::RunEnd : cs::game::WorldBoundary::Lifecycle);']
+            else:
+                lines.append('    cs::game::WorldBoundaryScope world_lifecycle(cs::game::WorldBoundary::Lifecycle);')
         if ident.startswith('pgd_') or ident == 'button_maps':
             persistence_args = (', achievementID' if ident == 'pgd_unlock'
                                 else ', eEventCounters, num' if ident == 'pgd_counter'
@@ -950,7 +986,7 @@ def legacy_body(row):
         elif ident == 'game_exit':
             # 真实退出即使发生在 Host 已停止后，也需要独立的原生调用与窗口关联。
             lines += ['    cs::game::PersistenceCallScope call("game_exit", this);',
-                      '    if (scope.main) cs::game::RunTeardownBeginning(true);']
+                      '    if (scope.main && run_exit) cs::game::RunTeardownBeginning(true);']
         elif ident == 'device_update':
             lines.append('    cs::game::DeviceScope device_scope(this);')
         elif ident == 'restore':
@@ -968,7 +1004,8 @@ def legacy_body(row):
             lines += ['    cs::game::PersistenceCallScope call("entity_kill", this);',
                       '    cs::game::ObserveEntityKill(this, source);']
         elif ident == 'revive_ghost':
-            lines += ['    cs::game::PersistenceCallScope call("revive_ghost", this);',
+            lines += ['    cs::game::WorldPlayerLifeSourceScope life(this,false);',
+                      '    cs::game::PersistenceCallScope call("revive_ghost", this);',
                       '    cs::game::ObserveReviveGhost(this);']
         elif ident == 'stage_transition':
             lines += ['    cs::game::PersistenceCallScope call("stage_transition", this);',
@@ -991,6 +1028,8 @@ def legacy_body(row):
             lines.append('    state_owner.Returned(player_scope.native_reached);')
         if ident == 'join_pass':
             lines.append('    join_effect_source.Returned();')
+        if ident == 'revive_ghost':
+            lines.append('    life.Returned();')
         if ident == 'pgd_unlock':
             lines.append('    persistence.Returned(result);')
         if ident in ('entity_kill', 'revive_ghost', 'stage_transition',
@@ -1011,7 +1050,7 @@ def legacy_body(row):
             lines.append('    if (scope.main) cs::game::NewRoomReturned();')
         if ident == 'game_exit':
             lines += ['    call.Returned();',
-                      '    if (scope.main) cs::RunExit();']
+                      '    if (scope.main && run_exit) cs::RunExit();']
         if ret != 'void':
             lines.append('    return result;')
     return lines

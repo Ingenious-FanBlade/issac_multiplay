@@ -173,13 +173,21 @@ struct ClientSceneDescribeWork final:S::ClientStateNativePlanWork {
           event.completed=f.Number<std::uint8_t>(v,F::RoomTransitionEvent::completed)!=0;
           event.final_room=f.Number<std::uint64_t>(v,F::RoomTransitionEvent::final_room);
           event.index=f.Number<int>(v,event.completed?F::RoomTransitionEvent::final_index:F::RoomTransitionEvent::requested_index);
-          event.dimension=f.Number<int>(v,event.completed?F::RoomTransitionEvent::final_dimension:F::RoomTransitionEvent::dimension);break;
+          event.dimension=f.Number<int>(v,event.completed?F::RoomTransitionEvent::final_dimension:F::RoomTransitionEvent::dimension);
+          event.animation=f.Number<int>(v,F::RoomTransitionEvent::animation);
+          event.direction=f.Number<int>(v,F::RoomTransitionEvent::direction);break;
       }
     }
   }
   void AddGrid(const S::ClientInstallGrid &g){
     const auto r=Record(plan,g.object);const auto &id=r.Identity();
     grids.push_back({Key(c.scope.run,id),context.room,id.use,id.shape,r.Member(),id.layout,std::uint16_t(g.index)});
+    if(r.Flat()){
+      const auto clip=r.FlatValue("water_clip_flags");
+      if(clip.size()!=4)Fail(S::StateReadiness::InvalidEncoding,"client_scene_plan_flat_grid_clip");
+      out->grids_.push_back({id,g.index,S::FlatWord(clip)});
+      return;
+    }
     // 已验证的格子值只在同路由、同实例和全部实际块一致时沿用。
     if(prior_world)if(const auto before=prior_world->Find(id)){
       bool same=before->Mask()==r.Mask();

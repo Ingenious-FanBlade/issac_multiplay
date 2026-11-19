@@ -142,6 +142,20 @@ Config ReadConfig() {
         c.world_close_timeout_ms = v["close_timeout_ms"].GetUint();
       }
     }
+    // 客机显示覆盖层开关（P9）；缺省全开，未知字段拒绝。
+    if(d.HasMember("motion")){
+      const auto &v=d["motion"];
+      if(!v.IsObject())throw std::runtime_error("motion.object");
+      for(auto i=v.MemberBegin();i!=v.MemberEnd();++i){
+        const std::string key(i->name.GetString(),i->name.GetStringLength());
+        if(!i->value.IsBool())throw std::runtime_error("motion."+key);
+        if(key=="interpolation")c.motion.interpolation=i->value.GetBool();
+        else if(key=="extrapolation")c.motion.extrapolation=i->value.GetBool();
+        else if(key=="prediction")c.motion.prediction=i->value.GetBool();
+        else if(key=="projectile_lead")c.motion.projectile_lead=i->value.GetBool();
+        else throw std::runtime_error("motion.unknown_field");
+      }
+    }
     // 严格接纳具名配置；未知字段、负数及溢出均拒绝，不悄悄采用另一档。
     c.stream.peer_timeout_ms=c.peer_timeout_ms;
     if(d.HasMember("stream")) {

@@ -1,0 +1,26 @@
+    Finished `release` profile [optimized] target(s) in 0.03s
+warning: unused import: `self`
+ --> src\tx21\runner.rs:5:49
+  |
+5 | use std::{collections::{BTreeMap,BTreeSet},fs::{self,File},io::{self,Write,BufRead,BufReader},path::{Path,PathBuf},thread,time::{Dura...
+  |                                                 ^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `drain` is never used
+  --> src\tx21\reduce.rs:24:8
+   |
+24 | pub fn drain(driver:&mut dyn Driver,node:&str,token:&str,cursor:&mut u64,out:&mut File)->Result<usize>{let mut count=0;for _ in 0..128{
+   |        ^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `isaac-cs-harness` (bin "harness") generated 2 warnings (run `cargo fix --bin "harness" -p isaac-cs-harness` to apply 1 suggestion)
+    Finished `release` profile [optimized] target(s) in 0.05s
+isaac-dual: control disconnected
+Exception: F:\projects_isaac\issac_multiplay\tools\isaac-dual\launch.ps1:35
+Line |
+  35 |  бн EXITCODE) { throw "Dual launch failed. Startup diagnostics, if writte бн
+     |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | Dual launch failed. Startup diagnostics, if written:
+     | F:\projects_isaac\issac_multiplay\build\isaac-dual\launch-e2e0b7c732ea4792bb61887325b950c3

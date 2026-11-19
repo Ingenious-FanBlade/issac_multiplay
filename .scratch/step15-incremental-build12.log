@@ -1,0 +1,120 @@
+-- Selecting Windows SDK version 10.0.26100.0 to target Windows 10.0.26200.
+-- Configuring done (0.3s)
+-- Generating done (0.2s)
+-- Build files have been written to: F:/projects_isaac/issac_multiplay/build/repentogon-e2e
+适用于 .NET Framework MSBuild 版本 17.14.23+b0019275e
+
+  Checking File Globs
+  isaac_cs_player_sdk_abi.vcxproj -> F:\projects_isaac\issac_multiplay\build\repentogon-e2e\isaac_cs_player_sdk_abi.dir\Release\isaac_cs_player_sdk_abi.lib
+  isaac_cs_core.vcxproj -> F:\projects_isaac\issac_multiplay\build\repentogon-e2e\Release\isaac_cs_core.lib
+  isaac_cs_state.vcxproj -> F:\projects_isaac\issac_multiplay\build\repentogon-e2e\Release\isaac_cs_state.lib
+  isaac_cs_zstd.vcxproj -> F:\projects_isaac\issac_multiplay\build\repentogon-e2e\Release\isaac_cs_zstd.lib
+  isaac_cs_grid_description.vcxproj -> F:\projects_isaac\issac_multiplay\build\repentogon-e2e\Release\isaac_cs_grid_description.lib
+  isaac_cs_world.vcxproj -> F:\projects_isaac\issac_multiplay\build\repentogon-e2e\Release\isaac_cs_world.lib
+  isaac_cs_room_description.vcxproj -> F:\projects_isaac\issac_multiplay\build\repentogon-e2e\Release\isaac_cs_room_description.lib
+  isaac_cs_replica.vcxproj -> F:\projects_isaac\issac_multiplay\build\repentogon-e2e\Release\isaac_cs_replica.lib
+  client-fixture.vcxproj -> F:\projects_isaac\issac_multiplay\out\repentogon\e2e\client-fixture.exe
+  replica-contract.vcxproj -> F:\projects_isaac\issac_multiplay\out\repentogon\e2e\replica-contract.exe
+  isaac_cs_net.vcxproj -> F:\projects_isaac\issac_multiplay\build\repentogon-e2e\Release\isaac_cs_net.lib
+  client_atomic_install.cpp
+F:\projects_isaac\issac_multiplay\mod\src\game\client\scene\client_atomic_install.cpp(149,62): warning C4458: “reason”的声明隐藏了类成员 [F:\projects_isaac\issac_multiplay\build\repentogon-e2e\zhlIsaacCS.vcxproj]
+      F:\projects_isaac\issac_multiplay\mod\src\game\client\scene\client_atomic_install.cpp(122,15):
+      参见“cs::game::ClientSceneAtomicInstaller::Impl::reason”的声明
+  
+D:\VisualStudio2022\VC\Tools\MSVC\14.44.35207\include\tuple(132,47): warning C4244: “初始化”: 从“_Ty”转换到“_Ty”，可能丢失数据 [F:\projects_isaac\issac_multiplay\build\repentogon-e2e\zhlIsaacCS.vcxproj]
+D:\VisualStudio2022\VC\Tools\MSVC\14.44.35207\include\tuple(132,47): warning C4244:         with [F:\projects_isaac\issac_multiplay\build\repentogon-e2e\zhlIsaacCS.vcxproj]
+D:\VisualStudio2022\VC\Tools\MSVC\14.44.35207\include\tuple(132,47): warning C4244:         [ [F:\projects_isaac\issac_multiplay\build\repentogon-e2e\zhlIsaacCS.vcxproj]
+D:\VisualStudio2022\VC\Tools\MSVC\14.44.35207\include\tuple(132,47): warning C4244:             _Ty=int [F:\projects_isaac\issac_multiplay\build\repentogon-e2e\zhlIsaacCS.vcxproj]
+D:\VisualStudio2022\VC\Tools\MSVC\14.44.35207\include\tuple(132,47): warning C4244:         ] [F:\projects_isaac\issac_multiplay\build\repentogon-e2e\zhlIsaacCS.vcxproj]
+D:\VisualStudio2022\VC\Tools\MSVC\14.44.35207\include\tuple(132,47): warning C4244:         and [F:\projects_isaac\issac_multiplay\build\repentogon-e2e\zhlIsaacCS.vcxproj]
+D:\VisualStudio2022\VC\Tools\MSVC\14.44.35207\include\tuple(132,47): warning C4244:         [ [F:\projects_isaac\issac_multiplay\build\repentogon-e2e\zhlIsaacCS.vcxproj]
+D:\VisualStudio2022\VC\Tools\MSVC\14.44.35207\include\tuple(132,47): warning C4244:             _Ty=uint16_t [F:\projects_isaac\issac_multiplay\build\repentogon-e2e\zhlIsaacCS.vcxproj]
+D:\VisualStudio2022\VC\Tools\MSVC\14.44.35207\include\tuple(132,47): warning C4244:         ] [F:\projects_isaac\issac_multiplay\build\repentogon-e2e\zhlIsaacCS.vcxproj]
+  (编译源文件“../../mod/src/game/client/scene/client_atomic_install.cpp”)
+      D:\VisualStudio2022\VC\Tools\MSVC\14.44.35207\include\tuple(132,47):
+      模板实例化上下文(最早的实例化上下文)为
+          F:\projects_isaac\issac_multiplay\mod\src\game\client\scene\client_atomic_install.cpp(181,5):
+          查看对正在编译的函数 模板 实例化“std::tuple<uint32_t,uint32_t,uint16_t,uint16_t,uint16_t,uint16_t>::tuple<uint32_t&,const uint32_t&,const uint16_t&,uint16_t&,const uint16_t&,int,0>(_This2,const uint32_t &,const uint16_t &,uint16_t &,const uint16_t &,int &&) noexcept”的引用
+          with
+          [
+              _This2=uint32_t &
+          ]
+              F:\projects_isaac\issac_multiplay\mod\src\game\client\scene\client_atomic_install.cpp(181,5):
+              请参阅 "cs::game::ClientSceneAtomicInstaller::Impl::PathKey" 中对 "std::tuple<uint32_t,uint32_t,uint16_t,uint16_t,uint16_t,uint16_t>::tuple" 的第一个引用
+          D:\VisualStudio2022\VC\Tools\MSVC\14.44.35207\include\tuple(349,16):
+          查看对正在编译的函数 模板 实例化“std::tuple<uint32_t,uint32_t,uint16_t,uint16_t,uint16_t,uint16_t>::tuple<std::_Exact_args_t,uint32_t&,const uint32_t&,const uint16_t&,uint16_t&,const uint16_t&,_Ty,0>(_Tag,_This2,const uint32_t &,const uint16_t &,uint16_t &,const uint16_t &,_Ty &&)”的引用
+          with
+          [
+              _Ty=int,
+              _Tag=std::_Exact_args_t,
+              _This2=uint32_t &
+          ]
+          D:\VisualStudio2022\VC\Tools\MSVC\14.44.35207\include\tuple(301,18):
+          查看对正在编译的函数 模板 实例化“std::tuple<uint32_t,uint16_t,uint16_t,uint16_t,uint16_t>::tuple<std::_Exact_args_t,const uint32_t&,const uint16_t&,uint16_t&,const uint16_t&,_Ty,0>(_Tag,_This2,const uint16_t &,uint16_t &,const uint16_t &,_Ty &&)”的引用
+          with
+          [
+              _Ty=int,
+              _Tag=std::_Exact_args_t,
+              _This2=const uint32_t &
+          ]
+          D:\VisualStudio2022\VC\Tools\MSVC\14.44.35207\include\tuple(301,18):
+          查看对正在编译的函数 模板 实例化“std::tuple<uint16_t,uint16_t,uint16_t,uint16_t>::tuple<std::_Exact_args_t,const uint16_t&,uint16_t&,const uint16_t&,_Ty,0>(_Tag,_This2,uint16_t &,const uint16_t &,_Ty &&)”的引用
+          with
+          [
+              _Ty=int,
+              _Tag=std::_Exact_args_t,
+              _This2=const uint16_t &
+          ]
+          D:\VisualStudio2022\VC\Tools\MSVC\14.44.35207\include\tuple(301,18):
+          查看对正在编译的函数 模板 实例化“std::tuple<uint16_t,uint16_t,uint16_t>::tuple<std::_Exact_args_t,uint16_t&,const uint16_t&,_Ty,0>(_Tag,_This2,const uint16_t &,_Ty &&)”的引用
+          with
+          [
+              _Ty=int,
+              _Tag=std::_Exact_args_t,
+              _This2=uint16_t &
+          ]
+          D:\VisualStudio2022\VC\Tools\MSVC\14.44.35207\include\tuple(301,18):
+          查看对正在编译的函数 模板 实例化“std::tuple<uint16_t,uint16_t>::tuple<std::_Exact_args_t,const uint16_t&,_Ty,0>(_Tag,_This2,_Ty &&)”的引用
+          with
+          [
+              _Ty=int,
+              _Tag=std::_Exact_args_t,
+              _This2=const uint16_t &
+          ]
+          D:\VisualStudio2022\VC\Tools\MSVC\14.44.35207\include\tuple(301,18):
+          查看对正在编译的函数 模板 实例化“std::tuple<uint16_t>::tuple<std::_Exact_args_t,_Ty,,0>(_Tag,_This2 &&)”的引用
+          with
+          [
+              _Ty=int,
+              _Tag=std::_Exact_args_t,
+              _This2=int
+          ]
+          D:\VisualStudio2022\VC\Tools\MSVC\14.44.35207\include\tuple(301,102):
+          查看对正在编译的函数 模板 实例化“std::_Tuple_val<_This>::_Tuple_val<_Ty>(_Other &&)”的引用
+          with
+          [
+              _This=uint16_t,
+              _Ty=int,
+              _Other=int
+          ]
+  
+    正在创建库 F:/projects_isaac/issac_multiplay/build/repentogon-e2e/Release/zhlIsaacCS.lib 和对象 F:/projects_isaac/issac_multiplay/build/repentogon-e2e/Release/zhlIsaacCS.exp
+  zhlIsaacCS.vcxproj -> F:\projects_isaac\issac_multiplay\out\repentogon\e2e\zhlIsaacCS.dll
+warning: unused import: `self`
+ --> src\tx21\runner.rs:5:49
+  |
+5 | use std::{collections::{BTreeMap,BTreeSet},fs::{self,File},io::{self,Write,BufRead,BufReader},path::{Path,PathBuf},thread,time::{Dura...
+  |                                                 ^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `drain` is never used
+  --> src\tx21\reduce.rs:24:8
+   |
+24 | pub fn drain(driver:&mut dyn Driver,node:&str,token:&str,cursor:&mut u64,out:&mut File)->Result<usize>{let mut count=0;for _ in 0..128{
+   |        ^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `isaac-cs-harness` (bin "harness") generated 2 warnings (run `cargo fix --bin "harness" -p isaac-cs-harness` to apply 1 suggestion)
+    Finished `release` profile [optimized] target(s) in 0.03s

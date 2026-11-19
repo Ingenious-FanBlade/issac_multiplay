@@ -114,6 +114,15 @@ bool EntitySource::Impl::Open(const CaptureFieldAccess &a,CaptureTraversalSource
        a.field.native_offset>a.root.extent || a.field.native_size>a.root.extent-a.field.native_offset)return Reject(a,d,CaptureFailure::AddressRange);
     if(!contiguous(std::uint32_t(address),a.field.fixed_count,a.field.native_stride))return false;out.identity=address;
   }else if(recipe==EntityRead::String){
+    if(std::string_view(a.field.handler)=="read_anm2_default_name"){
+      std::uint8_t loaded=0;
+      if(!Tracked(std::uint64_t(a.root.address)+0x109,loaded,d)||loaded>1)return Reject(a,d,CaptureFailure::InvalidValue);
+      // 未加载的 ANM2 默认名规范为零长；跳过其字符串存储和分配。
+      if(!loaded){
+        if(!contiguous(0,0,1,NativeSequence::Owned))return false;
+        out.identity=address;out.opaque[2]=start;out.opaque[3]=witness_used-start;return true;
+      }
+    }
     const auto mark=scratch_used;
     auto bytes=Allocate(std::uint64_t(a.field.limit)+1,1,d);if(d.reason!=CaptureFailure::None)return false;std::uint32_t count=0;
     const auto extent=a.field.native_offset<a.root.extent?std::min(a.field.native_size,a.root.extent-a.field.native_offset):0;
@@ -211,7 +220,7 @@ bool EntitySource::Impl::Close(const CaptureFieldAccess &a,const CaptureTraversa
   return true;
 }
 // 标量容器消费当前已经预检的游标；读出的原始指针仍在当前同步栈转为自有handle。
-bool EntitySource::Impl::ScalarContainer(const CaptureFieldAccess &a,CaptureValueWriter &writer,CaptureDiagnostic &d) noexcept {
+bool EntitySource::Impl::ScalarContainer(const CaptureFieldAccess &a,EntityLeafSink writer,CaptureDiagnostic &d) noexcept {
   if(!a.traversal || a.field.nested_layout)return Reject(a,d,CaptureFailure::InvalidTransaction);
   const auto &source=*a.traversal;const auto count=std::uint64_t(source.count)*a.format.components;
   const auto mark=scratch_used;

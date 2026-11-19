@@ -213,6 +213,10 @@ public:
   std::uint64_t Client() const noexcept { return client_; }
   const InputStateDraftV2 &Current() const noexcept { return current_; }
   std::uint64_t CurrentSequence() const noexcept { return current_sequence_; }
+  // 已正常处理的最高输入序号（与 ACK 的 processed 同源），供 Body 每身体对账字段使用。
+  std::uint64_t LastProcessedSequence() const noexcept {
+    return progress_.last_processed_sequence;
+  }
   std::size_t Depth() const noexcept { return depth_; }
   bool Initialized() const noexcept { return initialized_; }
   // 流水线必须确认参与者绑定的是同一个 Session，不能接纳独立实例的输入旁路。

@@ -1,6 +1,9 @@
 #pragma once
 #include "replica/stream_metrics.h"
 #ifdef ISAACCS_E2E
+#include "state/wire_scope.h"
+#include <span>
+namespace cs::state {struct HostStateMessage;}
 namespace cs::replica::stream {
 struct Message;
 // 仅显式token启用的短期诊断；后台只写自有值，溢出/缺测不影响产品接纳。
@@ -29,6 +32,14 @@ void E2EInput(const char *event,const InputWitness &) noexcept;
 void E2EAge(std::uint64_t authority,std::uint64_t source,std::uint64_t elapsed,std::uint64_t error,bool stale) noexcept;
 // 只记录现有事务的精确版本/步骤/时刻，不产生进度或改变超时。
 void E2EStreamProgress(const char *site,const std::array<std::uint64_t,8> &) noexcept;
+struct E09Field {const char *name;std::uint32_t wire,native;bool read;};
+void E2ECompareTrace(bool enabled) noexcept;
+// 同一来源、成员和流的字段值；只有客机侧携带活对象读值。
+void E2ECompareFields(const char *role,unsigned stream,const state::StateScope &scope,
+    std::uint64_t revision,std::uint32_t frame,std::uint64_t tick,const std::array<std::uint64_t,4> &member,
+    std::span<const E09Field>) noexcept;
+void E2ECompareSent(const state::HostStateMessage &) noexcept;
+void E2ECompareRendered(unsigned stream,std::uint64_t revision,std::uint32_t frame) noexcept;
 // 正式 sender 已形成真实握手或普通 World，并且 E2E 显式装填时才改写正文。
 void E2EWireArm(const std::string &name);
 std::string E2EWireStatus();

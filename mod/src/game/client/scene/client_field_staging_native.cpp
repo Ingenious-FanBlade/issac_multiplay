@@ -1,5 +1,6 @@
 #include "IsaacRepentance.h"
 #include "game/client/scene/client_field_staging_native.h"
+#include "game/client/scene/client_atomic_bindings_native.h"
 #include "game/client/scene/client_lifetime.h"
 #include "game/client/player/client_player_spoof_layout.h"
 #include "game/common/bridge.h"
@@ -78,7 +79,168 @@ constexpr WeaponContract weapon_contracts[]={
 unsigned WeaponLayout(unsigned type){return type>=1&&type<=10?180+type:type==11?190:type>=12&&type<=15?179+type:0;}
 unsigned SharedVptr(unsigned layout){switch(layout){case 18:return 0x714f84;case 19:return 0x71510c;case 25:return 0x714c0c;case 27:return 0x714be0;case 28:return 0x714bf8;case 133:return 0x70f2e8;default:return 0;}}
 unsigned SharedSize(unsigned layout){switch(layout){case 18:return 0x578;case 19:return 0x58;case 25:return 0x128;case 27:return 0x18;case 28:return 0x458;case 133:return 0x158;default:return 0;}}
-unsigned SharedCallback(unsigned layout){return layout==18||layout==19||layout==133?0x7ebdb4:0x7ebde8;}
+bool FamiliarShared(unsigned layout){return layout==18||layout==19||layout==133;}
+
+// J273 的两字 holder 保存 payload 和控制块，控制块 +0x14 记录实际析构的对象。
+bool SharedPairCurrent(const std::array<void *,2> &holder,unsigned layout) noexcept {
+  const auto vptr=SharedVptr(layout);
+  if(!vptr)return false;
+  const auto *control=static_cast<const unsigned char *>(holder[1]);
+  if(!control)return !holder[0];
+  const auto control_vptr=FamiliarShared(layout)?0x70f2cc:0x714ba0;
+  return *reinterpret_cast<const std::uintptr_t *>(control)==Base+control_vptr&&
+    *reinterpret_cast<void *const *>(control+0x14)==holder[0]&&
+    (!holder[0]||*static_cast<const std::uintptr_t *>(holder[0])==Base+vptr);
+}
+
+// 原生虚槽 +0x0C 负责减强引用及必要的析构。返回值只决定是否尝试调用可空的通知回调。
+void ReleaseShared(std::array<void *,2> &holder,unsigned layout) {
+  if(auto *control=holder[1]){
+    auto **table=*static_cast<void ***>(control);
+    if(reinterpret_cast<bool (__thiscall *)(void *)>(table[3])(control)){
+      const auto callback=FamiliarShared(layout)?0x7ebdb4:0x7ebde8;
+      auto notify=*reinterpret_cast<void (__cdecl **)(void *)>(Base+callback);
+      if(notify)notify(holder.data());
+    }
+  }
+  holder={};
+}
+
+// 活容器由游戏本身释放。分配和大块对齐须与 J273 的 Release STL 完全一致。
+template<class T>struct FlatGameAllocator {
+  using value_type=T;
+  FlatGameAllocator()=default;
+  template<class U> FlatGameAllocator(const FlatGameAllocator<U> &) noexcept {}
+  T *allocate(std::size_t n){
+    if(n>(SIZE_MAX-39)/sizeof(T))throw std::bad_alloc();
+    const auto bytes=n*sizeof(T);
+    auto *base=NativeNew(bytes+(bytes>=4096?39:0));
+    if(!base)throw std::bad_alloc();
+    if(bytes<4096)return static_cast<T *>(base);
+    auto *aligned=reinterpret_cast<T *>((reinterpret_cast<std::uintptr_t>(base)+35)&~std::uintptr_t(31));
+    reinterpret_cast<void **>(aligned)[-1]=base;
+    return aligned;
+  }
+  void deallocate(T *p,std::size_t n) noexcept {
+    if(p)NativeFree(n*sizeof(T)>=4096?reinterpret_cast<void **>(p)[-1]:p);
+  }
+  template<class U>bool operator==(const FlatGameAllocator<U> &)const noexcept{return true;}
+  template<class U>bool operator!=(const FlatGameAllocator<U> &)const noexcept{return false;}
+};
+template<class T>using FlatDeque=std::deque<T,FlatGameAllocator<T>>;
+using FlatRecords=std::list<Row<32>,FlatGameAllocator<Row<32>>>;
+
+struct FlatVectorHeader {std::byte *first,*last,*end;};
+bool FlatVectorShape(const FlatVectorHeader &v,unsigned stride,std::size_t &count,std::size_t &capacity) noexcept {
+  const auto first=reinterpret_cast<std::uintptr_t>(v.first),last=reinterpret_cast<std::uintptr_t>(v.last),
+    end=reinterpret_cast<std::uintptr_t>(v.end);
+  if(!stride||first>last||last>end||(!first&&end)||(last-first)%stride||(end-first)%stride)return false;
+  count=(last-first)/stride;capacity=(end-first)/stride;
+  return capacity<=16384*16;
+}
+void ConstructFlatRow(std::byte *row,unsigned layout,unsigned stride) {
+  std::memset(row,0,stride);
+  if(Sprite(std::uint16_t(layout))||layout==152)reinterpret_cast<ANM2 *>(row)->constructor();
+}
+void DestroyFlatRow(std::byte *row,unsigned layout) {
+  if(Sprite(std::uint16_t(layout))||layout==152)reinterpret_cast<ANM2 *>(row)->destructor();
+}
+bool ResizeFlatVector(void *slot,unsigned layout,unsigned stride,unsigned count) {
+  if((Sprite(std::uint16_t(layout))&&stride!=sizeof(ANM2))||(layout==152&&stride!=304))return false;
+  auto &v=*static_cast<FlatVectorHeader *>(slot);
+  std::size_t old=0,capacity=0;
+  if(!FlatVectorShape(v,stride,old,capacity))return false;
+  if(old==count)return true;
+  if(count<=capacity){
+    while(old>count){DestroyFlatRow(v.first+(old-1)*stride,layout);--old;v.last-=stride;}
+    while(old<count){ConstructFlatRow(v.last,layout,stride);++old;v.last+=stride;}
+    return true;
+  }
+  FlatGameAllocator<std::byte> allocator;
+  const auto bytes=std::size_t(count)*stride;
+  auto *next=allocator.allocate(bytes);
+  unsigned built=0;
+  try {
+    while(built<count){ConstructFlatRow(next+std::size_t(built)*stride,layout,stride);++built;}
+  }catch(...){
+    while(built){--built;DestroyFlatRow(next+std::size_t(built)*stride,layout);}
+    allocator.deallocate(next,bytes);throw;
+  }
+  const auto prior=v;
+  v={next,next+bytes,next+bytes};
+  while(old){--old;DestroyFlatRow(prior.first+old*stride,layout);}
+  allocator.deallocate(prior.first,capacity*stride);
+  return true;
+}
+template<class T>bool ResizeFlatDeque(void *slot,unsigned count) {
+  auto &list=*static_cast<FlatDeque<T> *>(slot);
+  if(list.size()>16384)return false;
+  if(list.size()!=count)list.resize(count);
+  return true;
+}
+template<class T>void *FlatDequeElement(void *slot,unsigned count,unsigned index) noexcept {
+  auto &list=*static_cast<FlatDeque<T> *>(slot);
+  return list.size()==count?&list[index]:nullptr;
+}
+bool ResizeFlatSequence(void *slot,ClientBinaryFlatSequence kind,unsigned layout,unsigned stride,unsigned count) {
+  if(!slot||!stride||count>65535)return false;
+  using Seq=ClientBinaryFlatSequence;
+  if(kind==Seq::Vector)return ResizeFlatVector(slot,layout,stride,count);
+  if(kind==Seq::Inline)return true; // 固定数组的有效前缀随另一个生成字段联写。
+  if(kind==Seq::Records){
+    if(count>1)return false;
+    auto &list=*static_cast<FlatRecords *>(slot);
+    if(list.size()>16384)return false;
+    if(list.size()!=count)list.resize(count);
+    auto *cursor=count?reinterpret_cast<std::byte *>(&list.front())-8:*static_cast<std::byte **>(slot);
+    std::memcpy(static_cast<std::byte *>(slot)+sizeof(FlatRecords),&cursor,sizeof(cursor));
+    return true;
+  }
+  switch(stride){
+    case 4:return layout==10&&ResizeFlatDeque<EntityPtr>(slot,count);
+    case 8:return ResizeFlatDeque<Row<8>>(slot,count);
+    case 12:return ResizeFlatDeque<Row<12>>(slot,count);
+    case 64:return ResizeFlatDeque<Row<64>>(slot,count);
+    case 120:return ResizeFlatDeque<Row<120>>(slot,count);
+    default:return false;
+  }
+}
+bool TryResizeFlatSequence(void *slot,ClientBinaryFlatSequence kind,unsigned layout,unsigned stride,unsigned count) noexcept {
+  try{return ResizeFlatSequence(slot,kind,layout,stride,count);}catch(...){return false;}
+}
+void *FlatSequenceElement(void *slot,ClientBinaryFlatSequence kind,unsigned layout,unsigned stride,
+                          unsigned count,unsigned index) noexcept {
+  if(!slot||index>=count)return nullptr;
+  using Seq=ClientBinaryFlatSequence;
+  if(kind==Seq::Inline)return static_cast<std::byte *>(slot)+std::size_t(index)*stride;
+  if(kind==Seq::Vector){
+    const auto &v=*static_cast<const FlatVectorHeader *>(slot);
+    std::size_t actual=0,capacity=0;
+    return FlatVectorShape(v,stride,actual,capacity)&&actual==count?v.first+std::size_t(index)*stride:nullptr;
+  }
+  if(kind==Seq::Records){
+    auto &list=*static_cast<FlatRecords *>(slot);
+    return count==1&&list.size()==1?reinterpret_cast<std::byte *>(&list.front())-8:nullptr;
+  }
+  switch(stride){
+    case 4:return layout==10?FlatDequeElement<EntityPtr>(slot,count,index):nullptr;
+    case 8:return FlatDequeElement<Row<8>>(slot,count,index);
+    case 12:return FlatDequeElement<Row<12>>(slot,count,index);
+    case 64:return FlatDequeElement<Row<64>>(slot,count,index);
+    case 120:return FlatDequeElement<Row<120>>(slot,count,index);
+    default:return nullptr;
+  }
+}
+}
+bool ClientBinaryResizeFlat(void *slot,ClientBinaryFlatSequence kind,unsigned layout,unsigned stride,unsigned count) noexcept {
+  if(!ClientBinaryInstallationScopeActive(false)||!ClientNativeCpuQueuesEmpty())return false;
+  __try {return TryResizeFlatSequence(slot,kind,layout,stride,count);}
+  __except(EXCEPTION_EXECUTE_HANDLER){return false;}
+}
+void *ClientBinaryFlatElement(void *slot,ClientBinaryFlatSequence kind,unsigned layout,unsigned stride,
+                             unsigned count,unsigned index) noexcept {
+  __try {return FlatSequenceElement(slot,kind,layout,stride,count,index);}
+  __except(EXCEPTION_EXECUTE_HANDLER){return nullptr;}
 }
 // 每个字段独立持有 detached 容器或 payload；异常后记录真实前缀，绝不让后台析构。
 struct ClientStagedField {
@@ -93,7 +255,6 @@ struct ClientStagedField {
   void *(*element)(void *,unsigned)=nullptr;
   std::array<Weapon *,5> weapons{};
   std::array<void *,2> shared{};
-  void (__cdecl *shared_release)(void *)=nullptr;
   std::size_t object_charge=0;
   unsigned rows_constructed=0;
   bool entered=false,ready=false,uncertain=false,release_entered=false,shared_constructed=false,deferred=false;
@@ -188,7 +349,6 @@ std::int32_t Int(const std::byte *p){std::int32_t n;std::memcpy(&n,p,4);return n
 void Shared(ClientStagedField &o) {
   if(!o.input.payload_present||!o.input.count)return;
   const auto size=SharedSize(o.input.layout),vptr=SharedVptr(o.input.layout);if(!size||size!=o.input.stride||!vptr)throw std::bad_alloc();
-  o.shared_release=*reinterpret_cast<void (__cdecl **)(void *)>(Base+SharedCallback(o.input.layout));
   const auto internal=o.input.layout==19?0x18u:o.input.layout==27||o.input.layout==133?8u:0u;
   // 全部已知固定分配先收费，避免 payload 构造前后再因 quota 留下可回滚的 raw allocation。
   o.allocator.charge_native(o.allocator.context,size+internal+0x18);o.object_charge=size+internal+0x18;
@@ -205,8 +365,11 @@ void Shared(ClientStagedField &o) {
         *reinterpret_cast<void **>(p+4)=proxy;reinterpret_cast<ANM2 *>(p+0x18)->constructor();}
     }
   });o.shared_constructed=true;
-  Native(o,[&]{reinterpret_cast<void (__thiscall *)(void *,void *)>(Base+(o.input.layout==18||o.input.layout==19||o.input.layout==133?0x30e40:0x206310))(o.shared.data(),p);});
-  if(o.shared[0]!=p||!o.shared[1]){o.uncertain=true;throw std::bad_alloc();}
+  Native(o,[&]{
+    const auto assign=FamiliarShared(o.input.layout)?0x30e40:0x206310;
+    reinterpret_cast<void (__thiscall *)(void *,void *)>(Base+assign)(o.shared.data(),p);
+    if(o.shared[0]!=p||!SharedPairCurrent(o.shared,o.input.layout))throw std::bad_alloc();
+  });
 }
 bool WeaponsCurrent(const ClientStagedField &o) {
   for(unsigned i=0;i<5;++i){auto *w=o.weapons[i];const auto &in=o.input.weapons[i];
@@ -227,6 +390,129 @@ void Weapons(ClientStagedField &o) {
   }
 }
 }
+
+namespace {
+// 共享 payload 沿用已核构造和控制块 ABI。活 holder 接管新引用后才释放被替换的引用。
+bool FlatShared(void *slot,unsigned layout,bool present,bool install,void *&payload) noexcept {
+  try {
+    if(!slot)return false;
+    auto &holder=*static_cast<std::array<void *,2> *>(slot);
+    if(!SharedPairCurrent(holder,layout))return false;
+    payload=holder[0];
+    if(bool(payload)==present)return true;
+    if(!install||!ClientNativeCpuQueuesEmpty())return false;
+    std::array<void *,2> next{};
+    if(present){
+      ClientPreparationAllocator accounting{};
+      // Shared 不分配暂存元数据。分配进入游戏 owner，镜像字节由状态预算单独计量。
+      accounting.charge_native=[](void *,std::size_t){};
+      ClientStagedField build(accounting);
+      build.input.layout=std::uint16_t(layout);
+      build.input.stride=SharedSize(layout);
+      build.input.payload_present=true;
+      build.input.count=1;
+      Shared(build);
+      next=build.shared;
+    }
+    auto old=holder;
+    holder=next;
+    payload=holder[0];
+    ReleaseShared(old,layout);
+    return true;
+  }catch(...){return false;}
+}
+
+// Weapon 槽接收真实工厂产出的派生对象。旧对象先离开槽，再按实际类型拆 EntityPtr 和释放。
+bool FlatWeapon(void *slot,unsigned layout,unsigned type,bool install,void *&payload) noexcept {
+  if(!slot||type>15||(type&&WeaponLayout(type)!=layout))return false;
+  auto &current=*static_cast<Weapon **>(slot);
+  const auto old=current?unsigned(current->_weaponType):0u;
+  if(current&&(!old||old>15||*reinterpret_cast<std::uintptr_t *>(current)!=Base+weapon_contracts[old].vptr))return false;
+  payload=current;
+  if(old==type)return true;
+  if(!install||!ClientNativeCpuQueuesEmpty())return false;
+  auto *next=type?Isaac::CreateWeapon(WeaponType(type),nullptr):nullptr;
+  if(type&&(!next||next->_weaponType!=int(type)||next->_owner||
+      *reinterpret_cast<std::uintptr_t *>(next)!=Base+weapon_contracts[type].vptr))return false;
+  auto *prior=current;
+  current=next;payload=next;
+  if(prior){
+    for(const auto offset:weapon_contracts[old].refs)if(offset)
+      reinterpret_cast<EntityPtr *>(reinterpret_cast<std::byte *>(prior)+offset)->SetReference(nullptr);
+    prior->_owner=nullptr;
+    auto **table=*reinterpret_cast<void ***>(prior);
+    reinterpret_cast<void (__thiscall *)(void *,unsigned)>(table[0])(prior,1);
+  }
+  return true;
+}
+
+using FlatString=std::basic_string<char,std::char_traits<char>,FlatGameAllocator<char>>;
+template<class K,class V>using FlatMap=std::map<K,V,std::less<K>,FlatGameAllocator<std::pair<const K,V>>>;
+template<class T>using FlatVector=std::vector<T,FlatGameAllocator<T>>;
+using FlatCounts=std::unordered_map<int,int,std::hash<int>,std::equal_to<int>,FlatGameAllocator<std::pair<const int,int>>>;
+using FlatBlocked=std::unordered_set<int,std::hash<int>,std::equal_to<int>,FlatGameAllocator<int>>;
+struct FlatInnate {FlatCounts persistent;FlatVector<player_sdk::Timed> temporary;FlatCounts totals;};
+using FlatInnates=FlatMap<FlatString,FlatInnate>;
+static_assert(sizeof(FlatInnate)==sizeof(player_sdk::Innate)&&sizeof(FlatInnates)==sizeof(Innates));
+
+// 关联容器的键通过游戏 STL 插入。新集合构造完成之后才替换活头。
+bool AssignFlatItems(void *slot,ClientBinaryFlatAssociative kind,const std::byte *entries,unsigned count) noexcept {
+  try {
+    if(!slot||count>16384||(count&&!entries))return false;
+    if(kind==ClientBinaryFlatAssociative::Map){
+      FlatMap<int,int> next;
+      for(unsigned i=0;i<count;++i)if(!next.emplace(Int(entries+i*8),Int(entries+i*8+4)).second)return false;
+      next.swap(*static_cast<FlatMap<int,int> *>(slot));
+    }else if(kind==ClientBinaryFlatAssociative::Blocked){
+      FlatBlocked next;
+      next.reserve(count);
+      for(unsigned i=0;i<count;++i)if(!next.insert(Int(entries+i*4)).second)return false;
+      next.swap(*static_cast<FlatBlocked *>(slot));
+    }else{
+      FlatInnates next;
+      if(count){
+        auto &group=next[FlatString("IsaacCS")].persistent;
+        group.reserve(count);
+        for(unsigned i=0;i<count;++i)if(!group.emplace(Int(entries+i*8),Int(entries+i*8+4)).second)return false;
+      }
+      next.swap(*static_cast<FlatInnates *>(slot));
+    }
+    return true;
+  }catch(...){return false;}
+}
+}
+bool ClientBinaryFlatShared(void *slot,unsigned layout,bool present,bool install,void *&payload) noexcept {
+  __try{return FlatShared(slot,layout,present,install,payload);}
+  __except(EXCEPTION_EXECUTE_HANDLER){return false;}
+}
+bool ClientBinaryFlatWeapon(void *slot,unsigned layout,unsigned type,bool install,void *&payload) noexcept {
+  __try{return FlatWeapon(slot,layout,type,install,payload);}
+  __except(EXCEPTION_EXECUTE_HANDLER){return false;}
+}
+bool ClientBinaryFlatItems(void *slot,ClientBinaryFlatAssociative kind,const std::byte *entries,unsigned count) noexcept {
+  __try{return ClientBinaryInstallationScopeActive(false)&&AssignFlatItems(slot,kind,entries,count);}
+  __except(EXCEPTION_EXECUTE_HANDLER){return false;}
+}
+// 退休使用当前活头和实际动态类型；上一张镜像不能证明 deque 长度或 Weapon 选择臂。
+bool ClientBinaryFlatOwnedReferences(void *slot,bool weapon,void *context,ClientBinaryFlatReferenceVisitor visit) noexcept {
+  __try {
+    if(!ClientBinaryInstallationScopeActive(true)||!slot||!visit)return false;
+    if(weapon){
+      const auto *slots=static_cast<Weapon *const *>(slot);
+      for(unsigned i=0;i<5;++i)if(auto *current=slots[i]){
+        const auto type=unsigned(current->_weaponType);
+        if(!type||type>15||*reinterpret_cast<std::uintptr_t *>(current)!=Base+weapon_contracts[type].vptr)return false;
+        for(const auto offset:weapon_contracts[type].refs)
+          if(offset&&!visit(context,reinterpret_cast<std::byte *>(current)+offset))return false;
+      }
+    }else{
+      auto &deque=*static_cast<FlatDeque<EntityPtr> *>(slot);
+      if(deque.size()>16384)return false;
+      for(unsigned i=0;i<deque.size();++i)if(!visit(context,&deque[i]))return false;
+    }
+    return true;
+  }__except(EXCEPTION_EXECUTE_HANDLER){return false;}
+}
 ClientStagedField *ClientStagedFieldCreate(ClientPreparationAllocator a) noexcept {
   if(!IsMain()||!a.allocate||!a.release||!a.charge_native||!a.uncharge_native)return nullptr;void *p=nullptr;
   try{p=a.allocate(a.context,sizeof(ClientStagedField),alignof(ClientStagedField));return p?new(p)ClientStagedField(a):nullptr;}
@@ -236,7 +522,6 @@ ClientPreparationResult ClientStagedFieldConstruct(ClientStagedField *o,const Cl
   if(!o||!Window()||!ClientBinaryPreparationScopeActive(false))return Bad("binary_fields_context");
   if(!ClientNativeCpuQueuesEmpty())return {ClientPreparationStatus::Waiting,"binary_fields_cpu_borrow"};
   if(o->entered)return o->ready&&ClientStagedFieldCurrent(o)?Ready():Bad("binary_fields_prefix_retained");
-  if(in.kind==Kind::Shared&&in.present&&in.payload_present&&in.count&&!(*reinterpret_cast<void **>(Base+SharedCallback(in.layout))))return Bad("binary_fields_shared_release_callback");
   o->entered=true;o->input=in;o->roots=ClientPreparationRoots();o->vm=ClientLuaStateIdentity();o->manager=g_Manager;ClientRendererHandles(o->dc,o->gl);
   o->deferred=true;o->ready=true;o->input.data=nullptr;o->input.bytes=0;
   return Ready();
@@ -249,8 +534,7 @@ bool ClientStagedFieldCurrent(const ClientStagedField *o) noexcept {
   if(o->deferred)return true;
   if(o->input.kind==Kind::Weapons&&o->input.present&&!WeaponsCurrent(*o))return false;
   if(o->input.kind==Kind::Shared&&o->input.present&&o->input.payload_present&&o->input.count)
-    return o->shared_constructed&&o->shared[0]==o->container&&o->shared[1]&&*static_cast<const std::uintptr_t *>(o->container)==Base+SharedVptr(o->input.layout)&&
-      o->shared_release&&o->shared_release==*reinterpret_cast<void (__cdecl **)(void *)>(Base+SharedCallback(o->input.layout));
+    return o->shared_constructed&&o->container&&o->shared[0]==o->container&&SharedPairCurrent(o->shared,o->input.layout);
   return true;
 }
 namespace {
@@ -547,14 +831,13 @@ bool ClientStagedFieldRelease(ClientStagedField *&o) noexcept {
   if(o&&o->attachment_uses)return false;
   if(!o)return true;if(o->attached||o->predecessor||o->successor||!Window()||!ClientBinaryPreparationScopeActive(true)||!ClientNativeCpuQueuesEmpty()||o->uncertain||o->release_entered)return false;
   if(o->entered){void *dc=nullptr,*gl=nullptr;const auto r=ClientPreparationRoots();if(r.game!=o->roots.game||r.room!=o->roots.room||o->vm!=ClientLuaStateIdentity()||o->manager!=g_Manager||!ClientRendererHandles(dc,gl)||dc!=o->dc||gl!=o->gl)return false;}
-  if(o->input.kind==Kind::Shared&&o->container&&(!o->shared_constructed||o->shared[0]!=o->container||!o->shared[1]||!o->shared_release||o->shared_release!=*reinterpret_cast<void (__cdecl **)(void *)>(Base+SharedCallback(o->input.layout))))return false;
+  if(o->input.kind==Kind::Shared&&o->container&&
+      (!o->shared_constructed||o->shared[0]!=o->container||!SharedPairCurrent(o->shared,o->input.layout)))return false;
   o->release_entered=true;
   try {AllocationScope allocation(*o);
     if(o->input.kind==Kind::Shared&&o->container){
-      // 替换 helper 即使传 Null 也创建新 control block，不能当作析构。按真实 strong
-      // pair 的减引用／最后释放回调归还原 holder，不产生一个遗失的 Null control block。
-      Native(*o,[&]{auto **table=*static_cast<void ***>(o->shared[1]);const bool last=reinterpret_cast<bool (__thiscall *)(void *)>(table[3])(o->shared[1]);
-        if(!last)throw std::bad_alloc();o->shared_release(o->shared.data());});o->shared={};o->container=nullptr;
+      // 直接归还暂存 holder 的强引用，避免替换 helper 为 Null 另建控制块。
+      Native(*o,[&]{ReleaseShared(o->shared,o->input.layout);});o->container=nullptr;
     }else if(o->input.kind==Kind::Weapons){for(unsigned i=5;i>0;--i)if(auto *w=o->weapons[i-1]){const auto type=o->input.weapons[i-1].type;
       if(!type||type>15||*reinterpret_cast<std::uintptr_t *>(w)!=Base+weapon_contracts[type].vptr||w->_owner)return false;
       Native(*o,[&]{for(const auto offset:weapon_contracts[type].refs)if(offset)reinterpret_cast<EntityPtr *>(reinterpret_cast<unsigned char *>(w)+offset)->SetReference(nullptr);

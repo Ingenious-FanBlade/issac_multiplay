@@ -100,6 +100,8 @@ ClientDisplayWorldRef ClientDescribeDisplayWorld(state::ClientShadowStateRef wor
   for(const auto &p:kDisplayCopies){const auto &source=p.layout==game.Identity().layout?game:
       p.layout==room.Identity().layout?room:p.layout==level.Identity().layout?level:descriptor;
     const auto bytes=Field(source,p.field);if(bytes.size()!=p.size)Fail("display_copy_size");s->Copy(p.root,p.offset,bytes);}
+  // 保留线上 Room.render_scroll，交给新相机初始化。每帧显示标量回写由独立表驱动。
+  s->injections.camera_initial_scroll=Exact<std::array<float,2>>(Field(room,kDisplayRoom_render_scroll));
   s->time_base=Exact<std::uint32_t>(Field(game,kDisplayGameRun_time_counter_base));
   s->paused=Exact<std::uint8_t>(Field(game,kDisplayGameRun_host_paused))!=0;
   s->branch=Exact<std::uint8_t>(Field(game,kDisplayGameRun_display_branch));
@@ -133,6 +135,9 @@ ClientDisplayWorldRef ClientDescribeDisplayWorld(state::ClientShadowStateRef wor
       s->Copy(DisplayRoot::Room,parent->native_offset+f->native_offset,bytes);}}
   const auto current=s->rooms.Room().Descriptor().Values();auto &meta=s->metadata;
   meta.scope={c.scope.session,c.scope.run,c.scope.floor,c.scope.dimension,c.scope.room,c.scope.scene};
+#ifdef ISAACCS_E2E
+  meta.source_revision=c.source_revision;
+#endif
   meta.frame=c.game_frame;meta.time_base=s->time_base;meta.spawn_seed=current.spawn_seed;meta.grid=current.grid;meta.dimension=current.dimension;
   meta.paused=s->paused;meta.branch=static_cast<ClientDisplayBranch>(s->branch);meta.sfx=s->sfx;meta.room_use=selection.room.use;meta.room_shape=selection.room.shape;
   meta.challenge=Exact<std::uint32_t>(Field(game,kDisplayGameRun_challenge));

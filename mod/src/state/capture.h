@@ -57,6 +57,8 @@ struct CaptureWindow {
   // 仅已核纯内存reader可声明：不改变根／线程／证言，并在复制前后核外部writer水位。
   // 该reader成功时已完成复制后的动态检查；其他reader仍由Copy再次完整Check。
   bool read_preserves_scope=false;
+  // 仅已核入口、且根尾统一复核的主线程只读遍历可以借用固定窗口。
+  bool synchronous_root=false;
   bool Check(const CaptureRoot &,CaptureDiagnostic &) const noexcept;
   bool Copy(const CaptureRoot &,std::uint32_t offset,std::span<std::byte>,CaptureDiagnostic &) const noexcept;
 };

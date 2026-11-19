@@ -21,6 +21,8 @@
 
 // 20 项观察语义单独放在 C++17 兼容的头里：生成的 SDK-facing wrapper 也要用。
 #include "world/observation.h"
+// 生命状态证言同样是 C++17 值类型，生成的 wrapper 经 world_entity_owner.h 持有。
+#include "world/player_life.h"
 
 namespace cs::world {
 
@@ -179,7 +181,9 @@ enum class Readiness : std::uint32_t {
   // J273 JoinPass直接Factory/Init/Publish的Effect；完整owner返回后授予，不是基础Init。
   NativeJoinEffectCompleted = 6,
   // 直接 Factory 取得的 Effect 已完整初始化并进入当前 Room 的实体列表。
-  NativeDirectEffectPublished = 7
+  NativeDirectEffectPublished = 7,
+  // 已确认的同一 Player 实例完成原生幽灵化或复活，独立于输入锚点。
+  PlayerLifeOwnerCompleted = 8
 };
 // 本轮 Authority tick 的类型；0 表示本轮不是有效 Authority 样本。
 enum class AuthorityKind : std::uint32_t { None = 0, StandardRoom = 1, OddPlayer = 2 };

@@ -16,6 +16,8 @@ struct BinaryEntityStats {
   state::CaptureDiagnostic failure,first_object_failure;
   // 单根沿用、无 Body 资格和整帧失败分开计数。
   std::uint64_t object_failures=0,body_skipped=0;
+  // 统计所有在采集边界收到的 SourceChanged，包括丢弃的 Body 候选。
+  std::uint64_t source_changed=0;
   std::uint32_t retained_roots=0,max_retained_frames=0;
   state::CaptureExchangeStats exchange;
   state::HostMemberIndexStats member_indices;
@@ -42,13 +44,15 @@ public:
   bool Active() const noexcept;
   void FrameBegin() noexcept;
   void FrameEnd() noexcept;
-  bool Prepare(bool normal) noexcept;
+  bool Prepare(bool normal,std::uint64_t completed_tick) noexcept;
+  void CommitTransition() noexcept;
   void Commit(bool committed,const core::TickPostState &) noexcept;
   void Invalidate() noexcept;
   void RetireBody(std::uint32_t address) noexcept;
   void EntityChanged(std::uint32_t address) noexcept;
   void TextWritten(std::uint32_t address,std::uint64_t local,std::uint64_t use,std::uint64_t shape) noexcept;
   void ResourceChanged(std::uint32_t address,const char *operation) noexcept;
+  void SharedResourceChanged(bool animation) noexcept;
   void FloorBoundary(bool entering,bool normal) noexcept;
   void GridChanged(std::uint32_t address) noexcept;
   std::uint32_t ProductionBegin(BinaryProductionKind,std::uint32_t object,std::uint32_t manager) noexcept;

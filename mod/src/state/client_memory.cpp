@@ -86,6 +86,14 @@ void ClientApplyMetrics::SetBlockSample(const std::array<std::uint64_t,3> &bytes
   for(unsigned i=0;i<3;++i)block_bytes_[i].store(bytes[i],std::memory_order_relaxed);
   sample_time_.store(Now(),std::memory_order_release);
 }
+std::array<ClientApplyMetrics::InstallTiming,2> ClientApplyMetrics::ReadInstallTiming() const noexcept {
+  std::array<InstallTiming,2> timing{};
+  for(unsigned i=0;i<timing.size();++i){
+    const auto &stage=streams_[i].stages[unsigned(ClientApplyStage::Install)];
+    timing[i]={stage.count.load(std::memory_order_relaxed),stage.total.load(std::memory_order_relaxed)};
+  }
+  return timing;
+}
 std::string ClientApplyMetrics::Fields(unsigned page)const {
   if(page>1)return {};
   constexpr const char *stages[]={"receive","decode_slice","validation_slice","plan_slice","describe_slice","admit","main_prepare",

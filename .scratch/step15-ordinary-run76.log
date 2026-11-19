@@ -1,0 +1,185 @@
+{"stream.source.ordinary": "2318", "stream.source.gaps": "506", "stream.source.member_indices.high_water": "264", "stream.source.member_indices.reused": "4276", "stream.source.capture_detail": "", "stream.source.reason": "", "client_state": "Off", "client.scene_state": "4", "client.applied_revision": "0", "client.error": "server_disconnected"}
+{
+  "seconds": 10.72025310000754,
+  "rates": {
+    "host.completed_tick": 59.4202388747288,
+    "host.stream.source.ordinary": 29.75676012721898,
+    "host.stream.source.bodies": 111.47124875243473,
+    "host.stream.wire_bytes": 10381.751154729895,
+    "client.completed_tick": 0.0,
+    "client.stream.binary.world.publish.n": 0.0,
+    "client.stream.binary.body.publish.n": 0.0
+  },
+  "timings": {
+    "host.stream.capture_worker.duration.encode.": {
+      "n": 45820,
+      "mean_us": 41.76171977302488
+    },
+    "host.stream.capture_worker.duration.capture_index.": {
+      "n": 45820,
+      "mean_us": 24.36484068092536
+    },
+    "host.stream.capture_worker.duration.capture_queue_age.": {
+      "n": 555,
+      "mean_us": 3456.218018018018
+    },
+    "host.stream.main.duration.main_capture.": {
+      "n": 639,
+      "mean_us": 3109.1799687010953,
+      "p50_upper_us": 4095,
+      "p95_upper_us": 8191,
+      "p99_upper_us": 8191
+    },
+    "host.stream.main.duration.frame_interval.": {
+      "n": 640,
+      "mean_us": 16666.68125,
+      "p50_upper_us": 32767,
+      "p95_upper_us": 32767,
+      "p99_upper_us": 32767
+    },
+    "host.stream.main.duration.source_native.": {
+      "n": 640,
+      "mean_us": 441.8078125,
+      "p50_upper_us": 511,
+      "p95_upper_us": 1023,
+      "p99_upper_us": 1023
+    },
+    "host.stream.main.duration.entity_values.": {
+      "n": 320,
+      "mean_us": 2895.134375,
+      "p50_upper_us": 4095,
+      "p95_upper_us": 4095,
+      "p99_upper_us": 8191
+    },
+    "host.stream.main.duration.fast_body.": {
+      "n": 640,
+      "mean_us": 323.303125,
+      "p50_upper_us": 127,
+      "p95_upper_us": 1023,
+      "p99_upper_us": 1023
+    },
+    "host.stream.main.duration.ordinary_outer.": {
+      "n": 320,
+      "mean_us": 5151.9,
+      "p50_upper_us": 8191,
+      "p95_upper_us": 8191,
+      "p99_upper_us": 8191
+    },
+    "host.stream.main.duration.body_outer.": {
+      "n": 320,
+      "mean_us": 1035.66875,
+      "p50_upper_us": 2047,
+      "p95_upper_us": 2047,
+      "p99_upper_us": 2047
+    },
+    "host.stream.main.duration.topology_common.": {
+      "n": 641,
+      "mean_us": 265.80655226209046,
+      "p50_upper_us": 511,
+      "p95_upper_us": 511,
+      "p99_upper_us": 511
+    },
+    "host.stream.main.duration.topology_groups.": {
+      "n": 641,
+      "mean_us": 60.98283931357254,
+      "p50_upper_us": 127,
+      "p95_upper_us": 127,
+      "p99_upper_us": 127
+    },
+    "host.stream.main.duration.topology_lease.": {
+      "n": 642,
+      "mean_us": 28.869158878504674,
+      "p50_upper_us": 31,
+      "p95_upper_us": 63,
+      "p99_upper_us": 63
+    },
+    "host.stream.main.duration.anchor_install.": {
+      "n": 643,
+      "mean_us": 4.412130637636081,
+      "p50_upper_us": 7,
+      "p95_upper_us": 7,
+      "p99_upper_us": 7
+    },
+    "host.stream.main.duration.field_execution.": {
+      "n": 643,
+      "mean_us": 1999.1275272161743,
+      "p50_upper_us": 1023,
+      "p95_upper_us": 4095,
+      "p99_upper_us": 8191
+    },
+    "host.stream.main.duration.joint_prepare.": {
+      "n": 322,
+      "mean_us": 116.75776397515529,
+      "p50_upper_us": 127,
+      "p95_upper_us": 255,
+      "p99_upper_us": 255
+    },
+    "host.stream.main.duration.body_clone.": {
+      "n": 321,
+      "mean_us": 12.454828660436137,
+      "p50_upper_us": 15,
+      "p95_upper_us": 31,
+      "p99_upper_us": 31
+    },
+    "host.stream.main.duration.ordinary_published_outer.": {
+      "n": 322,
+      "mean_us": 5128.475155279503,
+      "p50_upper_us": 8191,
+      "p95_upper_us": 8191,
+      "p99_upper_us": 8191
+    },
+    "host.stream.main.duration.body_published_outer.": {
+      "n": 322,
+      "mean_us": 1023.9534161490683,
+      "p50_upper_us": 2047,
+      "p95_upper_us": 2047,
+      "p99_upper_us": 2047
+    },
+    "client.stream.receive.duration.decode.": {
+      "n": 663,
+      "mean_us": 32.85822021116139
+    },
+    "client.stream.receive.duration.network.": {
+      "n": 4347,
+      "mean_us": 2029.3715205889118
+    },
+    "client.stream.binary.world.manager.": {
+      "n": 526,
+      "mean_us": 2.5665399239543727,
+      "over_2000_us": 0,
+      "over_4000_us": 0
+    },
+    "client.stream.binary.body.manager.": {
+      "n": 524,
+      "mean_us": 2.568702290076336,
+      "over_2000_us": 0,
+      "over_4000_us": 0
+    }
+  },
+  "final": {
+    "host": {
+      "state": "Active",
+      "last_error": "",
+      "client_state": "Off",
+      "stream.source.gaps": "506",
+      "stream.source.member_indices.high_water": "264",
+      "stream.source.member_indices.reused": "4280",
+      "stream.source.capture_detail": "",
+      "stream.source.reason": "",
+      "stream.first_failure": "binary_prepare_install_deadline",
+      "stream.pool.0": "74639083/75623298/536870912",
+      "stream.pool.1": "110290/119763/134217728",
+      "stream.pool.2": "6905946/10051674/134217728"
+    },
+    "client": {
+      "state": "Idle",
+      "last_error": "",
+      "client_state": "Off",
+      "client.scene_state": "4",
+      "client.error": "server_disconnected",
+      "stream.pool.0": "1323886/53404322/536870912",
+      "stream.pool.1": "248735/487384/134217728",
+      "stream.pool.2": "63696/1508307/134217728"
+    }
+  }
+}

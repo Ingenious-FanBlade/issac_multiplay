@@ -31,8 +31,8 @@ J273 静态结果。地址为 VA（RVA = VA − 0x400000）。
 7. **缩放输入**：in = 输入 × (MoveSpeed × 0.25 + 0.75)，MoveSpeed 即 `+0x155C`；由它设置 moveDirection `+0x1618`。suplex 状态 1 另走 `sub_6A7E80`。
 8. **滑行系数** s = 滑行计数 `+0x1650` / 60。FLAG_SLIPPERY_PHYSICS（1<<27）时计数置 60，否则每次更新减 1；SEED_ICE_PHYSICS（52）会设这个标志。FLAG_SLOW（1<<7）强制 s=0。
 9. **垂直阻尼**：dot = dot(vel, in̂)（in̂ 为 in 的方向）；vel = (vel − in̂·dot) × sqrt(0.2s + 0.8) + in̂·dot。
-10. **加速**：a = (max(0, (0.7s − 0.2)·dot(vel, in)) / MoveSpeed + 3) × 0.4；vel += in × 0.5 × ((a×0.25 − a)×s + a)。s>0 时速度上限 4.41 × MoveSpeed（超出时按原长度比例缩回）。
-11. **摩擦**（写回 `+0x36C` 供下一步 Entity::Update 使用）：
+10. **加速**：a = (max(0, (0.7s − 0.2)·dot(vel, in)) / MoveSpeed + 3) × 0.4；vel += in × 0.5 × ((a×0.25 − a)×s + a)。s>0 且加速后速度超过 4.41 × MoveSpeed 时，按比例缩回到**加速前（阻尼后）的速度大小**，不是缩到上限（2026-11-19 阶段 2 补核）。第 9 步的 in̂ 实为缩放后的输入 in 本身（未归一化），dot 也用 in。
+11. **摩擦**（2026-11-19 阶段 2 补核勘误：ControlMovement 不写 `+0x36C`，而是在本步末尾直接把速度乘以下列系数；`+0x36C` 只在 Entity::Update 中使用并复位为基础值）：
     - 默认 sqrt(0.185s + 0.775)；
     - 逆战车、suplex>1 或 TF 本体：sqrt(0.51s + 0.45)；
     - FLAG_THROWN（1<<58，高双字 0x4000000）：1.0；

@@ -6083,22 +6083,32 @@
           "size": "0x4",
           "name": "_maxfiredelay",
           "type": "f32",
-          "category": "权威",
-          "semantics": "_maxfiredelay：已知SDK用途为玩法／生产状态，最终实体／ANM／显示缓存另有owner；不能因有公开getter自动上线",
-          "status": "SDK声明",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/EntityPlayer.zhl；5-player-p0-p2.md；5-player-p3-p5.md；5-player-p6-p8.md",
-          "read_requires": "current_body_field_witness_same_use_and_binding"
+          "category": "状态",
+          "semantics": "本地原生 StatHUD 读取的射速换算所用的射击延迟；随 Player World 状态安装",
+          "status": "已核",
+          "evidence": "J273 83CFD0—83D101；REPENTOGON 1.1.3 EntityPlayer.zhl",
+          "read_requires": "current_body_field_witness_same_use_and_binding",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1460",
           "size": "0x4",
           "name": "_shotspeed",
           "type": "f32",
-          "category": "权威",
-          "semantics": "_shotspeed：已知SDK用途为玩法／生产状态，最终实体／ANM／显示缓存另有owner；不能因有公开getter自动上线",
-          "status": "SDK声明",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/EntityPlayer.zhl；5-player-p0-p2.md；5-player-p3-p5.md；5-player-p6-p8.md",
-          "read_requires": "current_body_field_witness_same_use_and_binding"
+          "category": "状态",
+          "semantics": "本地原生 StatHUD 读取的弹速；随 Player World 状态安装",
+          "status": "已核",
+          "evidence": "J273 83CFD0—83D101；REPENTOGON 1.1.3 EntityPlayer.zhl",
+          "read_requires": "current_body_field_witness_same_use_and_binding",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1464",
@@ -6115,11 +6125,16 @@
           "size": "0x4",
           "name": "_damage",
           "type": "f32",
-          "category": "权威",
-          "semantics": "_damage：已知SDK用途为玩法／生产状态，最终实体／ANM／显示缓存另有owner；不能因有公开getter自动上线",
-          "status": "SDK声明",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/EntityPlayer.zhl；5-player-p0-p2.md；5-player-p3-p5.md；5-player-p6-p8.md",
-          "read_requires": "current_body_field_witness_same_use_and_binding"
+          "category": "状态",
+          "semantics": "本地原生 StatHUD 读取的伤害；随 Player World 状态安装",
+          "status": "已核",
+          "evidence": "J273 83CFD0—83D101；REPENTOGON 1.1.3 EntityPlayer.zhl",
+          "read_requires": "current_body_field_witness_same_use_and_binding",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1470",
@@ -6159,11 +6174,16 @@
           "size": "0x4",
           "name": "_tearrange",
           "type": "f32",
-          "category": "权威",
-          "semantics": "_tearrange：已知SDK用途为玩法／生产状态，最终实体／ANM／显示缓存另有owner；不能因有公开getter自动上线",
-          "status": "SDK声明",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/EntityPlayer.zhl；5-player-p0-p2.md；5-player-p3-p5.md；5-player-p6-p8.md",
-          "read_requires": "current_body_field_witness_same_use_and_binding"
+          "category": "状态",
+          "semantics": "本地原生 StatHUD 读取的射程换算所用的原生距离；随 Player World 状态安装",
+          "status": "已核",
+          "evidence": "J273 83CFD0—83D101；REPENTOGON 1.1.3 EntityPlayer.zhl",
+          "read_requires": "current_body_field_witness_same_use_and_binding",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1480",
@@ -6415,22 +6435,32 @@
           "size": "0x4",
           "name": "_movespeed",
           "type": "f32",
-          "category": "权威",
-          "semantics": "_movespeed：已知SDK用途为玩法／生产状态，最终实体／ANM／显示缓存另有owner；不能因有公开getter自动上线",
-          "status": "SDK声明",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/EntityPlayer.zhl；5-player-p0-p2.md；5-player-p3-p5.md；5-player-p6-p8.md",
-          "read_requires": "current_body_field_witness_same_use_and_binding"
+          "category": "状态",
+          "semantics": "本地原生 StatHUD 读取的移动速度；随 Player World 状态安装",
+          "status": "已核",
+          "evidence": "J273 83CFD0—83D101；REPENTOGON 1.1.3 EntityPlayer.zhl",
+          "read_requires": "current_body_field_witness_same_use_and_binding",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1560",
           "size": "0x4",
           "name": "_luck",
           "type": "f32",
-          "category": "权威",
-          "semantics": "_luck：已知SDK用途为玩法／生产状态，最终实体／ANM／显示缓存另有owner；不能因有公开getter自动上线",
-          "status": "SDK声明",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/EntityPlayer.zhl；5-player-p0-p2.md；5-player-p3-p5.md；5-player-p6-p8.md",
-          "read_requires": "current_body_field_witness_same_use_and_binding"
+          "category": "状态",
+          "semantics": "本地原生 StatHUD 读取的幸运；随 Player World 状态安装",
+          "status": "已核",
+          "evidence": "J273 83CFD0—83D101；REPENTOGON 1.1.3 EntityPlayer.zhl",
+          "read_requires": "current_body_field_witness_same_use_and_binding",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x1564",
@@ -8454,7 +8484,13 @@
         "entityplayer_body_role_read": "沿topology.h枚举0—6；无组须Inactive6，不恢复被裁native sub/replaced",
         "entityplayer_body_role_install": "沿topology.h枚举0—6；无组须Inactive6，不恢复被裁native sub/replaced",
         "entityplayer_control_flags_read": "bit0 active，bit1 can_consume，其余0；consume=>active，无组须0",
-        "entityplayer_control_flags_install": "bit0 active，bit1 can_consume，其余0；consume=>active，无组须0"
+        "entityplayer_control_flags_install": "bit0 active，bit1 can_consume，其余0；consume=>active，无组须0",
+        "entityplayer_input_sequence_read": "本身体所属控制组的参与者在本次Body采集时已处理的最高输入序号低32位；0表示无；只供客机本机预测对账，不写原生",
+        "entityplayer_input_sequence_install": "本身体所属控制组的参与者在本次Body采集时已处理的最高输入序号低32位；0表示无；只供客机本机预测对账，不写原生",
+        "entityplayer_input_tick_read": "本次Body采集所在Authority tick（clock.Current）低32位；客机按自身意图目标tick换算重放起点，不写原生",
+        "entityplayer_input_tick_install": "本次Body采集所在Authority tick（clock.Current）低32位；客机按自身意图目标tick换算重放起点，不写原生",
+        "entityplayer_input_phase_read": "bit0：本样本结束于奇半帧（OddPlayer tick或Host关插值时整帧两半步）；bit1—2：本tick该身体走的半步数（1或2）；其余0；不写原生",
+        "entityplayer_input_phase_install": "bit0：本样本结束于奇半帧（OddPlayer tick或Host关插值时整帧两半步）；bit1—2：本tick该身体走的半步数（1或2）；其余0；不写原生"
       },
       "validators": {
         "_hasGoldenKey": {
@@ -8474,6 +8510,30 @@
           "scalar": "u8"
         },
         "render_scales": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "_maxfiredelay": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "_shotspeed": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "_damage": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "_tearrange": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "_movespeed": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "_luck": {
           "kind": "finite",
           "scalar": "f32"
         },
@@ -12272,6 +12332,33 @@
           "client": "entityplayer_control_flags_install",
           "shape": true,
           "sequence": "world"
+        },
+        {
+          "name": "input_sequence",
+          "type": "u32",
+          "semantics": "本身体所属控制组的参与者在本次Body采集时已处理的最高输入序号低32位；0表示无；只供客机本机预测对账，不写原生",
+          "evidence": "docs/design/binary-state/prediction-interpolation.md 5.7、RE-P6",
+          "host": "entityplayer_input_sequence_read",
+          "client": "entityplayer_input_sequence_install",
+          "sequence": "body"
+        },
+        {
+          "name": "input_tick",
+          "type": "u32",
+          "semantics": "本次Body采集所在Authority tick（clock.Current）低32位；客机按自身意图目标tick换算重放起点，不写原生",
+          "evidence": "docs/design/binary-state/prediction-interpolation.md 5.7、RE-P6",
+          "host": "entityplayer_input_tick_read",
+          "client": "entityplayer_input_tick_install",
+          "sequence": "body"
+        },
+        {
+          "name": "input_phase",
+          "type": "u8",
+          "semantics": "bit0：本样本结束于奇半帧（OddPlayer tick或Host关插值时整帧两半步）；bit1—2：本tick该身体走的半步数（1或2）；其余0；不写原生",
+          "evidence": "docs/design/binary-state/prediction-interpolation.md 5.7、RE-P6",
+          "host": "entityplayer_input_phase_read",
+          "client": "entityplayer_input_phase_install",
+          "sequence": "body"
         }
       ],
       "contexts": {

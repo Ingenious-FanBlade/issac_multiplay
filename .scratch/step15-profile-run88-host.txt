@@ -1,0 +1,71 @@
+First candidates:
+572 cs::world::QueryNativeReadRegion
+324 cs::game::ReadMemory
+63 cs::game::PushOwner
+55 cs::game::`anonymous namespace'::DisplayFree
+42 cs::world::CopyNativeReadBytes
+42 cs::replica::stream::ThreadCpuMicros
+38 cs::PublishStatus
+29 cs::CallScope::~CallScope
+28 cs::state::CaptureExecution::Direct
+23 cs::state::CaptureValueWriter::Store
+23 truncf
+23 cs::state::CaptureValueWriter::Store
+19 cs::state::CaptureValueWriter::Store
+19 cs::state::CaptureValueWriter::SetSlice
+15 cs::game::`anonymous namespace'::DisplayMalloc
+15 isfinite<double>
+13 cs::state::CaptureWindow::Check
+12 cs::world::binary::EntitySource::Impl::Current
+10 `cs::game::BinaryEntities::Impl::BeginRead'::`3'::<lambda_1>::<lambda_invoker_cdecl>
+10 cs::state::CaptureSubject::operator==
+10 operator new
+9 _allshl
+9 __builtin_array_init_helper<cs::replica::stream::Duration>
+9 cs::game::ClientRenderScope::ClientRenderScope
+8 cs::state::StateScope::operator==
+8 isfinite<double>
+8 `cs::game::BinaryEntities::Impl::BeginRead'::`3'::<lambda_1>::<lambda_invoker_cdecl>
+7 cs::state::CaptureExecution::Walk
+7 cs::state::CaptureExecution::Leaf
+7 cs::state::DescribeBodySourceField
+7 H_entity_list::Wrapper::hook
+6 cs::world::IdentityTable::Find
+6 cs::world::binary::EntitySource::Impl::Current
+6 cs::world::binary::EntitySource::Impl::Current
+Candidate chains (not unwound):
+96 cs::world::QueryNativeReadRegion -> truncf -> cs::world::binary::CaptureReadSession::Find -> cs::world::binary::CaptureReadSession::Copy -> cs::world::binary::EntitySource::Impl::Current
+96 cs::world::QueryNativeReadRegion -> truncf -> cs::game::`anonymous namespace'::TopologyReader::Copy
+79 cs::world::QueryNativeReadRegion -> truncf -> cs::game::`anonymous namespace'::ConsumerReadWindow::Copy -> cs::game::`anonymous namespace'::StableConsumerSnapshot -> cs::game::RefreshLifecycle
+70 cs::world::QueryNativeReadRegion -> truncf -> cs::world::binary::CaptureReadSession::Find -> cs::world::binary::CaptureReadSession::Copy -> _except_handler4_noexcept -> cs::world::binary::EntitySource::Impl::Current
+58 cs::world::QueryNativeReadRegion -> truncf -> cs::game::`anonymous namespace'::TopologyReader::Copy -> cs::game::`anonymous namespace'::TopologyReadBatch::ReadCommon
+44 cs::world::QueryNativeReadRegion -> truncf -> `cs::game::WorldMemoryReader'::`2'::<lambda_3>::<lambda_invoker_cdecl> -> cs::world::Collector::ReadRoots
+33 truncf
+29 cs::game::ReadMemory -> truncf -> cs::game::OverrideQuery -> cs::game::`anonymous namespace'::Query -> cs::game::`anonymous namespace'::Scalar
+28 cs::game::`anonymous namespace'::DisplayFree -> truncf -> cs::game::ClientRenderScope::ClientRenderScope -> H_manager_render::Wrapper::hook -> H_manager_render::record
+28 cs::game::PushOwner -> H_manager_render::record -> cs::game::ClientRenderScope::ClientRenderScope -> H_manager_render::Wrapper::hook -> truncf
+28 cs::CallScope::~CallScope -> truncf
+22 cs::world::QueryNativeReadRegion -> truncf -> cs::game::`anonymous namespace'::TopologyReader::Copy -> cs::world::CopyNativeReadBytes
+19 cs::game::ReadMemory -> `cs::game::WorldMemoryReader'::`2'::<lambda_1>::<lambda_invoker_cdecl> -> truncf -> cs::world::Collector::Read -> cs::world::Collector::Birth -> cs::world::Collector::ObserveLeave
+16 cs::game::`anonymous namespace'::DisplayFree -> truncf
+16 cs::game::ReadMemory -> truncf -> cs::game::OverrideQuery -> cs::game::`anonymous namespace'::Query -> cs::game::`anonymous namespace'::Triggered
+16 cs::game::PushOwner -> H_manager_render::record -> cs::game::ClientRenderScope::ClientRenderScope -> H_manager_render::Wrapper::hook -> truncf -> cs::CallScope::~CallScope
+14 cs::game::ReadMemory -> truncf -> cs::game::OverrideQuery -> cs::`anonymous namespace'::Value<2>
+14 cs::state::CaptureValueWriter::Store -> `cs::world::binary::EntitySource::CaptureRootValues'::`2'::<lambda_1>::<lambda_invoker_cdecl> -> truncf -> cs::state::CaptureValueWriter::SetSlice -> cs::state::CaptureExecution::Direct -> cs::state::CaptureExecution::Leaf
+13 cs::game::PushOwner -> H_manager_render::record -> cs::game::ClientRenderScope::ClientRenderScope
+13 cs::game::ReadMemory -> truncf -> cs::game::OverrideQuery -> cs::game::`anonymous namespace'::Query -> cs::game::`anonymous namespace'::Scalar -> cs::game::InputLease::InputLease
+13 cs::game::ReadMemory -> truncf -> cs::game::OverrideQuery -> cs::`anonymous namespace'::Value<2> -> cs::core::Participant::CurrentEligible
+12 cs::PublishStatus -> `string' -> H_room_prerender::Wrapper::hook -> truncf
+12 cs::game::ReadMemory -> truncf -> cs::game::`anonymous namespace'::Query -> cs::game::`anonymous namespace'::Pressed
+12 cs::game::ReadMemory -> truncf -> cs::game::OverrideQuery -> cs::`anonymous namespace'::Query<1>
+11 cs::game::ReadMemory -> truncf -> cs::game::OverrideQuery -> cs::`anonymous namespace'::Query<0> -> cs::core::Participant::CurrentEligible
+10 cs::world::QueryNativeReadRegion -> truncf -> cs::world::binary::CaptureReadSession::Find -> cs::world::binary::CaptureReadSession::Copy -> cs::game::BinaryEntities::Impl::Add
+9 cs::game::ReadMemory -> truncf -> cs::game::`anonymous namespace'::Query -> cs::game::`anonymous namespace'::Pressed -> cs::game::OverrideQuery
+9 cs::game::ReadMemory -> truncf -> cs::game::`anonymous namespace'::Query -> cs::game::`anonymous namespace'::Scalar -> cs::game::InputLease::InputLease
+8 cs::game::ReadMemory -> truncf -> cs::game::`anonymous namespace'::Query -> cs::game::`anonymous namespace'::Triggered
+8 cs::game::ReadMemory -> truncf -> cs::game::`anonymous namespace'::Query -> cs::game::`anonymous namespace'::Scalar -> cs::game::OverrideQuery
+8 cs::game::ReadMemory -> truncf -> cs::game::OverrideQuery -> cs::game::`anonymous namespace'::Query -> cs::game::`anonymous namespace'::Pressed
+8 cs::world::QueryNativeReadRegion -> truncf -> cs::game::`anonymous namespace'::TopologyReader::Copy -> cs::game::`anonymous namespace'::TopologyReadBatch::Body
+8 cs::PublishStatus -> `string'
+8 cs::world::QueryNativeReadRegion -> cs::world::CopyNativeReadBytes -> truncf -> cs::world::binary::CaptureReadSession::Find -> cs::world::binary::CaptureReadSession::Copy
+7 cs::replica::stream::ThreadCpuMicros

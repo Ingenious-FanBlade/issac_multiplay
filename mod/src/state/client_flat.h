@@ -12,16 +12,31 @@ struct ClientFlatLink {
   bool is_resource=false;
   bool operator==(const ClientFlatLink &) const = default;
 };
+// 子布局和附加段的位置只在通过校验的本地镜像中使用。
+struct ClientFlatChild {
+  std::uint32_t owner=0,main=0;
+  std::uint16_t layout=0,element=0;
+};
+struct ClientFlatExtra {
+  std::uint32_t owner=0;
+  FlatTailSpan bytes;
+};
 struct ClientFlatImage {
   struct alignas(32) Block {std::byte bytes[32];};
   explicit ClientFlatImage(const std::shared_ptr<ClientStateMemory> &);
   ClientStateVector<Block> storage;
   ClientStateVector<FlatTailSpan> tails;
   ClientStateVector<ClientFlatLink> links;
+  ClientStateVector<ClientFlatChild> children;
+  ClientStateVector<ClientFlatExtra> extras;
+  ClientStateVector<std::uint32_t> inactive;
   std::uint32_t size=0;
   std::span<const std::byte> Bytes() const noexcept {return std::as_bytes(std::span(storage)).first(size);}
   std::span<const std::byte> Tail(std::uint16_t index) const noexcept;
   const ClientFlatLink *Link(std::uint32_t offset) const noexcept;
+  std::span<const std::byte> Extra(std::uint32_t offset) const noexcept;
+  std::span<const ClientFlatChild> Children(std::uint32_t offset) const noexcept;
+  bool Active(std::uint32_t offset) const noexcept;
 };
 using ClientFlatImageRef=std::shared_ptr<const ClientFlatImage>;
 
@@ -40,6 +55,8 @@ bool ClientFlatLinksCurrent(const ClientFlatImage &,const ClientMemberSnapshotRe
 void ClientFlatWriteGroups(const FlatLayout &,const ClientFlatImage &,const ClientFlatImage *,
     ClientStateVector<std::uint32_t> &groups,const std::shared_ptr<ClientStateMemory> &);
 std::span<const std::byte> ClientFlatNamed(const FlatLayout &,const ClientFlatImage &,std::string_view) noexcept;
-// 条件清零由双方的同一组镜像值决定；首批 Tear 只需标量谓词。
+// Player 的映射在 World，所引用的 Sprite 向量在 Body；两边须来自同一个目录修订。
+bool ClientFlatPlayerTopologyMatches(const ClientFlatImage &world,const ClientFlatImage &body) noexcept;
+// 由同一镜像选择标量条件。资源条件在 FlatReader 中解释。
 bool ClientFlatSelected(const FlatLayout &,const FlatPatch &,std::span<const std::byte> main) noexcept;
 }

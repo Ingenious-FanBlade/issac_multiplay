@@ -343,6 +343,7 @@
   5. **HUD 刷新请求**：原生共同尾部在 mode2／3 时写 `Game+0x22E94/+0x22E9C`（HUD `_hudRefreshType`／`_hudRefreshCountdown`）为 2。Client 在显示推进中按已安装 mode 本地提出同一请求，属于 RE-1 已定的本地刷新维护，不同步 HUD 内部计数。
   6. **绘制**：`Game::Render` 照原生按 mode 二选一调用 `RoomTransition::Render`（`0x8273C0`），读已安装的 mode／animation／direction／progress 和本地 surface。
 - **换房点等待**：world 按帧原子安装，新房间的 world 帧到达前 Client 一直停在上一帧的“旧房＋Host 当前 mode／progress”，天然得到“停在换房点”，不需要拦截 void ChangeRoom 后冻结 FSM。`RoomTransition::ChangeRoom` hook 仍保留拦截，只作为守卫。
+- **普通门的客机淡入淡出（2026-11-19）**：同层、同维度、方向合法的 `WALK` 过门使用客机显示时钟，旧房按 50 ms 淡出到黑，新房继续正常准备和安装。旧画面已全黑且新房已发布时，实时新房按 70 ms 从黑色淡入。每个画面取当前显示帧对应的透明度。客机仅在原生绘制作用域内跳过普通门滑动，离开时归还 Host 的原生转场字段。Boss 房入场、跨维度、换层及其他类型的转场沿用现有路径。
 - **音效**：Client 不运行 Start／Update，转场内的所有声音（Start `0x823CE1` 的 608／609、mode3 `0x826D79` 的 sound 1、mode4 `0x826FBA` 的 sound 214）都按 Q7 作为 Host 事件发送和回放。
 - **不变的部分**：完整 Game／Level／RoomInit、Player 姿态与可见性（Host 当前值随 Entity 同步）、进房选曲和 Boss 完成分支的 `Player+0x418` 写入都只在 Host 发生。Host 侧采集仍按 RE-9 关联转场序号与最终目标，供中途连接、事件幂等和 resize 恢复使用。
 - 第 1 节 RE-9 的事件／目标关联、resize 与断线失败方式仍适用；`client-split-contract.md` 第 2—3 节的自有驱动步骤由本决定取代，第 2 节“只 hook ChangeRoom 不够”的结论仍成立（Client 不运行 FSM，自然不触发）。

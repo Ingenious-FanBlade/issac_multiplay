@@ -50,6 +50,7 @@ public:
   const PresentationMember &Identity() const noexcept;
   std::uint32_t Mask() const noexcept;
   const ClientFlatImageRef &Flat() const noexcept;
+  std::span<const std::byte> FlatValue(std::string_view name) const noexcept;
   std::optional<ClientShadowBlockView> Block(std::uint8_t) const noexcept;
   // 块相同须同时满足内容和解析出的引用语义，不能只比较 wire 序号或地址。
   bool SameBlock(ClientShadowRecordView,std::uint8_t) const noexcept;
@@ -88,6 +89,9 @@ public:
   const ClientResourceSnapshotRef &Resources() const noexcept;
   std::span<const ClientFlatFault> FlatFaults() const noexcept;
   const ClientFlatFault *FlatFault(const PresentationMember &) const noexcept;
+#ifdef ISAACCS_E2E
+  bool DeferredResource(std::uint16_t member) const noexcept;
+#endif
   // 比较实际根和引用编号；资源目录同 run 只追加，旧引用必须在目标表存在。
   bool MemberClosureCompatible(const ClientMemberSnapshotRef &) const noexcept;
   bool ResourceClosureCompatible(const ClientResourceSnapshotRef &) const noexcept;

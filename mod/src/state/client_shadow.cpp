@@ -90,12 +90,20 @@ struct ClientShadowRecordData final {
 struct ClientShadowStateData final {
   explicit ClientShadowStateData(const std::shared_ptr<ClientStateMemory> &memory)
       :records(ClientStateAllocator<std::shared_ptr<const ClientShadowRecordData>>(memory)),
-       flat_faults(ClientStateAllocator<ClientFlatFault>(memory)) {}
+       flat_faults(ClientStateAllocator<ClientFlatFault>(memory))
+#ifdef ISAACCS_E2E
+       ,deferred_resources(ClientStateAllocator<std::uint16_t>(memory))
+#endif
+       {}
   PresentationBatchContext context;
   ClientMemberSnapshotRef members;
   ClientResourceSnapshotRef resources;
   ClientStateVector<std::shared_ptr<const ClientShadowRecordData>> records;
   ClientStateVector<ClientFlatFault> flat_faults;
+#ifdef ISAACCS_E2E
+  // 仅 E2E 对照使用。保留值和解码收到的值必须有可区分的证据。
+  ClientStateVector<std::uint16_t> deferred_resources;
+#endif
   std::shared_ptr<const ClientStateVector<std::uint16_t>> order;
   std::shared_ptr<const ClientStateVector<ClientShadowDependency>> dependencies;
   std::optional<std::uint16_t> Position(const PresentationMember &identity) const noexcept {
@@ -147,6 +155,10 @@ std::uint16_t ClientShadowRecordView::Member() const noexcept {return data_->mem
 const PresentationMember &ClientShadowRecordView::Identity() const noexcept {return data_->identity;}
 std::uint32_t ClientShadowRecordView::Mask() const noexcept {return data_->mask;}
 const ClientFlatImageRef &ClientShadowRecordView::Flat() const noexcept {return data_->flat;}
+std::span<const std::byte> ClientShadowRecordView::FlatValue(std::string_view name) const noexcept {
+  const auto *layout=data_->flat?FindFlatLayout(data_->identity.layout):nullptr;
+  return layout?ClientFlatNamed(*layout,*data_->flat,name):std::span<const std::byte>{};
+}
 std::optional<ClientShadowBlockView> ClientShadowRecordView::Block(std::uint8_t block) const noexcept {
   return block<32 && data_->blocks[block]?std::optional(data_->blocks[block]->view):std::nullopt;
 }
@@ -260,6 +272,12 @@ std::optional<std::uint16_t> ClientShadowState::RecordPosition(const Presentatio
 const ClientMemberSnapshotRef &ClientShadowState::Members() const noexcept {return data_->members;}
 const ClientResourceSnapshotRef &ClientShadowState::Resources() const noexcept {return data_->resources;}
 std::span<const ClientFlatFault> ClientShadowState::FlatFaults() const noexcept {return data_->flat_faults;}
+#ifdef ISAACCS_E2E
+bool ClientShadowState::DeferredResource(std::uint16_t member) const noexcept {
+  const auto &deferred=data_->deferred_resources;
+  return std::find(deferred.begin(),deferred.end(),member)!=deferred.end();
+}
+#endif
 const ClientFlatFault *ClientShadowState::FlatFault(const PresentationMember &identity) const noexcept {
   const auto at=std::find_if(data_->flat_faults.begin(),data_->flat_faults.end(),[&](const auto &f){return f.identity==identity;});
   return at==data_->flat_faults.end()?nullptr:&*at;
@@ -355,7 +373,7 @@ struct ShadowScratch final {
        member_order(ClientStateAllocator<std::uint16_t>(memory,memory::Pool::Workspace)),
        facts(ClientStateAllocator<ProjectionFact>(memory,memory::Pool::Workspace)),
        combined(ClientStateAllocator<ProjectionFact>(memory,memory::Pool::Workspace)),fields(ClientStateAllocator<BodyFieldView>(memory,memory::Pool::Workspace)) {
-    const auto head=LayoutVersion()>=kFlatRecordContractVersion?kFlatRecordHeaderBytes:kW_StateRecordHeaderBytes;
+    const auto head=UsesFlatRecordContract(LayoutVersion())?kFlatRecordHeaderBytes:kW_StateRecordHeaderBytes;
     records.resize((std::min)(std::size_t(kW_frame_records),size/head));member_order.resize(records.size());
     events.resize((std::min)(std::size_t(kW_max_audio_events),size/kW_StateAudioEventHeaderBytes));
     // 普通的 Player 联合帧会产生数十项投影事实，预留基础工作区，避免逐帧抛异常扩容。
@@ -979,6 +997,10 @@ struct ClientShadowStorage final {
                 if(base&&base->member==entry.index&&base->flat==next->flat)made[stream]=base;
                 else made[stream]=std::move(next);
               }
+              // 联合基线的 World／Body 服装必须指向同一目录。坏 Body 仍按成员隔离。
+              if(stream==1&&flat->id==197&&w.roots[0]&&
+                 (!other||!other->flat||!ClientFlatPlayerTopologyMatches(*other->flat,*made[stream]->flat)))
+                Fail(StateReadiness::MissingClosure,"flat_player_costume_topology",entry.index,flat->id);
             }catch(const ClientShadowError &error){
               if(error.Readiness()==StateReadiness::Budget)throw;
               const auto latest=DecodeBase(stream,received_versions[stream]);
@@ -991,7 +1013,7 @@ struct ClientShadowStorage final {
                 fault.count=old_fault->count+unsigned(old_fault->count<UINT32_MAX);
               std::snprintf(fault.reason.data(),fault.reason.size(),"%s",error.what());
               // 允许原生继续显示前值；损坏基线带显式标记，下一份增量不能假装补齐缺失字段。
-              if(base&&base->member==entry.index)made[stream]=base;
+              made[stream]=base&&base->member==entry.index?base:nullptr;
             }
             if(made[stream])w.roots[stream]->data_->records.push_back(made[stream]);
             if(base!=made[stream])w.dependencies_changed[stream]=true;
@@ -1230,10 +1252,19 @@ ClientStateCandidateRef ClientStateShadow::SelectKnownBodyObjects(const ClientSt
     const auto root=world->Find(record->identity);
     if(!root)return false;
     if(record->identity.layout==host_field::EntityPlayer::kLayout){
-      const auto field=host_field::EntityPlayer::render_topology_revision;
-      const auto pose=std::find_if(record->fields.begin(),record->fields.end(),[&](const auto &value){return value.field==field;});
-      const auto *layout=root->Field(host_field::EntityPlayer::costume_topology_revision);
-      if(pose==record->fields.end()||!layout||!pose->present||!layout->present||!BytesEqual(pose->bytes,layout->bytes))return false;
+      if(record->flat){
+        if(!root->Flat()||!ClientFlatPlayerTopologyMatches(*root->Flat(),*record->flat))return false;
+      }else{
+        const auto field=host_field::EntityPlayer::render_topology_revision;
+        const auto pose=std::find_if(record->fields.begin(),record->fields.end(),[&](const auto &value){return value.field==field;});
+        const auto *layout=root->Field(host_field::EntityPlayer::costume_topology_revision);
+        if(pose==record->fields.end()||!layout||!pose->present||!layout->present||!BytesEqual(pose->bytes,layout->bytes))return false;
+      }
+    }
+    if(record->flat)for(const auto &link:record->flat->links)if(!link.is_resource){
+      const auto *entry=FindStateMember(entries,link.index);
+      if((!entry||entry->identity!=link.member)&&
+         std::none_of(entries.entries.begin(),entries.entries.end(),[&](const auto &m){return m.identity==link.member;}))return false;
     }
     for(const auto &block:record->blocks)if(block)for(const auto &link:block->links)if(!link.resource){
       const auto *entry=FindStateMember(entries,link.index);
@@ -1248,6 +1279,7 @@ ClientStateCandidateRef ClientStateShadow::SelectKnownBodyObjects(const ClientSt
   auto view=std::allocate_shared<ClientShadowState>(ClientStateAllocator<ClientShadowState>(s.memory),s.memory);
   auto &out=*view->data_;
   out.context=source->Context();out.members=source->Members();out.resources=source->Resources();
+  out.flat_faults=source->data_->flat_faults;
   out.records.reserve(records.size());
   for(const auto &record:records)if(known(record))out.records.push_back(record);
   out.Index(nullptr);out.IndexDependencies(s.memory,nullptr,true);
@@ -1279,10 +1311,12 @@ ClientStateCandidateRef ClientStateShadow::DeferUnreadyObjects(const ClientState
   using RecordRef=std::shared_ptr<const ClientShadowRecordData>;
   const auto retain=[&](RecordRef &record){
     const auto &id=record->identity;
+    // 房间及 Game 转场字段属于整份 World。资源未齐时等待完整目标，避免新帧号配上旧阶段。
+    if(id.space!=1&&id.space!=2)return false;
     const auto last=previous->data_->FindRef(id);
     if(!last){
       // 对尚未创建的实体／格子不生成 Install 指令。已有逻辑实例换形态留给结构协调。
-      if((id.space!=1&&id.space!=2)||std::any_of(previous->data_->records.begin(),previous->data_->records.end(),
+      if(std::any_of(previous->data_->records.begin(),previous->data_->records.end(),
           [&](const auto &before){return MemberKey(before->identity)==MemberKey(id);}))return false;
       if(!stream)missing[record->member]=1;
       record.reset();deferred=true;return true;
@@ -1293,6 +1327,9 @@ ClientStateCandidateRef ClientStateShadow::DeferUnreadyObjects(const ClientState
       const auto *member=FindStateMember(directory,link.index);
       if(!member||member->identity!=link.member)return false;
     }
+#ifdef ISAACCS_E2E
+    out.deferred_resources.push_back(record->member);
+#endif
     record=last;deferred=true;return true;
   };
   for(auto &record:out.records){

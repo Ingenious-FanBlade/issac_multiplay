@@ -8,6 +8,7 @@
 #include "game/client/isolation/client_player_isolation.h"
 #include "game/client/isolation/client_isolation.h"
 #include "replica/stream_e2e.h"
+#include "game/tests/e09_compare.h"
 #include "binding/offsets.h"
 #include "game/common/context.h"
 #include "game/common/binary_effect_e2e.h"
@@ -164,6 +165,9 @@ struct ClientRuntime final {
   bool prepare_sent=false;
   std::array<std::uint64_t,6> prepare_progress{};
   unsigned ordinal=0, roster=0;
+  // 本地选角和准备位使用最新完整值，Host 快照回显实际已接收的选择。
+  unsigned lobby_selection=0, lobby_port=0;
+  bool lobby_mode=false;
   std::uint64_t route=1;
   int device_key=0;
   std::uint64_t connection=0, sequence=0, input_ack=0, input_ack_tick=0,
@@ -172,11 +176,16 @@ struct ClientRuntime final {
   unsigned sent_edge_mask=0;
   core::ShootingDirections shooting;
   core::InputStateDraftV2 sample{};
+  // 最近一条已发命令的采样（不含边沿），用于判断同一目标是否需要以更高序号重发。
+  core::InputStateDraftV2 last_sent{};
+  // 补发跳过 tick 的命令数、同一目标重发数（诊断）。
+  std::uint64_t fill_sent=0,resent=0;
   std::array<unsigned,16> edges{};
   unsigned edge_head=0,edge_count=0;
   unsigned held=0;
   bool baseline=false, eligible=false, sampled_this_loop=false, blocked=true;
   bool physical_neutral=false;
+  bool map_pressed=false;
   bool focused=false,ui_blocked=false,input_ready=false;
   InputTiming timing;
   InputLatencyProbe latency; // 阶段0纯诊断计时，不参与任何输入或显示判定
@@ -199,6 +208,7 @@ std::atomic<bool> client_exit_progress_guard{false};
 std::uint64_t connections=0;
 std::uint64_t ui_seen_ms=0,ui_frames=0;
 thread_local unsigned client_depth=0;
+thread_local unsigned minimap_input_depth=0;
 thread_local ClientBorrowToken render_observation{};
 thread_local ClientBorrowToken native_render_graphics{};
 thread_local std::optional<ClientDispatchScope> native_render_dispatch;
@@ -340,6 +350,20 @@ const char *ClientStartUnavailable() noexcept {
 }
 }
 bool ClientBusy() noexcept {return client_active.load(std::memory_order_acquire);}
+bool ClientLocalOrdinal(unsigned &ordinal) noexcept {
+  if(!IsMain()||!ClientBusy()||!client||!client->scope.session)return false;
+  ordinal=client->ordinal;
+  return true;
+}
+ClientMinimapInputScope::ClientMinimapInputScope() noexcept {++minimap_input_depth;}
+ClientMinimapInputScope::~ClientMinimapInputScope() noexcept {--minimap_input_depth;}
+// ZHL 在原生调用者和 C++ Hook 之间插入调用层，因此用小地图更新作用域限定 ACTION_MAP。
+bool ClientMinimapMapPressed(int action,bool &pressed) noexcept {
+  if(action!=13||!minimap_input_depth||!client_depth||!IsMain()||!ClientBusy())return false;
+  const auto &c=*client;
+  pressed=c.state==State::AwaitingWorld&&c.sampled_this_loop&&!c.blocked&&c.map_pressed;
+  return true;
+}
 // 仅主线程复制现有Scene身份；外线程诊断保留未知，不读取该控制块。
 ClientIsolationIdentity ClientIsolationCurrent() noexcept {
  if(!IsMain()||!client)return {};const auto &g=client->scene.Generations();
@@ -522,7 +546,7 @@ const char *ClientStateName() noexcept {
   }
   return "Failed";
 }
-const char *StartClient(const std::string &ipv4,unsigned port,int device_key) noexcept {
+const char *StartClient(const std::string &ipv4,unsigned port,int device_key,bool lobby) noexcept {
   const auto unavailable=ClientStartUnavailable();if(*unavailable)return unavailable;
   if(!BinaryDisplayCaptureHooksInstalled()||!ClientDisplayPatchInstalled())return "client_binary_display_hooks_unavailable";
   if(!ui_seen_ms||GetTickCount64()-ui_seen_ms>1000)return "client_ui_unavailable";
@@ -530,10 +554,11 @@ const char *StartClient(const std::string &ipv4,unsigned port,int device_key) no
   try {
     auto next=std::make_unique<ClientRuntime>();next->connection=++connections;
     next->address=ipv4;next->device_key=device_key;next->config=Settings.stream;
+    next->lobby_mode=lobby;next->lobby_port=port;
     const auto memory=state::ClientStateMemory::Create();
     next->binary=std::make_unique<ClientBinaryScene>(next->scene,next->network,memory);
     const auto error=next->network.Start(ipv4,std::uint16_t(port),Settings.peer_timeout_ms,next->config,
-      ClientBinaryScene::Preparation(),memory);
+      ClientBinaryScene::Preparation(),memory,lobby);
     if(*error)return error;
     // 连接开始时冻结原生调用计数起点。
     size_t count=0;auto hooks=Hooks(count);
@@ -545,6 +570,34 @@ const char *StartClient(const std::string &ipv4,unsigned port,int device_key) no
     Trace("client","event=connecting connection=%llu address=%s port=%u key=%d local_run=0",connections,ipv4.c_str(),port,device_key);
     return "";
   } catch(...) {return "client_allocation";}
+}
+const char *UpdateClientLobby(int character, bool ready) noexcept {
+  if (!IsMain() || TopOwner()!=Owner::Manager || !ClientBusy() || !client || !client->lobby_mode ||
+      client->state==State::Retiring || client->state==State::Failed ||
+      core::LobbyRoster::Unpack(client->network.LobbyRoster()).phase!=core::LobbyPhase::Waiting)
+    return "lobby_not_open";
+  auto &c=*client;
+  const auto selected=character<0 ? c.lobby_selection&63 : unsigned(character);
+  if (!core::LobbyCharacter(selected)) return "lobby_character";
+  const auto selection=selected | (ready ? core::kLobbyReady : 0);
+  if (!c.network.SetLobbySelection(selection)) return "lobby_connection_closed";
+  c.lobby_selection=selection;
+  return "";
+}
+
+core::LobbyRoster ClientLobbyRoster(unsigned &ordinal, unsigned &desired, std::string &details) {
+  if (!client || !client->lobby_mode) return {};
+  const auto &c=*client;
+  ordinal=c.ordinal;
+  desired=c.lobby_selection;
+  details="addresses="+c.address+"\nport="+std::to_string(c.lobby_port)+
+          "\nretiring="+std::to_string(c.state==State::Retiring || c.state==State::Failed)+
+          "\nsession_error="+c.error+"\n";
+  return core::LobbyRoster::Unpack(c.network.LobbyRoster());
+}
+
+std::string ClientLobbyFailure() {
+  return client && client->lobby_mode && client->state == State::Off ? client->error : std::string{};
 }
 #ifdef ISAACCS_E2E
 // 统一实机验收在已发布真实场景检验owner拒绝；worker只携带自有纯值模型。
@@ -676,14 +729,19 @@ bool ClientManagerBoundary() noexcept {
         if(c.binary)c.binary->Close(replica::Unsigned(p["world"]["run"])==c.scope.run);
         if(!c.scene.CanReturnToMenu())c.scene.Retire("network_scene_prepare");
       }else if(m.kind==replica::stream::Kind::Retire){
-        if(c.binary)c.binary->Close(m.body.HasMember("reason")&&std::string_view(m.body["reason"].GetString())=="binary_scope_changed");
+        const std::string_view reason=m.body.HasMember("reason")?m.body["reason"].GetString():"";
+        // 原生换房先撤旧来源时，新 World 可能尚未交给网络。此时也保存本地图，等下一份 Prepare 核对 run。
+        if(c.binary)c.binary->Close(reason=="binary_scope_changed"||reason=="binary_host_source_retired");
         Neutral(c,true);c.network.RevokeInput();c.input_ready=false;c.timing={};c.progress={};c.prepare.reset();c.retire_control=event;c.prepare_progress={};c.state=State::PreparingWorld;c.scene.Retire("network_source_retired");
       }else if(m.kind!=replica::stream::Kind::Cancel){Failure(c,"client_stream_control_kind");break;}
     }
-    if(c.binary&&c.scene.DisplayGraphicsChanged()){
+    const auto recover_graphics=[&]{
+      if(!c.binary||!c.scene.DisplayGraphicsChanged())return false;
       // resize后的旧快照已失效。完整基线在当前图形代次重新建图并恢复输入资格。
       Neutral(c,true);c.network.RevokeInput();c.binary->Recover(state::StateResyncReason::Apply);
-    }
+      return true;
+    };
+    recover_graphics();
     if(c.binary)c.binary->Pump();
     if((c.prepare||c.retire_control)&&!c.scene.CanReturnToMenu()){
       const auto r=c.scene.Result();const std::array<std::uint64_t,6> step{r.attempt,r.executed_prefix,r.native_owners,r.grid_prefix,r.grid_owners,r.pending_owners};
@@ -745,15 +803,55 @@ bool ClientManagerBoundary() noexcept {
       if(!c.sampled_this_loop){++c.device_missing;Neutral(c,true);}
       if(!c.input_ready)
         Neutral(c);
-      if(c.eligible&&c.sampled_this_loop&&c.progress.server_tick!=c.last_tick&&target>c.last_target) {
+      // 输入发送（2026-11-20 改，预测插值阶段 2 补充）：每帧按本帧最新采样发送，不再要求本帧收到新的 server_tick。
+      // Host 的 Participant::Begin 对 tick t 只用目标恰为 t 的命令，没有就按中性输入处理；旧规则在 TickProgress
+      // 到达抖动时会漏掉一些 tick（本帧未收到新 tick 不发、下一帧目标跳 2），Host 与本机预测都在这些 tick 不加速。
+      //  1) 目标前进：为 (last_target, target] 中的每个 tick 各发一条同一采样的命令，最多 kInputFillTicks 条；
+      //     边沿只放在最后一条（目标 tick），与旧规则相同。
+      //  2) 目标未前进但本帧采样的移动／瞄准／按住位变了：以更高序号对同一目标重发一次（Host 取该 tick 最高序号），
+      //     让本帧按键立刻进入该 tick；重发不带边沿，边沿留给下一个新目标，避免同 tick 边沿冲突。
+      if(c.eligible&&c.sampled_this_loop&&target&&c.last_target&&target>=c.last_target) {
+        constexpr std::uint64_t kInputFillTicks=4;
+        const bool advance=target>c.last_target;
+        const bool changed=c.sample.move_x!=c.last_sent.move_x||c.sample.move_y!=c.last_sent.move_y||
+                           c.sample.aim_x!=c.last_sent.aim_x||c.sample.aim_y!=c.last_sent.aim_y||
+                           c.sample.held_flags!=c.last_sent.held_flags;
+        std::uint64_t first=target;
+        if(advance)first=(std::max)(c.last_target+1,target>=kInputFillTicks?target-kInputFillTicks+1:1);
+        else if(!changed)first=target+1; // 同一目标、采样未变：本帧不发
+        // 发送一条命令；返回 false 表示已转入失败状态。
+        const auto send_one=[&](std::uint64_t tick,bool with_edge)->bool{
+          if(c.sequence==UINT64_MAX){Failure(c,"client_input_exhausted");return false;}
+          auto sample=c.sample;sample.edge_flags=with_edge&&c.edge_count?c.edges[c.edge_head]:0;
+          net::live::Intent intent{sample,c.generation,c.sequence+1,tick,c.scope,c.route};
+          if(!c.network.Send(intent)){Failure(c,"client_input_queue_full");return false;}
+          ++c.sequence;++c.sent;c.last_target=tick;c.last_tick=c.progress.server_tick;c.last_sent=sample;c.sample.edge_flags=0;
+          if(tick!=target)++c.fill_sent;else if(!advance)++c.resent;
+          c.latency.Record(c.sequence,tick,c.progress.server_tick,sample.move_x||sample.move_y,c.timing.rate_ticks,c.timing.rate_ms);
+          c.scene.RecordMotionInput(c.generation,c.sequence,tick,sample.move_x,sample.move_y);
+#ifdef ISAACCS_E2E
+          replica::stream::E2EInput("physical-input",{c.ordinal,0,0,sample.edge_flags,c.generation,c.sequence,tick,c.progress.server_tick,{sample.move_x,sample.move_y,sample.aim_x,sample.aim_y}});
+#endif
+          if(sample.edge_flags){
+            c.sent_edge_mask|=sample.edge_flags;
+            c.edge_head=(c.edge_head+1)%unsigned(c.edges.size());--c.edge_count;
+          }
+          if(Settings.diagnostics)Trace("client_input","connection=%llu ordinal=%u generation=%llu sequence=%llu target=%llu move=%d,%d aim=%d,%d held=%u edge=%u",c.connection,c.ordinal,c.generation,c.sequence,tick,intent.state.move_x,intent.state.move_y,intent.state.aim_x,intent.state.aim_y,intent.state.held_flags,intent.state.edge_flags);
+          return true;
+        };
+        for(auto tick=first;tick<=target;++tick)
+          if(!send_one(tick,advance&&tick==target))break;
+      } else if(c.eligible&&c.sampled_this_loop&&target&&!c.last_target) {
+        // 首条命令（连接、换场景后 last_target 归零）：只发目标 tick 本身，不向前补。
         if(c.sequence==UINT64_MAX)
           Failure(c,"client_input_exhausted");
         else {
           auto sample=c.sample;sample.edge_flags=c.edge_count?c.edges[c.edge_head]:0;
           net::live::Intent intent{sample,c.generation,c.sequence+1,target,c.scope,c.route};
           if(c.network.Send(intent)) {
-            ++c.sequence;++c.sent;c.last_target=target;c.last_tick=c.progress.server_tick;c.sample.edge_flags=0;
+            ++c.sequence;++c.sent;c.last_target=target;c.last_tick=c.progress.server_tick;c.sample.edge_flags=0;c.last_sent=sample;
             c.latency.Record(c.sequence,target,c.progress.server_tick,sample.move_x||sample.move_y,c.timing.rate_ticks,c.timing.rate_ms);
+            c.scene.RecordMotionInput(c.generation,c.sequence,target,sample.move_x,sample.move_y);
 #ifdef ISAACCS_E2E
             replica::stream::E2EInput("physical-input",{c.ordinal,0,0,sample.edge_flags,c.generation,c.sequence,target,c.progress.server_tick,{sample.move_x,sample.move_y,sample.aim_x,sample.aim_y}});
 #endif
@@ -772,7 +870,10 @@ bool ClientManagerBoundary() noexcept {
     }
     // 输入owner已经完成唯一一次平台泵；显示根位于本轮world安装之后，音频／光标在相机后。
     // 失焦只封本端输入；显示仍消费 Host 状态。只有本地控制台／菜单阻断显示批次。
-    if(!c.scene.AdvanceDisplay(c.ui_blocked))Failure(c,"client_display_schedule");
+    // 输入泵可能刚处理本机窗口变化。先进入恢复，再让显示推进读取本轮图形资源。
+    // 覆盖层按本机控制组序号排除本机身体；Host 暂停时世界显示时间停住。
+    c.scene.SetMotionContext(c.ordinal,c.progress.authority_paused);
+    if(!recover_graphics()&&!c.scene.AdvanceDisplay(c.ui_blocked))Failure(c,"client_display_schedule");
     // 本轮Body已经进入原生，随后Render会显示；只读计数，不影响调度。
     c.latency.BodyObserved(c.scene.AppliedBodyCount());
   } catch(const std::exception &error){Failure(c,error.what());}
@@ -790,10 +891,10 @@ bool ClientDeviceReturned(void *device,bool success,unsigned polls,bool poll_ok)
     Neutral(c,true);return true;
   }
   PhysicalActions actions{};
-  if(!ReadPhysicalActions(device,actions)){Neutral(c,true);return true;}
+  if(!ReadPhysicalActions(device,actions,&c.map_pressed)){Neutral(c,true);return true;}
   if(c.sampled_this_loop){Failure(c,"client_duplicate_device_sample");return true;}
   c.sampled_this_loop=true;++c.sampled;
-  c.physical_neutral=true;
+  c.physical_neutral=!c.map_pressed;
   for(unsigned i=0;i<12;++i)if(actions.values[i]!=0||actions.pressed[i]||actions.triggered[i])c.physical_neutral=false;
   const bool same=c.baseline&&c.source==device;
   if(!same){Neutral(c,true);c.shooting={};}
@@ -823,6 +924,13 @@ void ClientInputUnavailable() noexcept {
 void ClientMenuRendered() noexcept {
   if(IsMain()&&ClientBusy())++client->render_calls;
 }
+// 同局换房交接期间仍有完整旧画面，菜单回调及等待提示留给真正的连接等待。
+bool ClientRenderTransitionHold() noexcept {
+  if(!IsMain()||!ClientBusy()||!render_observation.active)return false;
+  const auto state=client->state;
+  return (state==State::PreparingWorld||state==State::AwaitingWorld)&&
+         client->scene.RenderBinaryHistory(render_observation);
+}
 // Manager Render 保留清屏和 Swap，场景绘制由其原生 Game::Render 分派完成。
 ClientRenderScope::ClientRenderScope(bool enabled) noexcept
   :exceptions_(std::uncaught_exceptions()) {
@@ -850,7 +958,9 @@ ClientGameRenderScope::ClientGameRenderScope(void *game) noexcept:exceptions_(st
   }
   if(!IsMain()){foreign_client.store(true,std::memory_order_release);return;}
   if(!client)return;
-  if(!client->scene.NativeDisplay()){
+  if(client->scene.DisplayGraphicsChanged()||!client->scene.NativeDisplay()){
+    // 新房的显示根可能先把 Manager 切到游戏态，仍沿用同一张旧画面直到提交。
+    ClientRenderTransitionHold();
     CountDispatch(*client,ClientEntry::GameRender,ClientEntryDecision::ExpectedSkip);return;}
   if(TopOwner()!=Owner::Render||!render_observation.active||!client->scene.Valid(render_observation)||
      client->scene.NativeRoots().game!=game||native_render_dispatch){Failure(*client,"client_game_render_context");return;}
@@ -870,6 +980,9 @@ ClientGameRenderScope::~ClientGameRenderScope() noexcept {
   const bool success=native_render_dispatch&&native_render_dispatch->Succeeded()&&std::uncaught_exceptions()==exceptions_;
   native_render_dispatch.reset();client->scene.Release(native_render_graphics);
   if(!success)Failure(*client,"client_game_render_incomplete");
+#ifdef ISAACCS_E2E
+  else if(const auto table=client->scene.PublishedBlocks())E09ClientRender(*table);
+#endif
 }
 // Lua VM 关闭先换代并撤销本方借用，不能把 unref 当作 userdata 析构。
 void ClientLuaClosing() noexcept {
@@ -949,6 +1062,11 @@ bool ClientProcessExitDecision() noexcept {
   if(client->state!=State::Retiring)StopClient();
   return client->network.Finished()&&client->binary->Drained()&&client->scene.CanReturnToMenu();
 }
+// 只在已发布的客机画面上报告当前连接，重连时由新的连接序号重置 HUD 采样。
+std::string ClientHudTimingFields() {
+  if(!IsMain()||!ClientBusy()||!client||!client->binary||!client->scene.DisplayReady())return "ok=1\nrole=Off\n";
+  return "ok=1\nrole=Client\nepoch="+std::to_string(client->connection)+"\n"+client->binary->InstallTimingFields();
+}
 // 详细有界聚合只在显式诊断命令读取；普通每帧status不展开128个范围。
 std::string ClientStreamFields(unsigned page) {
   if(!IsMain()||!client||page>=32)return "ok=0\nerror=stream_client_unavailable\n";
@@ -958,7 +1076,7 @@ std::string ClientStreamFields(unsigned page) {
   out+=c.network.TransmitMetrics().Fields("stream.transmit.",page);
   out+=c.network.Metrics().Fields("stream.receive.",page);
   if(c.binary)out+=c.binary->Diagnostics(page);
-  if(page==0)out+=c.latency.Fields();
+  if(page==0){out+=c.latency.Fields();out+=c.scene.MotionFields();}
   const auto t=c.network.TransferStatus();
   const auto add=[&](const char *name,std::uint64_t value){out+="stream."+std::string(name)+"="+std::to_string(value)+"\n";};
   add("fragments",t.fragments);add("duplicates",t.duplicates);add("conflicts",t.conflicts);add("decoded",t.decoded);add("decoded_bytes",t.decoded_bytes);add("decode_us",t.decode_us);add("expired",t.expired);add("ack_windows",t.ack_windows);
@@ -1004,7 +1122,7 @@ std::string ClientFields() {
   // 采样/发包动作的纯值证据；验收不能拿中性心跳的处理序号冒充物理按键已生效。
   s+="client.sample_move="+std::to_string(c.sample.move_x)+","+std::to_string(c.sample.move_y)+"\n";
   s+="client.sample_aim="+std::to_string(c.sample.aim_x)+","+std::to_string(c.sample.aim_y)+"\n";
-  add("sent_edge_mask",c.sent_edge_mask);
+  add("sent_edge_mask",c.sent_edge_mask);add("input_fill_sent",c.fill_sent);add("input_resent",c.resent);
   add("render_calls",c.render_calls);
   add("scene_generation",c.scene.Generations().scene);
   add("instance_generation",c.scene.Generations().instance);

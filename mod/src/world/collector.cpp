@@ -1,6 +1,7 @@
 #include "world/collector.h"
 #include "world/observe.h"
 #include "binding/world_layout.h"
+#include "binding/offsets.h"
 #include "world/domains/entity/collect.h"
 #include "world/domains/grid/collect.h"
 #include <algorithm>
@@ -590,6 +591,10 @@ void Collector::PlayerReturned(std::uint32_t ordinal,
   auto *witness = identities_.MarkCurrentWitness(ordinal);
   if (id && !id->Retired()) {
     id->current_public_ready = true;
+    // InitSeed 仅做原生实例复核；实际 use/shape 仍由观察到的生命周期维护。
+    std::uint32_t seed=0;
+    if(Value(std::uint64_t(id->address)+0x3ec,seed))
+      transition_players_[ordinal]={run_,id->local_id,id->use,id->revision,id->address,seed};
     // 创建依据2不覆盖“本绑定实际更新过”的事实；每个绑定首次正常更新同样登记。
     if (witness || rebuilt || first_update) {
       if (Event(EventKind::CurrentPlayerReadWitness, Reason::None, id, nullptr,
@@ -660,15 +665,26 @@ bool Collector::DiagnosticMembers(const NativeCaptureWindow &w,std::span<RawSour
   return true;
 }
 // 普通owner资格独立于旧Recorder批次槽；二进制owner自行封存并复核完整成员来源。
-bool Collector::NativeOrdinary(NativeCaptureWindow &out) noexcept {
+bool Collector::NativeOrdinary(NativeCaptureWindow &out,std::uint64_t completed_tick) noexcept {
   out={};Roots now{};
   if(GetCurrentThreadId()!=memory_.main_thread || !Recording() || !run_active_ || !run_ || !room_ || !outer_active_ || !prepared_ ||
-     polluted_ || depth_ || lifecycle_depth_ || lifecycle_episode_ || entity_reconfiguration_depth_ || authority_count_!=1 ||
-     authority_.kind!=AuthorityKind::StandardRoom || !authority_.tick || !ReadRoots(now) || now!=roots_)return false;
-  for(std::size_t i=1;i<phases_.size();++i)if(phases_[i].entered!=1 || phases_[i].returned!=1 || phases_[i].active)return false;
-  if(authority_.scope!=phases_[1].scope)return false;
+     polluted_ || depth_ || lifecycle_depth_ || lifecycle_episode_ || entity_reconfiguration_depth_ ||
+     !ReadRoots(now) || now!=roots_)return false;
+  const bool transition=authority_count_==0&&completed_tick;
+  if(transition){
+    // 转场分支不执行 StandardRoom。已完成的 Manager 尾部可以采完整显示 World，沿用最近提交的玩法 tick。
+    std::int32_t mode=0;
+    if(!Value(std::uint64_t(roots_.game)+offset::RoomTransition,mode)||mode<1||mode>4)return false;
+    if(std::any_of(phases_.begin(),phases_.end(),[](const auto &phase){return phase.active||phase.entered!=phase.returned;}))return false;
+  }else{
+    if(authority_count_!=1||authority_.kind!=AuthorityKind::StandardRoom||!authority_.tick)return false;
+    for(std::size_t i=1;i<phases_.size();++i)if(phases_[i].entered!=1 || phases_[i].returned!=1 || phases_[i].active)return false;
+    if(authority_.scope!=phases_[1].scope)return false;
+  }
   std::uint32_t frame=0;if(!Value(std::uint64_t(roots_.game)+layout::LayoutConstants().game_frame_offset,frame))return false;
-  out={generation_,run_,room_,outer_,authority_.scope,authority_.tick,mutation_,attempt_,capture_,roots_.game,roots_.room,frame,kNoOrdinal,true};
+  out={generation_,run_,room_,outer_,transition?outer_:authority_.scope,transition?completed_tick:authority_.tick,
+    mutation_,attempt_,capture_,roots_.game,roots_.room,frame,kNoOrdinal,true};
+  out.room_transition=transition;
   const auto failures=ObservationFailures();out.wrong_thread=failures.wrong_thread;out.native_exception=failures.native_exception;
   return true;
 }
@@ -702,8 +718,10 @@ bool Collector::NativeWindowCurrent(const NativeCaptureWindow &w,bool recheck_pr
     (!recheck_production_roots||(ReadRoots(now)&&now==roots_));}
   if(GetCurrentThreadId()!=memory_.main_thread || !Recording() || !run_active_ || !run_ || !room_ || !outer_active_ || !prepared_ || polluted_ || depth_ ||
      lifecycle_depth_ || lifecycle_episode_ || entity_reconfiguration_depth_ || w.generation!=generation_ || w.run!=run_ || w.room!=room_ ||
-     w.outer!=outer_ || w.owner!=authority_.scope || w.tick!=authority_.tick || w.mutation!=mutation_ || w.attempt!=attempt_ ||
+     w.outer!=outer_ || w.mutation!=mutation_ || w.attempt!=attempt_ ||
      w.game!=roots_.game || w.room_address!=roots_.room)return false;
+  if(w.room_transition)return w.ordinary&&authority_count_==0&&w.owner==outer_&&w.tick&&w.capture==capture_;
+  if(w.owner!=authority_.scope||w.tick!=authority_.tick)return false;
   if(w.ordinary && (authority_.kind!=AuthorityKind::StandardRoom || capture_!=w.capture))return false;
   return true;
 }
@@ -741,8 +759,57 @@ bool Collector::NativeGridReady(const NativeCaptureWindow &w,const Identity &id,
   }
   return false;
 }
+bool Collector::NativeTransitionPlayer(const NativeCaptureWindow &w,const Identity &id) noexcept {
+  if(!w.room_transition||id.Retired()||!id.native_shape_known||id.native_shape[0]!=1)return false;
+  const auto prior=std::find_if(transition_players_.begin(),transition_players_.end(),[&](const auto &p){
+    return p.run==w.run&&p.address==id.address&&p.local==id.local_id&&p.use==id.use&&p.shape==id.revision;
+  });
+  if(prior==transition_players_.end())return false;
+  std::array<std::uint32_t,3> shape{};
+  std::uint32_t seed=0;
+  return Value(std::uint64_t(id.address)+offset::EntityType,shape)&&shape==id.native_shape&&
+    Value(std::uint64_t(id.address)+0x3ec,seed)&&seed==prior->seed;
+}
+PlayerLifeWitness Collector::BeginPlayerLife(std::uint32_t address,bool ghost) noexcept {
+  if(GetCurrentThreadId()!=memory_.main_thread||!Recording()||!run_active_||!run_)return {};
+  auto *id=identities_.Find(ObjectDomain::Entity,address);
+  if(!id||id->Retired())return {};
+  PlayerLifeWitness w{run_,id->local_id,id->use,id->revision,address,0,{},ghost};
+  const auto p=std::uint64_t(address);
+  std::uint8_t previous=0;
+  if(!Value(p+offset::EntityType,w.shape)||w.shape[0]!=1||w.shape[1]!=0||
+     !Value(p+0x3ec,w.seed)||!Value(p+offset::CoopGhost,previous)||previous>1||bool(previous)==ghost)return {};
+  const bool initialized=id->readiness>=unsigned(Readiness::CreationOwnerCompleted);
+  // 输入可先于幽灵化撤锚。旧证言只证明进入函数的是同一已初始化实例，当前字段依据来自新的原生返回。
+  const bool previously_seen=std::any_of(transition_players_.begin(),transition_players_.end(),[&](const auto &before){
+    return before.run==w.run&&before.address==w.address&&before.local==w.local&&before.use==w.use&&
+      before.shape==w.revision&&before.seed==w.seed;
+  });
+  if(!initialized&&!previously_seen)return {};
+  if(id->readiness==unsigned(Readiness::PlayerLifeOwnerCompleted)){
+    id->readiness=unsigned(Readiness::NoObservedInit);id->current_public_ready=false;
+  }
+  return w;
+}
+void Collector::CompletePlayerLife(const PlayerLifeWitness &w) noexcept {
+  if(!w.address||GetCurrentThreadId()!=memory_.main_thread||!Recording()||!run_active_||run_!=w.run)return;
+  auto *id=identities_.Find(ObjectDomain::Entity,w.address);
+  if(!id||id->Retired()||id->local_id!=w.local||id->use!=w.use||id->revision!=w.revision)return;
+  const auto p=std::uint64_t(w.address);
+  std::array<std::uint32_t,3> shape{};
+  std::uint32_t seed=0,vptr=0;
+  std::uint8_t ghost=0;
+  bool base=false;
+  if(Classify(ObjectDomain::Entity,w.address,vptr,base)!=Class::Player||
+     !Value(p+offset::EntityType,shape)||shape!=w.shape||!Value(p+0x3ec,seed)||seed!=w.seed||
+     !Value(p+offset::CoopGhost,ghost)||ghost!=unsigned(w.ghost))return;
+  // 保留创建与换槽的独立依据。新证言只让状态采集读到实际完成的生命状态，输入仍须重绑。
+  if(id->readiness<unsigned(Readiness::CreationOwnerCompleted)||id->readiness==unsigned(Readiness::CurrentPlayerUpdateWitness))
+    id->readiness=unsigned(Readiness::PlayerLifeOwnerCompleted);
+  id->current_public_ready=true;
+}
 bool Collector::NativeCurrent(const NativeCaptureWindow &w,std::uint32_t address,std::uint64_t local,std::uint64_t use,std::uint64_t shape,ObjectDomain domain,
-    const NativeSource *reader,bool grid_already_qualified) noexcept {
+    const NativeSource *reader,bool grid_already_qualified,bool transition_roster_player) noexcept {
   if(!NativeWindowCurrent(w))return false;
   if(!w.ordinary && !w.production){
     if(domain!=ObjectDomain::Entity)return false;
@@ -753,7 +820,8 @@ bool Collector::NativeCurrent(const NativeCaptureWindow &w,std::uint32_t address
   }
   const auto *id=identities_.Find(domain,address);
   return id && id->local_id==local && id->use==use && id->revision==shape &&
-    (domain==ObjectDomain::Grid?NativeGridReady(w,*id,reader,grid_already_qualified):!id->Retired() && id->readiness>=2);
+    (domain==ObjectDomain::Grid?NativeGridReady(w,*id,reader,grid_already_qualified):
+      !id->Retired()&&(id->readiness>=2||(transition_roster_player&&NativeTransitionPlayer(w,*id))));
 }
 
 // RTTI 只读分类：验证 COL/CHD/每个 BCD 的地址、签名与非虚单继承形状。

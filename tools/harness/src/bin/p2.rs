@@ -169,6 +169,23 @@ pub(super) fn deploy(instances: &[&TestInstance; 2], package: &Path) -> Result<(
                     "dual-steady-changes" => r#"["dual-steady","weapon","ordinary-steady","dual-steady","stop-supply","zero-empty","last-static"]"#,
                     "tears-100" => r#"["tears-100","stop-supply","zero-empty","last-static"]"#,
                     "tears-300" => r#"["tears-300","mutate-static-tear","stop-supply","zero-empty"]"#,
+                    "npc8-tears64" => r#"["npc8-tears64","stop-supply"]"#,
+                    // 第 15 步的隔离双端连续用例，先固定过载负载，再切回普通身体和功能场景。
+                    "acceptance-e01-e15" => r#"["npc8-tears64","stop-supply","ordinary-steady","laser","bomb-grid","stop-attacks","door","pickup","resources","create-remove","zero-empty","last-static","costume","weapon","shape","backup","forgotten","mixed","stop-supply"]"#,
+                    "acceptance-functional" => r#"["ordinary-steady","laser","bomb-grid","stop-attacks","door","pickup","resources","create-remove","zero-empty","last-static","costume","weapon","shape","backup","forgotten","stop-supply"]"#,
+                    // 功能短窗使用可逐项核对的实际角色、实体与共享余额。
+                    "e04-controls" => r#"["e04-ordinary","e04-dual","e04-mixed"]"#,
+                    "e05-e06-world" => r#"["e05-combat","e05-laser","e05-bomb-grid","e06-pickups","resources","e06-create-remove","zero-empty","last-static","e05-door"]"#,
+                    "e09-fields" => r#"["e09-scene","resources","e06-create-remove"]"#,
+                    "e39-travel" => r#"["e39-walk","e39-walk","e39-fade","e39-pixel","e39-minecart","e39-walk"]"#,
+                    "e39-special" => r#"["e39-same11","e39-same16","e39-walk","e39-hourglass","e39-boss"]"#,
+                    "e39-mirror" => r#"["e39-floor","e39-mirror","e39-mirror"]"#,
+                    "e39-resize" => r#"["e39-pixel","e39-walk"]"#,
+                    "e39-maze" => r#"["e39-maze","e39-maze","e39-maze","e39-maze","e39-maze","e39-maze","e39-maze","e39-maze"]"#,
+                    // 保留同局换形顺序，覆盖备用身体切出后继续换形的回归。
+                    "e07-continuous" => r#"["ordinary-steady","costume","weapon","shape","backup","forgotten","mixed","stop-supply"]"#,
+                    // 混合组使用干净的普通 roster，前一用例可能留下已脱离该形态的备用体。
+                    "mixed-fresh" => r#"["mixed","stop-supply"]"#,
                     "enemies-100" => r#"["enemies-100","stop-supply","zero-empty","last-static"]"#,
                     "" | "overload" => r#"["overload","stop-supply","zero-empty","last-static","dual","mixed","stop-supply","zero-empty","ordinary","stop-supply"]"#,
                     _ => return Err(format!("unknown step15 load: {load}")),

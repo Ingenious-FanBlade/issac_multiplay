@@ -11,6 +11,8 @@ inline constexpr uintptr_t ClientInputPump = 0x5EC130;
 inline constexpr uintptr_t GameConsole = 0x67FD4, CommandCapture = 0x680D8;
 inline constexpr uintptr_t GameStateFlags = 0x25AC0, RunActive = 0x25B02;
 inline constexpr uintptr_t PlayerManager = 0x1BAA8, Starting = 0x4AD10;
+// J273 0x995B30：玩家中心缓存按本机 Manager 帧号复用，其他原生调用也共享此缓存。
+inline constexpr uintptr_t PlayerCenterFrame = 0x7D01E8, PlayerCenterPosition = 0x80136C;
 // tx-04-09：703 helper RVA3A3A40，+1590是各主动槽的1-based Esau Jr备份关联，不是PlayerIndex。
 inline constexpr uintptr_t ActiveItemSlotBase = 0x1574, ActiveItemSlotStride = 0x20,
                            EsauJrAssociation = 0x1590, EsauJrStates = 0x80;

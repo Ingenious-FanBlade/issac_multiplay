@@ -5,6 +5,7 @@
 #include "game/client/isolation/client_isolation.h"
 #include "game/common/context.h"
 #include "game/authority/lifecycle.h"
+#include "game/authority/lobby.h"
 #include "game/authority/persistence.h"
 #include "game/authority/state.h"
 #include "game/authority/tick.h"
@@ -19,6 +20,7 @@
 #include "replica/stream_e2e.h"
 #include "game/tests/client_entity_e2e.h"
 #include "game/tests/client_player_e2e.h"
+#include "game/tests/e09_compare.h"
 #endif
 #include "replica/codec.h"
 #include "runtime.h"
@@ -43,6 +45,9 @@ struct Mutation {
     SoloStart,
     SoloStop,
     Client,
+    LobbyRole,
+    LobbyReady,
+    LobbyStart,
     Role,
     WorldStart,
     WorldStop,
@@ -53,6 +58,7 @@ struct Mutation {
   std::uint32_t generation = 0;
   char label[65]{};
   char address[16]{};
+  bool lobby = false;
 };
 Ring<Mutation, 64> mutations;
 Ring<PortRequest, 32> port_requests;
@@ -71,6 +77,9 @@ std::string status_snapshot =
     "ok=1\nstatus_version=1\nstate=Disabled\nreason=initializing\n";
 std::string counter_snapshot;
 std::string last_error;
+// 界面按排队编号领取最近一次大厅操作的结果，避免被无关命令清空通用错误。
+std::uint64_t lobby_completed = 0;
+std::string lobby_error;
 replica::stream::Metrics command_metrics;
 std::string SessionStateName() {
   for (auto c : Capabilities)
@@ -119,6 +128,11 @@ std::string Execute(std::string_view text, const char *source) {
     std::string token,mode,role,tail;std::uint64_t x=0,y=0;in>>token>>mode;
     if(!IsMain()||game::TopOwner()!=Owner::Manager||Settings.world_e2e_token.empty()||token!=Settings.world_e2e_token)result="ok=0\nerror=stream_test_token_or_context\n";
     else if(mode=="on"||mode=="off"){in>>tail;if(!tail.empty())result="ok=0\nerror=arguments\n";else{replica::stream::E2ETrace(mode=="on");result="ok=1\n";}}
+    else if(mode=="e09"&&(in>>role)&&(role=="on"||role=="off")&&!(in>>tail)){
+      replica::stream::E2ECompareTrace(role=="on");
+      game::E09Enable(role=="on");
+      result="ok=1\n";
+    }
     else if(mode=="trace"&&(in>>x)&&!(in>>tail))result=replica::stream::E2ETracePage(x);
     else if(mode=="clock"&&!(in>>tail))result="ok=1\nlocal_us="+std::to_string(replica::stream::MetricMicros())+"\n"+E2eUiFields();
     else if(mode=="visual"&&(in>>role)&&(role=="on"||role=="off")&&!(in>>tail)){replica::stream::E2EVisual(role=="on");result="ok=1\nvisual_neutral_only=1\n";}
@@ -156,7 +170,7 @@ std::string Execute(std::string_view text, const char *source) {
     else result="ok=0\nerror=client_test_arguments\n";
   }
 #endif
-  else if (verb == "client") {
+  else if (verb == "client" || verb == "lobby_join") {
     // 地址和设备key只作连接配置；Client不在本机创建Player或载入Continue。
     std::string address, port_text, key_text, trailing;
     in >> address >> port_text >> key_text >> trailing;
@@ -173,6 +187,7 @@ std::string Execute(std::string_view text, const char *source) {
     else if(game::RunActive())result="ok=0\nerror=client_requires_stable_menu\n";
     else {
       Mutation m{next_id.fetch_add(1),Mutation::Kind::Client,port,key};strcpy_s(m.address,address.c_str());
+      m.lobby = verb == "lobby_join";
       if(mutations.Push(m)){pending_client_start=true;result="ok=1\nqueued="+std::to_string(m.id)+"\n";}
       else {++queue_dropped;result="ok=0\nerror=queue_full\n";}
     }
@@ -280,20 +295,37 @@ std::string Execute(std::string_view text, const char *source) {
                    ? "ok=1\nqueued=" + std::to_string(mutation.id) + "\n"
                    : "ok=0\nerror=queue_full\n";
     }
-  } else if (verb == "host" || verb == "stop" || verb == "solo") {
+  } else if (verb == "lobby_role" || verb == "lobby_ready" || verb == "lobby_start") {
+    in >> arg >> extra;
+    unsigned value = 0;
+    const auto parsed = std::from_chars(arg.data(), arg.data()+arg.size(), value);
+    const bool number = !arg.empty() && parsed.ec == std::errc{} && parsed.ptr == arg.data()+arg.size();
+    const bool valid = extra.empty() && (verb == "lobby_start" ? arg.empty() :
+        number && (verb == "lobby_ready" ? value <= 1 : core::LobbyCharacter(value)));
+    if (!valid) result = "ok=0\nerror=arguments\n";
+    else {
+      const auto kind = verb == "lobby_start" ? Mutation::Kind::LobbyStart :
+          verb == "lobby_ready" ? Mutation::Kind::LobbyReady : Mutation::Kind::LobbyRole;
+      const Mutation mutation{next_id.fetch_add(1), kind, value, 0};
+      if (mutations.Push(mutation)) result="ok=1\nqueued="+std::to_string(mutation.id)+"\n";
+      else {++queue_dropped;result="ok=0\nerror=queue_full\n";}
+    }
+  } else if (verb == "host" || verb == "lobby_host" || verb == "stop" || verb == "solo") {
     std::string trailing;
     in >> arg >> extra >> trailing;
     unsigned port = Settings.host_port;
     int character = 0;
     bool valid = trailing.empty();
     const bool solo = verb == "solo";
+    const bool host = verb == "host" || verb == "lobby_host";
     const bool start_solo = solo && arg == "start";
-    if (verb == "host") {
+    if (host && (verb != "lobby_host" || !arg.empty())) {
       auto parsed = std::from_chars(arg.data(), arg.data() + arg.size(), port);
       valid = valid && !arg.empty() && parsed.ec == std::errc{} &&
               parsed.ptr == arg.data() + arg.size() && port > 0 &&
               port <= 65535;
-      if (!extra.empty()) {
+      if (!extra.empty() && verb == "lobby_host") valid = false;
+      else if (!extra.empty()) {
         auto role = std::from_chars(extra.data(), extra.data() + extra.size(),
                                     character);
         // 可选性在 Join 的原生角色表中确认；这里仅拒绝负值、随机标记与溢出。
@@ -306,9 +338,9 @@ std::string Execute(std::string_view text, const char *source) {
       valid = valid && arg.empty() && extra.empty();
     if (!valid)
       result = "ok=0\nerror=arguments\n";
-    else if ((verb == "host" || start_solo) && SessionStateName() == "Disabled")
+    else if ((host || start_solo) && SessionStateName() == "Disabled")
       result = "ok=0\nerror=capabilities_unavailable\n";
-    else if (((verb == "host" || start_solo) &&
+    else if (((host || start_solo) &&
               (game::Busy() || game::ClientBusy() || pending_client_start || pending_host_start || pending_solo_start)) ||
              (solo && !start_solo && (game::HostBusy() || pending_host_start)))
       result = "ok=0\nerror=busy\n";
@@ -317,9 +349,10 @@ std::string Execute(std::string_view text, const char *source) {
     else {
       const auto kind = solo ? (start_solo ? Mutation::Kind::SoloStart
                                            : Mutation::Kind::SoloStop)
-                             : (verb == "host" ? Mutation::Kind::Host
+                             : (host ? Mutation::Kind::Host
                                                : Mutation::Kind::StopHost);
       Mutation mutation{next_id.fetch_add(1), kind, port, character};
+      mutation.lobby = verb == "lobby_host";
       if (mutations.Push(mutation)) {
         if (kind == Mutation::Kind::Host)
           pending_host_start = true;
@@ -368,7 +401,21 @@ std::string Execute(std::string_view text, const char *source) {
                +"e2e_ui_available="+std::to_string(Settings.e2e_ui_enabled)+"\n"
 #endif
                ;
-    else if (verb == "status" || verb == "counters" || verb == "ui_status") {
+    else if (verb == "ui_perf") {
+      // 游戏内 HUD 读取固定大小的累计值，不访问游戏对象或启用详细诊断。
+      const auto host=game::LiveCaptureSession();
+      if(game::ClientBusy())result=game::ClientHudTimingFields();
+      else if(host){
+        const auto capture_timing=capture::ReadCaptureTiming();
+        result="ok=1\nrole=Host\nepoch="+std::to_string(host)+"\ncapture_n="+
+               std::to_string(capture_timing.count)+"\ncapture_us="+std::to_string(capture_timing.total_us)+"\n";
+      }else result="ok=1\nrole=Off\n";
+    } else if (verb == "lobby_status") {
+      game::ClientUiHeartbeat();
+      result = game::LobbyFields()+"default_port="+std::to_string(Settings.host_port)+
+          "\nstate="+SessionStateName()+"\ncommand_error="+last_error+
+          "\nlobby_completed="+std::to_string(lobby_completed)+"\nlobby_error="+lobby_error+"\n";
+    } else if (verb == "status" || verb == "counters" || verb == "ui_status") {
       if(verb=="ui_status")game::ClientUiHeartbeat();
       std::lock_guard lock(snapshot_lock);
       result = verb == "counters" ? counter_snapshot : status_snapshot;
@@ -396,7 +443,7 @@ std::string Execute(std::string_view text, const char *source) {
   // 记录所有命令来源及 Q14 的 Game 指针；cs 不进入原生命令分支。
   // status/counters 的完整响应走控制口；trace 只保留响应长度与结果，避免
   // 大快照挤入单个 3500 字节事件被截断。其它命令继续保留原始结果。
-  if (verb == "ui_status" || verb == "e2e_ui") {
+  if (verb == "ui_status" || verb == "ui_perf" || verb == "lobby_status" || verb == "e2e_ui") {
     // UI只读刷新不是逐tick诊断，不向生产日志写每帧状态查询明细。
   } else if (verb == "status" || verb == "counters" || verb == "stream")
     Trace("command",
@@ -467,6 +514,10 @@ void PublishStatus() noexcept {
         (Settings.world_record_enabled ? "1" : "0") +
         "\nrepeat_topology_reads=" +
         (Settings.repeat_topology_reads ? "1" : "0") +
+        "\nmotion_interpolation=" + (Settings.motion.interpolation ? "1" : "0") +
+        "\nmotion_extrapolation=" + (Settings.motion.extrapolation ? "1" : "0") +
+        "\nmotion_prediction=" + (Settings.motion.prediction ? "1" : "0") +
+        "\nmotion_projectile_lead=" + (Settings.motion.projectile_lead ? "1" : "0") +
         "\nmanager_starting=" + (starting ? "1" : "0") +
         "\nregistered=" + std::to_string(registered) +
         "\npointers=" + std::to_string(PointerCount()) +
@@ -524,10 +575,22 @@ void FrameBegin() noexcept {
     for (unsigned i = 0; i < 64 && mutations.Pop(m); ++i) {
       const std::string before = SessionStateName();
       last_error.clear();
+      const bool lobby_action = m.lobby || m.kind == Mutation::Kind::LobbyStart ||
+          m.kind == Mutation::Kind::StopHost;
       // 关闭请求已在 main 捕获后，旧会话启动命令不能在延后的原生循环中复活。
       if (WorldProcessExitPending() && (m.kind == Mutation::Kind::Host ||
-                                        m.kind == Mutation::Kind::SoloStart))
+                                        m.kind == Mutation::Kind::Client ||
+                                        m.kind == Mutation::Kind::LobbyStart ||
+                                        m.kind == Mutation::Kind::SoloStart)) {
+        if (m.kind == Mutation::Kind::Host) pending_host_start = false;
+        if (m.kind == Mutation::Kind::Client) pending_client_start = false;
+        if (m.kind == Mutation::Kind::SoloStart) pending_solo_start = false;
+        if (lobby_action) {
+          lobby_completed = m.id;
+          lobby_error = "process_exiting";
+        }
         continue;
+      }
       switch (m.kind) {
       case Mutation::Kind::Host:
         pending_host_start = false;
@@ -538,12 +601,14 @@ void FrameBegin() noexcept {
           config.peer_timeout_ms = Settings.peer_timeout_ms;
           config.stream = Settings.stream;
           config.heartbeat_ms = unsigned(config.stream.heartbeat_ms);
+          config.lobby = m.lobby;
           last_error = game::ClientBusy() ? "busy" : game::StartHost(config, m.character);
         }
         break;
       case Mutation::Kind::Role:
         if (auto *r = game::Runtime();
             r && r->mode == core::SessionMode::Host && !r->retiring &&
+            r->lobby.roster.phase == core::LobbyPhase::Off &&
             !r->Remote(m.port).retired && !r->Remote(m.port).retiring &&
             !r->Remote(m.port).join.passes && !r->Remote(m.port).join.scope)
           r->Remote(m.port).join.character = m.character;
@@ -555,7 +620,16 @@ void FrameBegin() noexcept {
         break;
       case Mutation::Kind::Client:
         pending_client_start=false;
-        last_error=WorldCommandBusy()?"busy":game::StartClient(m.address,m.port,m.character);
+        last_error=WorldCommandBusy()?"busy":game::StartClient(m.address,m.port,m.character,m.lobby);
+        break;
+      case Mutation::Kind::LobbyRole:
+        last_error=game::SelectLobbyCharacter(m.port);
+        break;
+      case Mutation::Kind::LobbyReady:
+        last_error=game::SetLobbyReady(m.port != 0);
+        break;
+      case Mutation::Kind::LobbyStart:
+        last_error=game::StartLobbyGame();
         break;
       case Mutation::Kind::SoloStart:
         pending_solo_start = false;
@@ -577,6 +651,12 @@ void FrameBegin() noexcept {
       case Mutation::Kind::WorldCheckpoint:
         CheckpointWorldCommand(m.id, m.generation, m.label);
         break;
+      }
+      if (lobby_action) {
+        lobby_completed = m.id;
+        lobby_error = last_error;
+        if (m.lobby && m.kind == Mutation::Kind::Host && !lobby_error.empty())
+          Trace("lobby_open_error", "id=%llu port=%u reason=%s", m.id, m.port, lobby_error.c_str());
       }
       Trace("state",
             "id=%llu from=%s to=%s port=%u character=%d frame=%llu error=%s",
@@ -613,6 +693,7 @@ void FrameBegin() noexcept {
   } catch (...) {
     Trace("command_error", "frame_exception");
   }
+  game::PumpLobbyStart();
 }
 void FrameEnd(bool completed) noexcept {
   if (!frame_depth || --frame_depth != 0)
@@ -690,6 +771,20 @@ void RunExit() noexcept {
         game::StateName());
 }
 namespace game {
+namespace {
+thread_local bool hourglass_room=false;
+}
+HourglassRoomScope::HourglassRoomScope(const void *transition) noexcept:previous_(hourglass_room) {
+  const auto *r=Runtime();
+  int animation=0;
+  if(IsMain()&&r&&r->mode==core::SessionMode::Host&&r->run_observed&&!r->retiring&&!r->finished&&!r->failure&&
+     HasOwner(Owner::Door)&&transition&&ReadMemory(static_cast<const std::byte *>(transition)+0x1c,&animation,sizeof(animation))&&animation==12)
+    hourglass_room=true;
+}
+HourglassRoomScope::~HourglassRoomScope() noexcept {hourglass_room=previous_;}
+bool HourglassRoomActive() noexcept {return hourglass_room;}
+bool HourglassRestoreActive() noexcept {return hourglass_room&&HasOwner(Owner::Restore);}
+
 // tx-04-07：一次 Restore 决策同时处理两个停止点。保留条件必须同时满足，
 // 不能只凭 Warmup 或 startGame 豁免已有 run。
 RestoreScope::RestoreScope(void *game_object, void *state,
@@ -704,6 +799,16 @@ RestoreScope::RestoreScope(void *game_object, void *state,
   active_ = true;
   NoteLoadingOwnerEntered(RestoreOwner);
   const bool host_mode = r->mode == core::SessionMode::Host;
+  if(host_mode&&state_&&HourglassRoomActive()){
+    // 这是原生同局回溯，远端身份保持，旧输入／玩家绑定照常撤销。
+    preserve_=true;
+    InvalidateBinding(*r,"hourglass_restore",true);
+    ClearPendingRunMutations();
+#ifdef ISAACCS_E2E
+    if(replica::stream::E2ETraceEnabled())Trace("e39-restore","phase=enter loop=%llu",r->loop);
+#endif
+    return;
+  }
   // ExecuteStartGame 在调用 RestoreState 之前就已把 Game+0x25B02 置 1，因此这里
   // 不能再用“当前 RunActive”判断首次加载；资格在外层 Start 进入时已经固定。
   const bool identified_start =

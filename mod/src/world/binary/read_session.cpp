@@ -62,9 +62,10 @@ bool CaptureReadSession::ExternalCurrent() noexcept {
 }
 bool CaptureReadSession::ReviewRoot() noexcept {
   if(!active_||failed_)return false;
-  if(!defer_resource_check_)return true;
+  if(!deferred_serial_)return true;
   ++counters_.root_resource_checks;
-  if(ExternalCurrent())return true;
+  if(deferred_serial_==serial_&&ExternalCurrent())return true;
+  RevokeForResourceChange();
   ++counters_.root_resource_revocations;
   return false;
 }
@@ -76,7 +77,8 @@ bool CaptureReadSession::ContinueAfterObjectFailure() noexcept {
 bool CaptureReadSession::Probe(std::uint64_t address,std::span<std::byte> output) noexcept {
   if(!Good())return false;
   ++counters_.copies;
-  if(!CheckedNativeCopy(address,output.data(),output.size(),FrameRegionReader::Capture,&counters_)||!Good())return false;
+  if(!CheckedNativeCopy(address,output.data(),output.size(),FrameRegionReader::Capture,&counters_)||
+     (!deferred_serial_&&!Good()))return false;
   counters_.bytes+=output.size();
   return true;
 }
@@ -90,7 +92,7 @@ bool CaptureReadSession::Copy(std::uint64_t address,void *output,std::size_t siz
   ++counters_.copies;
   if(!CheckedNativeCopy(address,output,size,FrameRegionReader::Capture,&counters_))return Reject();
   counters_.bytes+=size;
-  return Good()||Reject();
+  return deferred_serial_||Good()||Reject();
 }
 bool CaptureReadSession::StringBlock(std::uint64_t address,std::span<std::byte> output,std::size_t &size) noexcept {
   size=0;
@@ -103,6 +105,6 @@ bool CaptureReadSession::StringBlock(std::uint64_t address,std::span<std::byte> 
   ++counters_.copies;
   if(!CheckedNativeStringBlock(address,output,size,FrameRegionReader::Capture,&counters_))return Reject();
   counters_.bytes+=size;
-  return Good()||Reject();
+  return deferred_serial_||Good()||Reject();
 }
 }

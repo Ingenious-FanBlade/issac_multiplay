@@ -1,6 +1,6 @@
 # 客机本机预测、显示插值与外推
 
-初稿日期 2026-11-19（Asia/Singapore）。**状态：设计初稿。2026-11-19 用户决定 P1（客机可为本机身体执行本地纯移动计算），已写入规范第17节；P2—P6、P8、P9 待用户决定，P7 中 grid_paths 阻挡位补同步已决定（5.3.1）。同日完成阶段 0：RE-P1—RE-P6 静态研究见 [RE-P 报告](prediction-interpolation/RE-P/README.md)，端到端计时已实现、仅编译产品 DLL，未运行；阶段 1 起未实施。** 文中标“推算”的数字没有实测。
+初稿日期 2026-11-19（Asia/Singapore）。**状态：2026-11-19 用户决定 P1（客机可为本机身体执行本地纯移动计算），已写入规范第17节；同日决定 P3—P6、P8、P9 按推荐执行（P4 选插值延迟＋断档外推，不采用 isaac-lan 的“外推到现在”），P7 中 grid_paths 阻挡位补同步已决定（5.3.1）；同日用户决定 P2=M-a（速度模型与碰撞响应用 C++ 复刻，原生只做地形查询），P7 其余碰撞范围按推荐实施。阶段 0：RE-P1—RE-P6 静态研究见 [RE-P 报告](prediction-interpolation/RE-P/README.md)，端到端计时已实现、仅编译。阶段 1（显示覆盖层＋远端插值与外推）已实现、仅编译产品 DLL，未运行，实施记录见 11.1；阶段 2（本机身体预测）已实现、仅编译，未运行，布局版本 87，实施记录见 11.2；阶段 3 起未实施。** 文中标“推算”的数字没有实测。
 
 上级：[现行规范第17节](../../refactor/project-conventions.md#17-原生二进制状态同步重构)、[总计划](README.md)、[显示委托](client-display-delegation.md)、[最终一致修订](eventual-consistency-revision.md)。相关历史决定：[状态同步总设计](../state-synchronization.md)第 228、275、277 行（无预测、插值归路线 32、预测属可选扩展），[显示委托 6.1](client-display-delegation.md#61-借鉴-isaac-lan-排除的逆向点)（半帧更新拦截后客机没有原生插值，留待第 13 步决定），[Player 布局](5-player.md)版本31说明（“网络展示插值如需要，由已应用 world／body 快照建立本地历史，不放行原生 Interpolate”）。
 
@@ -355,29 +355,108 @@ T_p 领先 T_a 约“输入提前量＋往返”，T_w 落后 T_a 约 D。
 | 编号 | 事项 | 推荐 |
 |---|---|---|
 | P1 | 修订规范：允许客机为本机身体执行本地纯移动计算（5.2），结果只用于显示、不回传、不产生副作用，Host 仍唯一权威。修订规范第17节与显示委托 2.4 的“客机不运行玩法”，并把路线中列为可选扩展的预测提前纳入 | **2026-11-19 用户已决定，已写入规范第17节** |
-| P2 | 移动计算路线：M-a 复刻，或 M-b 调原生纯函数 | RE-P2 已证实只有地形查询无副作用：地形查询用 M-b，速度模型与碰撞响应用 M-a |
-| P3 | 预测值与插值值以显示覆盖层存在（4.2），而不是让客机长期拥有这些字段；Body 增加每身体已处理输入序号（5.7），整数版本加 1 | 同意 |
-| P4 | 插值延迟 D 为 2h 加抖动 p95、限 2h—6h；纠正平滑半衰期 50ms；直接跳阈值 1.5 格 | 按此作初值，第 15 步实测后调整 |
-| P5 | 离散状态仍按 T_a 安装，只把位置显示在 T_w（6.4） | 同意 |
-| P6 | 敌弹外推到 T_p（7.3）默认关闭，只留开关 | 同意 |
-| P7 | 首版碰撞范围：地形格子、静止实体、自身状态；敌人推挤与击退交给对账（5.3）。`grid_paths` 阻挡位补同步（5.3.1） | **2026-11-19 用户决定补同步 grid_paths 阻挡位**（派生 2 位类别，不写原生表）；碰撞范围其余部分仍待定 |
-| P8 | 实施顺序按第 11 节；运行验证并入第 15 步统一整体验收 | 同意 |
-| P9 | 预测、插值、外推各设一个本机配置开关，便于对比测试和出问题时关闭 | 同意 |
+| P2 | 移动计算路线：M-a 复刻，或 M-b 调原生纯函数 | **2026-11-19 用户决定 M-a**：速度模型与碰撞响应用 C++ 复刻；原生只读参数与格子实体表，钳制与格号按原式复刻（实现见 11.2） |
+| P3 | 预测值与插值值以显示覆盖层存在（4.2），而不是让客机长期拥有这些字段；Body 增加每身体已处理输入序号（5.7），整数版本加 1 | **2026-11-19 用户同意**；覆盖层阶段 1 已实现，Body 序号随阶段 2 |
+| P4 | 插值延迟 D 为 2h 加抖动 p95、限 2h—6h；纠正平滑半衰期 50ms；直接跳阈值 1.5 格 | **2026-11-19 用户决定：远端用插值延迟＋断档外推（不改用 isaac-lan 的外推到现在），参数按此作初值**，第 15 步实测后调整 |
+| P5 | 离散状态仍按 T_a 安装，只把位置显示在 T_w（6.4） | **2026-11-19 用户同意** |
+| P6 | 敌弹外推到 T_p（7.3）默认关闭，只留开关 | **2026-11-19 用户同意**；开关 `motion.projectile_lead` 已随阶段 2 加入（11.2） |
+| P7 | 首版碰撞范围：地形格子、静止实体、自身状态；敌人推挤与击退交给对账（5.3）。`grid_paths` 阻挡位补同步（5.3.1） | **2026-11-19 用户决定补同步 grid_paths 阻挡位**（派生 2 位类别，不写原生表）；阶段 2 开始时用户未另行指定，其余范围按推荐实施；静止阻挡实体的圆形碰撞未实现（11.2） |
+| P8 | 实施顺序按第 11 节；运行验证并入第 15 步统一整体验收 | **2026-11-19 用户同意** |
+| P9 | 预测、插值、外推各设一个本机配置开关，便于对比测试和出问题时关闭 | **2026-11-19 用户同意**；`motion.interpolation`／`motion.extrapolation`／`motion.prediction` 均已加 |
 
 ## 11. 实施顺序
 
 1. **阶段 0：逆向与计时**。RE-P1—RE-P6；补端到端延迟计时（见第 12 节）。不改行为。**2026-11-19 完成**：报告见 [RE-P](prediction-interpolation/RE-P/README.md)，计时字段见 [timing.md 第 4 节](prediction-interpolation/RE-P/timing.md#4-阶段-0-新增计时已实现未运行)；仅编译，运行读数并入第 15 步。
-2. **阶段 1：显示覆盖层＋远端插值与外推**。先建覆盖层、时间基准和历史，适用于所有非本机对象。它不涉及玩法计算，风险最低，也为阶段 2 准备好覆盖层。
+2. **阶段 1：显示覆盖层＋远端插值与外推**。先建覆盖层、时间基准和历史，适用于所有非本机对象。它不涉及玩法计算，风险最低，也为阶段 2 准备好覆盖层。**2026-11-19 已实现，仅编译**，见 11.1。
 3. **阶段 2：本机身体预测**。待确认输入环、本地移动计算、对账与平滑、预测资格、Body 线格式改动、附着对象 Δ 传递。
 4. **阶段 3：表现补充**。头部朝向与射击方向（RE-P7）、本机泪弹出生融合、视实测加入敌人外推软碰撞。
 5. **阶段 4：输入提前量自适应**（另议）。
 
 若用户更看重尽快解决不跟手，可把阶段 2 提到阶段 1 之前，但覆盖层要在阶段 2 中先行实现。
 
+### 11.1 阶段 1 实施记录（2026-11-19，仅编译，未运行）
+
+代码：`mod/src/game/client/presentation/client_motion_overlay.{h,cpp}`（逻辑，C++20）与 `client_motion_overlay_native.cpp`（renderEL 遍历与 pos 交换，C++17 SDK 单元）；接入点在 `ClientScene`（`PublishBinary` 采样、`AdvanceDisplay` 求值并经 `ClientDisplayCameraHook` 覆盖相机、`BeginNativeRender`／`EndNativeRender` 覆盖 Game::Render）、`ClientBinaryScene`（World 发布后登记玩家身体与控制组序号）、`client.cpp`（本机序号、Host 暂停、诊断）。产品 DLL `zhlIsaacCS`（`build/repentogon`，Release）编译通过，新文件无警告；未运行任何测试，运行验证归第 15 步。
+
+按设计实现的部分：
+
+- **覆盖层（4.2、4.3）**：只写 pos。每个显示推进先求一次显示值，相机阶段与 Game::Render 各进入、退出一次，共用同一张写入表。进入时暂存原值、写显示值；退出时写回暂存值。写入和写回前都先在 renderEL 中定位地址（先看下标提示、再线性查找）并核对身份，不在列表中的地址一律不触碰（失败方式 5、6）。写入表超过 50ms 未刷新不再使用。Render 的写回在 `ClientDisplayRenderEnd` 的写集纠正之前；漂移扫描在 Manager 的 Pump 中，不与两个作用域重叠（失败方式 7）。显示值与权威值逐位相同的对象不写。
+- **历史（6.1）**：样本只在 `PublishBinary` 之后追加，读的是覆盖层外刚安装完的原生值。玩家只在 Body 安装时采样，其他实体只在 World 安装时采样（World 安装不改玩家位置，不能给旧位置盖新时间）；新玩家在首份 Body 之前用 World 时间补一份。每对象 4 份，World 遍历未见到的对象即删除；换 scene 全部作废。身份为 type／variant／subtype／InitSeed，变化即视为出生、清空历史；**不用 Entity+0x20**，它在客机上是 Host index 换算的绘制排序值，可随安装变化。
+- **不连续（6.3、失败方式 10）**：新样本相对上一份位移超过“1 格＋1.5×按速度预期位移”时清空历史、不插值、不融合；时间倒退同样清空。
+- **外推（7.1）**：速度换算按 RE-P1（玩家每半帧、其他每整帧，即 ×0.5），首版不乘摩擦。上限：泪弹、敌弹 12h；玩家、跟班、炸弹、刀、敌怪（10—999）6h；拾取物、效果等不外推（停在最新样本）。超过上限停在上限处。
+- **融合（7.2）**：外推中途到了新样本时，以旧显示位置与新求值之差为偏移，100ms 线性衰减到 0；偏移超过 1.5 格或时间线直接跳时不融合。
+- **开关（P9）**：`config.json` 新增 `"motion": {"interpolation": true, "extrapolation": true}`（未知字段拒绝）。插值关闭时不写任何对象；外推关闭时断档停在最新样本。状态命令输出 `motion_interpolation`／`motion_extrapolation`。
+
+实现时补定、需第 15 步实测核对的细节：
+
+- **时钟**：Host 现在时刻 = 本地时钟 × r − min(到达本地时刻 × r − World 的 h)，取近 64 次 World 到达的最早包络；r 为窗口首尾 Host 帧差与本地时差之比（跨度不足 30h 时取 1，限 0.5—1.5），用于 Host 帧率低于 60 时不持续超前。T_w 每帧按 r 推进，再以不超过 ±5% 追赶“Host 现在 − D”，偏离超过 6h 直接跳。
+- **D**：每次 World 到达前，用上式估计“最新 World 样本已过去多久”，取近 64 次的 p95，限 2h—6h。完全规则的 30Hz 下等于 2h，抖动与 Host 漏发都会计入，即设计“2h＋到达抖动 p95”的等价算法。不足 8 次到达时取 4h。
+- **Host 暂停**：T_w 停住；恢复后清空到达窗口，重新建立时钟，暂停时长不计入 D。
+- **Body 半帧时刻**：Body 段头只有 game_frame（RE-P6），阶段 1 按“同一 game_frame 的第一份记 2F、第二份记 2F+1”推定。Host 漏发其中一份时最多差 1h，阶段 2 的相位字段到位后改用实值。
+- **排除对象**：本机身体（控制组序号等于本机 ordinal 的全部身体，多身体角色一并排除）；附着在本机身体上的对象（Parent `+0x3BC` 指向本机身体、跟班 `_player +0x410` 是本机身体、本机身体举起的 `+0x140C`）——它们与仍显示在 T_a 的本机身体同步，阶段 2 再统一加 Δ；**激光一律不覆盖**，留在 T_a。
+- **相机**：设计 4.3 的“进入覆盖层后相机阶段”实现为相机调用外的作用域对象，相机返回或抛出都会写回。
+
+已知限制（阶段 1 不处理）：
+
+- 远端玩家或敌怪发出的附着激光仍在 T_a，与在 T_w 显示的父体最多差 D×速度。原因是激光点表平移未核实：RE-P5 记 EndPoint 在 `+0x4D8`，而 SDK `HomingLaser`（`Entity_Laser+0x464`）把 `_endPoint` 放在 `+0x470`，两者待逆向确认后随阶段 2 的 Δ 传递一并实现。
+- 本机身体及其附着对象仍按权威值（Body／World 到达节奏）显示，阶段 1 不改善本机手感。
+- 外推不做格子碰撞、不钳制房间边界（失败方式 12 只靠上限缓解）。
+
+新增诊断（流诊断第 0 页，前缀 `stream.motion.`）：`interpolation`、`extrapolation`、`tracks`、`track_overflow`、`collect_overflow`、`installs_world`、`installs_body`、`resets`、`rate_milli`、`delay_milli_h`、`delay_us_*`、`tw_jumps`、`tw_resets`、`eval_before`／`eval_interp`／`eval_extrap`／`eval_extrap_capped`／`eval_hold`（逐对象逐帧计数，即插值断档占比与外推占比）、`extrapolate_us_*`、`fusions`、`fuse_dropped`、`cuts`、`identity_resets`、`out_of_order`、`writes_last`、`writes_max`、`excluded_local`／`excluded_attached`／`excluded_laser`、`prepare_us_*`、`apply_us_*`（覆盖层耗时，对应第 12 节 p95≤0.3ms 目标）、`apply_stale`、`apply_missing`、`restore_missing`、`restore_changed`（覆盖层写回失败）、`disabled_frames`、`paused_frames`。
+
+### 11.2 阶段 2 实施记录（2026-11-19，仅编译，未运行）
+
+用户决定 P2=M-a。P7 其余碰撞范围用户未另行指定，按推荐实施。产品 DLL `zhlIsaacCS`（`build/repentogon`，Release）编译通过；布局生成器同轮重新生成了 `layouts/05-player/EntityPlayer.md`、`layouts/07-room-level/Room.md` 与 `demand-coverage.md`。未运行任何测试，运行验证归第 15 步。
+
+**线格式（5.7、5.3.1），布局版本 86→87**：
+
+- EntityPlayer 新增 Body 块 25「P9本机预测对账」：`input_sequence`（u32，控制组参与者已处理的最高输入序号低 32 位，无组为 0）、`input_tick`（u32，采集所在 Authority tick 即 `clock.Current()` 低 32 位）、`input_phase`（u8，bit0 样本结束于奇半帧，bit1—2 本 tick 半步数；Host 运行时不可用时为 0）。三者为合成字段，客机不写原生。最初把它们插在块 10，会让其后 80 个 EntityPlayer 字段号整体后移，改为追加新块，已有字段号不变。
+- Room 新增块 14「R5 预测地形」：`grid_path_block`（u8[112]），每格 2 位，低位在前。Host 在采集窗口内读 `Room+0x76C` 的 448 个 cost，按 `0x7E6AF0` 的阈值换算（3000—3999 为 1、1000—2999 与 ≥4000 为 3、其余 0）。需求清单 `demand.json` 同步登记。随 World 普通流，按字段增量，未变不发。
+- Host：`EntityRead::InputSequence／InputTick／InputPhase` 由 `EntityFacts` 供值，`binary_entities.cpp` 的 `Control()` 在同一 Prepare 读窗内填写，序号取 `Participant::LastProcessedSequence()`（新增访问器，与 ACK 的 processed 同源）；相位按 `boundary.kind`（OddPlayer 为奇）与 `NativeInterpolationState()`（关插值时每 tick 两半步，结束于奇半帧）。`scene_source.cpp` 的 `SceneLeaf` 计算 `grid_path_block`。
+
+**本地移动计算（5.2，M-a）**，代码 `client_motion_predict.{h,cpp}`。半步顺序与常数按 J273 逐项复刻，全部用 float 按原式顺序计算：
+
+1. Entity::Update（`0x6A9CF0`）：f=`+0x36C`，ts≠1 时 f=f/((f+ts)−f·ts)；v*=f；pos+=v·ts。滑行计数在这里按“SLIPPERY 置 60，否则减 1”更新（计数不同步，本地维护）。
+2. ControlMovement（`0x772540`）：GetMovementInput（`0x771D70`）的输入（RIGHT−LEFT，DOWN−UP，混乱、反转种子 12、轴对齐种子 76、镜像世界）→ 重力房 y=0 → 长度钳到 1 → 输入清零条件 → 乘 MoveSpeed×0.25+0.75 → 垂直阻尼 → 加速 → s>0 时超速缩回 → 乘摩擦（重力房 y 改加 0.225）。补核勘误：摩擦在本步直接乘到速度上，不写 `+0x36C`；超速时缩回到加速前的速度大小（RE-P1 movement.md 已改）。
+3. PlayerCollideWithGrid（`0x6A6A40`，非静默）：房间钳制、采样点法线、速度响应、二分推出，细节见 [collision.md 2.1](prediction-interpolation/RE-P/collision.md#21-阶段-2-补核2026-11-19)。
+
+原生只读：本机身体参数（`ClientMotionReadBody`：pos、velocity、MoveSpeed、摩擦、时间缩放、size 与倍率、标志、碰撞类别、采样点、控制开关与冷却、资格字段、临时效果、Game 的混乱计数／种子效果／层与维度）与地形（`ClientMotionReadTerrain`：格子实体表 `Room+0x24` 的类型、变体、自身格号与碰撞类别，房间类型、宽高、边界、形状）。钳制与格号按原式复刻，不调用原生函数；无 GridEntity 的格子查同步来的影子表（按场景作键、换场景作废、来源 World 版本未变不重扫），影子表未到时按无阻挡查询。
+
+**未复刻、交给对账纠正的分支**：击退（资格排除）；非静默碰撞中的推石头、门回调、Mega Mush 破坏（资格排除 Mega Mush）、`+0x15F4==147` 的门分支；大便便（变体 7—10）的半径 38 判定（按整格阻挡）；墙上门改 WALL_EXCEPT_PLAYER 的条件（保持 WALL）；`0x7D1C90`；Entity::Update 中半步 A 的额外速度系数（反编译第 1589 行的循环，含义未核）；静止阻挡实体的圆形碰撞（P7 推荐项，未实现）。客机的种子效果不由同步安装，反转／轴对齐种子读到的是客机本地值；镜像世界的诅咒位读 `Game+0xC`，未核是否等同 `0x742450`。
+
+**预测资格（5.5、RE-P3）**：控制组只有一个身体；角色不是 Jacob & Esau（19、20）或 Tainted Forgotten 本体与灵魂（35、40）；不在空中（`+0x1E54`、posOffset.y）；无 target、无 minecart；parent 不是玩家（父体不在渲染列表时按不可预测）；未冻结（`+0x218`、PAUSE 478）；suplex 为 0；小马冲刺为 0；无逆战车（NullItem 63）、SPIN_TO_WIN（50）、火星冲刺（593）、Mega Mush（625）；无击退标志；不是不能飞的重力房；采样点不超过 32；Body 相位已知；已有发送过的输入；待确认输入不超过 32 条。控制禁用、冷却、`+0x1FE0` 只把输入当零，物理照常预测。Host 暂停或 `motion.prediction` 关闭时清空输入环，恢复时直接跳。
+
+**对账与平滑（5.4）**：输入环 128 项，按序号取模，记录代次、序号、目标 tick 与 move 分量；代次变化清空。每次显示推进都从最新 Body 样本的权威位置与速度出发，按 tick 重放到最新已发目标：tick t 的输入取同代次中目标恰为 t 的最高序号命令，没有则为中性（与 `Participant::Begin` 相同），每 tick 执行相位给出的半步数，最多 63 tick。Host tick 只携带低 32 位，取与最新目标最接近的 64 位值。平滑偏移 e：把上一帧显示的 tick 在新链中的值与旧值之差并入 e，按 50ms 半衰期衰减，超过 1.5 格清零；新样本时差值小于 0.01 计为命中，否则计为偏差并记入直方图。身体换地址、恢复资格、暂停恢复时直接跳。
+
+**覆盖层接入**：本机身体写预测位置＋e，并写预测速度供相机前视（覆盖层写入表新增可选速度项，写回同样恢复）。附着对象 Δ（5.6）：环绕跟班（`_player` 为本机身体且 OrbitLayer `+0xD70`≥0）、本机身体举起的实体、Parent 指向本机身体的非激光对象加同一个 Δ；跟随队列跟班仍显示权威值；激光仍不覆盖（端点偏移未确认）。远端玩家的 Body 样本时刻改用相位字段（2F 或 2F+1），读不到时沿用阶段 1 的推断。
+
+**P6**：`motion.projectile_lead` 打开且本机正在预测时，敌弹（类型 9）在 T_w＋D＋预测领先量（(最新目标−权威 tick)×每 tick 半步数）处求值，外推上限放宽到 30h（500ms）。
+
+**配置与诊断**：`config.json` 的 `motion` 新增 `prediction`（缺省 true）与 `projectile_lead`（缺省 false）；状态命令输出 `motion_prediction`、`motion_projectile_lead`。流诊断第 0 页新增 `stream.motion.prediction`、`projectile_lead`、`predict_written`、`follow_written`、`path_valid`、`path_updates`、`path_missing`、`body_missing`、`authority_missing`、`multi_body`、`terrain_missing`、`projectile_lead_evals`，以及预测器的 `stream.motion.predict_*`：`enabled`、`frames`、`predicted`、`ineligible`、`reason`（最近一次不可预测原因）、`authority_new`、`hits`、`misses`（失败方式 1、2、3 的观察口）、`gaps`、`snaps`、`jumps`、`pending_overflow`、`phase_unknown`、`inputs`、`input_conflicts`、`generation_resets`、`neutral_ticks`（重放中缺命令的 tick 数）、`replay_ticks`、`replay_max`、`replay_us_*`、`error_milli_*`（偏差，千分之一单位）。
+
+**已知限制**：
+
+- 显示 tick 随最新已发目标前进，目标一帧跳 0 或 2 tick 时显示步长不均匀；未做本地时钟插值。
+- 滑行计数不同步，冰面上重放起点若不在上一条链中则从 0（或 SLIPPERY 时 60）开始。
+- 本机身体在 T_p、远端实体在 T_w，敌人推挤与接触伤害只能在对账后出现（设计 5.3）。
+- 头部朝向、射击方向与本机泪弹出生融合属阶段 3。
+
+**补充（2026-11-20，用户反馈“移动仍不跟手”后直接修改，仅编译）**：客机输入发送规则原为“本帧收到新 server_tick 且目标大于上次目标才发一条”。TickProgress 到达抖动时，有的帧不发（本帧按键被丢弃），下一帧目标跳 2，被跳过的 tick 在 Host 上没有命令、按中性输入处理（`Participant::Begin` 只用目标恰为该 tick 的命令），Host 权威移动与本机预测都在这些半步不加速。现改为（`client.cpp`）：每帧按最新采样发送；目标前进时为 (上次目标, 目标] 中每个 tick 各发一条同一采样的命令（最多 4 条，边沿只放在目标 tick）；目标未前进但移动／瞄准／按住位变了时，以更高序号对同一目标重发一次（不带边沿）。Host 侧规则、线格式不变；过早的补发命令只会被 Host 记为 Expired。预测器的待确认上限改按“最新目标−权威 tick”计（不再数命令条数），输入环扩到 256。新增客机诊断 `input_fill_sent`、`input_resent`；与 `stream.motion.predict_neutral_ticks` 一起在第 15 步核对。
+
+**实机读数与修正（2026-11-20，用户自行部署运行，经控制端口 `cs stream client 0` 只读查询）**：客机 `predict_predicted=0`、`predict_ineligible=16979`、`predict_reason=points`——预测从未生效，本机身体一直按权威值显示。原因是采样点上限误设为 32，而 SetSize（`0x6A7880`）按 EntityConfig 的 GridCollisionPoints 生成采样点，原版 Player 与 Coplayer 均为 40。上限改为 128，重新编译，尚未运行。同次读数：输入提前量 `lead_ticks` p50=7、p95=8（约 127—136ms），其中约 4 tick 来自 `live.cpp` 固定的 `timing_uncertainty_ms=64`（GetTickCount64 量化 16ms×4）；`processed_on_time=5913`、`processed_late=1`，Host 端几乎没有迟到；`input_fill_sent=904`（约占全部发送的 14%），即旧发送规则下约 14% 的 tick 原本没有命令；`input_resent=115`。
+
+**第二次实机读数与修正（2026-11-20）**：采样点修正后预测生效（`predict_predicted=9090`／`ineligible=132`），用户反馈移动时整屏“像地震一样”晃。读数：`hits=1658`、`misses=4611`，偏差 p50 落在 2—4 单位档、最大 17.8；`gaps=2618`；`replay_max=10`。判断主因是显示 tick 直接取最新已发目标：目标按 GetTickCount64（约 16ms 量化）投影，每帧前进 0、1 或 2 tick，本机身体每帧走 0／约 9／约 18 单位，相机跟随身体，整屏随之抖动（11.2 已知限制第 1 条）；每份 Body 的 2—4 单位纠正叠加其上。修正（`client_motion_predict.cpp`）：显示改用本地小数 tick 时钟，按每秒 60 半帧推进，以 150ms 半衰期追赶“最新目标−1 tick”，偏离超过 6 tick 直接跳，夹在 [权威 tick, 最新目标] 内；位置与速度在相邻重放链节点间线性插值；e 的对账改在上一帧显示的小数 tick 上比较。新增诊断 `predict_display_jumps`、`predict_display_lead_milli_tick`，以及按 Body 相位奇偶拆分的 `predict_misses_odd`／`predict_misses_even`（用于判断 2—4 单位偏差是否来自半步 A／B 的复刻差异）。仅编译，未运行。
+
 ## 12. 第 15 步验收补充
+
+**客机滚屏修正（2026-11-20）**：静态复查发现 `Room.render_scroll` 曾同时由本地相机、World 安装和 Render 后的 `Reapply` 写入。相机跟随预测位置，后两条路径写入 Host 视角，导致滚屏坐标反复被覆盖。现有线字段继续供客机新建相机时设置首帧偏移。相机推进后，World 普通／快速安装、漂移修正及 Render 回写都保留本地滚屏值。实机表现待复测。
+
+**双端独立跟随（2026-11-20）**：J273 `UpdateDrag2` 和 `UpdateUltrasmooth` 都经 `0x995B30` 读取玩家中心。`UpdateUltrasmooth` 还直接遍历名册选主身体、计算前视和处理幽灵。两个相机入口的现有 Hook 在原生调用内借用本端已确认的控制组名册及其中心，调用返回后恢复完整名册和原缓存。Host 使用参与者 0 的当前拓扑；Client 使用已安装 World 的控制组，在预测覆盖生效时直接读取显示位置。客机新建相机后可用 `SnapToPosition` 以本端身体中心初始化抓图和相机历史；原生返房焦点及本端尚未绑定时沿用已有初始化路径。实机表现待复测。
 
 | 场景 | 必须观察的结果 |
 |---|---|
+| 客机在可滚动的大房间连续移动、急停和反向 | 背景滚动连续，World 到达时相机不拉回 Host 视角。覆盖两种客机相机设置，过门后首帧与落点一致 |
+| Host 与 Client 分走可滚动大房间的两端；一端停住、另一端往返 | 双端持续跟随各自控制的角色。覆盖两种相机模式、中途加入和换房，确认完整玩家名册仍用于玩法和绘制 |
 | 同机两人，客机走动、急停、贴墙走、过窄道 | 本机身体在采样后同一或下一渲染帧开始移动；对账命中率、纠正幅度 p95、直接跳次数有记录；无持续回拉 |
 | 客机吃速度道具、进出减速液 | 速度变化后纠正幅度回到稳态 |
 | 客机被敌人推挤、受伤击退 | 击退约一个往返后出现，平滑过渡，无反复拉扯 |

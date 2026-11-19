@@ -30,6 +30,7 @@
 
 - Effect的MrMe／SpriteTrail／PickupGhost，以及Familiar的IsaacsBody／AbyssLocust／UmbilicalBaby，分别使用已核ctor或inline构造和真实动态虚表，建立候选私有的强引用holder；不写Entity的`+4B4`或Familiar的`+ECC`。
 - 静态复读发现`430E40`／`606310`的替换helper即使传Null也会分配新的24B控制块。最终释放因此走真实counter虚槽`+0C`和各自最后释放回调，不能用“再Assign Null”丢掉一个新控制块。捕获并复查同一回调，回调缺失时不进入构造；异常或不确定前缀继续保留。
+- 2026-11-19 修订：玩家使用 Mr. ME! 后，客机连续以 `binary_fields_shared_release_callback` 拒收 World，幽灵消失后恢复。J273 的控制块虚槽 `+0x0C` 自行减强引用并在需要时析构 payload，正常最终释放也可返回 0。Familiar 与 Effect 原生 setter 只在该槽返回非零且回调可用时通知。暂存和扁平安装均按此规则释放，允许回调为空。
 - 五个Weapon槽由计划中的mask、具体布局和实际type创建；type10／11共用Bone布局，不能从布局号反猜type。只使用官方注册factory和`Init(Reset,type,nullptr)`的新对象路径，没有现有Player／Familiar owner，也不写Player槽。逐个核动态vptr、大小、type、空owner与空攻击引用；不调用Fire／Update。
 - 退休先通过真实`EntityPtr::SetReference(nullptr)`拆边，保持owner为空，再执行具体动态Free。没有调用会Remove攻击实体、且Urn还会停音的`ClearReferences`。基类析构的Player／Familiar回写分支因空owner不进入。
 

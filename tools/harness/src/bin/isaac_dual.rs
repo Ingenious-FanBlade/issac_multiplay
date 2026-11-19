@@ -184,17 +184,22 @@ fn run() -> Result<()> {
     ))?;
     let diagnostic = PathBuf::from(args.next().ok_or("missing diagnostic directory")?);
     let package = args.next().map(PathBuf::from);
-    if args.next().is_some() {
-        return Err(
-            "usage: isaac-dual.exe <bootstrap.dll> <diagnostic directory> [E2E package]".into(),
-        );
-    }
+    let launch_only = match args.next().as_deref() {
+        None => false,
+        Some(flag) if flag == "--launch-only" && args.next().is_none() => true,
+        _ => return Err("usage: isaac-dual.exe <bootstrap.dll> <diagnostic directory> [E2E package [--launch-only]]".into()),
+    };
     let host = TestInstance::discover("host", Path::new(HOST))?;
     let client = TestInstance::discover("client1", Path::new(CLIENT))?;
     if host.executable == client.executable {
         return Err("host and client1 resolve to the same executable".into());
     }
-    let connect_port = package.as_ref().map(|_| p2::client_port()).transpose()?;
+    // 手动联机沿用部署和窗口交接，跳过自动连接端口和开局编排。
+    let connect_port = if package.is_some() && !launch_only {
+        Some(p2::client_port()?)
+    } else {
+        None
+    };
     win32::steam_ready()?;
     win32::ensure_copies_idle(&[&host.executable, &client.executable])?;
     prepare_profile(&host.profile)?;
@@ -237,6 +242,9 @@ fn run() -> Result<()> {
     );
     host_game.detach();
     client_game.detach();
+    if launch_only {
+        println!("Both games started. Use Isaac CS > Session panel to connect manually.");
+    }
     Ok(())
 }
 

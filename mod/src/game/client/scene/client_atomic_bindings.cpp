@@ -144,7 +144,9 @@ class NativeBindings final:public ClientAtomicInstallBindings {
   Vector<std::uint32_t> fx_counts_,companion_fields_,layer_images_;
   ClientBinaryRoomMembers room_;
   // HUD 的四个参与者槽由同批控制组决定；Player.ControllerIndex 始终保持客机 -1。
-  std::array<std::uint8_t,256> roster_ordinals_{};
+  // 名册的控制组及其活动资格随原生槽一起提交和退休。
+  struct RosterControl final {std::uint8_t ordinal=0;bool active=false;};
+  std::array<RosterControl,256> roster_controls_{};
   ClientBinaryRoomPrevious previous_room_,initial_room_;
   NativeBindings *prior_=nullptr;
   static thread_local NativeBindings *world_,*candidate_;
@@ -282,7 +284,7 @@ public:
   bool Retire(const S::ClientStateApplyBatch &,const ClientAtomicInputs &) noexcept override;
   static bool GridWaterClip(const void *,std::uint32_t &) noexcept;
   static bool DrawOrder(const void *,std::uint32_t &) noexcept;
-  static bool HudOrdinal(const void *,unsigned &) noexcept;
+  static bool PlayerOrdinal(const void *,unsigned &,bool active_only) noexcept;
   static void RenderOverlays(const void *) noexcept;
   static const ClientSceneInstallPlan *PublishedWorld() noexcept {
     return world_&&world_->Displayable()?world_->published_scene_:nullptr;
@@ -326,15 +328,15 @@ const char *NativeBindings::DescribeMembers(const ClientAtomicInputs &in) {
     if(!room_.doors[i]&&in.objects[world.doors[i]].failure==ClientMemberFailure::None)
       return "binary_native_member_door_object";
   }
-  decltype(room_.roster) roster{};decltype(roster_ordinals_) ordinals{};
+  decltype(room_.roster) roster{};decltype(roster_controls_) controls{};
   for(const auto &p:plan.Players())if(p.roster!=S::kNullIndex&&Object(in,p.object)){
     const auto group=std::find_if(plan.Groups().begin(),plan.Groups().end(),[&](const auto &g){return g.object==p.group;});
     if(group==plan.Groups().end())return "binary_native_member_roster_group";
     if(p.roster>=roster.size())return "binary_native_member_roster_slot";
-    roster[p.roster]=Object(in,p.object);ordinals[p.roster]=group->ordinal;
+    roster[p.roster]=Object(in,p.object);controls[p.roster]={group->ordinal,bool(p.control&1)};
   }
   for(std::size_t n=0;n<roster.size();++n)if(roster[n]){
-    room_.roster[room_.roster_count]=roster[n];roster_ordinals_[room_.roster_count++]=ordinals[n];
+    room_.roster[room_.roster_count]=roster[n];roster_controls_[room_.roster_count++]=controls[n];
   }
 
   // 没有主玩家的场景不能进入原生 Render，额外生命与相机查询都会解引用 roster。
@@ -482,7 +484,9 @@ bool NativeBindings::DescribeFields(const ClientAtomicInputs &in) {
     auto &op=special_.emplace_back();
     op.write.kind=kind;op.write.offset=d.native_offset;op.write.size=d.native_size;op.write.count=f.elements;
     const auto &record=plan.Records()[f.record];
-    if(!world_target_&&record.layout==F::EntityPlayer::kLayout&&(kind==K::File||kind==K::Animation)){
+    // 单独 Body 持有主 Sprite 的 E4 文件、E5 动画与 E6 图层。换文件仍走正常的整 Sprite 安装，
+    // 仅换动画时保留图层地址，避免频繁切动画时重建承载。
+    if(!world_target_&&record.layout==F::EntityPlayer::kLayout&&kind==K::Animation){
       auto root=f.path;
       while(plan.Paths()[root].parent!=none)root=plan.Paths()[root].parent;
       const auto field=plan.Paths()[root].step.field;
@@ -941,7 +945,7 @@ bool NativeBindings::ForgetMembers(std::span<const ClientLiveRetirement> leaving
     if(found!=end){
       const auto slot=found-room_.roster.begin();
       std::move(found+1,end,found);room_.roster[--room_.roster_count]=nullptr;
-      std::move(roster_ordinals_.begin()+slot+1,roster_ordinals_.begin()+room_.roster_count+1,roster_ordinals_.begin()+slot);
+      std::move(roster_controls_.begin()+slot+1,roster_controls_.begin()+room_.roster_count+1,roster_controls_.begin()+slot);
     }
   }
   return true;
@@ -1021,18 +1025,19 @@ bool NativeBindings::DrawOrder(const void *object,std::uint32_t &value) noexcept
   if(found==order.end()||found->first!=key)return false;
   value=found->second;return true;
 }
-bool NativeBindings::HudOrdinal(const void *object,unsigned &value) noexcept {
+bool NativeBindings::PlayerOrdinal(const void *object,unsigned &value,bool active_only) noexcept {
   const auto *owner=Visible();
   if(!owner||!owner->Displayable())return false;
   for(std::size_t i=0;i<owner->room_.roster_count;++i)if(owner->room_.roster[i]==object){
-    value=owner->roster_ordinals_[i];return value<4;
+    const auto control=owner->roster_controls_[i];
+    value=control.ordinal;return value<4&&(!active_only||control.active);
   }
   return false;
 }
 } // namespace
 bool ClientBinaryGridWaterClip(const void *object,std::uint32_t &value) noexcept {return NativeBindings::GridWaterClip(object,value);}
 bool ClientBinaryDrawOrder(const void *object,std::uint32_t &value) noexcept {return NativeBindings::DrawOrder(object,value);}
-bool ClientBinaryHudOrdinal(const void *object,unsigned &value) noexcept {return NativeBindings::HudOrdinal(object,value);}
+bool ClientBinaryPlayerOrdinal(const void *object,unsigned &value,bool active_only) noexcept {return NativeBindings::PlayerOrdinal(object,value,active_only);}
 void NativeBindings::RenderOverlays(const void *global) noexcept {
   const auto *owner=Visible();
   if(!owner||!owner->Displayable()||global!=ClientBinaryGlobalOverlay(owner->roots_))return;

@@ -53,7 +53,8 @@ local function answer(kind)
         submitted=pending.id
     end
 end
-ImGui.AddElement("isaac-cs-menu", "isaac-cs-acceptance-open", ImGuiElement.MenuItem, "tx-04-21 acceptance (E2E)")
+ImGui.CreateMenu("isaac-cs-e2e-menu", "Isaac CS E2E")
+ImGui.AddElement("isaac-cs-e2e-menu", "isaac-cs-acceptance-open", ImGuiElement.MenuItem, "tx-04-21 acceptance (E2E)")
 ImGui.CreateWindow(panel, "Isaac CS - tx-04-21 acceptance")
 ImGui.SetWindowSize(panel, 780, 680)
 ImGui.LinkWindowToElement(panel, "isaac-cs-acceptance-open")

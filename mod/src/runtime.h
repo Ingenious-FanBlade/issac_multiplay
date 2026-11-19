@@ -63,6 +63,13 @@ struct Config {
   std::string world_output_dir = "isaac-cs/world";
   unsigned world_close_timeout_ms = 10000;
   std::string world_e2e_token; // 专用本地 E2E 配置；空串关闭所有测试入口。
+  // P9：客机显示覆盖层的本机开关，只改本机显示，不进入协商或线格式。
+  // interpolation 关闭时远端对象直接显示权威值；extrapolation 关闭时断档停在最新样本。
+  struct Motion {
+    bool interpolation = true, extrapolation = true;
+    // 阶段 2：本机身体预测（P9，缺省开）；敌弹外推到 T_p（P6，缺省关）。
+    bool prediction = true, projectile_lead = false;
+  } motion;
 #ifdef ISAACCS_E2E
   bool e2e_ui_enabled=false;
   std::string e2e_ui_directory; // 本机Host专用信箱，产品配置不接受该字段。

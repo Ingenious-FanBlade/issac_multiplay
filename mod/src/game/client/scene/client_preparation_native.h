@@ -58,8 +58,8 @@ bool ClientStagedObjectCurrent(const ClientStagedObject *,const ClientNativeRoot
 bool ClientStagedObjectRelease(ClientStagedObject *&) noexcept;
 void *ClientStagedObjectBorrow(ClientStagedObject *) noexcept;
 // 安装后的租约仍持有同一构造承载；不再用“未Init”的exists/valid条件判定其地址。
-// 活对象的写入见证包含池中的有效位和完整原生形态。
-void *ClientStagedObjectLiveAddress(const ClientStagedObject *) noexcept;
+// 活对象的写入见证包含池中的有效位和完整原生形态。World 根允许读取或写入仍由本租约持有的不可见实例。
+void *ClientStagedObjectLiveAddress(const ClientStagedObject *,bool allow_absent_entity=false) noexcept;
 void *ClientStagedObjectOwnedAddress(const ClientStagedObject *) noexcept;
 // Morph 已核对地址和形态；只更新实际池槽 owner 的活对象见证。
 bool ClientStagedObjectAdoptShape(ClientStagedObject *,void *,unsigned type,unsigned variant,

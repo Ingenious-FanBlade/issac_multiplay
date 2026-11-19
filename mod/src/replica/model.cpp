@@ -449,11 +449,14 @@ Json Negotiate(const Value &local,const Value &remote){
     for(unsigned i=0;i<5;++i){const auto n=Unsigned(At((*v)["limits"],keys[i]));if(!n||n>maxima[i]||(i==1&&n<=32))Fail("capability_budget");}
   }
   for(const char *k:{"protocol","model","game","repentogon"})if(At(local,k)!=At(remote,k))Fail("incompatible_version");
+  // 二进制布局也使用必需能力匹配，单独报告版本协商失败，方便区分其他缺失能力。
   for(const auto &r:At(remote,"required").GetArray()){
-    bool found=false;for(const auto &s:At(local,"supported").GetArray())if(r==s)found=true;if(!found)Fail("unsupported_capability");
+    bool found=false;for(const auto &s:At(local,"supported").GetArray())if(r==s)found=true;
+    if(!found)Fail(Str(r).starts_with("binary-state-v1-layout-")?"binary_layout_version_mismatch":"unsupported_capability");
   }
   for(const auto &r:At(local,"required").GetArray()){
-    bool found=false;for(const auto &s:At(remote,"supported").GetArray())if(r==s)found=true;if(!found)Fail("unsupported_capability");
+    bool found=false;for(const auto &s:At(remote,"supported").GetArray())if(r==s)found=true;
+    if(!found)Fail(Str(r).starts_with("binary-state-v1-layout-")?"binary_layout_version_mismatch":"unsupported_capability");
   }
   if(At(local,"mods")!=At(remote,"mods"))Fail("mod_version_mismatch");
   if(At(local,"model_categories")!=At(remote,"model_categories"))Fail("category_version_mismatch");

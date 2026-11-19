@@ -43,6 +43,7 @@ void ClientScene::Begin(const replica::Scope &scope) noexcept {
     ClientDisplayDestroy(display_);display_=nullptr;display_history_=false;
   }
   binary_scene_=binary_published_=false;
+  motion_.Reset();
   retirement_complete_=false;
   native_dispatch_prefix_=false;
   applied_revision_=stream_last_commit_=0;
@@ -111,11 +112,15 @@ void ClientScene::PublishBinary(state::ClientStateBlockTableRef blocks,std::uint
   if(streams&2)++applied_body_count_;
   binary_published_=true;applied_revision_=revision;
   state_=ClientSceneState::Displaying;
+  // 安装刚写完的权威运动值进入覆盖层历史（设计 6.1）；读的是覆盖层外的原生对象。
+  {const auto &table=*published_blocks_;
+    const auto frame=[&](unsigned i)->std::uint32_t{return table.streams[i]?table.streams[i]->Context().game_frame:0u;};
+    motion_.Installed(NativeRoots().room,streams,table.route.scope.scene,frame(0),frame(1),&table);}
   FailureResult(ClientResultKind::NativeCommitted,"binary_apply","binary_native_committed");
   result_.native_committed=true;result_.old_display_valid=true;result_.revision=revision;
 }
 void ClientScene::FinishBinary() noexcept {
-  published_blocks_.reset();
+  published_blocks_.reset();motion_.Reset();
   binary_scene_=binary_published_=false;native_dispatch_prefix_=false;applied_revision_=0;
   result_.native_written=result_.native_committed=result_.old_display_valid=false;result_.executed_prefix=0;
 }
@@ -204,6 +209,12 @@ bool ClientScene::PreserveBinaryRoom() noexcept {
   if(done){display_history_=true;display_history_scope_=waiting_scope_;}
   return done;
 }
+// 只借本地图形快照，跨房间退休时不访问旧房间、实体、Lua 或待提交的新根。
+bool ClientScene::RenderBinaryHistory(const ClientBorrowToken &observation) noexcept {
+  return display_history_&&!DisplayReady()&&state_!=ClientSceneState::Failed&&
+         observation.purpose==ClientPurpose::RenderObservation&&Valid(observation)&&
+         GraphicsWindowValid()&&ClientDisplayRenderHistory(display_);
+}
 bool ClientScene::ReleaseBinaryDisplayRoots(bool keep_history) noexcept {
   if(!display_)return true;
   if(!DestructiveReady())return false;
@@ -236,7 +247,13 @@ bool ClientScene::AdvanceDisplay(bool local_blocked) noexcept {
   bool ok=false;
   {ClientDispatchScope dispatch(ClientOperation::PresentMaintenance,ClientEntry::PresentationMaintenance);
     if(dispatch.Ready()&&ClientDispatchBefore(ClientEntry::PresentationMaintenance)==ClientEntryDecision::CallOriginal){
-      ok=ClientDisplayAdvance(display_,NativeRoots(),local_blocked);
+      // 覆盖层先求本轮显示值，相机阶段与随后的 Game::Render 共用同一张写入表。
+      const auto room=NativeRoots().room;
+      motion_.Prepare(room,motion_ordinal_,motion_paused_,published_blocks_.get());
+      const ClientDisplayCameraHook camera{this,
+        [](void *p)noexcept{auto &s=*static_cast<ClientScene *>(p);return s.motion_.Enter(s.NativeRoots().room);},
+        [](void *p)noexcept{auto &s=*static_cast<ClientScene *>(p);s.motion_.Exit(s.NativeRoots().room);}};
+      ok=ClientDisplayAdvance(display_,NativeRoots(),local_blocked,camera);
       ClientDispatchReturned(ClientEntry::PresentationMaintenance);ok=ok&&dispatch.Succeeded();}}
   Release(graphics);
   if(!ok){
@@ -249,11 +266,16 @@ bool ClientScene::AdvanceDisplay(bool local_blocked) noexcept {
 bool ClientScene::BeginNativeRender() noexcept {
   const auto blocks=PublishedBlocks();
   if(!blocks||render_blocks_||!NativeDisplay()||!ClientDisplayRenderBegin(display_,NativeRoots()))return false;
-  render_blocks_=blocks;return true;
+  render_blocks_=blocks;
+  // Render 读 pos＋posOffset（RE-P4）：覆盖层在此写入显示位置，EndNativeRender 写回。
+  motion_render_=motion_.Enter(NativeRoots().room);
+  return true;
 }
 bool ClientScene::RouteNativeRender(bool begin) noexcept{return ClientDisplayRouteRender(display_,begin);}
 void ClientScene::EndNativeRender() noexcept {
   const auto blocks=render_blocks_;
+  // 先写回权威值，再做 Render 写集纠正与当前性检查；Render 抛出时由外层作用域析构同样走到这里。
+  if(motion_render_){motion_.Exit(NativeRoots().room);motion_render_=false;}
   ClientDisplayRenderEnd(display_,NativeRoots());render_blocks_.reset();
   ClientDisplayIssue issue;
   if(!DisplayReady()||!ClientDisplayCurrent(display_,NativeRoots(),&issue)){

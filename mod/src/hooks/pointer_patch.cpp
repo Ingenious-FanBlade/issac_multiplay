@@ -126,7 +126,7 @@ std::string PointerCounters() {
 
 namespace cs::game {
 // 采样只调用安装时保存的三槽原函数，不重新进入覆写 wrapper，也不修改设备数组。
-bool ReadPhysicalActions(void *device, PhysicalActions &actions) {
+bool ReadPhysicalActions(void *device, PhysicalActions &actions,bool *map_pressed) {
   if (!IsMain() || PointerCount() != 8)
     return false;
   uintptr_t table = 0;
@@ -148,6 +148,10 @@ bool ReadPhysicalActions(void *device, PhysicalActions &actions) {
         actions.values[action] > 1)
       return false;
   }
+  // ACTION_MAP 读取本机设备原生绑定，单独供本机地图使用。
+  if (map_pressed)
+    *map_pressed = reinterpret_cast<bool(__thiscall *)(void *, int)>(
+        slots[start].original)(device, 13);
   return true;
 }
 } // namespace cs::game

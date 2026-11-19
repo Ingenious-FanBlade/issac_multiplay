@@ -3,6 +3,7 @@
 #include "game/participants/device_k.h"
 #include "game/participants/join.h"
 #include "game/authority/lifecycle.h"
+#include "game/authority/lobby.h"
 #include "game/participants/peer.h"
 #include "game/input/query.h"
 #include "game/participants/remote_life.h"
@@ -74,6 +75,7 @@ struct SessionRuntime {
       body_activity{};
   core::SessionMode mode = core::SessionMode::None;
   net::Worker network;
+  HostLobby lobby;
   std::array<RemoteRuntime, core::kMaximumParticipants - 1> remotes{};
   // 旧 a/b 诊断字段保留为首个远端的兼容视图；控制逻辑必须按 ordinal 访问。
   PeerBridge &peer = remotes[0].peer;

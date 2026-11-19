@@ -330,7 +330,7 @@ HostStateSnapshotRef HostStateCapture::Capture(const CapturePacket &packet,std::
   auto &s=*impl_;ScratchJob job{s.scratch};s.scratch.Ensure((2u<<20)+31);if(!ValidCaptureWitness(packet.witness))Fail("invalid_capture");const bool ordinary=packet.witness.phase==CapturePhase::Ordinary;
   if(!ordinary&&packet.witness.phase!=CapturePhase::PlayerPost)Fail("unsupported_capture_phase");
   const auto prior=s.latest;
-  const bool flat_contract=LayoutVersion()>=kFlatRecordContractVersion;
+  const bool flat_contract=UsesFlatRecordContract(LayoutVersion());
   // Worker 允许普通槽替换中间快照。配对 World 若已被替换，本拍 Body 自行退出。
   if(!ordinary&&(!prior||prior->witness.scope!=packet.witness.scope||prior->ordinary.revision!=packet.witness.required_revision))return {};
   const bool new_run=!prior||prior->witness.scope.session!=packet.witness.scope.session||prior->witness.scope.run!=packet.witness.scope.run||prior->witness.generation!=packet.witness.generation;
@@ -571,6 +571,16 @@ HostStateSnapshotRef HostStateCapture::Capture(const CapturePacket &packet,std::
       }
     }
     if(!ordinary)has_body=true;
+    if(r.layout==host_field::PlayerControlGroup::kLayout) {
+      // 控制组由同帧的 Player 结构共同构成。Flip 的新锚点未就绪时跳过这一帧，
+      // 避免实体沿用逻辑把必需的锚点变为空引用，或让它指向上一绑定的身体状态。
+      const auto pending=[&](std::uint16_t index){
+        return std::any_of(out->retained_members.begin(),out->retained_members.end(),
+          [&](const auto &root){return root.member==index;});
+      };
+      if(resolve.missing_reference||std::any_of(resolve.refs.begin(),resolve.refs.begin()+resolve.count,pending))
+        Fail("host_control_anchor_pending");
+    }
     std::sort(resolve.refs.begin(),resolve.refs.begin()+resolve.count);
     record->member_refs.assign(resolve.refs.begin(),resolve.refs.begin()+resolve.count);
     for(const auto index:record->member_refs)resolve.seen[index]=false;
@@ -648,6 +658,9 @@ HostStateSnapshotRef ProjectResourcePrefix(const HostStateSnapshotRef &source,co
     previous[unsigned(record->stream)][record->member.index]=record;
   std::vector<bool> has_world(extent);
   const auto retain=[&](RecordRef &record){
+    // 与客机本地资源等待一致，仅实体和 Grid 可逐件沿用；结构 World 等完整资源目录。
+    const auto space=record->member.identity.space;
+    if(space!=1&&space!=2)return false;
     const auto member=record->member.index;
     if(std::none_of(projected->retained_members.begin(),projected->retained_members.end(),
         [&](const auto &root){return root.member==member;}))

@@ -37,6 +37,6 @@ bool ClientDisplayFxRandom(const void *site,unsigned &result) noexcept;
 bool ClientDisplayBossAudioSuppressed(const void *site) noexcept;
 bool ClientDisplayDealChance(const void *room,float &) noexcept;
 bool ClientDisplayAngelShare(float &) noexcept;
-bool ClientDisplayDealQualified(const void *site,const void *game,bool &) noexcept;
+bool ClientDisplayDealQualified(const void *game,bool &) noexcept;
 bool ClientDisplayProgressBlocked(const void *site,bool &) noexcept;
 } // namespace cs::game

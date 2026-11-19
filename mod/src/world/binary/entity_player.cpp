@@ -98,14 +98,14 @@ bool EntitySource::Impl::BasicConversion(EntityRead recipe,const CaptureRoot &ro
   }
 }
 
-bool EntitySource::Impl::Leaf(const CaptureFieldAccess &a,CaptureValueWriter &writer,CaptureDiagnostic &d) noexcept {
+bool EntitySource::Impl::Leaf(const CaptureFieldAccess &a,EntityLeafSink writer,CaptureDiagnostic &d) noexcept {
   evidence_layout=a.root.layout;evidence_field=a.field.index;
   const auto recipe=Recipe(a.field);CheckReuseRecipe(recipe);
   const auto address=std::uint64_t(a.root.address)+a.field.native_offset;
-  if(recipe==EntityRead::Display)return DisplayLeaf(a,writer,d);
+  if(recipe==EntityRead::Display)return writer.legacy&&DisplayLeaf(a,*writer.legacy,d);
   if(recipe>=EntityRead::GridWater && recipe<=EntityRead::DoorLight)return GridLeaf(a,writer,d);
-  if(recipe==EntityRead::Run)return RunLeaf(a,writer,d);
-  if(recipe==EntityRead::Scene || recipe==EntityRead::RoomConfig)return SceneLeaf(a,writer,d);
+  if(recipe==EntityRead::Run)return writer.legacy&&RunLeaf(a,*writer.legacy,d);
+  if(recipe==EntityRead::Scene || recipe==EntityRead::RoomConfig)return writer.legacy&&SceneLeaf(a,*writer.legacy,d);
   if(a.field.operation==Operation::Container)return ScalarContainer(a,writer,d);
   if(a.format.linked){CaptureLink link{CapturedReferenceKind::Null,0};
     if(recipe==EntityRead::Reference){std::uint32_t pointer=0;if(!Value(address,pointer,d))return false;
@@ -137,6 +137,9 @@ bool EntitySource::Impl::Leaf(const CaptureFieldAccess &a,CaptureValueWriter &wr
     case EntityRead::Topology:if(!topology_revision)return Reject(a,d,CaptureFailure::MissingValue);result=topology_revision;break;
     case EntityRead::Membership:result=(facts.activation_qualified?1u:0u)|(facts.memberships&1u?2u:0u)|(facts.memberships&2u?4u:0u)|(facts.memberships&4u?8u:0u);break;
     case EntityRead::Roster:result=facts.roster;break;
+    case EntityRead::InputSequence:result=facts.input_sequence;break;
+    case EntityRead::InputTick:result=facts.input_tick;break;
+    case EntityRead::InputPhase:result=facts.input_phase;break; // 0 表示 Host 运行时不可用，客机视为未知、不对账
     case EntityRead::Role:if(!facts.group_known)return Reject(a,d,CaptureFailure::MissingQualification);result=facts.role;break;
     case EntityRead::Control:if(!facts.group_known || facts.control_flags>3 || ((facts.control_flags&2) && !(facts.control_flags&1)))return Reject(a,d,CaptureFailure::MissingQualification);result=facts.control_flags;break;
     case EntityRead::DrawPresent:{std::array<std::uint32_t,3> list{};if(!Value(a.root.address,list,d) || !list[0] || !list[2] || list[1]>16384)return Reject(a,d,CaptureFailure::InvalidValue);
@@ -196,11 +199,12 @@ bool EntitySource::Impl::PrepareTopology(CaptureDiagnostic &d) noexcept {
     }
     if(!number(projection.layer_count,4))return false;
     const auto images=used;
+    const auto *memo=projection.layer_count?SpriteMemo(address):nullptr;
     evidence(host_field::LayerState::kLayout,host_field::LayerState::image_selection);
     for(std::uint32_t layer=0;layer<projection.layer_count;++layer){
       const auto source=projection.layer_data+layer*160;std::array<std::uint32_t,2> pair{};CaptureLink image;
       if(!Tracked(std::uint64_t(source)+0x98,pair,d,{address,E::Image})||
-         (pair[0]&&!pair[1])||!ImageResource(pair[0],image,d)||!link(image)){
+         !LayerImage(LayerMemo(memo,projection.layer_data,projection.layer_count,layer),pair,image,d)||!link(image)){
         if(d.reason==CaptureFailure::None)FailCapture(d,CaptureFailure::SourceChanged,{facts.subject,source,160,evidence_layout},evidence_field);
         return false;
       }
@@ -255,6 +259,21 @@ bool EntitySource::Impl::PrepareTopology(CaptureDiagnostic &d) noexcept {
     ++entry.revision;entry.ordinary=0;entry.subject=facts.subject;entry.size=used;std::copy_n(output.begin(),used,previous.begin());}
   topology_revision=entry.revision;entry.subject.topology=entry.revision;
   player.ready=true;return true;
+}
+
+// 平铺程序没有内嵌 ANM2 的路径步。用本段已核定的槽布局定位同一份拓扑纯值。
+const PreparedPlayerSprite *EntitySource::Impl::PlayerSpriteAt(std::uint32_t address) const noexcept {
+  if(!player.ready||player.read_serial!=services.reads->Serial())return nullptr;
+  if(address==player.sprites[0].address)return &player.sprites[0];
+  if(address>=player.sprites[1].address){
+    const auto offset=address-player.sprites[1].address;
+    if(offset%276==0&&offset/276<13)return &player.sprites[offset/276+1];
+  }
+  if(player.costume_data&&address>=player.costume_data){
+    const auto offset=address-player.costume_data;
+    if(offset%304==0&&offset/304<player.costumes.size())return &player.costumes[offset/304].sprite;
+  }
+  return nullptr;
 }
 
 // 只按当前 Player 的 canonical 路径定位投影；其他 draw/afterimage Sprite 沿用各自的来源。

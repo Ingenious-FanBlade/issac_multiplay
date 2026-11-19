@@ -1,6 +1,6 @@
 # 完整消息静态预算
 
-布局版本 84；普通构建生成，仅整数公式，不运行编解码样例或测试。
+布局版本 87；普通构建生成，仅整数公式，不运行编解码样例或测试。
 
 | 合同 | 数值 |
 |---|---|
@@ -85,8 +85,8 @@
 | 八身体另带13Sprite动画投影下界 | 3352 | 3728 | 60 | 223680 | 671040 |
 | 64颗Tear运动块 | 3688 | 4176 | 30 | 125280 | 375840 |
 | 稠密运动设计负载 | 6376 | 7088 | 30 | 212640 | 637920 |
-| 八身体全部body成员投影下界 | 18408 | 20352 | 0 | 0 | 0 |
-| 四参与者八身体及稠密房间成员Baseline下界 | 124241 | 136601 | 0 | 0 | 0 |
+| 八身体全部body成员投影下界 | 18480 | 20424 | 0 | 0 | 0 |
+| 四参与者八身体及稠密房间成员Baseline下界 | 124617 | 136977 | 0 | 0 | 0 |
 | 上述成员表258项（另计） | 8574 | 9510 | 0 | 0 | 0 |
 | 648项本地资源声明设计样例 | 41604 | 45788 | 0 | 0 | 0 |
 | 单个100Quad纯值recipe资源 | 105 | 257 | 0 | 0 | 0 |
@@ -234,7 +234,7 @@
 | PlayerWeaponWhip | 194 | 6 | 6 |
 | PlayerParticipant | 195 | 0 | 0 |
 | PlayerControlGroup | 196 | 21 | 149 |
-| EntityPlayer | 197 | 2773 | 33554432 |
+| EntityPlayer | 197 | 2806 | 33554432 |
 | GridEntityDesc | 198 | 16 | 16 |
 | GridEntity | 199 | 142 | 8716297 |
 | GridLayerState | 200 | 117 | 117 |
@@ -276,7 +276,7 @@
 | RunGameStateFlags | 236 | 1 | 1 |
 | GameRun | 237 | 422 | 675853 |
 | RunSeedEffectNode | 238 | 4 | 4 |
-| Room | 239 | 501 | 33554432 |
+| Room | 239 | 613 | 33554432 |
 | Backdrop | 240 | 21 | 35651649 |
 | BackdropConfig | 241 | 0 | 0 |
 | FXLayers | 242 | 0 | 0 |
@@ -1090,7 +1090,7 @@
 | EntityPlayer | 197/8 | world | 10 | 10 |
 | EntityPlayer | 197/9 | world | 9 | 9 |
 | EntityPlayer | 197/10 | body | 64 | 2112 |
-| EntityPlayer | 197/11 | world | 1 | 1 |
+| EntityPlayer | 197/11 | world | 25 | 25 |
 | EntityPlayer | 197/12 | world | 77 | 77 |
 | EntityPlayer | 197/13 | world | 88 | 688216 |
 | EntityPlayer | 197/14 | world | 96 | 96 |
@@ -1104,6 +1104,7 @@
 | EntityPlayer | 197/22 | body | 2 | 33554432 |
 | EntityPlayer | 197/23 | body | 2 | 33554432 |
 | EntityPlayer | 197/24 | body | 2 | 33554432 |
+| EntityPlayer | 197/25 | body | 9 | 9 |
 | GridEntityDesc | 198/0 | world | 16 | 16 |
 | GridEntity | 199/0 | world | 24 | 24 |
 | GridEntity | 199/1 | world | 94 | 94 |
@@ -1251,6 +1252,7 @@
 | Room | 239/11 | world | 1 | 8912916 |
 | Room | 239/12 | world | 1 | 8323079 |
 | Room | 239/13 | world | 144 | 144 |
+| Room | 239/14 | world | 112 | 112 |
 | Backdrop | 240/0 | world | 21 | 35651649 |
 | FXLayers | 242/0 | world | 0 | 0 |
 | FXPose | 244/0 | world | 10 | 10 |

@@ -1,5 +1,5 @@
 #include "state/capture_values.h"
-#include "state/flat_layout.h"
+#include "state/flat_capture.h"
 #include "core/capture_cost.h"
 #include <algorithm>
 #include <bit>
@@ -279,14 +279,17 @@ bool CaptureValueWriter::OpenRoot(CaptureSubject subject,std::uint16_t layout,Bo
   buffer_.records_[records_]={subject,layout,stream,mask,cells_,0};return true;
 }
 // 直接在既有纯值 arena 中构造本根，失败时回到包含对齐填充在内的事务起点。
-std::span<std::byte> CaptureValueWriter::BeginFlatRoot(CaptureSubject subject,std::uint16_t layout,std::uint32_t max_bytes) noexcept {
+std::span<std::byte> CaptureValueWriter::BeginFlatRoot(CaptureSubject subject,std::uint16_t layout,BodyStream stream,
+                                                     std::uint32_t max_bytes) noexcept {
   const auto *description=FindLayout(layout);
   const auto *flat=FindFlatLayout(layout);
-  if(!description || !description->flat_record || !flat || witness_.phase!=CapturePhase::Ordinary){
+  if(!description || !description->flat_record || !flat || unsigned(stream)>1 ||
+     !(witness_.phase==CapturePhase::Ordinary ||
+       (witness_.phase==CapturePhase::PlayerPost&&stream==BodyStream::Body))){
     Fail(CaptureFailure::UnknownLayout);
     return {};
   }
-  if(!OpenRoot(subject,layout,BodyStream::World,0,true))return {};
+  if(!OpenRoot(subject,layout,stream,0,true))return {};
   auto free=std::span(buffer_.bytes_).subspan(bytes_);
   const auto padding=(32u-(reinterpret_cast<std::uintptr_t>(free.data())&31u))&31u;
   const auto available=padding<=free.size()?std::min<std::size_t>(max_bytes,free.size()-padding):0;
@@ -545,22 +548,45 @@ bool CaptureValueWriter::Catalog(CaptureCatalogStamp stamp,std::span<const Captu
   if(reference_limit_>references.size())return Fail(CaptureFailure::ReferencePending);
   if(witness_.phase==CapturePhase::PlayerPost&&reference_limit_>buffer_.references_.size()){
     // 快槽只封存自身实际引用，避免为大房间目录的长前缀占用完整 ordinary 的容量。
-    const auto begin=buffer_.references_.begin();std::size_t used=0;
+    struct Compact {
+      std::span<const CaptureReferenceEntry> source;
+      std::span<CaptureReferenceEntry> local;
+      std::size_t used=0;
+      bool Add(std::uint64_t handle,std::uint16_t &index) noexcept {
+        if(!handle||handle>source.size())return false;
+        const auto &ref=source[std::size_t(handle-1)];
+        const auto end=local.begin()+used;
+        const auto found=std::find_if(local.begin(),end,[&](const auto &entry){
+          return std::tie(entry.space,entry.local,entry.use)==std::tie(ref.space,ref.local,ref.use);
+        });
+        if(found==end){
+          if(used==local.size()||used+1>=kNullIndex)return false;
+          local[used++]=ref;
+        }
+        index=std::uint16_t(found-local.begin()+1);
+        return true;
+      }
+    } compact{references,buffer_.references_};
     for(const auto &cell:std::span(buffer_.cells_).first(cells_))if(cell.kind==CaptureCellKind::References){
       if(cell.bytes!=std::uint64_t(cell.count)*9||cell.offset>bytes_||cell.bytes>bytes_-cell.offset)return Fail(CaptureFailure::InvalidValue);
       for(std::uint32_t i=0;i<cell.count;++i){auto *data=buffer_.bytes_.data()+cell.offset+std::size_t(i)*9;
         std::uint64_t handle=0;for(unsigned j=0;j<8;++j)handle|=std::uint64_t(std::to_integer<unsigned>(data[j+1]))<<(j*8);
         if(!handle)continue;
-        if(handle>references.size())return Fail(CaptureFailure::ReferencePending);
-        const auto &ref=references[std::size_t(handle-1)];
-        const auto end=begin+used;
-        const auto found=std::find_if(begin,end,[&](const auto &entry){return std::tie(entry.space,entry.local,entry.use)==std::tie(ref.space,ref.local,ref.use);});
-        if(found==end){if(used==buffer_.references_.size())return Fail(CaptureFailure::ReferencePending);begin[used++]=ref;}
-        const auto local=std::uint64_t(found-begin)+1;
-        for(unsigned j=0;j<8;++j)data[j+1]=std::byte(local>>(j*8));
+        std::uint16_t local=0;
+        if(!compact.Add(handle,local))return Fail(CaptureFailure::ReferencePending);
+        for(unsigned j=0;j<8;++j)data[j+1]=std::byte(std::uint64_t(local)>>(j*8));
       }
     }
-    stamp.references=std::uint32_t(used);catalog_=stamp;catalog_set_=true;return true;
+    const CaptureLinkResolver remap{&compact,[](void *context,CaptureSubject,bool resource,std::uint8_t,CaptureLink link,
+                                              std::uint16_t &out) noexcept {
+      return !resource&&static_cast<Compact *>(context)->Add(link.handle,out);
+    }};
+    for(const auto &record:std::span(buffer_.records_).first(records_))if(record.flat_bytes){
+      if(record.flat_offset>bytes_||record.flat_bytes>bytes_-record.flat_offset)return Fail(CaptureFailure::InvalidValue);
+      auto image=std::span(buffer_.bytes_).subspan(record.flat_offset,record.flat_bytes);
+      if(!RemapFlatCaptureReferences(record,image,remap,diagnostic_))return Fail(CaptureFailure::ReferencePending);
+    }
+    stamp.references=std::uint32_t(compact.used);catalog_=stamp;catalog_set_=true;return true;
   }
   if(reference_limit_>buffer_.references_.size())return Fail(CaptureFailure::ReferencePending);
   stamp.references=std::uint32_t(reference_limit_);std::copy_n(references.begin(),stamp.references,buffer_.references_.begin());catalog_=stamp;catalog_set_=true;return true;

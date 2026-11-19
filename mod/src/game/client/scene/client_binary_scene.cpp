@@ -3,9 +3,13 @@
 #include "game/client/scene/client_scene.h"
 #include "game/common/context.h"
 #include "game/tests/client_entity_e2e.h"
+#include "game/tests/e09_compare.h"
 #include "net/live.h"
 #include "state/budget.h"
 #include "runtime.h"
+#ifdef ISAACCS_E2E
+#include "replica/stream_e2e.h"
+#endif
 #include <algorithm>
 #include <chrono>
 #include <cstring>
@@ -81,7 +85,7 @@ struct ClientBinaryScene::Impl final:S::ClientStateNativeOwner,S::ClientStateApp
   using FailureRuns=std::map<S::PresentationMember,FailureRun,std::less<>,S::ClientStateAllocator<FailureEntry>>;
   std::array<FailureRuns,2> failure_runs;
   std::array<std::uint64_t,2> failure_frames{};
-  bool opened=false,closing=false,resetting=false,display_detached=false,preserve_room=false,pumping=false;
+  bool opened=false,closing=false,resetting=false,display_detached=false,preserve_room=false,preserve_requested=false,pumping=false;
   // 成员写程序表（设计 10.6 节），跨 World 安装器共享；撤显、恢复、换路由时清空。
   std::shared_ptr<ClientSceneMemberStore> store;
   // 自上次不吸收的完整事务以来发布的 World 版本数。
@@ -111,6 +115,28 @@ struct ClientBinaryScene::Impl final:S::ClientStateNativeOwner,S::ClientStateApp
   std::array<ClientDisplaySound,512> sounds{};
   std::array<void *,512> event_players{},event_resources{};
   // 两槽都可暂存，但这些回放绑定只在唯一的 World 写段使用。
+  // 预测插值阶段 1：World 发布后把玩家身体地址与控制组序号交给覆盖层，用于识别本机身体。
+  // 计划对象下标与安装器对象表一一对应（同 BindDisplay 的事件玩家绑定）。
+  void PublishMotionPlayers(ClientSceneAtomicInstaller &writer) noexcept {
+    const auto visit=[](void *p,const ClientAtomicInputs &in)noexcept{
+      auto &self=*static_cast<Impl *>(p);
+      const auto &plan=in.scene.State();
+      std::array<ClientMotionPlayer,64> out{};unsigned n=0;
+      for(const auto &player:plan.Players()){
+        if(n>=out.size())break;
+        if(player.object>=in.objects.size()||!in.objects[player.object].address)continue;
+        const auto groups=plan.Groups();
+        const auto group=std::find_if(groups.begin(),groups.end(),[&](const auto &g){return g.object==player.group;});
+        if(group==groups.end())continue;
+        // 阶段 2：带上影子表身份，覆盖层据此在已发布 Body 表中找该身体的对账字段（设计 5.7）。
+        const auto &id=plan.Objects()[player.object].member.identity;
+        out[n++]={in.objects[player.object].address,group->ordinal,{id.space,id.layout,id.id,id.use,id.shape}};
+      }
+      self.scene.SetMotionPlayers(out.data(),n);
+      return true;
+    };
+    if(!writer.VisitPublished(this,visit))scene.SetMotionPlayers(nullptr,0);
+  }
   bool BindDisplay(const ClientAtomicInputs &inputs) noexcept {
     const auto values=inputs.scene.Sounds();
     const auto sound_links=inputs.scene.SoundLinks();
@@ -440,6 +466,10 @@ struct ClientBinaryScene::Impl final:S::ClientStateNativeOwner,S::ClientStateApp
       world.writer->FastPublished(b);
       published_fields[0]=world.writer->PublishedFields();
       scene.PublishBinary(std::move(pending.publication),1);
+      PublishMotionPlayers(*world.writer);
+#ifdef ISAACCS_E2E
+      if(const auto table=scene.PublishedBlocks())E09Client(*table,preparation,1);
+#endif
       ++since_full;
       auto &metrics=memory->ApplyMetrics();const auto now=S::ClientApplyMetrics::Now();
       metrics.Mark(1,S::ClientApplyStage::Install,now-pending.write_us);
@@ -460,6 +490,7 @@ struct ClientBinaryScene::Impl final:S::ClientStateNativeOwner,S::ClientStateApp
       const auto fields=pending.writer->PublishedFields();
       for(unsigned i=0;i<2;++i)if(mask&(1u<<i))published_fields[i]=fields;
       scene.PublishBinary(std::move(pending.publication),mask);
+      if(mask&1)PublishMotionPlayers(*pending.writer);
       if(mask==1){
         // World 建出 Body 先前缺少的目标时，直接补挂活实例上的有效边。
         const auto &pose=PublishedBatch(S::BodyStream::Body);
@@ -467,6 +498,9 @@ struct ClientBinaryScene::Impl final:S::ClientStateNativeOwner,S::ClientStateApp
           std::span<const ClientMorphedMember>{*pending.morphed}:std::span<const ClientMorphedMember>{});
       }
       pending.morphed.reset();
+#ifdef ISAACCS_E2E
+      if(const auto table=scene.PublishedBlocks())E09Client(*table,preparation,mask);
+#endif
       auto &metrics=memory->ApplyMetrics();const auto now=S::ClientApplyMetrics::Now();
       metrics.Mark(mask,S::ClientApplyStage::Install,now-pending.write_us);
       metrics.Mark(mask,S::ClientApplyStage::Publish);
@@ -481,7 +515,9 @@ struct ClientBinaryScene::Impl final:S::ClientStateNativeOwner,S::ClientStateApp
   // 保留当前复制路线与资源目录，停显后由 Manager 归还旧场景的原生借用和对象槽。
   void ResetInstalledScene() noexcept {
     scene.SuspendBinaryDisplay();published_fields={};ForgetFastState();
-    resetting=true;preserve_room=false;
+    resetting=true;
+    // 换路由取消在途写入时，旧画面已单独接管，不能随被撤销的写票一起丢掉。
+    if(!closing)preserve_room=preserve_requested=false;
     for(auto &channel:channels)channel.Cancel();
   }
   void Invalidate(const S::ClientStateApplyBatch &b,const char *why) noexcept override {
@@ -681,8 +717,16 @@ void ClientBinaryScene::Close(bool preserve_room) noexcept {
     if(!preserve_room)s.closing=true;
     return;
   }
-  if(!s.closing&&preserve_room&&s.scene.DisplayReady())s.preserve_room=s.scene.PreserveBinaryRoom();
-  if(!preserve_room)s.preserve_room=false;
+  // 可见旧 World 仍完整时立即保存；其余情况在借用退尽后复核已有快照或捕获。
+  if(!s.display_detached&&preserve_room&&s.scene.HasInstalledBinaryDisplay()&&!s.preserve_room){
+    if(s.scene.DisplayReady())s.preserve_room=s.scene.PreserveBinaryRoom();
+    s.preserve_requested=!s.preserve_room;
+  }
+  if(!preserve_room)s.preserve_requested=s.preserve_room=false;
+#ifdef ISAACCS_E2E
+  if(replica::stream::E2ETraceEnabled())Trace("e39-carry","phase=close route=%llu requested=%u has_world=%u queued=%u",
+    s.route.route,unsigned(preserve_room),unsigned(s.scene.HasInstalledBinaryDisplay()),unsigned(s.preserve_requested));
+#endif
   s.closing=true;s.request.reset();s.scene.SuspendBinaryDisplay();s.published_fields={};s.ForgetFastState();
   for(auto &channel:s.channels)channel.Cancel();
   s.preparation.Close();
@@ -727,11 +771,19 @@ void ClientBinaryScene::Pump() noexcept {
     s.Admit();
     if(s.Busy()||s.request||s.pending[0].ticket||s.pending[1].ticket)return;
     if(s.closing&&(s.incoming[0]||s.incoming[1]))return;
+    if(s.preserve_requested){
+      if(!s.scene.DestructiveReady())return;
+      s.preserve_room=s.scene.PreserveBinaryRoom();
+      s.preserve_requested=false;
+#ifdef ISAACCS_E2E
+      if(replica::stream::E2ETraceEnabled())Trace("e39-carry","phase=retire captured=%u",unsigned(s.preserve_room));
+#endif
+    }
     if(!s.DetachDisplay()||!s.RetireInstalled()||!s.scene.ReleaseBinaryDisplayRoots(s.preserve_room))return;
     if(s.closing){
       if(s.preparation.PumpResources(s.transport,deadline)!=ClientSceneMainPreparation::ResourcePump::Done||
           !s.preparation.Drain())return;
-      s.route={};s.opened=s.closing=s.resetting=s.display_detached=s.preserve_room=false;
+      s.route={};s.opened=s.closing=s.resetting=s.display_detached=s.preserve_room=s.preserve_requested=false;
       s.scene.FinishBinary();return;
     }
     s.resetting=s.display_detached=false;
@@ -747,6 +799,12 @@ void ClientBinaryScene::Pump() noexcept {
       s.preparation.PumpResources(s.transport,deadline)==ClientSceneMainPreparation::ResourcePump::Yielded)
     s.memory->ApplyMetrics().Wait(1,S::ClientApplyWait::ResourceYieldFrame);
   s.Collect();
+}
+// HUD 只读取成功安装的累计量，不展开诊断页或请求内存采样。
+std::string ClientBinaryScene::InstallTimingFields() const {
+  const auto timing=impl_->memory->ApplyMetrics().ReadInstallTiming();
+  return "world_n="+std::to_string(timing[0].count)+"\nworld_us="+std::to_string(timing[0].total_us)+
+         "\nbody_n="+std::to_string(timing[1].count)+"\nbody_us="+std::to_string(timing[1].total_us)+"\n";
 }
 std::string ClientBinaryScene::Diagnostics(unsigned page)const {
   auto out=impl_->memory->ApplyMetrics().Fields(page);
@@ -769,6 +827,9 @@ std::string ClientBinaryScene::Diagnostics(unsigned page)const {
         const auto entities=current.Plan().State().Entities();
         const auto tears=std::count_if(entities.begin(),entities.end(),[](const auto &e){return e.type==2;});
         out+="stream.binary.display.tear_members="+std::to_string(tears)+"\n";
+        // 混合负载用原版 Gaper（Type 10）；只统计实际发布的 World。
+        const auto gapers=std::count_if(entities.begin(),entities.end(),[](const auto &e){return e.type==10;});
+        out+="stream.binary.display.gaper_members="+std::to_string(gapers)+"\n";
       }
     }
 #endif

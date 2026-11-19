@@ -1,8 +1,10 @@
-**2026-11-19 本机预测、显示插值与外推：P1 已决定，阶段 0 完成（仅编译，未运行）**：[设计文档](design/binary-state/prediction-interpolation.md)，[RE-P1—RE-P6 报告](design/binary-state/prediction-interpolation/RE-P/README.md)。逆向确认速度模型须复刻、覆盖层写 pos、附着激光要平移点表、Body 需每身体输入序号；勘误 Host 开插值时输入提前量约 33ms。新增客机 `stream.latency.*` 与 Host `native_interpolation` 诊断。P7 中 grid_paths 阻挡位补同步已决定（设计 5.3.1）；其余 P2—P9 待定，阶段 1 起未实施。
+**2026-11-19 本机预测、显示插值与外推：P1 已决定，阶段 0 完成（仅编译，未运行）**：[设计文档](design/binary-state/prediction-interpolation.md)，[RE-P1—RE-P6 报告](design/binary-state/prediction-interpolation/RE-P/README.md)。逆向确认速度模型须复刻、覆盖层写 pos、附着激光要平移点表、Body 需每身体输入序号；勘误 Host 开插值时输入提前量约 33ms。新增客机 `stream.latency.*` 与 Host `native_interpolation` 诊断。P7 中 grid_paths 阻挡位补同步已决定（设计 5.3.1）；P3—P6、P8、P9 同日按推荐决定（P4 为插值延迟＋断档外推）。**阶段 1（显示覆盖层＋远端插值与外推）已实现，仅编译未运行**（设计 11.1，诊断 `stream.motion.*`，配置 `motion.*`）；**P2=M-a，阶段 2（本机身体预测）已实现，仅编译未运行**（设计 11.2，布局版本 87，配置 `motion.prediction`／`motion.projectile_lead`，诊断 `stream.motion.predict_*`）；阶段 3 起未实施。
 
 **2026-11-17 最终一致修订，用户已同意 E1—E11**：[设计文档](design/binary-state/eventual-consistency-revision.md)把二进制状态同步改为最终一致：ACK 表示接收，客机在一帧内直接应用，失败按对象隔离，成员身份随帧携带；退役离线副本、跨帧切片、原子提交与读回。用户已同意 E1—E11（全部按推荐），已写入规范第17节；Host 采集改为按根隔离失败，采集侧按 H1—H5 优化。初版仅制定设计，实施见修订文档第 10 节。
 
 **2026-11-17 Host 采集 H1／H2 已实施**。[整帧可读区表](design/binary-state/10-frame-read-regions.md)按 Manager 帧共享各读取点的可读区，过期条目通过窄 SEH 作废并重查一次。实体／格子失败保留同一成员的上次值，形态不符或超预算的快槽跳过当拍 Body。见[第 10 步实施记录](design/binary-state/10-host-capture.md#2026-11-17-h1-和-h2-实施记录)，运行验证归第 15 步。
+
+**2026-11-18 Host 采集读取成本三项任务已接入源码**。平铺同步根使用整对象快照和根尾统一复核，文件、动画与图像复用分层资源缓存。运行验证归第 15 步。见[设计与实施记录](design/binary-state/10-capture-read-cost.md)。
 
 **2026-11-18 平铺记录设计，用户已决定 L1—L8，未实施**：[设计文档](design/binary-state/10-flat-record-encoding.md)把 Host 采集与编码合为一步：按生成的复制段整段复制根对象，指针原位换成令牌，变长数据追加到记录尾部，取消中间单元的排序与二分查找。取代最终一致修订 10.7 节的 W1／W2；L1—L6 按推荐，L7 定为客机与 Host 同轮改造，L8 取消块、按字段增量上线与比较，已写入规范第17节。
 

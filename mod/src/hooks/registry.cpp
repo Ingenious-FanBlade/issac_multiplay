@@ -64,6 +64,17 @@ void RegisterHooks() {
 }
 } // namespace cs
 namespace cs::game {
+unsigned StreamSharedResourceHooks() noexcept {
+  unsigned layers=0;
+  size_t count=0;auto hooks=Hooks(count);
+  for(size_t i=0;i<count;++i){
+    const auto &hook=*hooks[i];
+    if(!hook.registered||!hook.super||!*hook.super)continue;
+    if(!std::strcmp(hook.id,"stream_cache_animation"))layers|=1u;
+    if(!std::strcmp(hook.id,"stream_cache_image"))layers|=2u;
+  }
+  return layers;
+}
 bool StreamResourceHooksInstalled() noexcept {
   const char *required[]={"stream_resource_ctor","stream_resource_copy","stream_resource_destroy","stream_resource_load",
     "stream_resource_graphics","stream_resource_reload","stream_resource_reset","stream_resource_sheet","stream_resource_swap"};

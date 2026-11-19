@@ -139,6 +139,7 @@ bool ReadPlayerSlot(unsigned ordinal, PlayerSlot &out) noexcept {
 namespace {
 constexpr unsigned kRosterLimit = 64, kDeviceLimit = 256;
 constexpr std::size_t kRelations[] = {0x1D84, 0x1E4C, 0x1E50, 0x267C};
+constexpr unsigned kTwinRelation = 1;
 constexpr BodyRole kRelationRoles[] = {BodyRole::SubPlayer, BodyRole::Twin,
                                       BodyRole::Backup, BodyRole::Replaced};
 
@@ -692,18 +693,43 @@ void TopologyReadBatch::ReadGroup(const GroupRead &group,
         return;
       }
   }
-  // 同 controller 的每一项 roster 都要由当前控制组解释，缓存只复用已读的值。
+  // 同 controller 的每一项 roster 都要有原生关系证据，不能仅凭设备号归组。
   for (auto it = roster_.begin(); it != end; ++it) {
     auto *fact = Fact(*it);
     if (!fact || !Controller(*fact)) {
       out.fault = TopologyFault::Unreadable;
       return;
     }
-    if (fact->body.controller == out.pair.key && !out.Contains(*it, false)) {
+    if (fact->body.controller != out.pair.key || out.Contains(*it, false))
+      continue;
+    if (!Body(*fact) || !Relations(*fact)) {
+      out.fault = TopologyFault::Unreadable;
+      out.reason = "unowned_roster_body_unreadable";
+      return;
+    }
+    // J273 连续换形后，旧拉撒路身体可能仍在 roster，仅以单向 twin 指向新雅各。
+    // 当前以扫必须已与雅各双向配对。旧身体保留真实名单和外观，但没有输入或锚点资格。
+    const auto &primary = out.bodies[0];
+    const auto &former = fact->body;
+    const auto body_end = out.bodies.begin() + out.body_count;
+    const auto twin = std::find_if(out.bodies.begin(), body_end, [&](const ControlBody &body) {
+      return body.player == primary.relations[kTwinRelation] && body.role == BodyRole::Twin;
+    });
+    const bool current_pair = primary.character == 19 && primary.active &&
+                              twin != body_end && twin->character == 20 && twin->active &&
+                              twin->roster && twin->relations[kTwinRelation] == root;
+    const bool former_twin = (former.character == 29 || former.character == 38) &&
+                             former.index > primary.index &&
+                             former.relations == std::array<void *, 4>{nullptr, root, nullptr, nullptr};
+    if (!current_pair || !former_twin || out.body_count == out.bodies.size()) {
       out.fault = TopologyFault::Ambiguous;
       out.reason = "unowned_shared_controller";
       return;
     }
+    auto &body = out.bodies[out.body_count++];
+    body = former;
+    body.role = BodyRole::Inactive;
+    body.roster = true;
   }
   if (!BindDevice(group, out))
     return;

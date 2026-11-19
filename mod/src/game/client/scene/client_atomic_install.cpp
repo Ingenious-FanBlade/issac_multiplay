@@ -694,6 +694,12 @@ struct ClientSceneAtomicInstaller::Impl {
   }
   void Leaf(std::uint32_t field,const S::ClientInstallValue &v,std::uint32_t local) {
     const auto &plan=scene->State();const auto &f=plan.Field(field);const auto &d=S::Fields()[f.definition];const auto bytes=plan.Bytes(v.bytes);
+    // 滚屏偏移由显示 owner 在构造相机时初始化。后续滚屏随本地相机推进，包括开启移动预测时。
+    // 快速路径允许初始化输入变化，但不登记原生写入或漂移检查指令。
+    if(d.layout==F::Room::kLayout&&d.index==F::Room::render_scroll){
+      if(store){field_pure[field]=1;value_pure[plan.Records()[v.record].first_value+local]=1;}
+      return;
+    }
     const auto parent=plan.Paths()[v.path].parent;
     if(parent!=S::kClientPlanNone){const auto i=v.parent_field;
       if(i!=S::kClientPlanNone){const auto kind=fields[i].Input().kind;
@@ -794,11 +800,12 @@ struct ClientSceneAtomicInstaller::Impl {
       field_index->by_identity.push_back(n);
       if(r.flat){
         auto &applied=field_index->records[n];
-        applied.flat=std::allocate_shared<ClientFlatNativeState>(S::ClientStateAllocator<ClientFlatNativeState>(memory));
+        applied.flat=std::allocate_shared<ClientFlatNativeState>(S::ClientStateAllocator<ClientFlatNativeState>(memory),memory);
+        applied.flat->stream=r.stream;
         if(prior&&prior->instance==object.instance&&prior->flat){
           applied.flat->written=prior->flat->written;
+          applied.flat->costume_topology=prior->flat->costume_topology;
           applied.flat->edges=prior->flat->edges;
-          applied.flat->count=prior->flat->count;
           applied.flat->references_uncertain=prior->flat->references_uncertain;
         }
         applied.flat_full=r.flat->full||!object.borrowed||!applied.has_previous_write||
@@ -1430,17 +1437,23 @@ struct ClientSceneAtomicInstaller::Impl {
     return Ready(written,"binary_absorb_written");
   }
   struct FlatWindow {Impl &owner;std::uint32_t object;bool installed=false;};
-  bool FlatCurrent(std::uint32_t index,bool installed) noexcept {
+  bool FlatCurrent(std::uint32_t index,bool installed,bool allow_absent_world_entity=false) noexcept {
     if(!Current(*batch)||index>=objects.size())return false;
     const auto &o=objects[index];
     if(!o.address||o.unbound||Rejected(index))return false;
-    if(!installed)return preparation.PendingObjectCurrent(*batch,index,o.address,o.instance,true);
+    if(!installed)return preparation.PendingObjectCurrent(*batch,index,o.address,o.instance,true,allow_absent_world_entity);
     std::uint64_t instance=0;
     return preparation.InstalledObject(*batch,index,&instance)==o.address&&instance==o.instance;
   }
-  ClientFlatNativeContext FlatContext(FlatWindow &window,std::uint32_t frame) noexcept {
-    return {roots,resources,frame,&window,[](void *p) noexcept {
-      auto &w=*static_cast<FlatWindow *>(p);return w.owner.FlatCurrent(w.object,w.installed);
+  ClientFlatNativeContext FlatContext(FlatWindow &window,const S::ClientInstallRecord &record) noexcept {
+    const auto &object=objects[window.object];
+    const S::ClientFlatImage *player_world=nullptr;
+    if(record.layout==197&&record.stream==S::BodyStream::Body)
+      if(const auto world=scene->State().Effective(S::BodyStream::World))
+        if(const auto player=world->Find(object.identity))player_world=player->Flat().get();
+    return {roots,resources,record.context.game_frame,record.stream,!object.borrowed,player_world,&window,[](void *p) noexcept {
+      // exists 可在本轮值写入中翻转；后续特种字段仍写同一池槽。引用目标继续要求活对象。
+      auto &w=*static_cast<FlatWindow *>(p);return w.owner.FlatCurrent(w.object,w.installed,true);
     },[](void *p,const S::PresentationMember &id) noexcept {
       auto &w=*static_cast<FlatWindow *>(p);const auto plan=w.owner.scene->State().Objects();
       const auto it=std::lower_bound(plan.begin(),plan.end(),id,[](const auto &obj,const auto &key){return obj.member.identity<key;});
@@ -1465,6 +1478,8 @@ struct ClientSceneAtomicInstaller::Impl {
     issue.member=objects[record.object].identity.id;issue.instance=objects[record.object].instance;
     issue.layout=result.layout;issue.field=result.field;
     memory->ApplyMetrics().FirstIssue(std::uint8_t(1u<<unsigned(record.stream)),issue,"flat_write",result.reason);
+    Trace("client_error","event=flat_native_failure stream=%u layout=%u field=%u reason=%s",
+      unsigned(record.stream),unsigned(result.layout),unsigned(result.field),result.reason);
     return RejectObject(record.object,ClientMemberFailure::Native,result.reason);
   }
   enum class FlatPass { Values, Graphics, References };
@@ -1482,25 +1497,29 @@ struct ClientSceneAtomicInstaller::Impl {
         if(!object.borrowed&&!RejectObject(index,ClientMemberFailure::Stale,"flat_skipped_without_live_instance"))return false;
         continue;
       }
-      if(!FlatCurrent(index,false)){
+      if(!FlatCurrent(index,false,true)){
         if(!RejectObject(index,ClientMemberFailure::Stale,"flat_live_instance_changed"))return false;
         continue;
       }
 #ifdef ISAACCS_E2E
-      if(pass==FlatPass::Values&&(ClientEntityTestFault("binary-object-write")||ClientTearWriteTestFault(object.identity.id))){
+      // 连续三次故障只命中同一颗泪弹的 World 记录，不能把 Body 和 World 的失败混计。
+      if(pass==FlatPass::Values&&plan.stream==S::BodyStream::World&&
+          scene->State().Objects()[index].domain==S::ClientInstallDomain::Entity&&
+          (ClientEntityTestFault("binary-object-write")||
+           (layout->id==F::EntityTear::kLayout&&ClientTearWriteTestFault(object.identity.id)))){
         if(!RejectObject(index,ClientMemberFailure::Native,"binary_e2e_flat_object_write"))return false;
         entry.rewrite=true;
         continue;
       }
 #endif
       FlatWindow window{*this,index};
-      const auto context=FlatContext(window,plan.context.game_frame);
+      const auto context=FlatContext(window,plan);
       if(pass==FlatPass::Values){
-        if(!FlatIssue(n,ClientWriteFlatTear(context,object.address,*layout,*plan.flat,entry.flat_full,*entry.flat)))return false;
+        if(!FlatIssue(n,ClientWriteFlat(context,object.address,*layout,*plan.flat,entry.flat_full,*entry.flat)))return false;
       }else if(pass==FlatPass::Graphics){
-        if(!FlatIssue(n,ClientCheckFlatTear(context,object.address,*layout,*plan.flat,*entry.flat,0,true,entry.flat_full)))return false;
+        if(!FlatIssue(n,ClientCheckFlat(context,object.address,*layout,*plan.flat,*entry.flat,0,true,entry.flat_full)))return false;
       }else{
-        if(!FlatIssue(n,ClientBindFlatTear(context,object.address,*layout,*plan.flat,entry.flat_full,*entry.flat)))return false;
+        if(!FlatIssue(n,ClientBindFlat(context,object.address,*layout,*plan.flat,entry.flat_full,*entry.flat)))return false;
         if(!Rejected(index))entry.flat->written=plan.flat->image;
       }
     }
@@ -1862,9 +1881,9 @@ struct ClientSceneAtomicInstaller::Impl {
         const auto &record=scene->State().Records()[index];
         if(!current.rewrite&&current.flat&&current.flat->written&&FlatCurrent(record.object,true)){
           FlatWindow window{*this,record.object,true};
-          const auto context=FlatContext(window,record.context.game_frame);
+          const auto context=FlatContext(window,record);
           const auto *layout=S::FindFlatLayout(record.layout);
-          const auto probe=ClientCheckFlatTear(context,objects[record.object].address,*layout,*record.flat,
+          const auto probe=ClientCheckFlat(context,objects[record.object].address,*layout,*record.flat,
             *current.flat,std::uint32_t(tick/published.flat_records.size()),false,true);
           if(probe.reason){current.rewrite=true;memory->ApplyMetrics().Volume(streams,S::ClientApplyVolume::Drift);}
         }
@@ -1910,11 +1929,10 @@ struct ClientSceneAtomicInstaller::Impl {
       auto &state=*field_index->records[n].flat;
       const bool root_leaving=retiring(object);
       const bool external=(!leaving.empty()&&state.references_uncertain)||
-        std::any_of(state.edges.begin(),state.edges.begin()+state.count,[&](const auto &edge){
-          if(!edge.target.address)return false;
-          const auto at=std::lower_bound(leaving.begin(),leaving.end(),edge.target.identity,
+        std::any_of(state.edges.begin(),state.edges.end(),[&](const auto &edge){
+          const auto at=std::lower_bound(leaving.begin(),leaving.end(),edge.identity,
             [](const auto &entry,const auto &id){return entry.identity<id;});
-          return at!=leaving.end()&&at->identity==edge.target.identity&&at->address==edge.target.address&&at->instance==edge.target.instance;
+          return at!=leaving.end()&&at->identity==edge.identity&&at->address==edge.address&&at->instance==edge.instance;
         });
       if(!root_leaving&&!external)continue;
       // 失败根会在首批发布前回收，此时证言来自准备中的保管账。
@@ -1925,7 +1943,7 @@ struct ClientSceneAtomicInstaller::Impl {
         if(!preparation.OwnsFailedObject(*batch,record.object,object.address,object.instance))return false;
       }else if(!preparation.PendingObjectCurrent(*batch,record.object,object.address,object.instance,true))return false;
       const auto *layout=S::FindFlatLayout(record.layout);
-      if(!layout||!ClientClearFlatTear(object.address,*layout,state,root_leaving,leaving))return false;
+      if(!layout||!ClientClearFlat(object.address,*layout,state,root_leaving,leaving))return false;
     }
     // 先拆边，再按安装逆序摘附件。父容器恢复原头部后，旧元素地址可能已失效。
     for(auto &op:operations){
@@ -2107,7 +2125,7 @@ struct ClientSceneAtomicInstaller::Impl {
       }
       if(!object.retire_root||!object.address||object.unbound)continue;
       const auto *layout=S::FindFlatLayout(record.layout);
-      if(!layout||!ClientClearFlatTear(object.address,*layout,state,true,{}))return Failed(written,"flat_native_retire_references");
+      if(!layout||!ClientClearFlat(object.address,*layout,state,true,{}))return Failed(written,"flat_native_retire_references");
     }
     // 装载／选择器可能交换图层数组。按照安装顺序统一反向拆除普通与特殊字段。
     for(std::size_t n=operations.size();n>0;--n){auto &op=Ordered(n-1);if(!op.done||op.restored)continue;
@@ -2336,7 +2354,7 @@ bool ClientSceneAtomicInstaller::SelectRetiring(const S::ClientStateApplyBatch &
     if(auto *address=s.preparation.InstalledObject(*s.batch,i,&instance)){
       if(s.objects[i].address!=address||s.objects[i].instance!=instance)return false;
       if(at!=next.end()&&at->member.identity==id&&
-          s.preparation.PendingObjectCurrent(target,std::uint32_t(at-next.begin()),address,instance))continue;
+          s.preparation.PendingObjectCurrent(target,std::uint32_t(at-next.begin()),address,instance,false,true))continue;
       auto &entry=leaving.emplace_back(ClientLiveRetirement{id,address,instance});
       if(!same_room||object.domain!=Domain::Entity||
           (id.layout!=F::EntityPickup::kLayout&&id.layout!=F::EntityNPC::kLayout)||
@@ -2402,9 +2420,12 @@ bool ClientSceneAtomicInstaller::UnbindRetiring(std::span<const ClientLiveRetire
 }
 void ClientSceneAtomicInstaller::FailedMembers(S::ClientStateVector<ClientLiveRetirement> &leaving) const {
   const auto &s=*impl_;
+  const bool body_only=S::StateTargetStreams(s.scene->State().Target())==2;
   for(std::uint32_t i=0;i<s.objects.size();++i){
     const auto &o=s.objects[i];
     if(!o.address||o.unbound||o.failure==ClientMemberFailure::None)continue;
+    // 单独 Body 只借 World 的活 Player。失败记在 Body 并在下一帧补写，名册仍保有该原生实例。
+    if(body_only&&o.borrowed&&o.identity.layout==F::EntityPlayer::kLayout)continue;
     // 先核实际构造责任，旧数字计划和失败时的指针不足以准许清理别的池实例。
     if(!s.preparation.OwnsFailedObject(*s.batch,i,o.address,o.instance))
       Bad("binary_failed_member_owner_changed");

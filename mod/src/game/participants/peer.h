@@ -35,7 +35,7 @@ void DiscardPeerWindow(SessionRuntime &runtime, unsigned ordinal = 0) noexcept;
 void PollPeer(SessionRuntime &runtime) noexcept;
 void DrainPeer(SessionRuntime &runtime) noexcept;
 void PublishPeer(SessionRuntime &runtime) noexcept;
-bool StopPeer(SessionRuntime &runtime) noexcept;
+net::StopResult PollPeerStop(SessionRuntime &runtime) noexcept;
 void RequestRemoteRetirement(SessionRuntime &runtime, unsigned ordinal,
                              core::SessionCause cause) noexcept;
 void FinishRemoteRetirements(SessionRuntime &runtime) noexcept;

@@ -21,6 +21,20 @@ std::span<const std::byte> Required(ClientShadowRecordView record,std::uint16_t 
   const auto *f=record.Field(field);if(!f||!f->present)Fail(StateReadiness::SourcePending,"client_plan_required_field");return f->bytes;
 }
 template<class T>T Number(ClientShadowRecordView record,std::uint16_t field){return Exact<T>(Required(record,field));}
+template<class T>T Number(ClientShadowRecordView record,std::uint16_t field,std::string_view flat) {
+  return record.Flat()?Exact<T>(record.FlatValue(flat)):Number<T>(record,field);
+}
+std::uint32_t FlatCount(ClientShadowRecordView record,std::string_view name) {
+  const auto slot=record.FlatValue(name);
+  const auto *layout=FindFlatLayout(record.Identity().layout);
+  Require(layout&&!slot.empty(),"client_plan_flat_count");
+  const auto offset=std::uint32_t(slot.data()-record.Flat()->Bytes().data());
+  const auto patch=std::lower_bound(layout->patches.begin(),layout->patches.end(),offset,
+    [](const auto &p,auto value){return p.mirror_offset<value;});
+  Require(patch!=layout->patches.end()&&patch->mirror_offset==offset&&patch->kind==FlatPatchKind::Container,
+    "client_plan_flat_count_template");
+  return FlatContainer(slot,patch->header).count;
+}
 // 只用于对象独占段内选桶；发生碰撞仍比较完整路径，不以摘要代替身份。
 std::uint32_t FieldBucket(std::uint32_t path)noexcept {
   auto value=(2166136261u^path)*16777619u;
@@ -72,6 +86,19 @@ bool ClientCostumeDirectoryMatches(const ClientShadowStateRef &a,const ClientSha
     const PresentationMember &player) noexcept {
   if(!a||!b)return false;
   const auto x=a->Find(player),y=b->Find(player);
+  if(x&&y&&x->Flat()&&y->Flat()){
+    // 两侧共享同一不可变镜像时已相等；否则按生成表的偏移直接比较服装目录。
+    if(x->Flat()==y->Flat())return true;
+    const auto *layout=FindFlatLayout(player.layout);
+    if(!layout)return false;
+    const auto left=x->Flat()->Bytes(),right=y->Flat()->Bytes();
+    for(const auto &field:layout->fields){
+      const std::string_view name=field.name;
+      if(name!="costume_topology_revision"&&!name.starts_with("_playerCostumeMap["))continue;
+      if(!std::ranges::equal(left.subspan(field.offset,field.size),right.subspan(field.offset,field.size)))return false;
+    }
+    return true;
+  }
   return x&&y&&(a==b||(x->SameField(*y,F::EntityPlayer::costume_topology_revision)&&
     x->SameField(*y,F::EntityPlayer::_costumeSpriteDescs_0)&&x->SameField(*y,F::EntityPlayer::_playerCostumeMap)));
 }
@@ -1026,15 +1053,27 @@ void ClientInstallBuilder::World() {
   else Require(w.current_entry>=-20&&w.current_entry!=-19&&506-w.current_entry==slot,"client_plan_special_entry");
   std::array<std::uint32_t,448> grids;grids.fill(kClientPlanNone);
   for(std::uint32_t i=0;i<out->objects_.size();++i)if(out->objects_[i].domain==ClientInstallDomain::Grid) {
-    const auto root=Root(i);ClientInstallGrid g;g.object=i;g.index=Number<std::uint32_t>(root,F::GridEntity::grid_index);
-    Require(g.index<w.grid_width*w.grid_height&&grids[g.index]==kClientPlanNone,"client_plan_grid_index_conflict");grids[g.index]=i;
-    const auto *field=FindField(root.Identity().layout,F::GridEntity::desc);Require(field,"client_plan_grid_descriptor");const auto desc=Required(root,F::GridEntity::desc);
-    g.type=Fixed<std::int32_t>(field->nested_layout,0,desc);g.variant=Fixed<std::int32_t>(field->nested_layout,1,desc);g.state=Fixed<std::int32_t>(field->nested_layout,2,desc);
+    const auto root=Root(i);ClientInstallGrid g;g.object=i;g.index=Number<std::uint32_t>(root,F::GridEntity::grid_index,"grid_index");
+    Require(g.index<grids.size()&&g.index<w.grid_width*w.grid_height&&grids[g.index]==kClientPlanNone,"client_plan_grid_index_conflict");grids[g.index]=i;
+    const auto *field=FindField(root.Identity().layout,F::GridEntity::desc);Require(field,"client_plan_grid_descriptor");
+    if(root.Flat()){
+      g.type=Exact<std::int32_t>(root.FlatValue("desc.type"));
+      g.variant=Exact<std::int32_t>(root.FlatValue("desc.variant"));
+      g.state=Exact<std::int32_t>(root.FlatValue("desc.state"));
+      const auto seed=root.FlatValue("desc.spawn_seed");
+      if(!seed.empty()){g.has_spawn_seed=true;g.spawn_seed=Exact<std::uint32_t>(seed);}
+    }else{
+      const auto desc=Required(root,F::GridEntity::desc);
+      g.type=Fixed<std::int32_t>(field->nested_layout,0,desc);g.variant=Fixed<std::int32_t>(field->nested_layout,1,desc);g.state=Fixed<std::int32_t>(field->nested_layout,2,desc);
+      if(field->nested_layout==198){g.has_spawn_seed=true;g.spawn_seed=Fixed<std::uint32_t>(field->nested_layout,3,desc);}
+    }
     Require(GridFactoryLayout(g.type)==root.Identity().layout,"client_plan_grid_factory_type");
-    if(field->nested_layout==198){g.has_spawn_seed=true;g.spawn_seed=Fixed<std::uint32_t>(field->nested_layout,3,desc);}
-    if(root.Identity().layout==F::GridEntityFire::kLayout&&g.state>=4)Require(Exact<std::uint16_t>(Required(root,F::GridEntityFire::embers).first(2))==0,"client_plan_ember_state");
+    if(root.Identity().layout==F::GridEntityFire::kLayout&&g.state>=4)
+      Require((root.Flat()?FlatCount(root,"embers"):Exact<std::uint16_t>(Required(root,F::GridEntityFire::embers).first(2)))==0,"client_plan_ember_state");
     if(root.Identity().layout==F::GridEntityRock::kLayout) {
-      const auto count=Exact<std::uint16_t>(Required(root,F::GridEntityRock::rubble_offsets).first(2)),animation=Number<std::uint16_t>(root,F::GridEntityRock::rubble_animation);
+      const auto count=root.Flat()?FlatCount(root,"rubble_offsets"):Exact<std::uint16_t>(Required(root,F::GridEntityRock::rubble_offsets).first(2));
+      const auto animation=root.Flat()?FlatWord(root.FlatValue("rubble_animation")):
+        std::uint32_t(Number<std::uint16_t>(root,F::GridEntityRock::rubble_animation));
       Require((g.state==2||(!count&&animation==kNullIndex))&&(!count||animation!=kNullIndex),"client_plan_rubble_state");
     }
     out->objects_[i].description=std::uint32_t(out->grids_.size());
@@ -1074,13 +1113,18 @@ void ClientInstallBuilder::Players() {
   std::array<unsigned,4> bodies{};
   for(std::uint32_t i=0;i<out->objects_.size();++i)if(out->objects_[i].domain==ClientInstallDomain::Player) {
     Require(out->players_.size()<256,"client_plan_player_limit");const auto r=Root(i);ClientInstallPlayer player;player.object=i;
-    player.player_type=Number<std::int32_t>(r,F::EntityPlayer::_playerType);
+    player.player_type=Number<std::int32_t>(r,F::EntityPlayer::_playerType,"_playerType");
     // World 先建立本帧的服装目录，Body 应用时比对活对象的对应拓扑。
-    player.group=Reference(r,F::EntityPlayer::control_group);player.topology=Number<std::uint32_t>(r,F::EntityPlayer::costume_topology_revision);
+    player.group=r.Flat()?Reference(std::uint16_t(Exact<std::uint32_t>(r.FlatValue("control_group"))),world->Members()):
+      Reference(r,F::EntityPlayer::control_group);
+    player.topology=Number<std::uint32_t>(r,F::EntityPlayer::costume_topology_revision,"costume_topology_revision");
     // Host 为每个身体独立记录目录修订。结构变更由上面的 joint 规则协调，
     // 同一目标里的 P0/P6 必须按身体身份配对，其他身体可以仍在各自的旧修订。
     Require(player.topology!=0,"client_plan_player_costume_topology");
-    player.membership=Number<std::uint8_t>(r,F::EntityPlayer::native_membership);player.role=Number<std::uint8_t>(r,F::EntityPlayer::body_role);player.control=Number<std::uint8_t>(r,F::EntityPlayer::control_flags);player.roster=Number<std::uint16_t>(r,F::EntityPlayer::roster_rank);
+    player.membership=Number<std::uint8_t>(r,F::EntityPlayer::native_membership,"native_membership");
+    player.role=Number<std::uint8_t>(r,F::EntityPlayer::body_role,"body_role");
+    player.control=Number<std::uint8_t>(r,F::EntityPlayer::control_flags,"control_flags");
+    player.roster=Number<std::uint16_t>(r,F::EntityPlayer::roster_rank,"roster_rank");
     Require(player.membership<=15&&(!(player.membership&2)||(player.membership&1))&&(!(player.membership&12)||(player.membership&2)),"client_plan_player_membership");
     Require(player.role<=6&&player.control<=3&&(!(player.control&2)||(player.control&1)),"client_plan_player_control");
     if(player.group==kClientPlanNone)Require(player.role==6&&!player.control&&player.roster==kNullIndex,"client_plan_ungrouped_player");
@@ -1095,7 +1139,7 @@ void ClientInstallBuilder::Players() {
       const auto body=target.effective[1];
       const auto pose=body?body->Find(r.Identity()):std::nullopt;
       if(!pose)Fail(StateReadiness::SourcePending,"client_plan_player_pose_missing");
-      if(Number<std::uint32_t>(*pose,F::EntityPlayer::render_topology_revision)!=player.topology)
+      if(Number<std::uint32_t>(*pose,F::EntityPlayer::render_topology_revision,"render_topology_revision")!=player.topology)
         Fail(StateReadiness::SourcePending,"client_plan_player_pose_topology");
     }
     out->players_.push_back(player);
@@ -1127,8 +1171,12 @@ void ClientInstallBuilder::Players() {
       e.configuration={4,std::uint16_t(u32("selected_config"))};
       auto &init=e.flat_init.emplace();
       init.flags=Exact<std::uint64_t>(value("flags"));
-      init.position={Exact<float>(value("position.x")),Exact<float>(value("position.y"))};
-      init.velocity={Exact<float>(value("velocity.x")),Exact<float>(value("velocity.y"))};
+      const auto body=target.effective[1];
+      const auto pose=domain==ClientInstallDomain::Player?(body?body->Find(r.Identity()):std::nullopt):std::optional(r);
+      if(pose){
+        init.position={Exact<float>(pose->FlatValue("position.x")),Exact<float>(pose->FlatValue("position.y"))};
+        init.velocity={Exact<float>(pose->FlatValue("velocity.x")),Exact<float>(pose->FlatValue("velocity.y"))};
+      }
       init.spawner_type=u32("spawner_type");init.spawner_variant=u32("spawner_variant");
       init.parent=link("parent");init.spawner=link("spawner");
       continue;

@@ -140,6 +140,10 @@ void PollPeer(SessionRuntime &r) noexcept {
     }
     if (p.established || status.state != net::protocol::PeerState::Established)
       continue;
+    if (r.lobby.locked_members && !(r.lobby.locked_members & (1u << i))) {
+      RequestRemoteRetirement(r, i, core::SessionCause::PeerProtocol);
+      continue;
+    }
     if (!r.session.AddParticipant(i)) {
       RequestRemoteRetirement(r, i, core::SessionCause::PeerProtocol);
       continue;
@@ -240,6 +244,7 @@ void PublishPeer(SessionRuntime &r) noexcept {
       continue;
     const auto progress = r.players[ordinal].Progress(r.clock.Completed());
     net::protocol::Ack ack;
+    ack.lobby_roster = r.lobby.roster.Pack();
     ack.roster_mask = roster;
     ack.server_tick = r.clock.Completed();
     ack.server_sample_ms = r.committed_sample_ms?r.committed_sample_ms:GetTickCount64();
@@ -303,15 +308,16 @@ void FinishRemoteRetirements(SessionRuntime &r) noexcept {
           ordinal, r.session.ParticipantCount(), r.loop);
   }
 }
-bool StopPeer(SessionRuntime &r) noexcept {
+net::StopResult PollPeerStop(SessionRuntime &r) noexcept {
   if (r.mode != core::SessionMode::Host)
-    return true;
-  const auto result = r.network.Stop(ByeFor(r.retirement_cause), 1000);
+    return net::StopResult::Stopped;
+  // 可靠关闭消息在网络线程排空。Manager 继续运行，并在每帧确认线程终态。
+  const auto result = r.network.Stop(ByeFor(r.retirement_cause), 0);
   for (auto &remote : r.remotes) {
     remote.peer.stop_requested = true;
     remote.peer.stop_finished = result == net::StopResult::Stopped;
-    remote.peer.stop_failed = !remote.peer.stop_finished;
+    remote.peer.stop_failed = result == net::StopResult::WaitFailed;
   }
-  return result == net::StopResult::Stopped;
+  return result;
 }
 } // namespace cs::game

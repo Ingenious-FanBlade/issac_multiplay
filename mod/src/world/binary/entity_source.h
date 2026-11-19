@@ -39,6 +39,10 @@ struct EntityFacts {
   std::uint8_t role=6,control_flags=0,ordinal=255;
   bool ready=false,player_ready=false,text_ready=false,activation_qualified=false,group_known=false;
   std::uint64_t group=0,participant=0,control_session=0,binding_revision=0;
+  // 预测插值 5.7：与本 Body 同一采集窗口的输入进度。input_sequence 为控制组参与者已处理的最高序号低 32 位（无组为 0），
+  // input_tick 为当前 Authority tick 低 32 位，input_phase bit0=样本结束于奇半帧、bit1—2=本 tick 半步数。
+  std::uint32_t input_sequence=0,input_tick=0;
+  std::uint8_t input_phase=0;
   const NativeScene *scene=nullptr;
   std::uint16_t layout=0,source_slot=state::kNullIndex;
   // 本次 ordinary 单根失败后的沿用状态；物理成员身份仍由原生列表确认。
@@ -101,8 +105,12 @@ struct EntitySourceCapacity {
 // 当前主线程采集实例的累计工作量，只在状态查询中读取。
 struct NativeSourceStats {
   std::uint64_t topology_builds=0,topology_hits=0,witnesses=0,rechecks=0;
+  std::uint64_t snapshot_reads=0,snapshot_fallbacks=0;
   std::uint64_t shared_player_prepared=0,shared_player_consumed=0,shared_player_reviews=0;
   std::array<std::uint64_t,7> resource_parses{},resource_hits{},resource_frame_hits{};
+  std::array<std::uint64_t,7> resource_instance_hits{},resource_shared_hits{};
+  // Sprite、图层、共享动画、共享图像、整局配置。
+  std::array<std::uint32_t,5> resource_cache_high_water{},resource_cache_capacity{};
   std::uint64_t unchanged_checks=0,unchanged_roots=0,unchanged_unavailable=0;
   std::uint32_t unchanged_slots=0,resource_frame_slots=0;
 };
@@ -118,13 +126,14 @@ public:
   // Player 的 World／Body 共用来源；任一投影失败便回卷同一根。
   bool CaptureOrdinary(const state::CaptureWitness &,EntityFacts,state::CaptureValueWriter &,
                        state::CaptureDiagnostic &,std::uint16_t &resolved_layout,std::uint64_t reusable_base=0) noexcept;
-  // 平铺 Tear 入口走同一根资格与回卷。由平铺编码链路选择，独立于版本 84 正文。
-  bool CaptureOrdinaryFlat(const state::CaptureWitness &,EntityFacts,state::CaptureValueWriter &,
-                           state::CaptureDiagnostic &,std::uint16_t &resolved_layout) noexcept;
   // 仅实际ordinary外层成功提交后确认P6；尚无同拓扑ordinary时不能产生fast body。
   void OrdinaryCommitted(state::CaptureSubject) noexcept;
   // 外部资源写水位推进后，丢弃前一读段留下的跨帧精确证明。
   void InvalidateReuse() noexcept;
+  void ClearResourceCaches() noexcept;
+  void SharedResourceChanged(bool animation) noexcept;
+  void ConfigureSharedResourceHooks(unsigned layers) noexcept;
+  void ForgetSpriteResources(state::CaptureSubject) noexcept;
   void Invalidate() noexcept;
   void Retire(state::CaptureSubject) noexcept;
   // 只在owner线程借用；第11步必须复制成不可变资源快照后才能交后台。
@@ -149,7 +158,7 @@ public:
 private:
   bool CaptureRootValues(const state::CaptureWitness &,EntityFacts,state::BodyStream,state::CaptureValueWriter &,
                          state::CaptureDiagnostic &,bool reliable,std::uint64_t candidate_topology,bool pair_player,
-                         std::uint16_t *resolved_layout,std::uint64_t reusable_base=0,bool flat=false) noexcept;
+                         std::uint16_t *resolved_layout,std::uint64_t reusable_base=0) noexcept;
   std::unique_ptr<Impl> impl_;
 };
 }

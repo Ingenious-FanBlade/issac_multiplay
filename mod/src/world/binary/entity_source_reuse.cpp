@@ -1,6 +1,120 @@
 #include "world/binary/entity_source_internal.h"
 
 namespace cs::world::binary {
+namespace {
+SpriteResourceMember Member(CaptureSubject subject) noexcept {return {subject.local,subject.use,subject.space};}
+std::uint64_t MemberIndex(SpriteResourceMember member) noexcept {
+  return member.local*313u+member.space*101u;
+}
+}
+
+// 两层共享表的代次只在对应原生缓存清理时推进。成员表与目录在换局、撤销或回卷时一起丢弃。
+void EntitySource::ClearResourceCaches() noexcept {
+  auto &s=*impl_;
+  if(std::this_thread::get_id()!=s.thread)return;
+  auto &cache=s.resource_cache;
+  std::fill(cache.members.begin(),cache.members.end(),SpriteMemberEpoch{});
+  std::fill(cache.sprites.begin(),cache.sprites.end(),SpriteResourceMemo{});
+  std::fill(cache.layers.begin(),cache.layers.end(),SpriteLayerResourceMemo{});
+  std::fill(cache.animations.begin(),cache.animations.end(),SharedResourceMemo{});
+  std::fill(cache.images.begin(),cache.images.end(),SharedResourceMemo{});
+  cache.stamp=0;cache.used={};
+  s.memo_used=0;
+}
+void EntitySource::SharedResourceChanged(bool animation) noexcept {
+  auto &s=*impl_;
+  if(std::this_thread::get_id()!=s.thread)return;
+  auto &cache=s.resource_cache;
+  auto &epoch=animation?cache.animation_epoch:cache.image_epoch;
+  if(++epoch==0){ClearResourceCaches();epoch=1;}
+  cache.used[animation?2:3]=0;
+}
+void EntitySource::ConfigureSharedResourceHooks(unsigned layers) noexcept {
+  auto &s=*impl_;
+  if(std::this_thread::get_id()==s.thread)s.resource_cache.observed=layers;
+}
+void EntitySource::Impl::UseResourceScope(const CaptureWitness &w) noexcept {
+  auto &cache=resource_cache;
+  if(cache.session==w.scope.session&&cache.run==w.scope.run&&cache.generation==w.generation)return;
+  std::fill(cache.members.begin(),cache.members.end(),SpriteMemberEpoch{});
+  cache.used[2]=cache.used[3]=cache.used[4]=0;
+  if(++cache.animation_epoch==0){std::fill(cache.animations.begin(),cache.animations.end(),SharedResourceMemo{});cache.animation_epoch=1;}
+  if(++cache.image_epoch==0){std::fill(cache.images.begin(),cache.images.end(),SharedResourceMemo{});cache.image_epoch=1;}
+  memo_used=0;
+  cache.session=w.scope.session;cache.run=w.scope.run;cache.generation=w.generation;
+}
+void EntitySource::ForgetSpriteResources(CaptureSubject subject) noexcept {
+  auto &s=*impl_;
+  auto &members=s.resource_cache.members;
+  if(std::this_thread::get_id()!=s.thread||members.empty())return;
+  const auto key=Member(subject);
+  auto &member=members[MemberIndex(key)%members.size()];
+  if(member.member==key)member={};
+}
+void EntitySource::Impl::CountCacheInsert(unsigned layer) noexcept {
+  auto &used=resource_cache.used[layer];
+  auto &high=stats.resource_cache_high_water[layer];
+  high=std::max(high,++used);
+}
+// 内嵌 Sprite 用相对对象的槽，Player 外置装扮用容器元素序号；其余间接来源走正常解析。
+SpriteResourceMemo *EntitySource::Impl::SpriteMemo(std::uint32_t address,bool create) noexcept {
+  auto &cache=resource_cache;
+  if(!window.synchronous_root||root_input||cache.sprites.empty()||cache.stamp>=UINT64_MAX-2||
+     (facts.subject.space!=1&&facts.subject.space!=2))return nullptr;
+  std::uint32_t slot;
+  if(address>=facts.address&&address-facts.address<root_extent)
+    slot=address-facts.address;
+  else if(facts.subject.space==1&&root_layout==197&&player.costume_data&&address>=player.costume_data&&
+          (address-player.costume_data)%304==0&&(address-player.costume_data)/304<player.costumes.size())
+    slot=0x80000000u|(address-player.costume_data)/304;
+  else return nullptr;
+  const auto key=Member(facts.subject);
+  const auto at=MemberIndex(key);
+  auto &member=cache.members[at%cache.members.size()];
+  if(!member.epoch||member.member!=key){
+    if(!create)return nullptr;
+    member={key,++cache.stamp};
+  }
+  auto &memo=cache.sprites[(at+std::uint64_t(slot)*193u)%cache.sprites.size()];
+  if(memo.member_epoch==member.epoch&&memo.slot==slot&&memo.address==address)return &memo;
+  if(!create)return nullptr;
+  if(!memo.stamp)CountCacheInsert(0);
+  memo={};
+  memo.member_epoch=member.epoch;memo.stamp=++cache.stamp;memo.slot=slot;memo.address=address;
+  return &memo;
+}
+SpriteLayerResourceMemo *EntitySource::Impl::LayerMemo(const SpriteResourceMemo *sprite,std::uint32_t data,
+    std::uint32_t count,std::uint32_t index) noexcept {
+  if(!sprite||resource_cache.layers.empty())return nullptr;
+  auto &memo=resource_cache.layers[(sprite->stamp*23u+index)%resource_cache.layers.size()];
+  if(memo.sprite!=sprite->stamp||memo.data!=data||memo.count!=count||memo.index!=index){
+    if(!memo.sprite)CountCacheInsert(1);
+    memo={};
+    memo.sprite=sprite->stamp;memo.data=data;memo.count=count;memo.index=index;
+  }
+  return &memo;
+}
+
+// 在 Values 池剩余额度内预留整组表。热路径只替换有界槽位，冲突或容量不足时正常解析。
+std::uint64_t EntitySource::Impl::ReserveResourceCaches(std::uint64_t bytes) noexcept {
+  const auto per_slot=sizeof(SpriteMemberEpoch)+sizeof(SpriteResourceMemo)+
+    3*sizeof(SpriteLayerResourceMemo)+2*sizeof(SharedResourceMemo);
+  const auto count=std::size_t(std::min<std::uint64_t>(8192,bytes/2/per_slot));
+  if(!count)return 0;
+  try {
+    auto lease=memory::Reserve(memory::Pool::Values,count*per_slot,"entity_capture_resource_layers");
+    LayeredResourceCache cache;
+    cache.members.resize(count);cache.sprites.resize(count);cache.layers.resize(count*3);
+    cache.animations.resize(count);cache.images.resize(count);
+    lease->Resize(cache.members.capacity()*sizeof(SpriteMemberEpoch)+cache.sprites.capacity()*sizeof(SpriteResourceMemo)+
+      cache.layers.capacity()*sizeof(SpriteLayerResourceMemo)+(cache.animations.capacity()+cache.images.capacity())*sizeof(SharedResourceMemo));
+    stats.resource_cache_capacity={std::uint32_t(count),std::uint32_t(count*3),std::uint32_t(count),std::uint32_t(count),
+      std::uint32_t(resource_memos.size())};
+    resource_cache=std::move(cache);resource_cache_charge=std::move(lease);
+    return resource_cache_charge->Bytes();
+  }catch(...){return 0;}
+}
+
 // 只合并相邻且按顺序读取的字节。证明耗尽时原采集照常成功。
 void NativeInputView::Add(std::uint32_t address,std::span<const std::byte> value) noexcept {
   if(!evidence.valid||value.empty())return;
@@ -21,7 +135,9 @@ void EntitySource::Impl::RecordInput(std::uint32_t address,std::span<const std::
   for(auto *record=input_recorder;record;record=record->parent)record->input.Add(address,bytes);
 }
 bool EntitySource::Impl::CopyInput(std::uint32_t address,std::span<std::byte> bytes) noexcept {
-  if(!services.reads->Copy(address,bytes.data(),bytes.size()))return false;
+  const auto slice=snapshot.Slice(address,bytes.size());
+  if(!slice.empty())std::memcpy(bytes.data(),slice.data(),slice.size());
+  else if(!services.reads->Copy(address,bytes.data(),bytes.size()))return false;
   if(input_recorder)RecordInput(address,bytes);
   return true;
 }
@@ -36,9 +152,14 @@ bool EntitySource::Impl::InputsMatch(NativeInputView proof,std::uint32_t root,st
       const auto current=std::span(local).subspan(range.address-root,range.size);
       if(!std::equal(expected.begin(),expected.end(),current.begin()))return false;
     }else{
-      // 外部段按源读取顺序复核，指针、长度或选择器一旦变化便停止沿旧地址查找。
-      const auto current=std::span(external).first(range.size);
-      if(!services.reads->Probe(range.address,current)||!std::equal(expected.begin(),expected.end(),current.begin()))return false;
+      // 根内证明使用本根快照。对象外仍按原依赖顺序读取，指针或长度改变便停止沿旧地址查找。
+      auto current=snapshot.Slice(range.address,range.size);
+      if(current.empty()){
+        const auto live=std::span(external).first(range.size);
+        if(!services.reads->Probe(range.address,live))return false;
+        current=live;
+      }
+      if(!std::equal(expected.begin(),expected.end(),current.begin()))return false;
     }
   }
   return true;
@@ -92,25 +213,39 @@ bool EntitySource::Impl::ReuseResource(NativeResourceKey key,CaptureLink &out,vo
   const auto serial=services.reads->Serial();
   if(!serial)return false;
   const auto &w=window.witness;
+  UseResourceScope(w);
   const auto category=unsigned(key.kind);
   const bool stable=key.kind==NativeResourceSource::Item || key.kind==NativeResourceSource::Config;
-  // 只有已核整局地址稳定的配置允许无内容证言命中。scope／代次／写水位更迭时撤销。
-  if(memo_scope!=w.scope || memo_generation!=w.generation || memo_epoch!=reuse_epoch){
-    memo_used=0;
-    memo_scope=w.scope;
-    memo_generation=w.generation;
-    memo_epoch=reuse_epoch;
-  }
   const auto find=[&](auto end){
     return std::lower_bound(resource_memos.begin(),end,key,[](const auto &entry,const auto &wanted){return entry.key<wanted;});
   };
   // 外层需要完整输入证明时，从真实来源读一遍，或复用下面带完整证言的条目。
   bool recording_inputs=false;
   for(auto *record=input_recorder;record;record=record->parent)recording_inputs|=record->input.evidence.valid;
+  const bool animation=key.kind==NativeResourceSource::Animation;
+  const bool shared=animation?(resource_cache.observed&1u):key.kind==NativeResourceSource::Image&&(resource_cache.observed&2u);
+  if(window.synchronous_root&&!recording_inputs&&shared){
+    auto &table=animation?resource_cache.animations:resource_cache.images;
+    const auto epoch=animation?resource_cache.animation_epoch:resource_cache.image_epoch;
+    if(!table.empty()){
+      auto &memo=table[(std::uint64_t(key.address>>2)*137u+key.dependency*79u)%table.size()];
+      if(memo.epoch==epoch&&memo.address==key.address&&memo.file==key.dependency){
+        out=memo.link;++stats.resource_shared_hits[category];return true;
+      }
+      ++stats.resource_parses[category];
+      if(!parse(context))return false;
+      // 只有文件图像进共享表；程序图集类资源仍按调用点的实际 owner 解析。
+      if(animation||(out.kind==CapturedReferenceKind::Identity&&resources[std::size_t(out.handle-1)].kind==1)){
+        if(memo.epoch!=epoch)CountCacheInsert(animation?2:3);
+        memo={epoch,key.dependency,key.address,out};
+      }
+      return true;
+    }
+  }
   if(stable&&!recording_inputs){
     const auto end=resource_memos.begin()+memo_used;
     const auto at=find(end);
-    if(at!=end&&at->key==key){out=at->link;++stats.resource_hits[category];return true;}
+    if(at!=end&&at->key==key){out=at->link;++stats.resource_hits[category];++stats.resource_shared_hits[category];return true;}
   }
 
   NativeResourceReuse *entry=nullptr;
@@ -136,7 +271,7 @@ bool EntitySource::Impl::ReuseResource(NativeResourceKey key,CaptureLink &out,vo
         NativeInputRecorder record(input_recorder,input);
         if(!parse(context))return false;
       }
-      // 原解析登记了结构证言时照常走该解析入口，保留本根的 Verify 责任。
+      // 原解析登记了结构证言时照常走该解析入口，保留同址投影比较及需要时的根尾复读。
       if(input.evidence.valid&&input.evidence.count&&witness_used==start&&services.reads->Serial()==serial){
         entry->key=key;entry->scope=w.scope;entry->generation=w.generation;
         entry->epoch=reuse_epoch;entry->serial=serial;entry->link=out;
@@ -153,11 +288,13 @@ bool EntitySource::Impl::ReuseResource(NativeResourceKey key,CaptureLink &out,vo
   if(at!=end&&at->key==key)at->link=out;
   else if(memo_used<resource_memos.size()){
     std::move_backward(at,end,end+1);*at={key,out};++memo_used;
+    CountCacheInsert(4);
   }
   return true;
 }
 void EntitySource::ReserveReuse(std::uint64_t bytes) noexcept {
   auto &s=*impl_;
+  bytes-=s.ReserveResourceCaches(bytes);
   const auto assets=std::size_t((std::min)(std::uint64_t{512},bytes/4/sizeof(NativeResourceReuse)));
   const auto roots=std::size_t((std::min)(std::uint64_t{512},(bytes-assets*sizeof(NativeResourceReuse))/sizeof(NativeRootReuse)));
   if(!roots&&!assets)return;

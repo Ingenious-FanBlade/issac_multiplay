@@ -166,6 +166,10 @@ void Trace(const char *ev, const char *format, ...) noexcept {
   // 过滤发生在格式化/计时/入队之前；生产不运行逐tick、逐query及持久入口明细录制。
   if (!Settings.diagnostics) {
     bool important = std::strstr(ev, "error") || std::strstr(ev, "fault");
+#ifdef ISAACCS_E2E
+    // E39 调用点已有授权诊断开关。无需打开全量跟踪也能保留原生转场见证。
+    important |= std::strncmp(ev, "e39-", 4) == 0;
+#endif
     for (const auto *name : {"boot", "config", "shutdown", "session", "peer",
                              "net", "tick_reject"})
       important |= std::strcmp(ev, name) == 0;

@@ -1,9 +1,20 @@
 #pragma once
 #include "world/observe.h"
+// 生成的 Hook wrapper 以 C++17 编译，不能经 model.h 取得该值类型。
+#include "world/player_life.h"
 #include <memory>
 
 namespace cs::game {
 struct WorldCapture;
+// 只观察原生幽灵化或复活的正常返回，将其作为同一玩家实例的当前显示依据。
+class WorldPlayerLifeSourceScope final {
+public:
+  WorldPlayerLifeSourceScope(void *player,bool ghost) noexcept;
+  void Returned() noexcept;
+private:
+  std::shared_ptr<WorldCapture> capture_;
+  world::PlayerLifeWitness witness_{};
+};
 // 已核实JoinPass直接创建Effect的完整owner；只持有观察上下文，不改变Join或游戏对象。
 class WorldJoinEffectSourceScope final {
 public:

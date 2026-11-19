@@ -74,6 +74,7 @@ class Leaf:
     validator: dict
     value_rule: str
     frame_relative: bool
+    recipe_field: int
     conditions: list = field(default_factory=list)
     offset: int = 0
     ordinal: int = 0
@@ -283,6 +284,9 @@ class FlatCompiler:
             self.children.add(child)
         self.children.update(choices)
         validator = entry['validators'].get(item['name'], {})
+        # 保留同源读取 recipe 的数字位置。投影的若干入口共用同一原生来源。
+        recipe = next((f['index'] for f in self.compiler.plans[entry['type']]['fields']
+                       if f['name'].split('#', 1)[0] == item['name']), NO_INDEX)
         return Leaf(path, scalar, flow, operation, header, width, offset, size, owner,
                     entry['layout'], item.get('source', 'Object'), scope, read_requirement,
                     wire.get('host', ''), wire.get('client', ''), wire.get('target', ''), count_name,
@@ -291,7 +295,7 @@ class FlatCompiler:
                     self.compiler.expanded[child]['layout'] if child in self.compiler.expanded else 0,
                     [self.compiler.expanded[c]['layout'] for c in choices], shape, validator,
                     VALUE_RULE.get(wire.get('value_rule'), 'None'),
-                    wire.get('client') == 'RemainingFrames' or wire.get('value_rule') == 'countdown')
+                    wire.get('client') == 'RemainingFrames' or wire.get('value_rule') == 'countdown', recipe)
 
     def assign_groups(self, ordered):
         """先合并显式和推导依赖，再以首个字段序号分配组号。"""
@@ -353,16 +357,16 @@ class FlatCompiler:
                     copy = copies[-1]
                     copy_end = copy[0] + copy[2]
                     gap = leaf.native - copy_end
-                    if (copy[1] + copy[2] == end and copy[3] == leaf.read_requirement and gap >= 0 and
+                    if (copy[1] + copy[2] == end and copy[3:] == (leaf.read_requirement, leaf.stream) and gap >= 0 and
                             all(category == '填充' for category in native_category[copy_end:leaf.native])):
                         if gap:
                             zeros.append((end, gap))
                         end += gap
-                        copies[-1] = (copy[0], copy[1], copy[2] + gap + leaf.native_size, copy[3])
+                        copies[-1] = (copy[0], copy[1], copy[2] + gap + leaf.native_size, *copy[3:])
                     else:
-                        copies.append((leaf.native, end, leaf.native_size, leaf.read_requirement))
+                        copies.append((leaf.native, end, leaf.native_size, leaf.read_requirement, leaf.stream))
                 else:
-                    copies.append((leaf.native, end, leaf.native_size, leaf.read_requirement))
+                    copies.append((leaf.native, end, leaf.native_size, leaf.read_requirement, leaf.stream))
                 leaf.offset = end
                 end += leaf.width
                 continue
@@ -405,11 +409,12 @@ class FlatCompiler:
                 # 具名来源的 raw 叶由 scope writer 处理，不能猜测目的地址。
                 if leaf.scope != NO_INDEX:
                     continue
-                if segments and (segments[-1][0] + segments[-1][2], segments[-1][1] + segments[-1][2]) == (leaf.offset, leaf.native):
+                if segments and segments[-1][3] == leaf.stream and (
+                        segments[-1][0] + segments[-1][2], segments[-1][1] + segments[-1][2]) == (leaf.offset, leaf.native):
                     previous = segments.pop()
-                    segments.append((previous[0], previous[1], previous[2] + leaf.width))
+                    segments.append((previous[0], previous[1], previous[2] + leaf.width, leaf.stream))
                 else:
-                    segments.append((leaf.offset, leaf.native, leaf.width))
+                    segments.append((leaf.offset, leaf.native, leaf.width, leaf.stream))
             writes.append(segments)
         return dict(mirror_size=mirror_size, copies=copies, zeros=zeros, ordered=ordered, groups=groups,
                     writes=writes, byte_fields=byte_fields)
@@ -512,22 +517,25 @@ def emit_type(output, flat, data, symbol, codec_scalar, scalar_bits, resource_id
                                          str(test.get('value', 0)) + 'ull', str(mask) + 'ull'))
         conditions = emit_array(output, 'FlatCondition', f'{symbol}Conditions{ordinal}', condition_rows)
         choices = emit_array(output, 'std::uint16_t', f'{symbol}Choices{ordinal}', map(str, leaf.choices), compact=True)
+        # 旧 max_bytes 计算的是紧缩正文。子镜像的对齐开销由整根镜像预算约束。
         patches.append((leaf.offset, braces(leaf.offset, leaf.width, leaf.native, leaf.native_size, leaf.owner,
-                                           leaf.count_offset, leaf.stride, leaf.limit, leaf.max_bytes, leaf.mask,
+                                           leaf.count_offset, leaf.stride, leaf.limit,
+                                           0 if leaf.child else leaf.max_bytes, leaf.mask,
                                            ordinal, leaf.scope, leaf.child, leaf.owner_layout, operation,
                                            'FlatHeader::' + leaf.header, 'FieldSource::' + leaf.source,
                                            table, str(leaf.seeded).lower(), str(leaf.frame_relative).lower(),
                                            quote(leaf.host), quote(leaf.client), quote(leaf.target), quote(leaf.count),
-                                           quote(leaf.read_requirement), conditions, choices)))
+                                           quote(leaf.read_requirement), conditions, choices, leaf.recipe_field)))
     for offset, width in data['zeros']:
         patches.append((offset, braces(offset, width, NO_OFFSET, 0, 0, NO_OFFSET, 0, 0, 0, 0, NO_INDEX,
                                        NO_INDEX, 0, 0, 'FlatPatchKind::Zero', 'FlatHeader::None',
-                                       'FieldSource::Synthetic', 255, 'false', 'false', '""', '""', '""', '""', '""', '{}', '{}')))
+                                       'FieldSource::Synthetic', 255, 'false', 'false', '""', '""', '""', '""', '""', '{}', '{}', NO_INDEX)))
     field_table = emit_array(output, 'FlatField', symbol + 'Fields', fields)
     byte_table = emit_array(output, 'std::uint16_t', symbol + 'ByteFields',
                             ('kNullIndex' if value == NO_INDEX else str(value) for value in data['byte_fields']), compact=True)
     copy_table = emit_array(output, 'FlatCopySegment', symbol + 'Copies',
-                            (braces(native, mirror, size, quote(read)) for native, mirror, size, read in data['copies']))
+                            (braces(native, mirror, size, quote(read), 'FlatStream::' + flow.title())
+                             for native, mirror, size, read, flow in data['copies']))
     patch_table = emit_array(output, 'FlatPatch', symbol + 'Patches', (row for _, row in sorted(patches)))
     scopes = []
     for i, scope in enumerate(flat.scopes):
@@ -537,7 +545,9 @@ def emit_type(output, flat, data, symbol, codec_scalar, scalar_bits, resource_id
     scope_table = emit_array(output, 'FlatScope', symbol + 'Scopes', scopes)
     groups = []
     for i, (group, writes) in enumerate(zip(data['groups'], data['writes'])):
-        segments = emit_array(output, 'FlatWriteSegment', f'{symbol}Writes{i}', (braces(*row) for row in writes))
+        segments = emit_array(output, 'FlatWriteSegment', f'{symbol}Writes{i}',
+                              (braces(mirror, native, size, 'FlatStream::' + flow.title())
+                               for mirror, native, size, flow in writes))
         groups.append(braces(indexes(f'GroupFields{i}', group), segments))
     group_table = emit_array(output, 'FlatWriteGroup', symbol + 'Groups', groups)
     count_table = emit_array(output, 'FlatCountGroup', symbol + 'CountGroups',

@@ -393,6 +393,8 @@ void RefreshLifecycle(SessionRuntime &r, bool authority,
     }
   const auto &value = values[0];
   if (value.known && !value.run) {
+    // Hourglass 原生恢复内部可能暂时清掉 run 位，外层返回后再核新根和绑定。
+    if(HourglassRoomActive())return;
     // 主菜单握手后的 Warmup 无限等待首次 run；真正经历 run 后离开才是
     // teardown。
     if (host_mode && !r.run_observed) {

@@ -8,6 +8,22 @@
 #include <utility>
 
 namespace cs::world::binary {
+
+// 具名读取器只输出一个语义值。平铺采集接到当前镜像槽，块采集仍写 CaptureValueWriter。
+struct EntityLeafSink {
+  state::CaptureValueWriter *legacy=nullptr;
+  void *context=nullptr;
+  bool (*scalar)(void *,state::ScalarKind,std::uint32_t,std::span<const std::byte>) noexcept=nullptr;
+  bool (*links)(void *,bool,std::uint8_t,std::span<const state::CaptureLink>) noexcept=nullptr;
+  bool PutScalar(const state::CodecLocation &location,state::ScalarKind kind,std::uint32_t count,
+                 std::span<const std::byte> bytes) const noexcept {
+    return legacy?legacy->PutScalar(location,kind,count,bytes):scalar(context,kind,count,bytes);
+  }
+  bool PutLinks(const state::CodecLocation &location,bool resource,std::uint8_t table,
+                std::span<const state::CaptureLink> values) const noexcept {
+    return legacy?legacy->PutLinks(location,resource,table,values):links(context,resource,table,values);
+  }
+};
 using namespace state;
 // 所有特殊来源在冷准备绑定为数字指令；不在逐字段热路径解析handler名称。
 enum class EntityRead : std::uint8_t {
@@ -16,7 +32,9 @@ enum class EntityRead : std::uint8_t {
   Membership,Roster,Group,Role,Control,DrawPresent,Vector,String,Fixed,Layers,LayerFrames,NullFrames,
   Deque,Rope,Trail,Ghost,Shared,Plus,Spoofs,Tree,Blocked,Innate,Weapon,DrawNode,DrawSprite,TrinketPresence,
   GridWater,Glitch,RockPose,RockPosition,RockRubble,RockAnimation,FireEmbers,DoorAlpha,DoorLight,Inline,
-  Scene,RoomConfig,Run,Presentation,Display
+  Scene,RoomConfig,Run,Presentation,Display,
+  // 预测插值 5.7：每身体已处理输入序号、Authority tick、半帧相位（EntityFacts 同窗取值）。
+  InputSequence,InputTick,InputPhase
 };
 enum class NativeSequence : std::uint32_t { Contiguous, Owned, Addresses, Weapon };
 EntityRead GridRecipe(std::string_view) noexcept;
@@ -27,7 +45,7 @@ EntityRead FindEntityRead(std::string_view) noexcept;
 enum class NativeEvidenceUse : std::uint8_t { Field, PlayerVtable, Loaded, FileName, Layers, Image, CostumeVector, CostumeItem,
   CostumeFlags, CostumeIndex, CostumeLayer, CostumeBody, CanFly, AnimationOwner, Animation, FrameCount, FrameData };
 struct NativeEvidenceSource {std::uint32_t owner=0;NativeEvidenceUse use=NativeEvidenceUse::Field;};
-// 仅保存读取过的具名小头和字段，根尾按原地址复读；未知负载不进入证言。
+// 保存读取过的具名小头和字段，用于同址比较及独立读段的复读；未知负载不进入证言。
 struct NativeReadWitness {
   std::uint32_t address=0,owner=0;
   std::uint16_t layout=0,field=kNullIndex;
@@ -69,6 +87,45 @@ struct NativeResourceKey {
   auto operator<=>(const NativeResourceKey &) const = default;
 };
 struct NativeResourceMemo {NativeResourceKey key;CaptureLink link;};
+// Sprite 键使用成员代次与逻辑槽。地址只作本地证言，绝不用于跨成员命中。
+struct SpriteResourceMember {
+  std::uint64_t local=0,use=0;
+  std::uint16_t space=0;
+  auto operator<=>(const SpriteResourceMember &) const = default;
+};
+struct SpriteMemberEpoch {SpriteResourceMember member;std::uint64_t epoch=0;};
+struct SharedResourceMemo {
+  std::uint64_t epoch=0,file=0;
+  std::uint32_t address=0;
+  CaptureLink link;
+};
+struct SpriteResourceMemo {
+  std::uint64_t member_epoch=0,stamp=0;
+  std::uint32_t slot=0,address=0;
+  std::array<std::byte,24> file_head{};
+  CaptureLink file;
+  std::array<SharedResourceMemo,2> animations;
+  bool file_ready=false;
+};
+// 图层条目的生存期从属于 Sprite 证言。头部直接借用平铺复制段，失配则正常解析。
+struct SpriteLayerResourceMemo {
+  std::uint64_t sprite=0,image_epoch=0;
+  std::uint32_t data=0,count=0,index=0;
+  std::array<std::byte,24> path_head{};
+  std::array<std::uint32_t,2> image_head{};
+  CaptureLink path,image;
+  bool path_ready=false,image_ready=false;
+};
+struct LayeredResourceCache {
+  std::vector<SpriteMemberEpoch> members;
+  std::vector<SpriteResourceMemo> sprites;
+  std::vector<SpriteLayerResourceMemo> layers;
+  std::vector<SharedResourceMemo> animations,images;
+  std::array<std::uint32_t,5> used{};
+  std::uint64_t stamp=0,animation_epoch=1,image_epoch=1;
+  std::uint64_t session=0,run=0,generation=0;
+  unsigned observed=0; // 动画、文件图像的原生释放入口分别由一位表示。
+};
 // 按原读取顺序保存确切字节。外部地址只在已核的当前读段内按原依赖顺序复查。
 struct NativeInputRange {std::uint32_t address=0;std::uint16_t offset=0,size=0;};
 struct NativeInputEvidence {
@@ -124,7 +181,20 @@ struct NativeHistoryGlyph {std::int32_t visual=0;CaptureLink image{CapturedRefer
 struct FlatSourceProgram {
   const FlatLayout *layout=nullptr;
   std::vector<EntityRead> reads;
+  std::uint32_t native_begin=0,native_end=0;
   bool has_conditions=false;
+};
+
+// 每个同步根独占一份连续原生字节。只有已核切片可以交给复制段、补丁和输入证明。
+struct NativeRootSnapshot {
+  std::array<std::byte,0x2100> storage; // 容纳当前 Player 的最大范围，计入 EntitySource 的 Values 租约。
+  std::uint32_t base=0;
+  std::span<const std::byte> bytes;
+  std::span<const std::byte> Slice(std::uint32_t address,std::size_t size) const noexcept {
+    if(address<base)return {};
+    const auto offset=address-base;
+    return offset<=bytes.size()&&size<=bytes.size()-offset?bytes.subspan(offset,size):std::span<const std::byte>{};
+  }
 };
 
 struct EntitySource::Impl {
@@ -139,6 +209,7 @@ struct EntitySource::Impl {
   std::unique_ptr<CapturePlan> plan;
   std::unique_ptr<CaptureExecutor> executor;
   std::vector<std::byte> scratch,resource_bytes,topology_bytes;
+  NativeRootSnapshot snapshot;
   std::vector<NativeReadWitness> witnesses;
   std::vector<std::uint32_t> witness_order,resource_order;
   std::vector<NativeResourceMemo> resource_memos;
@@ -150,10 +221,10 @@ struct EntitySource::Impl {
   std::vector<NativeConfigOwner> config_owners;
   std::uint32_t config_owner_used=0;
   std::uint32_t memo_used=0;
-  StateScope memo_scope;
-  std::uint64_t memo_generation=0,memo_epoch=0;
   NativeSourceStats stats;
   memory::Lease reuse_charge;
+  memory::Lease resource_cache_charge;
+  LayeredResourceCache resource_cache;
   std::vector<NativeRootReuse> root_reuse;
   std::vector<NativeResourceReuse> resource_reuse;
   NativeInputRecorder *input_recorder=nullptr;
@@ -163,6 +234,7 @@ struct EntitySource::Impl {
   CaptureWindow window;
   EntityFacts facts;
   std::uint32_t topology_revision=0;
+  std::uint32_t root_extent=0;
   std::uint32_t sprite_dependency_used=0;
   std::uint16_t root_layout=0;
   std::uint16_t evidence_layout=0,evidence_field=kNullIndex;
@@ -198,16 +270,18 @@ struct EntitySource::Impl {
   std::span<std::byte> Allocate(std::uint64_t,unsigned align,CaptureDiagnostic &) noexcept;
   bool StringAt(std::uint32_t,std::span<std::byte>,std::uint32_t &,CaptureDiagnostic &,bool track=false,NativeEvidenceSource={}) noexcept;
   bool CStringAt(std::uint32_t,std::uint32_t,std::span<std::byte>,std::uint32_t &,CaptureDiagnostic &,bool track=false,std::uint32_t extent=0) noexcept;
-  bool Leaf(const CaptureFieldAccess &,CaptureValueWriter &,CaptureDiagnostic &) noexcept;
+  bool Leaf(const CaptureFieldAccess &,EntityLeafSink,CaptureDiagnostic &) noexcept;
   bool BasicConversion(EntityRead,const CaptureRoot &,std::uint64_t address,std::uint32_t mask,
                        std::uint64_t &result,CaptureDiagnostic &) noexcept;
   bool ExistingPlus(const CaptureRoot &,std::uint32_t &holder,std::uint32_t &payload,CaptureDiagnostic &) noexcept;
-  bool ExecuteFlatTear(const CaptureRoot &,CaptureValueWriter &,CaptureDiagnostic &) noexcept;
-  std::uint64_t BindFlatTear();
+  const FlatSourceProgram *FlatProgram(std::uint16_t layout) const noexcept;
+  void SnapshotRoot(const CaptureRoot &) noexcept;
+  bool ExecuteFlat(const CaptureRoot &,BodyStream,bool,CaptureValueWriter &,CaptureDiagnostic &) noexcept;
+  std::uint64_t BindFlatPrograms();
   bool Open(const CaptureFieldAccess &,CaptureTraversalSource &,CaptureDiagnostic &) noexcept;
   bool Element(const CaptureFieldAccess &,const CaptureTraversalSource &,std::uint16_t,CaptureRoot &,CaptureDiagnostic &) noexcept;
   bool Close(const CaptureFieldAccess &,const CaptureTraversalSource &,CaptureDiagnostic &) noexcept;
-  bool ScalarContainer(const CaptureFieldAccess &,CaptureValueWriter &,CaptureDiagnostic &) noexcept;
+  bool ScalarContainer(const CaptureFieldAccess &,EntityLeafSink,CaptureDiagnostic &) noexcept;
   bool NativeTree(std::uint32_t,std::span<std::uint32_t>,std::uint32_t &,CaptureDiagnostic &) noexcept;
   bool HashItems(std::uint32_t,bool,std::span<std::byte>,std::uint32_t &,std::uint32_t &,CaptureDiagnostic &) noexcept;
   bool Aggregate(std::uint32_t,std::span<std::byte>,std::uint32_t &,CaptureDiagnostic &) noexcept;
@@ -226,6 +300,14 @@ struct EntitySource::Impl {
   bool Weapon(std::uint32_t,NativeWeaponSlot &,std::uint32_t &,CaptureDiagnostic &,bool tracked=false) noexcept;
   bool Incubus(std::uint32_t,std::int32_t &,CaptureDiagnostic &) noexcept;
   bool PrepareTopology(CaptureDiagnostic &) noexcept;
+  const PreparedPlayerSprite *PlayerSpriteAt(std::uint32_t) const noexcept;
+  void UseResourceScope(const CaptureWitness &) noexcept;
+  std::uint64_t ReserveResourceCaches(std::uint64_t) noexcept;
+  void CountCacheInsert(unsigned) noexcept;
+  SpriteResourceMemo *SpriteMemo(std::uint32_t,bool create=true) noexcept;
+  SpriteLayerResourceMemo *LayerMemo(const SpriteResourceMemo *,std::uint32_t data,std::uint32_t count,std::uint32_t index) noexcept;
+  bool LayerImage(SpriteLayerResourceMemo *,const std::array<std::uint32_t,2> &,CaptureLink &,CaptureDiagnostic &) noexcept;
+  bool LayerImagePath(SpriteLayerResourceMemo *,std::uint32_t,std::span<const std::byte>,CaptureLink &,CaptureDiagnostic &) noexcept;
   const PreparedPlayerSprite *PlayerSprite(std::span<const CodecPathStep>) const noexcept;
   const PreparedPlayerCostume *PlayerCostume(const CaptureFieldAccess &) const noexcept;
   const PreparedPlayerMap *PlayerMap(const CaptureFieldAccess &) const noexcept;
@@ -233,7 +315,7 @@ struct EntitySource::Impl {
   const PreparedPlayerSprite *PlayerAnimation(const CaptureFieldAccess &) const noexcept;
   bool ReadPlayerAnimation(const CaptureFieldAccess &,const PreparedPlayerSprite &,std::uint32_t &owner,
                            std::uint32_t &animation,CaptureDiagnostic &) noexcept;
-  bool GridLeaf(const CaptureFieldAccess &,CaptureValueWriter &,CaptureDiagnostic &) noexcept;
+  bool GridLeaf(const CaptureFieldAccess &,EntityLeafSink,CaptureDiagnostic &) noexcept;
   bool GridOpen(const CaptureFieldAccess &,CaptureTraversalSource &,CaptureDiagnostic &) noexcept;
   bool RockAnimation(CaptureLink &,CaptureDiagnostic &) noexcept;
   bool SceneLeaf(const CaptureFieldAccess &,CaptureValueWriter &,CaptureDiagnostic &) noexcept;

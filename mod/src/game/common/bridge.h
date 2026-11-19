@@ -33,6 +33,15 @@ private:
 std::uint64_t StreamResourceGeneration(void *object,bool copied_value=false) noexcept;
 #endif
 bool StreamResourceHooksInstalled() noexcept;
+// 通知 Host 原生共享缓存的释放边界；外线程全程计入外部写水位。
+class StreamSharedResourceScope final {
+public:
+  explicit StreamSharedResourceScope(bool animation) noexcept;
+  ~StreamSharedResourceScope() noexcept;
+private:
+  bool foreign_=false;
+};
+unsigned StreamSharedResourceHooks() noexcept;
 bool BinaryDisplayCaptureHooksInstalled() noexcept;
 std::string ClientTestExerciseNative(const std::string &token) noexcept;
 // E2E专有独立VM，只用于实际不同VM身份的受控拒绝，不替换游戏Lua根。
@@ -85,11 +94,54 @@ void ClientPollInput();
 // 原生插值选项：0=关，1=开，2=非主线程或Manager未就绪；只读诊断。
 unsigned NativeInterpolationState() noexcept;
 bool ClientUiBlocked() noexcept;
+bool ClientLocalOrdinal(unsigned &ordinal) noexcept;
+// 仅在当前相机原生更新栈内投影本端控制组，并在返回时恢复全局名册及中心缓存。
+class LocalCameraScope final {
+public:
+  explicit LocalCameraScope(void *camera) noexcept;
+  ~LocalCameraScope() noexcept;
+  LocalCameraScope(const LocalCameraScope &)=delete;
+  LocalCameraScope &operator=(const LocalCameraScope &)=delete;
+private:
+  void *roster_=nullptr;
+  std::array<void *,256> players_{};
+  std::array<float,2> center_{};
+  std::uint32_t frame_=0;
+  unsigned count_=0;
+};
+bool HostOwnsCameraPlayer(const void *room,const void *player) noexcept;
+bool ClientSnapLocalCamera(void *camera);
+// 只在已安装客机世界的原生 Minimap::Update 调用期间开放地图输入。
+class ClientMinimapInputScope final {
+public:
+  ClientMinimapInputScope() noexcept;
+  ~ClientMinimapInputScope() noexcept;
+  ClientMinimapInputScope(const ClientMinimapInputScope &)=delete;
+  ClientMinimapInputScope &operator=(const ClientMinimapInputScope &)=delete;
+};
+bool ClientMinimapMapPressed(int action,bool &pressed) noexcept;
+// StatHUD 有两个原生显示槽，按本端 C/S 控制组登记；渲染时临时隐藏过期槽。
+class FoundHudScope final {
+public:
+  FoundHudScope(void *hud,bool rendering) noexcept;
+  ~FoundHudScope() noexcept;
+  FoundHudScope(const FoundHudScope &)=delete;
+  FoundHudScope &operator=(const FoundHudScope &)=delete;
+  void Returned() noexcept;
+private:
+  void *hud_=nullptr;
+  std::array<void *,2> previous_{};
+  bool rendering_=false;
+};
+bool FoundHudSlotAllowed(const void *hud,const void *player) noexcept;
+bool HostOwnsFoundHudPlayer(const void *player) noexcept;
+void ClearClientFoundHudSlots(void *hud) noexcept;
 // 仅当前原生HUD draw作用域供应服务器最终显示条件，不放行成就或任何持久写入。
 bool ClientMenuAvailable() noexcept;
 void ClientInputUnavailable() noexcept;
 void ClientMenuRendered() noexcept;
 // 只替代 Manager Render 内的菜单绘制；保留外层真实清屏、提交与交换缓冲。
+bool ClientRenderTransitionHold() noexcept;
 bool ClientProcessExitDecision() noexcept;
 bool ClientShutdownProgressBlocked() noexcept;
 // classes_registered 仅 RegisterClasses 外层正常返回可设，证明 vanilla main.lua 前已保护。
@@ -139,7 +191,7 @@ bool ClientBinaryGridWaterClip(const void *,std::uint32_t &) noexcept;
 bool ClientEntityInitIsolationInstalled() noexcept;
 bool ClientBinaryDrawOrder(const void *,std::uint32_t &) noexcept;
 // 返回当前安装／已发布 roster 的 C/S 控制组槽位，不借用原版设备编号。
-bool ClientBinaryHudOrdinal(const void *,unsigned &) noexcept;
+bool ClientBinaryPlayerOrdinal(const void *,unsigned &,bool active_only=false) noexcept;
 constexpr std::uint64_t ClientEntryMask(ClientEntry entry) noexcept {
   return unsigned(entry)<64?std::uint64_t{1}<<unsigned(entry):0;
 }
@@ -281,7 +333,7 @@ public:
 };
 void PollReturned(void *device, bool success) noexcept;
 void InputFrameFinished() noexcept;
-bool ReadPhysicalActions(void *device, PhysicalActions &actions);
+bool ReadPhysicalActions(void *device, PhysicalActions &actions,bool *map_pressed=nullptr);
 bool OverrideQuery(void *device, int action, QueryKind kind,
                    float &result) noexcept;
 void ObserveConsole(bool blocked) noexcept;
@@ -290,6 +342,18 @@ void NewRoomReturned() noexcept;
 // Restore 的退休分支复用同一停止请求但不伪造退出窗口。
 void RunTeardownBeginning(bool native_exit = false) noexcept;
 void ForeignCall() noexcept;
+// 仅原生 RoomTransition::ChangeRoom 的 Hourglass 分支授予本局回溯资格。
+class HourglassRoomScope final {
+public:
+  explicit HourglassRoomScope(const void *transition) noexcept;
+  ~HourglassRoomScope() noexcept;
+  HourglassRoomScope(const HourglassRoomScope &)=delete;
+  HourglassRoomScope &operator=(const HourglassRoomScope &)=delete;
+private:
+  bool previous_=false;
+};
+bool HourglassRoomActive() noexcept;
+bool HourglassRestoreActive() noexcept;
 // tx-04-07：一次 Restore 决策处理两个停止点。构造时决定保留首次菜单 Host 还是
 // 退休已有 run，并完成停止/排队清理；析构观察 original 的正常返回与异常。
 // 整个 original 处于 Restore owner。

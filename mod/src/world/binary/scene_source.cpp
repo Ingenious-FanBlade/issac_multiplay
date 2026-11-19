@@ -55,7 +55,7 @@ bool EntitySource::Impl::SceneLeaf(const CaptureFieldAccess &a,CaptureValueWrite
   const auto image=[&](std::uint64_t p){std::array<std::uint32_t,2> pair{};CaptureLink link;
     if(!Tracked(p,pair,d) || (pair[0]&&!pair[1]) || !ImageResource(pair[0],link,d))return false;
     return writer.PutLinks(a.location,true,a.format.resource_table,std::span(&link,1));};
-  if(a.field.operation==Operation::Container)return ScalarContainer(a,writer,d);
+  if(a.field.operation==Operation::Container)return ScalarContainer(a,{&writer},d);
   if(Recipe(a.field)==EntityRead::RoomConfig){CaptureLink link;if(!Resource(a,link,d))return false;return writer.PutLinks(a.location,true,a.format.resource_table,std::span(&link,1));}
   if(id==239){
     if(field==0){for(std::uint32_t i=0;i<scene.descriptor_count;++i){const auto slot=scene.descriptor_order[i];if(scene.descriptors[slot]==scene.current_descriptor)return number(slot);}return Reject(a,d,CaptureFailure::ReferencePending);}
@@ -65,6 +65,19 @@ bool EntitySource::Impl::SceneLeaf(const CaptureFieldAccess &a,CaptureValueWrite
       for(const auto link:links)if(link.kind!=CapturedReferenceKind::Null&&!link.handle)return Reject(a,d,CaptureFailure::ReferencePending);
       return writer.PutLinks(a.location,false,255,links);}
     if(field==host_field::Room::wave_sprite_present){std::uint32_t mask=0;if(!WaveSpriteMask(mask,d))return false;return number(mask?1u:0u);}
+    if(field==host_field::Room::grid_path_block){
+      // 预测插值 5.3.1：按 Room::GetGridCollision（0x7E6AF0）的阈值把 Room+0x76C 的 448 格寻路 cost
+      // 派生为每格 2 位碰撞类别（0无、1PIT、3SOLID），低位在前；原始 cost 不发送。
+      std::array<std::int32_t,448> cost{};
+      if(!Read(std::uint64_t(a.root.address)+0x76c,std::as_writable_bytes(std::span(cost)),d))return false;
+      std::array<std::byte,112> packed{};
+      for(unsigned i=0;i<cost.size();++i){
+        const auto c=cost[i];
+        const unsigned kind=c>=3000?(c<=3999?1u:3u):(c>=1000?3u:0u);
+        packed[i/4]|=std::byte(kind<<((i%4)*2));
+      }
+      return scalar(packed);
+    }
   }
   if(id==242 || id==253){if((id==242&&field==0)||(id==253&&field==0)){std::uint8_t enabled=0;if(!Value(address,enabled,d) || enabled>1)return Reject(a,d,CaptureFailure::InvalidValue);return number(enabled);}
     if(id==253&&(field==host_field::RoomHellBackdrop::display_offset||field==host_field::RoomHellBackdrop::accumulated_offset))return native(address);}

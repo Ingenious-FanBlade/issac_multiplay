@@ -1153,7 +1153,7 @@ def emit_display_install(compiler, plans, out):
           'transition_boss_marker', 'temporary_curses']),
         ('LevelGamePrefix', 'Game', ['stage', 'stage_type', 'raw_curses']),
         ('Room', 'Room', ['frame_baseline', 'greed_wave_timer', 'floor_color', 'wall_color', 'water_amount',
-          'lava_intensity', 'render_scroll', 'water_start', 'water_multiplier_start', 'water_target',
+          'lava_intensity', 'water_start', 'water_multiplier_start', 'water_target',
           'water_multiplier_target', 'water_lerp_duration_countdown']),
         ('RoomDescriptor', 'Descriptor', ['spawn_seed'])]
     rows = []

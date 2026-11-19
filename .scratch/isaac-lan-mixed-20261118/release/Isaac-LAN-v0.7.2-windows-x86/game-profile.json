@@ -1,0 +1,1669 @@
+{
+  "format": 1,
+  "game_build": "1.9.7.17.J460",
+  "version_rva": 7844596,
+  "minimum_image_size": 9030308,
+  "sections": [
+    {
+      "start": 4096,
+      "size": 7430452,
+      "flags": 1610612736
+    },
+    {
+      "start": 7438336,
+      "size": 915784,
+      "flags": 1073741824
+    },
+    {
+      "start": 8355840,
+      "size": 674468,
+      "flags": 3221225472
+    }
+  ],
+  "signatures": [
+    {
+      "name": "Entity.DynamicCast",
+      "rva": 7276721,
+      "bytes": "ff250000000000000000000000000000",
+      "mask": 3
+    },
+    {
+      "name": "Entity.RTTI",
+      "rva": 8771044,
+      "bytes": "2e3f4156456e74697479404973616163",
+      "mask": 65535
+    },
+    {
+      "name": "NPC.RTTI",
+      "rva": 8771252,
+      "bytes": "2e3f4156456e746974795f4e50434049",
+      "mask": 65535
+    },
+    {
+      "name": "PlayerHUD.InventorySlot",
+      "rva": 4469222,
+      "bytes": "8b8482001e000085c00f898800000000",
+      "mask": 32767
+    },
+    {
+      "name": "PlayerHUD.InventoryHistory",
+      "rva": 4469382,
+      "bytes": "8b82ec1d00008b15000000008985e0eb",
+      "mask": 61695
+    },
+    {
+      "name": "Sprite.RenderColor",
+      "rva": 37649,
+      "bytes": "803d0000000000f30f1045cc7436f30f",
+      "mask": 65475
+    },
+    {
+      "name": "playerOutlineBodyGate",
+      "rva": 3720321,
+      "bytes": "8b3d000000008b87dcb304008d8fd8b3",
+      "mask": 65475
+    },
+    {
+      "name": "playerOutlineBodyDraw",
+      "rva": 3720415,
+      "bytes": "8b0d000000008d45ac53508d89a8ba01",
+      "mask": 65475
+    },
+    {
+      "name": "playerOutlineBodyColorReturn",
+      "rva": 3720437,
+      "bytes": "50e89503c8ff33ff0f1f008bd78d4d84",
+      "mask": 65535
+    },
+    {
+      "name": "playerOutlineSpecialGate",
+      "rva": 3719663,
+      "bytes": "8b35000000008b86dcb304008d8ed8b3",
+      "mask": 65475
+    },
+    {
+      "name": "playerOutlineSpecialDraw",
+      "rva": 3719753,
+      "bytes": "8b0d000000008d45ac53508d89a8ba01",
+      "mask": 65475
+    },
+    {
+      "name": "playerOutlineSpecialColorReturn",
+      "rva": 3719775,
+      "bytes": "50e82b06c8ff33f6660f1f8400000000",
+      "mask": 65535
+    },
+    {
+      "name": "playerOutlineGhostGate",
+      "rva": 3720812,
+      "bytes": "8b15000000008b82dcb304008d8ad8b3",
+      "mask": 65475
+    },
+    {
+      "name": "playerOutlineGhostDraw",
+      "rva": 3720892,
+      "bytes": "8b0d000000008d45ac53508d89a8ba01",
+      "mask": 65475
+    },
+    {
+      "name": "playerOutlineGhostColorReturn",
+      "rva": 3720914,
+      "bytes": "50e8b801c8ff33f6660f1f4400008bd6",
+      "mask": 65535
+    },
+    {
+      "name": "playerOutlineColor",
+      "rva": 184416,
+      "bytes": "558bec8b450c83ec1833d283c1608b80",
+      "mask": 65535
+    },
+    {
+      "name": "NPC.TakeDamage",
+      "rva": 2973856,
+      "bytes": "558bec83e4f883ec1cf30f104508538b",
+      "mask": 65535
+    },
+    {
+      "name": "Entity.SetColor",
+      "rva": 2830240,
+      "bytes": "558bec83e4f883ec54a10000000033c4",
+      "mask": 50175
+    },
+    {
+      "name": "Entity.DamageColorReturn",
+      "rva": 2816149,
+      "bytes": "8b4c24100f57c98a54241783c63883c1",
+      "mask": 65535
+    },
+    {
+      "name": "Entity.DamageDrain",
+      "rva": 2816198,
+      "bytes": "8b470889470cc7471400000000c74718",
+      "mask": 65535
+    },
+    {
+      "name": "Player.MouseAim",
+      "rva": 3907424,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "Player.ShootingEntity",
+      "rva": 3642144,
+      "bytes": "8b810c14000085c07526565733f68db9",
+      "mask": 65535
+    },
+    {
+      "name": "Player.ReviveFromCollectible",
+      "rva": 3810208,
+      "bytes": "538bdc83ec0883e4f883c404558b6b04",
+      "mask": 65535
+    },
+    {
+      "name": "Player.ReviveFromTrinket",
+      "rva": 3814448,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "Level.TryInitializeBlueRoom",
+      "rva": 3462304,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "Pickup.UpdateGhosts",
+      "rva": 3020736,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "Pickup.SetPrice",
+      "rva": 3024240,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "levelMazeBranch",
+      "rva": 3407528,
+      "bytes": "a8200f848e04000083bb04830100000f",
+      "mask": 65535
+    },
+    {
+      "name": "levelMazeBranchEnd",
+      "rva": 3408702,
+      "bytes": "8b8b188301008b83088301008bbb0483",
+      "mask": 65535
+    },
+    {
+      "name": "levelRoomEntryResolved",
+      "rva": 3409132,
+      "bytes": "ffb3108301008bcbffb308830100e8c1",
+      "mask": 65535
+    },
+    {
+      "name": "levelRoomChangeReturn",
+      "rva": 3409940,
+      "bytes": "8b4df464890d00000000595f5e5b8be5",
+      "mask": 65535
+    },
+    {
+      "name": "gameAddedSeedCurses",
+      "rva": 3118080,
+      "bytes": "558bec83ec1453568b357816c7008d45",
+      "mask": 50175
+    },
+    {
+      "name": "gameRemovedSeedCurses",
+      "rva": 3118496,
+      "bytes": "558bec83ec105356578b3d7816c7008d",
+      "mask": 34815
+    },
+    {
+      "name": "levelSwapRooms",
+      "rva": 3445360,
+      "bytes": "558bec83e4f881ece8000000a1b493bf",
+      "mask": 8191
+    },
+    {
+      "name": "levelMazeSwapReturn",
+      "rva": 3408638,
+      "bytes": "8b75d8c745fcffffffff85f674328b4d",
+      "mask": 65535
+    },
+    {
+      "name": "emoteLocalParticipant",
+      "rva": 5288048,
+      "bytes": "5356578bf933f68b47048b172bc2c1f8",
+      "mask": 65535
+    },
+    {
+      "name": "emoteWheelUpdate",
+      "rva": 5054240,
+      "bytes": "558bec6aff68ad5cb00064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "emoteUpdate",
+      "rva": 197600,
+      "bytes": "51568bf157803e000f84c5010000837e",
+      "mask": 65535
+    },
+    {
+      "name": "emoteShow",
+      "rva": 198480,
+      "bytes": "558bec518b450c568bf189460c8b4508",
+      "mask": 65535
+    },
+    {
+      "name": "Player.TriggerRoomClear",
+      "rva": 3837904,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "Player.GetActiveMaxCharge",
+      "rva": 3740448,
+      "bytes": "558bec518b550883fa03744283fa0275",
+      "mask": 65535
+    },
+    {
+      "name": "Player.GetActiveChargeType",
+      "rva": 3740976,
+      "bytes": "558bec8b55088d82ac000000c1e0058b",
+      "mask": 65535
+    },
+    {
+      "name": "Player.AddActiveCharge",
+      "rva": 3741088,
+      "bytes": "558bec83e4f883ec1c538b5d0c56578b",
+      "mask": 65535
+    },
+    {
+      "name": "Level.SetNextStage",
+      "rva": 3434432,
+      "bytes": "558bec83ec1453568b35000000008bc1",
+      "mask": 50175
+    },
+    {
+      "name": "BossHeldBombs.Resize",
+      "rva": 310656,
+      "bytes": "558bec538b5d08568bf1578b56103bda",
+      "mask": 65535
+    },
+    {
+      "name": "EntityPtr.AssignTwin",
+      "rva": 848336,
+      "bytes": "558bec51568bf1578b7d088b0e3bcf74",
+      "mask": 65535
+    },
+    {
+      "name": "PlayerManager.AddExistingPlayer",
+      "rva": 6004576,
+      "bytes": "558bec8b41042b01568b7508c1f80289",
+      "mask": 65535
+    },
+    {
+      "name": "PlayerManager.RemoveExistingPlayer",
+      "rva": 6004672,
+      "bytes": "558bec568bf18b56048b063bc2740e8b",
+      "mask": 65535
+    },
+    {
+      "name": "Player.GetPoopMana",
+      "rva": 3488800,
+      "bytes": "8b81541f0000c3cccccccccccccccccc",
+      "mask": 65535
+    },
+    {
+      "name": "Player.GetPoopSpell",
+      "rva": 4463824,
+      "bytes": "558bec8b450883f806730c0fb6840858",
+      "mask": 65535
+    },
+    {
+      "name": "PlayerManager.ReplacePlayer",
+      "rva": 6024832,
+      "bytes": "538bdc83ec0883e4f883c404558b6b04",
+      "mask": 65535
+    },
+    {
+      "name": "Player.SwapForgottenForm",
+      "rva": 3981824,
+      "bytes": "538bdc83ec0883e4f883c404558b6b04",
+      "mask": 65535
+    },
+    {
+      "name": "Game.End",
+      "rva": 3118960,
+      "bytes": "558bec83e4f883ec0c538b5d088bd189",
+      "mask": 65535
+    },
+    {
+      "name": "Game.TriggerRKey",
+      "rva": 3177168,
+      "bytes": "558bec83e4f883ec20568b3500000000",
+      "mask": 4095
+    },
+    {
+      "name": "Sprite.IsFinished",
+      "rva": 42320,
+      "bytes": "558bec8b413485c075088b4508803800",
+      "mask": 65535
+    },
+    {
+      "name": "EntityPtr.Assign",
+      "rva": 2841424,
+      "bytes": "558bec51568bf1578bfa8b0e85c97412",
+      "mask": 65535
+    },
+    {
+      "name": "Player.heldEntity.offset",
+      "rva": 4006886,
+      "bytes": "8db310140000c6877101000000c78788",
+      "mask": 65535
+    },
+    {
+      "name": "Room.RemoveGridEntityImmediate",
+      "rva": 4319616,
+      "bytes": "558bec8b5508568bf181fabf01000077",
+      "mask": 65535
+    },
+    {
+      "name": "Room.MakeDoor",
+      "rva": 4123280,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "Lua.PostNewRoom",
+      "rva": 4608384,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "frontend.Assign",
+      "rva": 52432,
+      "bytes": "558bec5153568bf1578b7d0c8b4e1489",
+      "mask": 65535
+    },
+    {
+      "name": "frontend.MenuUpdate",
+      "rva": 53312,
+      "bytes": "568bf18b4e1483f91072278b064181f9",
+      "mask": 65535
+    },
+    {
+      "name": "engine_rooms.GetHUD",
+      "rva": 96480,
+      "bytes": "8d8104da0100c3cccccccccccccccccc",
+      "mask": 65535
+    },
+    {
+      "name": "engine_rooms.Add",
+      "rva": 99584,
+      "bytes": "558bec538b5d0856578bf180bb700100",
+      "mask": 65535
+    },
+    {
+      "name": "engine_rooms.AddPersistent",
+      "rva": 111856,
+      "bytes": "558bec51568bf1578b463c83c0323b46",
+      "mask": 65535
+    },
+    {
+      "name": "engine_rooms.NPCNewRoom",
+      "rva": 2977152,
+      "bytes": "558bec83ec44a10000000033c58945fc",
+      "mask": 63615
+    },
+    {
+      "name": "engine_rooms.Invalidate",
+      "rva": 111984,
+      "bytes": "558bec83ec188b4510538b5d08568b75",
+      "mask": 65535
+    },
+    {
+      "name": "Room.IsClear",
+      "rva": 221312,
+      "bytes": "8b41048a40442401c3cccccccccccccc",
+      "mask": 511
+    },
+    {
+      "name": "engine_rooms.Cooldown",
+      "rva": 221648,
+      "bytes": "558bec8b81bc1300008d91bc1300003b",
+      "mask": 65535
+    },
+    {
+      "name": "engine_rooms.RoomCall",
+      "rva": 2279584,
+      "bytes": "558bec83e4f88b412c2dcb000000740e",
+      "mask": 65535
+    },
+    {
+      "name": "Random.Value",
+      "rva": 3075936,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "Game.Start",
+      "rva": 3101472,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "runtime_net.Capture",
+      "rva": 3117056,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "engine_rooms.exitGame",
+      "rva": 3121344,
+      "bytes": "558bec83ec08538b1d00000000565789",
+      "mask": 57855
+    },
+    {
+      "name": "Game.Controls",
+      "rva": 3122496,
+      "bytes": "558beca10000000083ec34b900000000",
+      "mask": 3855
+    },
+    {
+      "name": "Console.Update",
+      "rva": 2667104,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "Console.Print",
+      "rva": 2697696,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "Console.RunCommand",
+      "rva": 2674112,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "Game.Update",
+      "rva": 3124672,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "Game.Update.focusPauseOption",
+      "rva": 3127360,
+      "bytes": "80bea5a3020000742800000000000000",
+      "mask": 511
+    },
+    {
+      "name": "Player.ActiveData.layout",
+      "rva": 3740953,
+      "bytes": "c1e20589840a9c1500005dc208000000",
+      "mask": 16383
+    },
+    {
+      "name": "PlayerHUD.Active.root",
+      "rva": 3818436,
+      "bytes": "0504da010033c9000000000000000000",
+      "mask": 127
+    },
+    {
+      "name": "PlayerHUD.Active.stride",
+      "rva": 3818453,
+      "bytes": "05dc06000083f90872f1000000000000",
+      "mask": 1023
+    },
+    {
+      "name": "PlayerHUD.Active.invalidate",
+      "rva": 3818465,
+      "bytes": "c7809001000000000000000000000000",
+      "mask": 1023
+    },
+    {
+      "name": "PlayerHUD.Active.slotStride",
+      "rva": 4464019,
+      "bytes": "83c61c83eb0175c50000000000000000",
+      "mask": 255
+    },
+    {
+      "name": "Game.Render",
+      "rva": 3128336,
+      "bytes": "538bdc83ec0883e4f883c404558b6b04",
+      "mask": 65535
+    },
+    {
+      "name": "Game.UpdateHalf",
+      "rva": 3134448,
+      "bytes": "558bec83ec0c53568b35000000005789",
+      "mask": 50175
+    },
+    {
+      "name": "engine_rooms.transition",
+      "rva": 3135424,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "MomsHand.StartRoomTransition",
+      "rva": 1263442,
+      "bytes": "e869901c00f30f10875c0100008d4f48",
+      "mask": 65535
+    },
+    {
+      "name": "Sprite.Update",
+      "rva": 37120,
+      "bytes": "568bf180be090100000074118d4e30e8",
+      "mask": 65535
+    },
+    {
+      "name": "engine_rooms.stageTransition",
+      "rva": 3136528,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "Lua.Game.StartStageTransition",
+      "rva": 4950960,
+      "bytes": "558bec83ec10568b7508576a0156ff15",
+      "mask": 65535
+    },
+    {
+      "name": "Lua.Game.PlayerTransitionAdapter",
+      "rva": 4951088,
+      "bytes": "558bec83ec20568b3500000000578b7d",
+      "mask": 57855
+    },
+    {
+      "name": "engine_rooms.change",
+      "rva": 3406976,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "engine_rooms.Desc",
+      "rva": 3410880,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "engine_rooms.Assign",
+      "rva": 3826768,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "engine_rooms.leaveRoom",
+      "rva": 3827328,
+      "bytes": "558bec83e4f083ec38568bf157897424",
+      "mask": 65535
+    },
+    {
+      "name": "engine_rooms.RoomCall",
+      "rva": 3834704,
+      "bytes": "558bec83ec34a10000000033c58945fc",
+      "mask": 63615
+    },
+    {
+      "name": "engine_input.Initialize",
+      "rva": 3917632,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "engine_rooms.RoomCall",
+      "rva": 4101120,
+      "bytes": "538bdc83ec0883e4f883c404558b6b04",
+      "mask": 65535
+    },
+    {
+      "name": "engine_rooms.RoomCall",
+      "rva": 4103072,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "engine_rooms.save",
+      "rva": 4127312,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "probe.NativeRoomInit",
+      "rva": 4139008,
+      "bytes": "538bdc83ec0883e4f883c404558b6b04",
+      "mask": 65535
+    },
+    {
+      "name": "engine_rooms.DoorPosition",
+      "rva": 4159952,
+      "bytes": "558bec8b450c83f80777478b84814407",
+      "mask": 65535
+    },
+    {
+      "name": "engine_rooms.award",
+      "rva": 4174416,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "Room.Update",
+      "rva": 4204928,
+      "bytes": "538bdc83ec0883e4f883c404558b6b04",
+      "mask": 65535
+    },
+    {
+      "name": "Room.GetDevilRoomChance",
+      "rva": 4166320,
+      "bytes": "558bec83e4f883ec08f30f1005000000",
+      "mask": 8191
+    },
+    {
+      "name": "Deal.AngelShare",
+      "rva": 4167408,
+      "bytes": "558bec83ec108b1500000000f30f1005",
+      "mask": 61695
+    },
+    {
+      "name": "Level.InitializeDevilAngelRoom",
+      "rva": 3447200,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "Room.TrySpawnDevilRoomDoor",
+      "rva": 4162480,
+      "bytes": "538bdc83ec0883e4f883c404558b6b04",
+      "mask": 65535
+    },
+    {
+      "name": "LuaEngine.Init",
+      "rva": 4588736,
+      "bytes": "558bec83e4f883ec28568bf157897424",
+      "mask": 65535
+    },
+    {
+      "name": "engine_rooms.postUpdate",
+      "rva": 4589472,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "frontend.MenuUpdate",
+      "rva": 5361344,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "frontend.MenuUpdate",
+      "rva": 5364480,
+      "bytes": "5156578bf98d4f0ce8538213008d4f10",
+      "mask": 65535
+    },
+    {
+      "name": "frontend.MenuUpdate",
+      "rva": 5369488,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "Progress.Serialize",
+      "rva": 5407456,
+      "bytes": "558bec83ec3c5356578bf96a106a0168",
+      "mask": 65535
+    },
+    {
+      "name": "Progress.SaveCloud",
+      "rva": 5410528,
+      "bytes": "558bec83e4f88b150000000083ec088b",
+      "mask": 61695
+    },
+    {
+      "name": "Progress.SaveFile",
+      "rva": 5412080,
+      "bytes": "558bec83e4f8518b1500000000535657",
+      "mask": 57855
+    },
+    {
+      "name": "runtime_net.StartGame",
+      "rva": 5606048,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "Manager.Save",
+      "rva": 5607120,
+      "bytes": "558bec83ec2453568b35000000005783",
+      "mask": 50175
+    },
+    {
+      "name": "Manager.DeleteSave",
+      "rva": 5607728,
+      "bytes": "558bec51a100000000568b3500000000",
+      "mask": 3615
+    },
+    {
+      "name": "Manager.SaveRerun",
+      "rva": 5607808,
+      "bytes": "558bec83e4f883ec2453568b35000000",
+      "mask": 8191
+    },
+    {
+      "name": "Manager.ExecuteStart",
+      "rva": 5609248,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "Manager.ButtonPromptWidget.Reset",
+      "rva": 145840,
+      "bytes": "558bec8a4508c7811c01000001000000",
+      "mask": 65535
+    },
+    {
+      "name": "Manager.ExecuteMenu",
+      "rva": 5610752,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "MenuGame.Update",
+      "rva": 5771584,
+      "bytes": "538bdc83ec0883e4f883c404558b6b04",
+      "mask": 65535
+    },
+    {
+      "name": "MenuManager.Render",
+      "rva": 5808192,
+      "bytes": "538bdc83ec0883e4f883c404558b6b04",
+      "mask": 65535
+    },
+    {
+      "name": "Minimap.Cache",
+      "rva": 5813728,
+      "bytes": "558bec81ecc4000000a10000000033c5",
+      "mask": 50175
+    },
+    {
+      "name": "Minimap.Render",
+      "rva": 5825744,
+      "bytes": "558bec83e4f081ec48010000568b3500",
+      "mask": 32767
+    },
+    {
+      "name": "engine_rooms.RoomCall",
+      "rva": 5932576,
+      "bytes": "558bec83e4f883ec0c53568bc1578944",
+      "mask": 65535
+    },
+    {
+      "name": "runtime_net.ExecuteStart",
+      "rva": 5987504,
+      "bytes": "558bec83e4f851568bf16a008d4e7cc7",
+      "mask": 65535
+    },
+    {
+      "name": "engine_input.Spawn",
+      "rva": 6003920,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "PlayerManager.RemovePlayer",
+      "rva": 6004736,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "engine_rooms.isCoop",
+      "rva": 6027664,
+      "bytes": "558bec518b01538b59042bd88945fcc1",
+      "mask": 65535
+    },
+    {
+      "name": "engine_rooms.living",
+      "rva": 6027776,
+      "bytes": "558bec518b01538b590433c92bd88945",
+      "mask": 65535
+    },
+    {
+      "name": "engine_rooms.dead",
+      "rva": 6027888,
+      "bytes": "558bec518b01538b590433c92bd88945",
+      "mask": 65535
+    },
+    {
+      "name": "runtime_net.Clear",
+      "rva": 6060448,
+      "bytes": "538bdc83ec0883e4f883c404558b6b04",
+      "mask": 65535
+    },
+    {
+      "name": "engine_save.Write",
+      "rva": 6067008,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "engine_save.Read",
+      "rva": 6078880,
+      "bytes": "538bdc83ec0883e4f883c404558b6b04",
+      "mask": 65535
+    },
+    {
+      "name": "runtime_net.SeedConstructor",
+      "rva": 6197904,
+      "bytes": "558bec51f30f7e0500000000a1000000",
+      "mask": 4351
+    },
+    {
+      "name": "runtime_net.ParseSeed",
+      "rva": 6207152,
+      "bytes": "558bec81ec0c010000a10000000033c5",
+      "mask": 50175
+    },
+    {
+      "name": "runtime_net.SetSeed",
+      "rva": 6207616,
+      "bytes": "558bec53568bf18b4d0857894e0485c9",
+      "mask": 65535
+    },
+    {
+      "name": "engine_rooms.Allocate",
+      "rva": 6354112,
+      "bytes": "558bec83e4f86a00ff750833d232c9e8",
+      "mask": 65535
+    },
+    {
+      "name": "engine_rooms.Transition",
+      "rva": 6354256,
+      "bytes": "558bec8b55088bc2c1e8100fb6c0f30f",
+      "mask": 65535
+    },
+    {
+      "name": "Input.Triggered",
+      "rva": 6425056,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "Input.Value",
+      "rva": 6425264,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "Input.Query",
+      "rva": 6426544,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "Input.EnumerateDevices",
+      "rva": 6740656,
+      "bytes": "538bdc83ec0883e4f883c404558b6b04",
+      "mask": 65535
+    },
+    {
+      "name": "Input.PollDevices",
+      "rva": 6741600,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "engine_rooms.Delete",
+      "rva": 7270748,
+      "bytes": "558becff7508e89903f2ff595dc3e822",
+      "mask": 65535
+    },
+    {
+      "name": "frontend.StatHUD_GetPlayerId",
+      "rva": 4505392,
+      "bytes": "558bec538bd98b0d0000000081c1d8b3",
+      "mask": 61695
+    },
+    {
+      "name": "frontend.StatHUD_Reset",
+      "rva": 4505552,
+      "bytes": "8d8128010000ba020000000f1f440000",
+      "mask": 65535
+    },
+    {
+      "name": "Camera.Smooth",
+      "rva": 5519824,
+      "bytes": "538bdc83ec0883e4f883c404558b6b04",
+      "mask": 65535
+    },
+    {
+      "name": "Camera.Drag",
+      "rva": 5523168,
+      "bytes": "558bec83ec248d45e053568bf18b0d78",
+      "mask": 65535
+    },
+    {
+      "name": "PlayerManager.GetCenter",
+      "rva": 6024096,
+      "bytes": "558bec83ec14807d0c005356578bf989",
+      "mask": 65535
+    },
+    {
+      "name": "Effect.Update",
+      "rva": 1917824,
+      "bytes": "538bdc83ec0883e4f883c404558b6b04",
+      "mask": 65535
+    },
+    {
+      "name": "replica.MorphToCoopGhost",
+      "rva": 4036336,
+      "bytes": "558bec6aff68d504b00064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "replica.RevivePlayerGhost",
+      "rva": 4035504,
+      "bytes": "558bec83e4f883ec145356578bf9c744",
+      "mask": 65535
+    },
+    {
+      "name": "audio.Play",
+      "rva": 5430320,
+      "bytes": "558bec6aff68e9abb00064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "PlayerManager.ReviveCoop",
+      "rva": 6028000,
+      "bytes": "56578bf933f68b57048b072bd0c1fa02",
+      "mask": 65535
+    },
+    {
+      "name": "AnimationState.Reset",
+      "rva": 34864,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "Ambush.DestroyWaveQueue",
+      "rva": 3181584,
+      "bytes": "56578bf98b3785f6746b538b5f043bf3",
+      "mask": 65535
+    },
+    {
+      "name": "Door.Update",
+      "rva": 3196352,
+      "bytes": "558bec83e4c081ecb4000000a1000000",
+      "mask": 8191
+    },
+    {
+      "name": "Music.Play",
+      "rva": 4070736,
+      "bytes": "558bec51538b5d08568bf18975fc5785",
+      "mask": 65535
+    },
+    {
+      "name": "Music.Crossfade",
+      "rva": 4071024,
+      "bytes": "558bec51538b5d0856578bf985db7821",
+      "mask": 65535
+    },
+    {
+      "name": "Minimap.Update",
+      "rva": 5823392,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "Rendering.Flush",
+      "rva": 6394240,
+      "bytes": "538bdc83ec0883e4f883c404558b6b04",
+      "mask": 65535
+    },
+    {
+      "name": "HUD.PostUpdate",
+      "rva": 5909296,
+      "bytes": "558bec83e4f85153568bd9578bf3bf08",
+      "mask": 65535
+    },
+    {
+      "name": "HUD.Update",
+      "rva": 5908880,
+      "bytes": "558bec515356578bf980bfd454000000",
+      "mask": 65535
+    },
+    {
+      "name": "PlayerHUD.Reset",
+      "rva": 4463856,
+      "bytes": "5356578bf9b9180000008d47110f1f00",
+      "mask": 65535
+    },
+    {
+      "name": "HistoryHUD.RecomputeAll",
+      "rva": 4438096,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "HistoryHUD.GetPlayerId",
+      "rva": 4438976,
+      "bytes": "558bec538bd98b0d0000000081c1d8b3",
+      "mask": 61695
+    },
+    {
+      "name": "HUD.Render",
+      "rva": 5914288,
+      "bytes": "538bdc83ec0883e4f883c404558b6b04",
+      "mask": 65535
+    },
+    {
+      "name": "HUD.GetPlayerHUDLayout",
+      "rva": 5924208,
+      "bytes": "558bec53568b35000000008bd1578bbe",
+      "mask": 63615
+    },
+    {
+      "name": "HUD.GetPlayerHUDPosition",
+      "rva": 5923136,
+      "bytes": "558bec53568b7508578b7d0c69dfdc06",
+      "mask": 65535
+    },
+    {
+      "name": "ColorModState.Lerp",
+      "rva": 3077136,
+      "bytes": "558bec8b4508f30f10118b550c0f28c2",
+      "mask": 65535
+    },
+    {
+      "name": "Player.AnimateTeleport",
+      "rva": 3849408,
+      "bytes": "558bec51538a5d08ba0000000084dbb8",
+      "mask": 57855
+    },
+    {
+      "name": "Player.RoomTransitionTargetReset",
+      "rva": 3820530,
+      "bytes": "f30f11831c1b0000f30f100500000000",
+      "mask": 4095
+    },
+    {
+      "name": "Pickup.FlipSprite",
+      "rva": 3014912,
+      "bytes": "8d8ed0050000c645fc06e8b173d2ff8b",
+      "mask": 65535
+    },
+    {
+      "name": "Pickup.FlipVisible",
+      "rva": 3042098,
+      "bytes": "80bed906000000f30f1145e4f30f1145",
+      "mask": 65535
+    },
+    {
+      "name": "Room.GridDimensions",
+      "rva": 4139724,
+      "bytes": "0fb6464683c00289470c0fb6464783c0",
+      "mask": 65535
+    },
+    {
+      "name": "Familiar.ResetRoomState",
+      "rva": 2276208,
+      "bytes": "558bec83e4f883ec5c53568bf1578b46",
+      "mask": 65535
+    },
+    {
+      "name": "Player.GetBabySkin",
+      "rva": 2993664,
+      "bytes": "8b81ec1a0000c3cccccccccccccccccc",
+      "mask": 65535
+    },
+    {
+      "name": "PlayerManager.SetControlsEnabled",
+      "rva": 6023696,
+      "bytes": "558bec8bd18b023b42047415538a5d08",
+      "mask": 65535
+    },
+    {
+      "name": "Room.AssignLightTexture",
+      "rva": 4359120,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "HUD.ShowItemText",
+      "rva": 5909792,
+      "bytes": "538bdc83ec0883e4f883c404558b6b04",
+      "mask": 65535
+    },
+    {
+      "name": "Room.UpdateMusic",
+      "rva": 4108720,
+      "bytes": "558bec83ec2c5356578b3d000000008b",
+      "mask": 34815
+    },
+    {
+      "name": "ANM2.Construct",
+      "rva": 29888,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "ItemOverlay.ConfigConstruct",
+      "rva": 5946608,
+      "bytes": "c74104000000008bc1c7411400000000",
+      "mask": 65535
+    },
+    {
+      "name": "ItemOverlay.Destruct",
+      "rva": 5946752,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "ItemOverlay.Load",
+      "rva": 5946992,
+      "bytes": "538bdc83ec0883e4f883c404558b6b04",
+      "mask": 65535
+    },
+    {
+      "name": "ItemOverlay.Update",
+      "rva": 5950096,
+      "bytes": "558bec83ec085356578bf98b0783f801",
+      "mask": 65535
+    },
+    {
+      "name": "ItemOverlay.Show",
+      "rva": 5952016,
+      "bytes": "558bec83ec1053568b75088bd9895dfc",
+      "mask": 65535
+    },
+    {
+      "name": "ItemOverlay.Render",
+      "rva": 5951456,
+      "bytes": "558bec83e4c081ecb8000000568bf157",
+      "mask": 65535
+    },
+    {
+      "name": "HUD.ShowItemTextCustomUTF8",
+      "rva": 5911568,
+      "bytes": "558bec568bf18b0d000000008b81d8b3",
+      "mask": 61695
+    },
+    {
+      "name": "Manager.GetItemConfig",
+      "rva": 182784,
+      "bytes": "a1000000000504a40200c3cccccccccc",
+      "mask": 65505
+    },
+    {
+      "name": "ItemConfig.GetCollectible",
+      "rva": 3341584,
+      "bytes": "558beca1000000008b550885c0742485",
+      "mask": 65295
+    },
+    {
+      "name": "ItemConfig.GetTrinket",
+      "rva": 3341680,
+      "bytes": "558bec8b510c8b49108b45082bca25ff",
+      "mask": 65535
+    },
+    {
+      "name": "NPC.NeedlePrepareVisual",
+      "rva": 1373808,
+      "bytes": "558bec83e4f883ec6883b9640b000006",
+      "mask": 65535
+    },
+    {
+      "name": "GridEntity.TrapdoorUpdate",
+      "rva": 3276528,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "EntityPlayer.AddCoins",
+      "rva": 3511296,
+      "bytes": "558bec83e4f88b550883ec0c538bd956",
+      "mask": 65535
+    },
+    {
+      "name": "EntityPlayer.SyncResources",
+      "rva": 3512288,
+      "bytes": "558bec83e4f851538bd9565783bb1c16",
+      "mask": 65535
+    },
+    {
+      "name": "EntityPlayer.CopyResourcesTo",
+      "rva": 3511968,
+      "bytes": "558bec83e4f851538b5d0c568b750857",
+      "mask": 65535
+    },
+    {
+      "name": "StringTable.Lookup",
+      "rva": 6449904,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "Game.GetChestEnding",
+      "rva": 3120416,
+      "bytes": "558bec5153568b35000000008bce57e8",
+      "mask": 61695
+    },
+    {
+      "name": "Manager.ShowCutscene",
+      "rva": 5607008,
+      "bytes": "558bec518b55088b0d0000000083fa1a",
+      "mask": 57855
+    },
+    {
+      "name": "RoomTransition.Update",
+      "rva": 4397216,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "RoomTransition.Start",
+      "rva": 4386368,
+      "bytes": "538bdc83ec0883e4f883c404558b6b04",
+      "mask": 65535
+    },
+    {
+      "name": "BossOverlay.Update",
+      "rva": 135872,
+      "bytes": "558bec83e4f8568bf1578b0685c00f84",
+      "mask": 65535
+    },
+    {
+      "name": "BossOverlay.Show",
+      "rva": 136368,
+      "bytes": "558bec83ec0853568b7508894dfc5783",
+      "mask": 65535
+    },
+    {
+      "name": "NightmareScene.Show",
+      "rva": 5381344,
+      "bytes": "538bdc83ec0883e4f883c404558b6b04",
+      "mask": 65535
+    },
+    {
+      "name": "victoryPromptControls",
+      "rva": 4423648,
+      "bytes": "51568bf18b0d0000000081c1d8b30400",
+      "mask": 64575
+    },
+    {
+      "name": "victoryPromptRender",
+      "rva": 4422672,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "playerManagerFindCollectible",
+      "rva": 6021248,
+      "bytes": "558bec83e4f883ec0c538b5d0856578b",
+      "mask": 65535
+    },
+    {
+      "name": "playerManagerCollectibleCount",
+      "rva": 6022992,
+      "bytes": "558bec83e4f883ec0c535657ff75088b",
+      "mask": 65535
+    },
+    {
+      "name": "optionsSave",
+      "rva": 5393680,
+      "bytes": "558bec83e4c081ec34010000a1000000",
+      "mask": 8191
+    },
+    {
+      "name": "pauseMenuControls",
+      "rva": 5987616,
+      "bytes": "538bdc83ec0883e4f883c404558b6b04",
+      "mask": 65535
+    },
+    {
+      "name": "pauseMenuShow",
+      "rva": 5994112,
+      "bytes": "558bec83e4f883ec0c5356578bf9c744",
+      "mask": 65535
+    },
+    {
+      "name": "pauseMenuHide",
+      "rva": 5993728,
+      "bytes": "558bec515356578bf9833f000f843701",
+      "mask": 65535
+    },
+    {
+      "name": "menuCharacterAvailable",
+      "rva": 5532880,
+      "bytes": "568b7104578b3d0000000085f6782f8b",
+      "mask": 63615
+    },
+    {
+      "name": "menuCharacterModEnumeration",
+      "rva": 5542302,
+      "bytes": "bb883400008b0703c380b82801000000",
+      "mask": 65535
+    },
+    {
+      "name": "playerManagerFindPlayerType",
+      "rva": 6022704,
+      "bytes": "558bec8b018b4904563bc174238b7508",
+      "mask": 65535
+    },
+    {
+      "name": "roomPickupPrice",
+      "rva": 4280800,
+      "bytes": "558bec83ec44a10000000033c58945fc",
+      "mask": 63615
+    },
+    {
+      "name": "roomDiscountedPrice",
+      "rva": 4285008,
+      "bytes": "558bec83ec30a10000000033c58945f8",
+      "mask": 63615
+    },
+    {
+      "name": "gameGetItemPool",
+      "rva": 172848,
+      "bytes": "8d8140a70100c3cccccccccccccccccc",
+      "mask": 65535
+    },
+    {
+      "name": "itemPoolPillEffect",
+      "rva": 3361408,
+      "bytes": "558bec83e4f851a10000000053568b75",
+      "mask": 61695
+    },
+    {
+      "name": "itemPoolIdentifyPill",
+      "rva": 3247776,
+      "bytes": "558bec8b450833d225ff0700003bd01b",
+      "mask": 65535
+    },
+    {
+      "name": "itemPoolPillIdentified",
+      "rva": 4441232,
+      "bytes": "558bec8b450833d225ff0700003bd01b",
+      "mask": 65535
+    },
+    {
+      "name": "roomConfigRandomRoom",
+      "rva": 4376528,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "playerGetPocketItem",
+      "rva": 3488000,
+      "bytes": "558bec8b550833c085d20f4ed0b80300",
+      "mask": 65535
+    },
+    {
+      "name": "HUD::Render challenge destination presence",
+      "rva": 5918382,
+      "bytes": "8b86c8690200884d9283f8010f858900",
+      "mask": 65535
+    },
+    {
+      "name": "HUD::Render challenge parameter call",
+      "rva": 5919971,
+      "bytes": "e85814d6ff80787400741a83bfe83a00",
+      "mask": 65535
+    },
+    {
+      "name": "Game::FinishChallenge",
+      "rva": 3165984,
+      "bytes": "558bec83ec280f57c056578bf90f2f87",
+      "mask": 65535
+    },
+    {
+      "name": "Game::GetChallengeParams",
+      "rva": 3172672,
+      "bytes": "568bf183be306602000076088d864066",
+      "mask": 65535
+    },
+    {
+      "name": "CraftingBag.HudRender",
+      "rva": 4494608,
+      "bytes": "558bec81ec50020000a10000000033c5",
+      "mask": 50175
+    },
+    {
+      "name": "PlayerHUD::RenderPocketItems",
+      "rva": 4485568,
+      "bytes": "538bdc83ec0883e4f883c404558b6b04",
+      "mask": 65535
+    },
+    {
+      "name": "HUD::Render bottom-right pocket offsets",
+      "rva": 5927919,
+      "bytes": "f30f58874c590000f30f11442434f30f",
+      "mask": 65535
+    },
+    {
+      "name": "CraftingBag.MaterialQuery",
+      "rva": 4497910,
+      "bytes": "8b070fb68408441f00008bcb660f5ac0",
+      "mask": 65535
+    },
+    {
+      "name": "CraftingBag.PreviewQuery",
+      "rva": 4471558,
+      "bytes": "81c104a40200ffb04c1f0000e8f9c1ee",
+      "mask": 65535
+    },
+    {
+      "name": "CraftingBag.MaterialCount",
+      "rva": 4019426,
+      "bytes": "33c080bc07441f0000007407404383f8",
+      "mask": 65535
+    },
+    {
+      "name": "playerSetPocketActiveItem",
+      "rva": 4014544,
+      "bytes": "558bec83e4f883ec0c5356578b7d0c8b",
+      "mask": 65535
+    },
+    {
+      "name": "playerGetActiveItem",
+      "rva": 172784,
+      "bytes": "558bec8b450883f803770f05ac000000",
+      "mask": 65535
+    },
+    {
+      "name": "Game.NextVictoryLap",
+      "rva": 3111616,
+      "bytes": "558bec6aff684dc0af0064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "ItemPool.TaintedLostQuery",
+      "rva": 3343623,
+      "bytes": "6a1f8d8ea8ba0100e81ce1280085c00f",
+      "mask": 65535
+    },
+    {
+      "name": "ItemPool.GetCardEx",
+      "rva": 3359104,
+      "bytes": "558bec83ec28a10000000033c58945f8",
+      "mask": 63615
+    },
+    {
+      "name": "VictoryPrompt.Hide",
+      "rva": 4424080,
+      "bytes": "5156578bf98b773485f67447837e1410",
+      "mask": 65535
+    },
+    {
+      "name": "generatedItemCreate",
+      "rva": 6147184,
+      "bytes": "538bdc83ec0883e4f883c404558b6b04",
+      "mask": 65535
+    },
+    {
+      "name": "generatedInventoryQuery",
+      "rva": 3606453,
+      "bytes": "538d8fc81f0000e8effc26005f5e5b8b",
+      "mask": 65535
+    },
+    {
+      "name": "generatedInventoryCountRead",
+      "rva": 6161630,
+      "bytes": "837914007e09b0015e8be55dc2040032",
+      "mask": 65535
+    },
+    {
+      "name": "playerHasCollectible",
+      "rva": 3606240,
+      "bytes": "558bec83ec24a10000000033c58945fc",
+      "mask": 63615
+    },
+    {
+      "name": "roomNightLightQuery",
+      "rva": 4263341,
+      "bytes": "e82ef9f5ff84c00f84b6020000a10000",
+      "mask": 16383
+    },
+    {
+      "name": "generatedItemRestoreCall",
+      "rva": 6161259,
+      "bytes": "e800c9ffff8b4704462b07c1f8023bf0",
+      "mask": 65535
+    },
+    {
+      "name": "Player.AddCollectible",
+      "rva": 3535072,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "Player.EdensBlessingGranted",
+      "rva": 3924783,
+      "bytes": "8b0d000000006a006a00568d8940a701",
+      "mask": 65475
+    },
+    {
+      "name": "Game.AddPixelation",
+      "rva": 3488960,
+      "bytes": "558bec8b81e06902008d55083b450856",
+      "mask": 65535
+    },
+    {
+      "name": "Player.UpdateWavyCap",
+      "rva": 1881216,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "Player.UsePill",
+      "rva": 3948928,
+      "bytes": "538bdc83ec0883e4f883c404558b6b04",
+      "mask": 65535
+    },
+    {
+      "name": "Player.UseCard",
+      "rva": 3875376,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "HUD.ShowFortuneText",
+      "rva": 5913280,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "StringTable.Indexed",
+      "rva": 6450480,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "EntityFields.entityLuaSetColor",
+      "rva": 4661104,
+      "bytes": "558bec8b4d0885c974138b016a016a00",
+      "mask": 65535
+    },
+    {
+      "name": "EntityFields.entityLuaSetSize",
+      "rva": 4661152,
+      "bytes": "558bec83e4f883ec08f30f1005000000",
+      "mask": 8191
+    },
+    {
+      "name": "Entity.SetSize",
+      "rva": 2802336,
+      "bytes": "558bec83e4f8f30f10550c83ec1cf30f",
+      "mask": 65535
+    },
+    {
+      "name": "EntityFields.tearSetHeight",
+      "rva": 2580416,
+      "bytes": "558becf30f104508568bf10f28c8f30f",
+      "mask": 65535
+    },
+    {
+      "name": "EntityFields.tearSetScale",
+      "rva": 2580768,
+      "bytes": "558becf30f104508f30f5f0500000000",
+      "mask": 4095
+    },
+    {
+      "name": "Player.QueueItem",
+      "rva": 3530832,
+      "bytes": "558bec568bf1e8750100008b450c0000",
+      "mask": 16383
+    },
+    {
+      "name": "Pickup.QueuedCollectible",
+      "rva": 3063313,
+      "bytes": "80bd6cffffff007523a1000000000000",
+      "mask": 1023
+    },
+    {
+      "name": "Familiar.RenderTether",
+      "rva": 217744,
+      "bytes": "558bec83e4c083ec745356576a006800",
+      "mask": 32767
+    },
+    {
+      "name": "Player.DropCollectible",
+      "rva": 3736880,
+      "bytes": "558bec83e4f883ec1453568b750c0000",
+      "mask": 16383
+    },
+    {
+      "name": "playerDisableCollectibles",
+      "rva": 4032896,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "playerEnableCollectibles",
+      "rva": 4033824,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "entityListFindByType",
+      "rva": 110432,
+      "bytes": "558bec6aff680000000064a100000000",
+      "mask": 64575
+    },
+    {
+      "name": "playerMistStoreQueryReturn",
+      "rva": 4033246,
+      "bytes": "33c0c745fc000000008945f03945ec0f",
+      "mask": 65535
+    },
+    {
+      "name": "playerMistRestoreQueryReturn",
+      "rva": 4034630,
+      "bytes": "c645fc018b4dd885c9745c33c0493bc3",
+      "mask": 65535
+    }
+  ]
+}
