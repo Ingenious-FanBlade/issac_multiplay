@@ -1394,6 +1394,12 @@ void ClientDisplayRenderEnd(ClientDisplayNative *o,const ClientNativeRoots &r) n
     unsigned(ImageSlot(0x7e72b4).image==o->history_surface),unsigned(o->room->_fxLayers._loaded),unsigned(o->room_graphics.room_type!=16&&o->room_graphics.backdrop!=18));
 }
 namespace {
+// Client 本机音乐音量：与原版 Crossfade／队列消费 7D7DA0 相同的取法——Manager+0x2A120 开关为真时取
+// OptionsConfig._musicVolume（Manager+0x2A190），否则 0。Client 的音乐音量完全由本机设定决定：
+// 原版 Play／Fadein 的音量参数本就是调用方本机的这个选项，Host 传来的值是 Host 的设定，一律不用。
+float LocalMusicVolume(const Manager &m) noexcept {
+  return Read<std::uint8_t>(&m,0x2a120)?m._optionsConfig._musicVolume:0.0f;
+}
 std::byte *SoundSlot(const ClientDisplaySound &v) noexcept {
   if(!g_Manager||!v.asset||v.id<0||v.path.empty())return nullptr;
   auto &sfx=g_Manager->_sfxManager;
@@ -1464,7 +1470,7 @@ bool StopAudio(ClientDisplayNative &o){
   if(o.previous_music.captured){auto &m=o.manager->_musicmanager;
     m._queuedId=0;m.StopJingle();m.Fadeout(1.f);
     const auto &old=o.previous_music;m._enabled=old.enabled;
-    if(old.enabled&&old.id&&old.id<m._entries.size())m.Play(old.id,1.f);
+    if(old.enabled&&old.id&&old.id<m._entries.size())m.Play(old.id,LocalMusicVolume(*o.manager));
     m._queuedId=old.queued;m._pitch=old.pitch;m._targetPitch=old.target_pitch;
     o.music={};o.previous_music={};
   }
@@ -1522,14 +1528,16 @@ ClientDisplayStep ClientDisplayAudio(ClientDisplayNative *o,const ClientDisplayM
       auto &m=o->manager->_musicmanager;const auto old=o->music;
       if(!o->previous_music.captured)o->previous_music={m._currentId,m._queuedId,m._pitch,m._targetPitch,m._enabled,true};
       if(old.revision!=v.revision){
-        m._enabled=v.enabled;
+        // 不写 Host 的 enabled：Music+0x328 即 Manager+0x2A120，由选项载入 8FE75C 置为“本机 MusicVolume>0”，
+        // 是各机自己的音量设定。音乐 tick 7D7DA0 在 STATE_GAME 下见其为 0 即把总音乐增益置 0；
+        // 照抄 Host（Host 静音时为 0）会让 Client 全程无背景音乐，且 LocalMusicVolume 也随之为 0。
         if(old.generation!=v.generation||old.id!=v.id||old.mode!=v.mode){
           switch(Mode(v.mode)){
-            case Mode::Play:m.Play(v.id,v.parameter);break;
+            case Mode::Play:m.Play(v.id,LocalMusicVolume(*o->manager));break;
             case Mode::Crossfade:m.Crossfade(v.id,v.fade);break;
-            case Mode::Fadein:m.Fadein(v.id,v.parameter,v.fade);break;
+            case Mode::Fadein:m.Fadein(v.id,LocalMusicVolume(*o->manager),v.fade);break;
             case Mode::Fadeout:m.Fadeout(v.fade);break;
-            case Mode::QueuedContinuation:if(v.id&&m._currentId!=unsigned(v.id))m.Play(v.id,v.parameter>0?v.parameter:1.f);break;
+            case Mode::QueuedContinuation:if(v.id&&m._currentId!=unsigned(v.id))m.Play(v.id,LocalMusicVolume(*o->manager));break;
             case Mode::Idle:if(old.id)m.Fadeout(1.f);break;
           }
         }

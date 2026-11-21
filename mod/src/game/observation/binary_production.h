@@ -47,6 +47,11 @@ private:
 };
 void BinaryAudioPanObserved(void *stream) noexcept;
 bool BinaryAudioWorldContext() noexcept;
+// Host 原生暂停页（Game+2363C 状态非0：主菜单／选项／确认）打开期间的一次性 Play 是本机菜单音效
+// （打开17、关闭18、选项调节等），不进入 world 事件；循环 Play 与 Stop／StopLoops 等控制不受影响。
+bool BinaryHostPauseMenuOpen() noexcept;
+// SoundEffects::Play 的 world 资格：普通来源判定之外，排除 Host 暂停页内的一次性菜单音效。
+bool BinaryAudioPlayWorldContext(bool loop) noexcept;
 void BinaryDisplayRandomObserved(unsigned value,const void *return_address) noexcept;
 void BinaryBannerTextObserved(const void *text,bool subtitle) noexcept;
 // Q7实际显示白名单由Client与Host共用；混合子根暂挂显示身份，退出自动恢复。

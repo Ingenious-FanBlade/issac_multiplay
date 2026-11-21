@@ -44,3 +44,9 @@ Host 显示作用域和 Client 放行／拆分表必须来自同一清单。候�
 ## 4. 第15步交接
 
 E37 检查 HUD252 本地一次、ItemOverlay 玩法声音事件一次、Render 新发现的声音、三个转场声音分支、同音效多实例、同曲重播／queued、循环空集合／重连、文字去重及跨语言。E39 检查换房等待／断线时作用域不泄漏，Host 被替换的子调用声音不丢。所有测试尚未执行；容量溢出、事件过期、资源未就绪、原生调用失败、设备丢失分别记录，不用“已回放”替代真实提交和用户可见结果。
+
+## 5. 2026-11-21 修复（静态分析，仅编译，未测试）
+
+- **Host 暂停页音效误入 world**：`BinaryAudioWorldContext` 只看 run 生命周期，Host 打开暂停页／选项时的 Play(17／18／选项调节)被当作 world 事件下发。J273 静态：Show `98ED80` 先写 state=1 再 Play、关闭 `98EC00` 在 state≠0 时 Play、选项 `989970` 仅在 state=2 运行，均为 loop=0。现由 `BinaryAudioPlayWorldContext(loop)` 在 `Game+2363C` 状态≠0 时把**一次性** Play 归本机；Show 内 `98EE11` 的 StopLoops 及其他停止／调整控制仍按 world 发出。
+- **Client 同一外观事件重复回放**：目标在前一批仍在安装时就封存事件清单（`ClientStateEvents::Prepare` 只排除已收到回执的序号），通道0相邻两三个 World 目标会带同一 SFX 事件，各自回放一次；晚到回执引用已被前一批 Promote 擦除的序号时 `Replayed()` 判协议错误。Host 暂停时 game_frame 不前进，外观事件不按15帧过期，重复不止。现由 `ClientBinaryScene::Impl::Replay` 按路由记录已回放外观事件最高序号（只在原生回放成功后推进），重复的仍按已回放回执上报；`Replayed()` 接受 ≤installed（已提升）或 ≤covered 且无条目（外观淘汰）的序号，只记账不报错。转场／Boss 事件行为不变。
+

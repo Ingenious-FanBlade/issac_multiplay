@@ -86,14 +86,19 @@ ClientStateVector<ClientReceivedEvent> ClientStateEvents::Prepare(const ClientSt
   return out;
 }
 bool ClientStateEvents::Replayed(std::span<const std::uint64_t> sequences) noexcept {
-  // 先核整个反馈，拒绝未知或重复序号；不能因后半错误只记前半已播放。
+  // 先核整个反馈，拒绝乱序或从未接收的序号；不能因后半错误只记前半已播放。
+  // 目标在前一批仍在安装时就封存了事件清单，晚到的回执可能引用：
+  //   已随前一批 Promote 擦除的序号（<=installed_）、被容量淘汰的外观事件（<=covered_ 且无条目，
+  //   Receive 只淘汰外观事件），或本地已判过期的外观事件。原生侧已按水位去重，这里只做记账，不当协议错误。
   std::uint64_t previous=0;
   for(const auto n:sequences) {
     const auto e=std::lower_bound(entries_.begin(),entries_.end(),n,[](const Entry &e,auto value){return e.event.value.sequence<value;});
-    if(n<=previous||e==entries_.end()||e->event.value.sequence!=n||e->event.expired)return false;previous=n;
+    const bool found=e!=entries_.end()&&e->event.value.sequence==n;
+    if(n<=previous||(!found&&(n>covered_||!n)))return false;previous=n;
   }
   for(const auto n:sequences) {
     auto e=std::lower_bound(entries_.begin(),entries_.end(),n,[](const Entry &e,auto value){return e.event.value.sequence<value;});
+    if(e==entries_.end()||e->event.value.sequence!=n)continue;
     if(!e->event.replayed){e->event.replayed=true;++stats_.replayed;}
   }
   return true;

@@ -2,6 +2,7 @@
 #include "game/observation/binary_intentions.h"
 #include "game/common/bridge.h"
 #include "runtime.h"
+#include "binding/offsets.h"
 #include <cmath>
 #include <cstring>
 
@@ -44,6 +45,17 @@ void BinaryNativeSfxFallback(BinaryProductionKind kind,void *object,int id,float
     std::memcpy(intent.path.data(),text,size);intent.path[size]=0;intent.path_size=size;intent.stream=selected;
   }
   BinarySfxIntentObserved(intent);
+}
+// J273 静态：PauseScreen::Show 98ED80 先写 state=1 再 Play(17)；关闭 98EC00 在 state!=0 时 Play(18)，
+// state 由后续 Update 在消失动画后清零；选项输入 989970 只在 state=2 运行。三者的一次性音效都在 state!=0 窗口内。
+// 暂停页打开时 Game 处于暂停分支，不运行实体／房间玩法更新，因此此窗口内的一次性 Play 只可能来自本机菜单。
+bool BinaryHostPauseMenuOpen() noexcept {
+  if(!IsMain()||ClientBusy()||!g_Game)return false;
+  return Read<std::int32_t>(g_Game,cs::offset::PauseScreen)!=0;
+}
+bool BinaryAudioPlayWorldContext(bool loop) noexcept {
+  // Show 内部的 StopLoops 走独立控制入口，仍作为 world 停止发给 Client；这里只排除一次性菜单声。
+  return BinaryAudioWorldContext()&&(loop||!BinaryHostPauseMenuOpen());
 }
 void BinaryNativeMapFocusFallback(void *object,std::uint32_t selected) noexcept {
   if(!IsMain()||ClientBusy()||!BinaryIntentActive()||!g_Game)return;

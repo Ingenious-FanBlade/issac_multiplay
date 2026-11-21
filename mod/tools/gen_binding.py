@@ -716,7 +716,8 @@ def legacy_body(row):
         return ['    cs::game::BinaryBannerTextObserved(str,asSubText);','    cs::CallScope scope(record);','    super(%s);' % call]
     if ident=='binary_audio_play':
         return ['    cs::game::BinaryProductionScope binary(cs::game::BinaryProductionKind::SfxPlay,this,g_Manager);',
-                '    binary.Audio(id,volume,pitch,pan,loop,cs::game::BinaryAudioWorldContext());',
+                '    // Host暂停页／选项的一次性菜单音效只属本机；循环与停止类控制仍按world来源。',
+                '    binary.Audio(id,volume,pitch,pan,loop,cs::game::BinaryAudioPlayWorldContext(loop));',
                 '    binary.Request(unsigned(delay));',
                 '    cs::CallScope scope(record);','    super(%s);' % call,'    binary.Returned();']
     if ident=='binary_audio_pan':

@@ -6,6 +6,7 @@
 #include "game/tests/e09_compare.h"
 #include "net/live.h"
 #include "state/budget.h"
+#include "state/events.h"
 #include "runtime.h"
 #ifdef ISAACCS_E2E
 #include "replica/stream_e2e.h"
@@ -86,6 +87,11 @@ struct ClientBinaryScene::Impl final:S::ClientStateNativeOwner,S::ClientStateApp
   std::array<FailureRuns,2> failure_runs;
   std::array<std::uint64_t,2> failure_frames{};
   bool opened=false,closing=false,resetting=false,display_detached=false,preserve_room=false,preserve_requested=false,pumping=false;
+  // 外观事件（SFX／横幅／fortune）已实际回放的最高序号及其路由。
+  // 目标在前一批仍在安装时就已备好事件清单，同一事件会出现在相邻两三个 World 目标里；
+  // 带世界的目标全部走通道0串行安装，序号单调，按此水位只回放一次，其余仍按已回放回执上报。
+  S::StateRoute replay_route{};
+  std::uint64_t replayed_cosmetic=0;
   // 成员写程序表（设计 10.6 节），跨 World 安装器共享；撤显、恢复、换路由时清空。
   std::shared_ptr<ClientSceneMemberStore> store;
   // 自上次不吸收的完整事务以来发布的 World 版本数。
@@ -446,15 +452,23 @@ struct ClientBinaryScene::Impl final:S::ClientStateNativeOwner,S::ClientStateApp
   }
   S::ClientStateNativeStep Replay(const S::ClientStateApplyBatch &b,std::size_t index) noexcept override {
     auto &pending=Pending(b);
-    if(index>=pending.Plan().Events().size())return Failed("binary_display_event_index");
+    if(index>=pending.Plan().Events().size()||index>=b.target.events.size())return Failed("binary_display_event_index");
+    // 只对会出声／出字的外观事件去重；转场与 Boss 事件仍每次按当前世界核对，行为不变。
+    const auto sequence=b.target.events[index].value.sequence;
+    const bool cosmetic=S::StateEventCosmetic(S::StateEventKind(b.target.events[index].value.purpose));
+    if(replay_route!=b.ticket.route){replay_route=b.ticket.route;replayed_cosmetic=0;}
+    if(cosmetic&&sequence<=replayed_cosmetic)return Ready("binary_event_already_replayed");
     auto event=pending.Plan().Events()[index];
     event.player=event_players[index];event.configuration=event_resources[index];event.sound.asset=event.configuration;
     if(event.kind==unsigned(S::StateEventKind::ItemBanner)&&
         pending.Plan().EventLinks()[index].player!=S::kClientPlanNone&&!event.player){
       // 原生多人 HUD 在缺席玩家上返回无效槽号。只消费这一条已无显示目标的外观事件。
+      if(cosmetic)replayed_cosmetic=sequence;
       return Ready("binary_item_banner_owner_missing");
     }
     const auto step=scene.ReplayBinaryEvent(event);
+    // 只在原生回放成功后推进水位；失败的事件留给后续目标重试。
+    if(step.done&&cosmetic)replayed_cosmetic=sequence;
     return step.done?Ready(step.reason,step.written):Failed(step.reason,step.written);
   }
   S::ClientStateNativeStep Publish(const S::ClientStateApplyBatch &b) noexcept override {

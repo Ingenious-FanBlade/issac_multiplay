@@ -117,3 +117,8 @@ Queue 的内部 `Music::Play` 要带具名本地音频维护 scope：不生成�
 - **E28／性能**：保留本地混音／cursor／backend pending 的职责，不作为 Host world 漂移反复覆盖；音频扫描、资源及当前乘数安装的开销计入原预算。
 
 未知和未实现如实保留：四槽环形平滑的全部绘制用途、本机 UI 阻断合并、音频需求的正式 schema／采集／本地树及资源物化、回放节流窄绕过、sample 多实例适配、必要段落／重连恢复和真实后端行为。上述不是新增静态闭合任务或测试前置门；当前调用点已可按放行／拦截／本地落实第 13 步，游戏、音频效果及性能是否正确仍由第 15 步验收。
+
+## 6. 2026-11-21 修复：Crossfade 速率（静态分析，仅编译，未测试）
+
+Host `BinaryDisplayCapture::BootstrapMusic` 原把 Crossfade(id,faderate) 的速率写进 `parameter`、`fade` 留 0，Client 按 `Crossfade(id,fade)` 以速率0交叉淡化：旧曲不淡出、新曲不淡入，表现为 Client 从标题进局后仍是标题曲。现 Crossfade 的速率写入 `fade`（`parameter` 固定 1，Client 不使用）。Play／Fadein／Fadeout／Queue 接续的参数位不变。
+

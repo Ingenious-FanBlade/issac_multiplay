@@ -564,8 +564,14 @@ void BinaryDisplayCapture::BootstrapMusic(const BinaryMusicIntent &intent) noexc
   else {const bool same=kind==K::MusicCrossfade&&intent.previous==int(a[0]);
     const bool continuation=kind==K::MusicPlay&&a[4]!=0;
     // 7D8303仅是Queue消费中的零起始gain；真实目标由同一tick按本机Options生成，速率0.08。
-    const float parameter=continuation?1.0f:kind==K::MusicFadeout?0:std::bit_cast<float>(a[1]),
-      fade=continuation?0.08f:kind==K::MusicFadein?std::bit_cast<float>(a[2]):kind==K::MusicFadeout?std::bit_cast<float>(a[0]):0;
+    // 各原生请求的参数位：Play(id,volume)、Crossfade(id,faderate)、Fadein(id,volume,faderate)、Fadeout(faderate)。
+    // Crossfade 只有速率没有音量：速率必须进 fade（Client 按 Crossfade(id,fade) 调用）；
+    // 旧实现把它放进 parameter、fade 留 0，Client 以速率0交叉淡化，标题曲永不淡出、关卡曲永不淡入。
+    // Play／Fadein 的音量参数是 Host 本机音乐选项（原版 17 处 Play 调用中 12 处直传 Manager+0x2A190），仅作记录；
+    // Client 不使用它，一律按自己的音量设定播放（见 client_display_native.cpp LocalMusicVolume）。
+    const float parameter=continuation||kind==K::MusicCrossfade?1.0f:kind==K::MusicFadeout?0:std::bit_cast<float>(a[1]),
+      fade=continuation?0.08f:kind==K::MusicCrossfade?std::bit_cast<float>(a[1]):kind==K::MusicFadein?std::bit_cast<float>(a[2]):
+        kind==K::MusicFadeout?std::bit_cast<float>(a[0]):0;
     if(!std::isfinite(parameter)||!std::isfinite(fade)){s.gap=true;return;}
     if(!same){using M=MusicRequestMode;music.mode=std::uint8_t(continuation?M::QueuedContinuation:kind==K::MusicPlay?M::Play:kind==K::MusicCrossfade?M::Crossfade:kind==K::MusicFadein?M::Fadein:M::Fadeout);music.id=intent.current;music.parameter=parameter;music.fade=fade;
       if(kind!=K::MusicFadeout&&!bump(music.generation))return;music.known=true;}

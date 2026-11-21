@@ -68,8 +68,9 @@ bool LoadAudio(AudioPair &out,std::string_view path,bool stream) {
   std::string logical=Path(path),resolved;
   g_Manager->_modManager.TryRedirectPath(&resolved,&logical);
   auto *manager=reinterpret_cast<void *>(Base+0x7ce5a0);auto **vtable=*reinterpret_cast<void ***>(manager);
-  using Load=void *(__thiscall *)(void *,AudioPair *,const char *,bool,unsigned);
-  reinterpret_cast<Load>(vtable[8])(manager,&out,resolved.c_str(),stream,0);
+  // 9F81B0 第三参是整型 mode（0=SampleSource 全量解码，1=StreamSource 流式），按 32 位整值比较，不能传 bool 槽。
+  using Load=void *(__thiscall *)(void *,AudioPair *,const char *,std::uint32_t,unsigned);
+  reinterpret_cast<Load>(vtable[8])(manager,&out,resolved.c_str(),stream?1u:0u,0);
   return out.source&&out.counter;
 }
 bool ReleaseAudio(AudioPair &pair) {
@@ -191,8 +192,10 @@ ClientPreparationResult ClientPreparedResourceLoad(ClientPreparedResource *o,con
            std::uint32_t(o->entity->portrait)!=d.numbers[4]||shadow!=d.numbers[5]||
            (d.numbers[3]!=UINT16_MAX&&(!first||!first->ready||first->kind!=0||!SamePath(o->entity->anm2Path,first->sprite->_filename))))return Bad("binary_resource_entity_config_identity");
         o->dependency=first;break;}
-      // 9F8170 的正常 SFX load-on-play 与音乐加载均采用 mode=1；准备不调用选样本／Play。
-      case 9:if(!NativeCall(*o,[&]{return LoadAudio(o->audio,d.text[0],true);})||
+      // 类 9 只来自 Host 已选的 SFX sample 路径，按原版预载 906FD2 的 mode=0 载入 SampleSource；准备不调用选样本／Play。
+      // 不能用 mode=1（StreamSource，音乐用）：StreamSourceWav 读取 A37940 短读即回绕到数据头且返回正数，
+      // 送流 A59F60 只在读到 0 且非循环时置 EOF，所以 WAV 流永不结束——短音效会无限重播，SetLooping(false) 无效。
+      case 9:if(!NativeCall(*o,[&]{return LoadAudio(o->audio,d.text[0],false);})||
           (!d.text[1].empty()&&!NativeCall(*o,[&]{return LoadAudio(o->intro,d.text[1],true); })))
         return Missing("binary_resource_audio_load");break;
       default:return Bad("binary_resource_kind_not_supported");
