@@ -10,7 +10,7 @@
 
 动作只归入目录及真实事件，不为采集执行。GetData 的 Mod 内容、RNG 流及真实消费历史、离房保存和独立 HUD 等由相应后续域负责，记录明确引用／负责 tx。GetLootList、随机开奖、掉落选择、攻击参数生成等不进入轮询。当前事件来自统一 native 观察清单及公开 post 回调，不声称逐条 Hook 了所有 Lua API 调用。
 
-`NativeText`／`NativeDummy` 的目标版本补充见 `docs/design/observation-expansion/entity-native-supplements.md`。其他未知类保留 UnknownEntity 和具体原因；不能以公共头部替代完整派生状态。
+`NativeText`／`NativeDummy` 的目标版本补充见 `docs/archive/design/observation-expansion/entity-native-supplements.md`。其他未知类保留 UnknownEntity 和具体原因；不能以公共头部替代完整派生状态。
 
 Grid 域由 `domains/grid/collect.lua` 组织全部17个公开派生转换、运行字段、保存描述、主／额外／TimerPlate Sprite、门查询与参数域。`GridEntity.Desc` 与 `GetSaveState` 共用字段；未知类型保持具体缺口。全部固定 Grid 槽与门槽来自相同 native owned 批次，前后复核仍由唯一协调器完成；index 不是身份。同格删除再创建由真实 native owner 退休旧主体并分配新主体。`lifted_descriptors` 使用 Effect 身份并保留无法公开关联源 Grid 的 Unresolved 原因。
 
@@ -19,9 +19,9 @@ Grid 域由 `domains/grid/collect.lua` 组织全部17个公开派生转换、运
 Grid逐成员、类型／变体枚举与回调目录由`mod/tools/gen_grid_catalog.py`从本地Wiki转换，录制v2附带`grid-catalog.json`，新schema不改变min-read-v1的旧字段编号和判据。floor／dimension／room descriptor规范身份由后续room/level域建立前明确Unknown，当前run／room instance归属沿现有观察器代次，不以房号冒充跨时间身份。
 
 
-tx-04-12增加room/level两域：当前Room与Descriptor/Config/环境、全部维度的楼层描述及连接、具名种子、分层身份与过渡失效；目录为room-level-catalog.json。只在同一native窗口复制，独立事件不借用旧tick；详细合同及实机范围见docs/design/observation-expansion/tx-04-12-implementation.md。
+tx-04-12增加room/level两域：当前Room与Descriptor/Config/环境、全部维度的楼层描述及连接、具名种子、分层身份与过渡失效；目录为room-level-catalog.json。只在同一native窗口复制，独立事件不借用旧tick；详细合同及实机范围见docs/archive/design/observation-expansion/tx-04-12-implementation.md。
 
 
 tx-04-13增加exploration/room_save/player三域与continuity-catalog.json。地图知识与Minimap本地显示分开；所有已初始化描述的保存三容器、Moving Box/Myosotis有独立集合修订/SaveEntry，不借seed认同活动对象。Grid采用八列紧凑编码并保留每槽身份/全部公开值；采集预算按保存容器与行值分别计算。真实保存/恢复、Ascent及Hourglass公开回调使用独立scope。
 
-Player复用同窗口Entity规范scope，另外保存History、控制关系和跨房历史。`control_relation`仅为当前输入锚点，`control_group_membership`另含非活动身体/备份的已核定拓扑归属和角色；Esau Jr备份归属来自703关联元数据，不能按ordinal猜全局槽。私有v1字段NOT_READY不冒充源变化，不因此授予字段读取资格。当前七个域支持正式纯值消费/可选录制，world_complete仍为false。详细范围和5/5统一E2E见docs/design/observation-expansion/tx-04-13-implementation.md。
+Player复用同窗口Entity规范scope，另外保存History、控制关系和跨房历史。`control_relation`仅为当前输入锚点，`control_group_membership`另含非活动身体/备份的已核定拓扑归属和角色；Esau Jr备份归属来自703关联元数据，不能按ordinal猜全局槽。私有v1字段NOT_READY不冒充源变化，不因此授予字段读取资格。当前七个域支持正式纯值消费/可选录制，world_complete仍为false。详细范围和5/5统一E2E见docs/archive/design/observation-expansion/tx-04-13-implementation.md。

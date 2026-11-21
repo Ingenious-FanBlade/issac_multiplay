@@ -29,7 +29,7 @@
           "category": "换算",
           "semantics": "官方IsFlying hook的未设／false／true覆盖；Player GetWaterClipInfo VA0x6B31C3通过IsFlying决定水面偏移，实际绘制经虚槽消费，保留三态。",
           "status": "已核",
-          "evidence": "EntityPlus.h；MSVC optional:70-75；state/entity_extension.cpp；docs/design/binary-state/player-equipment-plus-synchronization-review.md",
+          "evidence": "EntityPlus.h；MSVC optional:70-75；state/entity_extension.cpp；docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md",
           "wire": {
             "kind": "convert",
             "type": "i8",
@@ -56,7 +56,7 @@
           "category": "换算",
           "semantics": "官方GetWaterClipInfo hook在super后覆写完整bitFlags；水面／镜面展示使用，保留Null／有效零／完整u32，不只同步effective flags或直接传optional字节。",
           "status": "已核",
-          "evidence": "EntityPlus.h；MSVC optional:70-75；state/entity_extension.cpp；docs/design/binary-state/player-equipment-plus-synchronization-review.md",
+          "evidence": "EntityPlus.h；MSVC optional:70-75；state/entity_extension.cpp；docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md",
           "wire": {
             "kind": "convert",
             "type": "u64",
@@ -126,7 +126,7 @@
           "category": "未知",
           "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
           "status": "未知",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md"
         },
         {
           "offset": "0x14",
@@ -146,7 +146,7 @@
           "category": "未知",
           "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
           "status": "未知",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md"
         },
         {
           "offset": "0x20",
@@ -173,7 +173,7 @@
           "category": "本地",
           "semantics": "当前进程碰撞索引；不作为网络身份",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md"
         },
         {
           "offset": "0x28",
@@ -234,7 +234,7 @@
           "category": "状态",
           "semantics": "生成者Type；分类和结构描述",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md",
           "shape": true,
           "wire": {
             "kind": "copy",
@@ -251,7 +251,7 @@
           "category": "状态",
           "semantics": "生成者Variant；分类和结构描述",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md",
           "shape": true,
           "wire": {
             "kind": "copy",
@@ -268,7 +268,7 @@
           "category": "未知",
           "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
           "status": "未知",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md"
         },
         {
           "offset": "0x48",
@@ -294,7 +294,7 @@
           "category": "状态",
           "semantics": "阴影尺寸",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -310,7 +310,7 @@
           "category": "未知",
           "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
           "status": "未知",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md"
         },
         {
           "offset": "0x168",
@@ -336,7 +336,7 @@
           "category": "本地",
           "semantics": "本进程对象/列表/池有效资格，由Client构造、发布和退休owner维护，不进入公共E2；Player活动/备用身体的原生激活资格由第5步P7结构角色单独接管，不能一律置true，也不声称等于room_member。",
           "status": "已核",
-          "evidence": "mod/binding/world_layout.json:fields.valid；2026-11-09 J273原始指令/伪代码复读，见entity-common-synchronization-review.md；版本31复核：ctor VA0x6A39D4清零，AddEntity VA0x413D0B检查/0x413D9C置1，Player RenderHead 0x783707消费角色资格；docs/design/binary-state/entity-lifecycle-synchronization-review.md"
+          "evidence": "mod/binding/world_layout.json:fields.valid；2026-11-09 J273原始指令/伪代码复读，见entity-common-synchronization-review.md；版本31复核：ctor VA0x6A39D4清零，AddEntity VA0x413D0B检查/0x413D9C置1，Player RenderHead 0x783707消费角色资格；docs/archive/design/binary-state/entity-lifecycle-synchronization-review.md"
         },
         {
           "offset": "0x171",
@@ -362,7 +362,7 @@
           "category": "状态",
           "semantics": "公共Render VA0x6AC4ED及多类Render读取+172；成员在表不代表可绘制，保留当前展示存在状态。",
           "status": "已核",
-          "evidence": "mod/binding/world_layout.json:fields.exists；2026-11-09 J273原始指令/伪代码复读，见entity-common-synchronization-review.md；版本31复核独立性：docs/design/binary-state/entity-lifecycle-synchronization-review.md；旧Esau exists=true/valid=false反例及J273 Kill/Remove分离保留",
+          "evidence": "mod/binding/world_layout.json:fields.exists；2026-11-09 J273原始指令/伪代码复读，见entity-common-synchronization-review.md；版本31复核独立性：docs/archive/design/binary-state/entity-lifecycle-synchronization-review.md；旧Esau exists=true/valid=false反例及J273 Kill/Remove分离保留",
           "wire": {
             "kind": "copy",
             "type": "u8"
@@ -378,7 +378,7 @@
           "category": "状态",
           "semantics": "Player Render VA0x785F3B和Room Light VA0x7FF848读取+173；死亡展示与成员退休不同，保留。",
           "status": "已核",
-          "evidence": "mod/binding/world_layout.json:fields.dead；2026-11-09 J273原始指令/伪代码复读，见entity-common-synchronization-review.md；版本31复核独立性：docs/design/binary-state/entity-lifecycle-synchronization-review.md；旧Esau exists=true/valid=false反例及J273 Kill/Remove分离保留",
+          "evidence": "mod/binding/world_layout.json:fields.dead；2026-11-09 J273原始指令/伪代码复读，见entity-common-synchronization-review.md；版本31复核独立性：docs/archive/design/binary-state/entity-lifecycle-synchronization-review.md；旧Esau exists=true/valid=false反例及J273 Kill/Remove分离保留",
           "wire": {
             "kind": "copy",
             "type": "u8"
@@ -394,7 +394,7 @@
           "category": "未知",
           "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
           "status": "未知",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md"
         },
         {
           "offset": "0x175",
@@ -414,7 +414,7 @@
           "category": "未知",
           "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
           "status": "未知",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md"
         },
         {
           "offset": "0x177",
@@ -424,7 +424,7 @@
           "category": "本地",
           "semantics": "当前进程工厂删除/REP EntityManager记账字节；Client由本地构造/退休owner维护，不写入Host原值。规范第11节的只读资格仍适用于需要该字节的Host生命周期观测。",
           "status": "已核",
-          "evidence": "规范第11节 USER_ACCEPTED_CURRENT_ENTITY_BYTE；mod/binding/world_layout.json:removed_by_factory；Init VA0x6A4BD6跨字段清零不代替当前资格；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "规范第11节 USER_ACCEPTED_CURRENT_ENTITY_BYTE；mod/binding/world_layout.json:removed_by_factory；Init VA0x6A4BD6跨字段清零不代替当前资格；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x178",
@@ -434,7 +434,7 @@
           "category": "未知",
           "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
           "status": "未知",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md"
         },
         {
           "offset": "0x184",
@@ -460,7 +460,7 @@
           "category": "状态",
           "semantics": "公共PostRender VA0x6ACCA7/0x6ACCCD、Laser PostRender VA0x956FC9/0x956FFC按+188选择调试碰撞几何颜色，保留。",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md；2026-11-09 J273原始指令/伪代码复读，见entity-common-synchronization-review.md",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md；2026-11-09 J273原始指令/伪代码复读，见entity-common-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "i32"
@@ -476,7 +476,7 @@
           "category": "未知",
           "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
           "status": "未知",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md"
         },
         {
           "offset": "0x18e",
@@ -496,7 +496,7 @@
           "category": "权威",
           "semantics": "Host本tick格子碰撞结果；用于玩法后续处理，Client不重演格子碰撞。",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x191",
@@ -506,7 +506,7 @@
           "category": "未知",
           "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
           "status": "未知",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md"
         },
         {
           "offset": "0x192",
@@ -526,7 +526,7 @@
           "category": "未知",
           "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
           "status": "未知",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md"
         },
         {
           "offset": "0x1a4",
@@ -536,7 +536,7 @@
           "category": "本地",
           "semantics": "当前Client屏幕/Camera坐标缓存；已核Render由世界坐标和屏幕参数计算，不跨进程复制；RE-5：属于Client本地显示写集，不作影子相等／漂移校正；Tear伪代码十进制420/424也是本范围，不是子类+420/+424",
           "status": "已核",
-          "evidence": "J273 vtable槽5=VA0x6AC4E0；VA0x6AC646/0x6AC64A写+1A4/+1A8，VA0x6AC64F调用主Sprite Render；依赖position/position_offset和本地屏幕参数；主审已复读；RE-5复读675BE0 lea ebx,[esi+1A4h]及675C0B/675C0F写入；docs/design/binary-state/client-display-delegation/RE-5/write-set.md"
+          "evidence": "J273 vtable槽5=VA0x6AC4E0；VA0x6AC646/0x6AC64A写+1A4/+1A8，VA0x6AC64F调用主Sprite Render；依赖position/position_offset和本地屏幕参数；主审已复读；RE-5复读675BE0 lea ebx,[esi+1A4h]及675C0B/675C0F写入；docs/archive/design/binary-state/client-display-delegation/RE-5/write-set.md"
         },
         {
           "offset": "0x1ac",
@@ -546,7 +546,7 @@
           "category": "权威",
           "semantics": "Host有序颜色覆盖／淡出队列；Client不运行颜色合成，传Entity.Color与主Sprite最终ColorMod即可；容器头与元素均不传输",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md；版本32同步职责复核：docs/design/binary-state/animation-resource-synchronization-review.md"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md；版本32同步职责复核：docs/archive/design/binary-state/animation-resource-synchronization-review.md"
         },
         {
           "offset": "0x1b8",
@@ -556,7 +556,7 @@
           "category": "状态",
           "semantics": "当前最终颜色",
           "status": "已核",
-          "evidence": "mod/src/game/client/entity/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "evidence": "mod/src/game/client/entity/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md",
           "read_requires": "entity-current-window",
           "wire": {
             "kind": "nested",
@@ -572,7 +572,7 @@
           "category": "状态",
           "semantics": "溅射颜色",
           "status": "已核",
-          "evidence": "mod/src/game/client/entity/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "evidence": "mod/src/game/client/entity/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md",
           "read_requires": "entity-current-window",
           "wire": {
             "kind": "nested",
@@ -588,7 +588,7 @@
           "category": "权威",
           "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA396 / dec 0x6AA3A0 / store 0x6AA3A1测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA396 / dec 0x6AA3A0 / store 0x6AA3A1测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x214",
@@ -598,7 +598,7 @@
           "category": "权威",
           "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA3A7 / dec 0x6AA3B1 / store 0x6AA3B2测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA3A7 / dec 0x6AA3B1 / store 0x6AA3B2测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x218",
@@ -608,7 +608,7 @@
           "category": "权威",
           "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA3B8 / store 0x6AA3CD测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA3B8 / store 0x6AA3CD测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x21c",
@@ -618,7 +618,7 @@
           "category": "权威",
           "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA3EE测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA3EE测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x220",
@@ -628,7 +628,7 @@
           "category": "权威",
           "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA42C测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA42C测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x224",
@@ -638,7 +638,7 @@
           "category": "权威",
           "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA476测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA476测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x228",
@@ -648,7 +648,7 @@
           "category": "权威",
           "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA4E3测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA4E3测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x22c",
@@ -658,7 +658,7 @@
           "category": "权威",
           "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA646测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA646测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x230",
@@ -668,7 +668,7 @@
           "category": "权威",
           "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA52B测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA52B测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x234",
@@ -678,7 +678,7 @@
           "category": "权威",
           "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA5B7测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA5B7测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x238",
@@ -688,7 +688,7 @@
           "category": "权威",
           "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA9DC / dec 0x6AA9E6 / store 0x6AA9E7测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA9DC / dec 0x6AA9E6 / store 0x6AA9E7测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x23c",
@@ -698,7 +698,7 @@
           "category": "权威",
           "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA58F测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA58F测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x240",
@@ -708,7 +708,7 @@
           "category": "未知",
           "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
           "status": "未知",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md"
         },
         {
           "offset": "0x278",
@@ -718,7 +718,7 @@
           "category": "权威",
           "semantics": "Host毒伤害强度；最终HP和毒效果表现另行同步，Client不计算伤害。",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x27c",
@@ -728,7 +728,7 @@
           "category": "权威",
           "semantics": "Host灼烧伤害强度；最终HP和火效果表现另行同步，Client不计算伤害。",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x280",
@@ -738,7 +738,7 @@
           "category": "未知",
           "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
           "status": "未知",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md"
         },
         {
           "offset": "0x2d4",
@@ -748,7 +748,7 @@
           "category": "权威",
           "semantics": "Host碰撞/物理模拟参数；Client不运行碰撞或原生Interpolate，展示使用最终姿态。SDK声明等级保留。",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x2d8",
@@ -758,7 +758,7 @@
           "category": "未知",
           "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
           "status": "未知",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md"
         },
         {
           "offset": "0x2e0",
@@ -768,7 +768,7 @@
           "category": "权威",
           "semantics": "Host毒/火伤害节奏递增相位（mod 20）；不是展示时钟输入。Client接收最终HP、颜色和效果成员，不执行毒/火伤害，不采集、不编码、不安装此相位。",
           "status": "已核",
-          "evidence": "J273 Entity::Update VA0x6A9CF0，毒/火分支对应flag0x40/0x1000，读取+2E0/+2E4后inc；entity-common-evidence.md，主审采用前核原始指令；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "J273 Entity::Update VA0x6A9CF0，毒/火分支对应flag0x40/0x1000，读取+2E0/+2E4后inc；entity-common-evidence.md，主审采用前核原始指令；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x2e4",
@@ -778,7 +778,7 @@
           "category": "权威",
           "semantics": "Host毒/火伤害节奏递增相位（mod 20）；不是展示时钟输入。Client接收最终HP、颜色和效果成员，不执行毒/火伤害，不采集、不编码、不安装此相位。",
           "status": "已核",
-          "evidence": "J273 Entity::Update VA0x6A9CF0，毒/火分支对应flag0x40/0x1000，读取+2E0/+2E4后inc；entity-common-evidence.md，主审采用前核原始指令；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "J273 Entity::Update VA0x6A9CF0，毒/火分支对应flag0x40/0x1000，读取+2E0/+2E4后inc；entity-common-evidence.md，主审采用前核原始指令；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x2e8",
@@ -788,7 +788,7 @@
           "category": "权威",
           "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA67D测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA67D测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x2ec",
@@ -798,7 +798,7 @@
           "category": "未知",
           "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
           "status": "未知",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md"
         },
         {
           "offset": "0x2f0",
@@ -808,7 +808,7 @@
           "category": "权威",
           "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA77E测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA77E测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x2f4",
@@ -818,7 +818,7 @@
           "category": "权威",
           "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA7C2测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA7C2测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x2f8",
@@ -828,7 +828,7 @@
           "category": "权威",
           "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA926测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA926测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x2fc",
@@ -838,7 +838,7 @@
           "category": "权威",
           "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA8C7测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA8C7测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x300",
@@ -848,7 +848,7 @@
           "category": "权威",
           "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA95D测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA95D测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x304",
@@ -858,7 +858,7 @@
           "category": "权威",
           "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA9A7测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA9A7测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x308",
@@ -868,7 +868,7 @@
           "category": "权威",
           "semantics": "Host击退/位置更新输入；展示安装最终位置、速度和姿态，不重演击退。",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x310",
@@ -878,7 +878,7 @@
           "category": "未知",
           "semantics": "附属owner/引用候选，生命周期及用途未闭合，不复制",
           "status": "未知",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md"
         },
         {
           "offset": "0x314",
@@ -888,7 +888,7 @@
           "category": "权威",
           "semantics": "Host位置更新的暂停保存坐标；+31C仍正时回写最终Position。Client不运行该路径，接收最终Position，不以当前坐标伪造Host保存历史。",
           "status": "已核",
-          "evidence": "J273位置路径VA0x6C03B0；VA0x6C089C取+314、0x6C08A2写+33C，VA0x6C08A8取+318、0x6C08AE写+340；Init VA0x6A4E87初始化该Vector；主审已复读原始指令；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "J273位置路径VA0x6C03B0；VA0x6C089C取+314、0x6C08A2写+33C，VA0x6C08A8取+318、0x6C08AE写+340；Init VA0x6A4E87初始化该Vector；主审已复读原始指令；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x31c",
@@ -898,7 +898,7 @@
           "category": "权威",
           "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl +31C；J273位置路径VA0x6C03B0，在VA0x6C0887读、0x6C088D测试正、0x6C0891减一、0x6C0892写回；主审已复读；全部调用资格未闭合，需实际clock见证；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "SDK Entity.zhl +31C；J273位置路径VA0x6C03B0，在VA0x6C0887读、0x6C088D测试正、0x6C0891减一、0x6C0892写回；主审已复读；全部调用资格未闭合，需实际clock见证；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x320",
@@ -908,7 +908,7 @@
           "category": "未知",
           "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
           "status": "未知",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md"
         },
         {
           "offset": "0x328",
@@ -969,7 +969,7 @@
           "category": "状态",
           "semantics": "目标位置",
           "status": "已核",
-          "evidence": "mod/src/game/client/entity/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "evidence": "mod/src/game/client/entity/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md",
           "read_requires": "entity-current-window",
           "wire": {
             "kind": "nested",
@@ -985,7 +985,7 @@
           "category": "状态",
           "semantics": "当前坐标",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md",
           "read_requires": "entity-current-window",
           "wire": {
             "kind": "nested",
@@ -1001,7 +1001,7 @@
           "category": "权威",
           "semantics": "Host原生Interpolate槽保存的半帧前坐标；Client不调用该槽。只同步最终位置/速度；如需网络展示插值，以已应用快照构建本地历史，不复制Host这份历史。",
           "status": "已核",
-          "evidence": "J273 vtable VA0xB18224槽4=0x6AC2A0；VA0x6AC2E8写+344、VA0x6AC2F1写+348；主审已复读原始指令；旧tx-03的6B0EB0不是当前点位；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "J273 vtable VA0xB18224槽4=0x6AC2A0；VA0x6AC2E8写+344、VA0x6AC2F1写+348；主审已复读原始指令；旧tx-03的6B0EB0不是当前点位；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x34c",
@@ -1011,7 +1011,7 @@
           "category": "状态",
           "semantics": "位置偏移",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md",
           "read_requires": "entity-current-window",
           "wire": {
             "kind": "nested",
@@ -1043,7 +1043,7 @@
           "category": "状态",
           "semantics": "公开DepthOffset；不是SDK +0x2B0",
           "status": "已核",
-          "evidence": "mod/src/game/client/entity/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "evidence": "mod/src/game/client/entity/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -1075,7 +1075,7 @@
           "category": "状态",
           "semantics": "当前速度",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md",
           "read_requires": "entity-current-window",
           "wire": {
             "kind": "nested",
@@ -1091,7 +1091,7 @@
           "category": "未知",
           "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
           "status": "未知",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md"
         },
         {
           "offset": "0x36c",
@@ -1101,7 +1101,7 @@
           "category": "权威",
           "semantics": "Host运动/Interpolate输入；Client不运行原生半帧运动，展示使用最终位置、速度和Sprite。",
           "status": "已核",
-          "evidence": "mod/src/game/client/entity/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "mod/src/game/client/entity/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x370",
@@ -1111,7 +1111,7 @@
           "category": "状态",
           "semantics": "公共/Laser PostRender VA0x6ACC90/0x956FB4及Room Light VA0x7FFD4C读取+370；保留展示/调试几何尺寸。",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md；2026-11-09 J273原始指令/伪代码复读，见entity-common-synchronization-review.md",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md；2026-11-09 J273原始指令/伪代码复读，见entity-common-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -1127,7 +1127,7 @@
           "category": "状态",
           "semantics": "Familiar展示helper VA0x6473C5与公共PostRender VA0x6ACCF8读取+374；保留最终尺寸倍率。",
           "status": "已核",
-          "evidence": "mod/src/game/client/entity/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md；2026-11-09 J273原始指令/伪代码复读，见entity-common-synchronization-review.md",
+          "evidence": "mod/src/game/client/entity/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md；2026-11-09 J273原始指令/伪代码复读，见entity-common-synchronization-review.md",
           "read_requires": "entity-current-window",
           "wire": {
             "kind": "nested",
@@ -1143,7 +1143,7 @@
           "category": "未知",
           "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
           "status": "未知",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md"
         },
         {
           "offset": "0x380",
@@ -1153,7 +1153,7 @@
           "category": "状态",
           "semantics": "当前生命值",
           "status": "已核",
-          "evidence": "mod/src/game/client/entity/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "evidence": "mod/src/game/client/entity/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -1169,7 +1169,7 @@
           "category": "状态",
           "semantics": "最大生命值",
           "status": "已核",
-          "evidence": "mod/src/game/client/entity/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "evidence": "mod/src/game/client/entity/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -1185,7 +1185,7 @@
           "category": "权威",
           "semantics": "Host接触伤害裁决输入；Client不重演碰撞伤害，最终HP和效果成员照常同步。",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x38c",
@@ -1195,7 +1195,7 @@
           "category": "未知",
           "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
           "status": "未知",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md"
         },
         {
           "offset": "0x39c",
@@ -1205,7 +1205,7 @@
           "category": "状态",
           "semantics": "Effect Render variant172/subtype1 VA0x6039A0读取+39C参与展示方向旋转；保留，不能只按名称归运动玩法。",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md；2026-11-09 J273原始指令/伪代码复读，见entity-common-synchronization-review.md",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md；2026-11-09 J273原始指令/伪代码复读，见entity-common-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -1221,7 +1221,7 @@
           "category": "未知",
           "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
           "status": "未知",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md"
         },
         {
           "offset": "0x3b0",
@@ -1231,7 +1231,7 @@
           "category": "权威",
           "semantics": "Host伤害可受性裁决开关；不是Player独立伤害闪烁计时。Client同步最终死亡/HP/颜色/姿态，不执行伤害裁决。",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md；同步职责：docs/archive/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x3b1",
@@ -1241,7 +1241,7 @@
           "category": "未知",
           "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
           "status": "未知",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md"
         },
         {
           "offset": "0x3b4",
@@ -1251,7 +1251,7 @@
           "category": "状态",
           "semantics": "缩小插值状态1",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -1267,7 +1267,7 @@
           "category": "状态",
           "semantics": "缩小插值状态2",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -1398,7 +1398,7 @@
           "category": "未知",
           "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
           "status": "未知",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md"
         },
         {
           "offset": "0x3dc",
@@ -1435,7 +1435,7 @@
           "category": "未知",
           "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
           "status": "未知",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md"
         },
         {
           "offset": "0x408",
@@ -1445,7 +1445,7 @@
           "category": "本地",
           "semantics": "当前进程Lua桥引用，不发送",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md"
         },
         {
           "offset": "0x40c",
@@ -1455,7 +1455,7 @@
           "category": "未知",
           "semantics": "对象尾部未解释字节，不当作填充",
           "status": "未知",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/archive/design/binary-state/entity-common-evidence.md"
         }
       ],
       "companions": [
@@ -1717,7 +1717,7 @@
           "id": "Entity.GetColorParams",
           "disposition": "authority",
           "fields": [],
-          "reason": "Host颜色覆盖队列；最终Entity.Color和主Sprite.color已同步，Client不重演颜色合成或还原该队列。版本32见docs/design/binary-state/animation-resource-synchronization-review.md"
+          "reason": "Host颜色覆盖队列；最终Entity.Color和主Sprite.color已同步，Client不重演颜色合成或还原该队列。版本32见docs/archive/design/binary-state/animation-resource-synchronization-review.md"
         },
         {
           "id": "Entity.GetConfusionCountdown",

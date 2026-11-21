@@ -10,7 +10,7 @@ from replica_projection_policy import consumer_review, ENTITY_COMPACT_CONSUMERS
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "mod/observation/isaac-cs-observation/entity-catalog.json"
 PARSER = "mod/src/replica/entity_target.cpp:ParseEntityTarget"
-RESEARCH = ROOT / "docs/design/tx-04-19/entity-native-contracts.json"
+RESEARCH = ROOT / "mod/binding/catalog/entity-native-contracts.json"
 COMMON_FIELDS = ROOT / "mod/src/game/client/entity/client_entity_fields.inc"
 CLASS_FIELDS = ROOT / "mod/src/game/client/entity/client_entity_class_fields.inc"
 # 分类来自公开转换/专用RTTI见证；数值Type只用于交叉检查，绝不按范围猜NPC。
@@ -34,7 +34,7 @@ RESOURCE_CLASSES = {"Sprite", "LayerState", "AnimationData", "AnimationLayer", "
 PLAYER_RELATED = {"Weapon", "TemporaryEffects", "TemporaryEffect", "CostumeSpriteDesc", "PocketItem", "QueueItemData", "ActiveItemDesc", "EntityConfigPlayer", "EntityConfigBaby", "History", "HistoryItem"}
 RELATIONS = {"Entity.Parent", "Entity.Child", "Entity.Target", "Entity.SpawnerEntity", "Entity.GetLastChild", "Entity.GetLastParent", "Entity.GetMinecart", "EntityNPC.ParentNPC", "EntityNPC.ChildNPC", "EntityNPC.EntityRef", "EntityNPC.GetPlayerTarget", "EntityNPC.GetSirenPlayerEntity", "EntityTear.StickTarget", "EntityLaser.BounceLaser"}
 # 类别实现与逐字段运行覆盖分别声明；验收文档保存具体场景和未覆盖分支。
-ACCEPTANCE_DOC = "docs/design/tx-04-19/tx-04-19-acceptance.md"
+ACCEPTANCE_DOC = "docs/archive/design/tx-04-19/tx-04-19-acceptance.md"
 NATIVE_CLASSES = set(CLASSES) - {"EntityPlayer"}
 RUNTIME_ACCEPTANCE = "I34-passed:65-Source/65-cold-Client;20-invalid/2-compat/16-fault;named-scenes;see-acceptance-document"
 
@@ -155,7 +155,7 @@ def generate():
                                  "executor": "mod/src/game/client/entity/client_objects.cpp:ClientObjects;mod/src/game/client/entity/client_objects_native.cpp:FormalExecute",
                                  "class_native_apply": True, "scope": "non-Player;full-Player20", "scene_commit": "I29-single-Scene-commit;non-Player-range-only", "runtime_acceptance": RUNTIME_ACCEPTANCE},
             # I04研究索引是资料与采用约束，不把静态审阅升级为原生支持或运行通过。
-            "player_handoff": {"catalog": "docs/design/tx-04-20/player-application.json", "target": "player-target-v2", "native_apply": False, "implementation": "mod/src/replica/player_target.cpp;mod/src/game/client/player/client_players.cpp"},
+            "player_handoff": {"catalog": "mod/binding/catalog/player-application.json", "target": "player-target-v2", "native_apply": False, "implementation": "mod/src/replica/player_target.cpp;mod/src/game/client/player/client_players.cpp"},
             "static_research_context": {"kind": "pre-I34-static-record", "runtime_authority": ACCEPTANCE_DOC,
                                         "note": "原研究时点的pending/UNKNOWN保留；当前运行范围看顶层acceptance_scope，不把旧字段作为推进前置"},
             "static_research": json.loads(RESEARCH.read_text(encoding="utf-8-sig")),
@@ -200,7 +200,7 @@ def main():
     (args.out / "entity-application.json").write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (args.out / "entity_application.inc").write_text(string_expression(text, "ICSEA"), encoding="utf-8")
     if args.docs:
-        (ROOT / "docs/design/tx-04-19/entity-application.json").write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        (ROOT / "mod/binding/catalog/entity-application.json").write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 if __name__ == "__main__":

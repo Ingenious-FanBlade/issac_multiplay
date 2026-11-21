@@ -1,6 +1,6 @@
 #pragma once
 // 预测插值阶段 1：客机显示覆盖层与远端插值／外推。
-// 设计见 docs/design/binary-state/prediction-interpolation.md 第 4、6、7 节。
+// 设计见 docs/archive/design/binary-state/prediction-interpolation.md 第 4、6、7 节。
 // 本头文件同时被 C++17 的 SDK 单元和 C++20 的逻辑单元包含，只用 C++17 可用的类型。
 #include "game/client/presentation/client_motion_predict.h"
 #include <cstdint>

@@ -27,7 +27,7 @@
           "type": "bytes[3]",
           "category": "未知",
           "semantics": "尚无具体语义／所属嵌套owner内字段证据；不读取不发送，不以构造初值或对齐猜填充",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
           "status": "未知"
         },
         {
@@ -82,7 +82,7 @@
           "type": "RunSeedEffectNode*",
           "category": "容器",
           "semantics": "D5 Seeds+54现有红黑树；物化至多80个按id升序且唯一的节点key，不复制地址或执行种子增删生产",
-          "evidence": "9BE290／9BE320分配14h节点；452580／662BC0→4240B0读取+54；docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "evidence": "9BE290／9BE320分配14h节点；452580／662BC0→4240B0读取+54；docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
           "status": "已核",
           "wire": {
             "kind": "container",
@@ -153,7 +153,7 @@
           "name": "display_flags",
           "type": "u8",
           "semantics": "bit0..6依次为SeedEffect 8/9/10/29/30/78/79当前membership；bit7=0。只用于具名Render／只读显示查询，不开放玩法生产器；缺来源报Gap",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md §2.1；6F7A80／8378C0／97C300／98DDA0／804500／801BE0／672AC0",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md §2.1；6F7A80／8378C0／97C300／98DDA0／804500／801BE0／672AC0",
           "host": "run_seed_display_flags_read",
           "client": "run_seed_display_flags_draw_borrow"
         }
@@ -227,7 +227,7 @@
           "type": "bytes[3]",
           "category": "未知",
           "semantics": "尚无具体语义／所属嵌套owner内字段证据；不读取不发送，不以构造初值或对齐猜填充",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
           "status": "未知"
         },
         {
@@ -455,7 +455,7 @@
           "type": "bytes[3]",
           "category": "未知",
           "semantics": "尚无具体语义／所属嵌套owner内字段证据；不读取不发送，不以构造初值或对齐猜填充",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
           "status": "未知"
         },
         {
@@ -485,7 +485,7 @@
           "type": "bytes[3]",
           "category": "未知",
           "semantics": "尚无具体语义／所属嵌套owner内字段证据；不读取不发送，不以构造初值或对齐猜填充",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
           "status": "未知"
         },
         {
@@ -535,7 +535,7 @@
           "type": "bytes[1]",
           "category": "未知",
           "semantics": "尚无具体语义／所属嵌套owner内字段证据；不读取不发送，不以构造初值或对齐猜填充",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
           "status": "未知"
         },
         {
@@ -585,7 +585,7 @@
           "type": "bytes[12]",
           "category": "未知",
           "semantics": "对象尾部尚未解释；明确列出，不读取不发送，不假定为填充",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md",
           "status": "未知"
         }
       ],
@@ -649,7 +649,7 @@
           "type": "bytes[3]",
           "category": "未知",
           "semantics": "尚无具体语义／所属嵌套owner内字段证据；不读取不发送，不以构造初值或对齐猜填充",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
           "status": "未知"
         },
         {
@@ -1320,7 +1320,7 @@
           "type": "bytes[100624]",
           "category": "未知",
           "semantics": "Level前缀与Room/descriptor关系归第7步，GameRun不展开；这是跨域委派范围，不能据此删除同步或宣称该对象完整",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
           "status": "未知"
         },
         {
@@ -1330,7 +1330,7 @@
           "type": "bytes[7720]",
           "category": "未知",
           "semantics": "RoomConfig实际配置／资源身份归第7步；抽选权重留Host；这是跨域委派范围，不能据此删除同步或宣称该对象完整",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
           "status": "未知"
         },
         {
@@ -1340,7 +1340,7 @@
           "type": "bytes[8]",
           "category": "未知",
           "semantics": "尚无具体语义／所属嵌套owner内字段证据；不读取不发送，不以构造初值或对齐猜填充",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
           "status": "未知"
         },
         {
@@ -1370,7 +1370,7 @@
           "type": "i32",
           "category": "状态",
           "semantics": "Q11转场mode的Host当前值；随world原子安装，Client不运行Start／Update",
-          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-9/native-transition.md；RoomTransition+0x0",
+          "evidence": "docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-9/native-transition.md；RoomTransition+0x0",
           "status": "已核",
           "wire": {
             "kind": "copy",
@@ -1384,7 +1384,7 @@
           "type": "i32",
           "category": "状态",
           "semantics": "Q11转场counter的Host当前值；随world原子安装，Client不运行Start／Update",
-          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-9/native-transition.md；RoomTransition+0x4",
+          "evidence": "docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-9/native-transition.md；RoomTransition+0x4",
           "status": "已核",
           "wire": {
             "kind": "copy",
@@ -1398,7 +1398,7 @@
           "type": "i32",
           "category": "状态",
           "semantics": "Q11转场duration的Host当前值；随world原子安装，Client不运行Start／Update",
-          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-9/native-transition.md；RoomTransition+0x8",
+          "evidence": "docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-9/native-transition.md；RoomTransition+0x8",
           "status": "已核",
           "wire": {
             "kind": "copy",
@@ -1412,7 +1412,7 @@
           "type": "f32",
           "category": "状态",
           "semantics": "Q11转场progress的Host当前值；随world原子安装，Client不运行Start／Update",
-          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-9/native-transition.md；RoomTransition+0xc",
+          "evidence": "docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-9/native-transition.md；RoomTransition+0xc",
           "status": "已核",
           "wire": {
             "kind": "copy",
@@ -1426,7 +1426,7 @@
           "type": "i32",
           "category": "状态",
           "semantics": "Q11转场direction的Host当前值；随world原子安装，Client不运行Start／Update",
-          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-9/native-transition.md；RoomTransition+0x10",
+          "evidence": "docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-9/native-transition.md；RoomTransition+0x10",
           "status": "已核",
           "wire": {
             "kind": "copy",
@@ -1440,7 +1440,7 @@
           "type": "i32",
           "category": "状态",
           "semantics": "Q11转场room_index的Host当前值；随world原子安装，Client不运行Start／Update",
-          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-9/native-transition.md；RoomTransition+0x14",
+          "evidence": "docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-9/native-transition.md；RoomTransition+0x14",
           "status": "已核",
           "wire": {
             "kind": "copy",
@@ -1454,7 +1454,7 @@
           "type": "i32",
           "category": "状态",
           "semantics": "Q11转场dimension的Host当前值；随world原子安装，Client不运行Start／Update",
-          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-9/native-transition.md；RoomTransition+0x18",
+          "evidence": "docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-9/native-transition.md；RoomTransition+0x18",
           "status": "已核",
           "wire": {
             "kind": "copy",
@@ -1468,7 +1468,7 @@
           "type": "i32",
           "category": "状态",
           "semantics": "Q11转场animation的Host当前值；随world原子安装，Client不运行Start／Update",
-          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-9/native-transition.md；RoomTransition+0x1c",
+          "evidence": "docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-9/native-transition.md；RoomTransition+0x1c",
           "status": "已核",
           "wire": {
             "kind": "copy",
@@ -1482,7 +1482,7 @@
           "type": "bytes[536]",
           "category": "未知",
           "semantics": "转场辅助值、surface、versus、肖像map、滚动补偿等余段保持本地或未核；不整体复制",
-          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "evidence": "docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
           "status": "未知"
         },
         {
@@ -1492,7 +1492,7 @@
           "type": "i32",
           "category": "状态",
           "semantics": "Q11原生Boss标记+238；Client只据它推进本地versus／肖像动画",
-          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-9/native-transition.md；RoomTransition.zhl",
+          "evidence": "docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-9/native-transition.md；RoomTransition.zhl",
           "status": "已核",
           "wire": {
             "kind": "copy",
@@ -1506,7 +1506,7 @@
           "type": "bytes[32]",
           "category": "未知",
           "semantics": "StageTransition实际显示结果交Presentation，不放行其Update；这是跨域委派范围，不能据此删除同步或宣称该对象完整",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
           "status": "未知"
         },
         {
@@ -1516,7 +1516,7 @@
           "type": "bytes[16]",
           "category": "未知",
           "semantics": "尚无具体语义／所属嵌套owner内字段证据；不读取不发送，不以构造初值或对齐猜填充",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
           "status": "未知"
         },
         {
@@ -1526,7 +1526,7 @@
           "type": "bytes[200]",
           "category": "未知",
           "semantics": "参与者／control group／身体／roster归第5步；原生设备和RNG不网络化；这是跨域委派范围，不能据此删除同步或宣称该对象完整",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
           "status": "未知"
         },
         {
@@ -1536,7 +1536,7 @@
           "type": "bytes[20]",
           "category": "未知",
           "semantics": "尚无具体语义／所属嵌套owner内字段证据；不读取不发送，不以构造初值或对齐猜填充",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
           "status": "未知"
         },
         {
@@ -1560,7 +1560,7 @@
           "type": "bytes[1108]",
           "category": "未知",
           "semantics": "尚无具体语义／所属嵌套owner内字段证据；不读取不发送，不以构造初值或对齐猜填充",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
           "status": "未知"
         },
         {
@@ -1570,7 +1570,7 @@
           "type": "bytes[4704]",
           "category": "未知",
           "semantics": "ItemOverlay真实显示Sprite／资源／状态交Presentation；这是跨域委派范围，不能据此删除同步或宣称该对象完整",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
           "status": "未知"
         },
         {
@@ -1580,7 +1580,7 @@
           "type": "bytes[564]",
           "category": "未知",
           "semantics": "本区实际UI对象待Presentation核对，不能按旧GenericPopup120B吞掉全234B；这是跨域委派范围，不能据此删除同步或宣称该对象完整",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
           "status": "未知"
         },
         {
@@ -1590,7 +1590,7 @@
           "type": "bytes[304]",
           "category": "未知",
           "semantics": "GameOver最终画面／死亡来源交Presentation；不运行死亡奖励／保存；这是跨域委派范围，不能据此删除同步或宣称该对象完整",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
           "status": "未知"
         },
         {
@@ -1600,7 +1600,7 @@
           "type": "bytes[948]",
           "category": "未知",
           "semantics": "只承接结算显示结果，不拷贝请求／账号／提交和平台对象；这是跨域委派范围，不能据此删除同步或宣称该对象完整",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
           "status": "未知"
         },
         {
@@ -1610,7 +1610,7 @@
           "type": "bytes[21732]",
           "category": "未知",
           "semantics": "原HUD跨域占位余段；不因新增可见性而宣称缓存已核",
-          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "evidence": "docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
           "status": "未知"
         },
         {
@@ -1620,7 +1620,7 @@
           "type": "bool",
           "category": "状态",
           "semantics": "HUD._isVisible；Host当前值覆盖BossReplay本地写入",
-          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；HUD.zhl +54E4；823DA9",
+          "evidence": "docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；HUD.zhl +54E4；823DA9",
           "status": "已核",
           "wire": {
             "kind": "copy",
@@ -1634,7 +1634,7 @@
           "type": "bytes[1963]",
           "category": "未知",
           "semantics": "HUD可见性之后的缓存仍保留原UNKNOWN事实",
-          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "evidence": "docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
           "status": "未知"
         },
         {
@@ -1644,7 +1644,7 @@
           "type": "bytes[3572]",
           "category": "未知",
           "semantics": "PauseScreen各端交互与Host暂停分开；真实显示另核，不复制本地选中项／设备／持久进度；这是跨域委派范围，不能据此删除同步或宣称该对象完整",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
           "status": "未知"
         },
         {
@@ -1654,7 +1654,7 @@
           "type": "bytes[4116]",
           "category": "未知",
           "semantics": "PauseScreen后到Minimap前还有原生UI owner，不能统称已核PauseScreen；这是跨域委派范围，不能据此删除同步或宣称该对象完整",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
           "status": "未知"
         },
         {
@@ -1664,7 +1664,7 @@
           "type": "bytes[1576]",
           "category": "未知",
           "semantics": "Minimap最终缓存／探索关系／显示状态归Presentation和第7步；这是跨域委派范围，不能据此删除同步或宣称该对象完整",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
           "status": "未知"
         },
         {
@@ -1730,7 +1730,7 @@
           "type": "i32",
           "category": "状态",
           "semantics": "Q8震屏剩余计数；安装由正到零时清本地相机偏移，Client不递减或生成随机偏移",
-          "evidence": "6FF360；6F6D30；docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "evidence": "6FF360；6F6D30；docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
           "status": "已核",
           "wire": {
             "kind": "copy",
@@ -1806,7 +1806,7 @@
           "type": "i32",
           "category": "状态",
           "semantics": "Bloom当前剩余计时；6F6D91递减，Client只安装当前值",
-          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；J273 6FF500/6F6D91",
+          "evidence": "docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；J273 6FF500/6F6D91",
           "status": "已核",
           "wire": {
             "kind": "copy",
@@ -1820,7 +1820,7 @@
           "type": "i32",
           "category": "状态",
           "semantics": "Bloom总时间；6FF506与剩余计时同写原生int Time",
-          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；J273 6FF506",
+          "evidence": "docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；J273 6FF506",
           "status": "已核",
           "wire": {
             "kind": "copy",
@@ -1834,7 +1834,7 @@
           "type": "f32",
           "category": "状态",
           "semantics": "Bloom强度；官方SetBloom的xmm2浮点参数，原生Render消费",
-          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；J273 6FF512；Game.zhl SetBloom",
+          "evidence": "docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；J273 6FF512；Game.zhl SetBloom",
           "status": "已核",
           "wire": {
             "kind": "copy",
@@ -1848,7 +1848,7 @@
           "type": "bool",
           "category": "本地",
           "semantics": "本机窗口重建请求，不跟随Host窗口尺寸；6F7A80会消费并清零；RE-5：保持本地、不作漂移比较；703E40完整条件／其他写集归RE-9，不因本字节本地而宣称helper只读",
-          "evidence": "Game.zhl；6F7AC6比较25AAC/6F7ACF调用703E40/6F7AD4清零；docs/design/binary-state/client-display-delegation/RE-5/write-set.md",
+          "evidence": "Game.zhl；6F7AC6比较25AAC/6F7ACF调用703E40/6F7AD4清零；docs/archive/design/binary-state/client-display-delegation/RE-5/write-set.md",
           "status": "已核"
         },
         {
@@ -1858,7 +1858,7 @@
           "type": "bytes[3]",
           "category": "未知",
           "semantics": "尚无具体语义／所属嵌套owner内字段证据；不读取不发送，不以构造初值或对齐猜填充",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
           "status": "未知"
         },
         {
@@ -1868,7 +1868,7 @@
           "type": "i32",
           "category": "状态",
           "semantics": "Hallucination当前剩余时间，Client不调用ShowHallucination",
-          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "evidence": "docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
           "status": "已核",
           "wire": {
             "kind": "copy",
@@ -1882,7 +1882,7 @@
           "type": "i32",
           "category": "状态",
           "semantics": "Hallucination总时间；反馈画面属本地历史资源",
-          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "evidence": "docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
           "status": "已核",
           "wire": {
             "kind": "copy",
@@ -1896,7 +1896,7 @@
           "type": "u8",
           "category": "本地",
           "semantics": "Render写入的本地历史画面反馈标记，不作为权威同步值",
-          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "evidence": "docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
           "status": "已核"
         },
         {
@@ -1906,7 +1906,7 @@
           "type": "bytes[3]",
           "category": "未知",
           "semantics": "尚无具体语义／所属嵌套owner内字段证据；不读取不发送，不以构造初值或对齐猜填充",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
           "status": "未知"
         },
         {
@@ -1940,7 +1940,7 @@
           "type": "u32",
           "category": "状态",
           "semantics": "D3 Game级raw诅咒；与Level raw、Seeds、stage／挑战／难度同world安装，不预先合并有效值",
-          "evidence": "803E20／804500／966680；6F55C0／6F5750；EVIDENCE §4；docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "evidence": "803E20／804500／966680；6F55C0／6F5750；EVIDENCE §4；docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
           "status": "已核",
           "wire": {
             "kind": "copy",
@@ -1954,7 +1954,7 @@
           "type": "i32",
           "category": "权威",
           "semantics": "上次恶魔房楼层；最终概率／文字／实体由各显示或世界owner承接，不用这些值在Client重算",
-          "evidence": "6F08D0／6F51C0；700570达到阈值调用903930解锁；docs/design/binary-state/run-synchronization-review.md",
+          "evidence": "6F08D0／6F51C0；700570达到阈值调用903930解锁；docs/archive/design/binary-state/run-synchronization-review.md",
           "status": "已核"
         },
         {
@@ -1964,7 +1964,7 @@
           "type": "i32",
           "category": "权威",
           "semantics": "宝箱房访问数；最终概率／文字／实体由各显示或世界owner承接，不用这些值在Client重算",
-          "evidence": "6F08D0／6F51C0；700570达到阈值调用903930解锁；docs/design/binary-state/run-synchronization-review.md",
+          "evidence": "6F08D0／6F51C0；700570达到阈值调用903930解锁；docs/archive/design/binary-state/run-synchronization-review.md",
           "status": "已核"
         },
         {
@@ -1974,7 +1974,7 @@
           "type": "i32",
           "category": "权威",
           "semantics": "星象房访问数；最终概率／文字／实体由各显示或世界owner承接，不用这些值在Client重算",
-          "evidence": "6F08D0／6F51C0；700570达到阈值调用903930解锁；docs/design/binary-state/run-synchronization-review.md",
+          "evidence": "6F08D0／6F51C0；700570达到阈值调用903930解锁；docs/archive/design/binary-state/run-synchronization-review.md",
           "status": "已核"
         },
         {
@@ -1984,7 +1984,7 @@
           "type": "i32",
           "category": "权威",
           "semantics": "无伤楼层统计；最终概率／文字／实体由各显示或世界owner承接，不用这些值在Client重算",
-          "evidence": "6F08D0／6F51C0；700570达到阈值调用903930解锁；docs/design/binary-state/run-synchronization-review.md",
+          "evidence": "6F08D0／6F51C0；700570达到阈值调用903930解锁；docs/archive/design/binary-state/run-synchronization-review.md",
           "status": "已核"
         },
         {
@@ -1994,7 +1994,7 @@
           "type": "i32",
           "category": "权威",
           "semantics": "未拾红心楼层统计；最终概率／文字／实体由各显示或世界owner承接，不用这些值在Client重算",
-          "evidence": "6F08D0／6F51C0；700570达到阈值调用903930解锁；docs/design/binary-state/run-synchronization-review.md",
+          "evidence": "6F08D0／6F51C0；700570达到阈值调用903930解锁；docs/archive/design/binary-state/run-synchronization-review.md",
           "status": "已核"
         },
         {
@@ -2004,7 +2004,7 @@
           "type": "i32",
           "category": "权威",
           "semantics": "恶魔交易／解锁生产计数；最终概率／文字／实体由各显示或世界owner承接，不用这些值在Client重算",
-          "evidence": "6F08D0／6F51C0；700570达到阈值调用903930解锁；docs/design/binary-state/run-synchronization-review.md",
+          "evidence": "6F08D0／6F51C0；700570达到阈值调用903930解锁；docs/archive/design/binary-state/run-synchronization-review.md",
           "status": "已核"
         },
         {
@@ -2014,7 +2014,7 @@
           "type": "i32",
           "category": "权威",
           "semantics": "贪婪捐款修正；最终概率／文字／实体由各显示或世界owner承接，不用这些值在Client重算",
-          "evidence": "6F08D0／6F51C0；700570达到阈值调用903930解锁；docs/design/binary-state/run-synchronization-review.md",
+          "evidence": "6F08D0／6F51C0；700570达到阈值调用903930解锁；docs/archive/design/binary-state/run-synchronization-review.md",
           "status": "已核"
         },
         {
@@ -2024,7 +2024,7 @@
           "type": "i32",
           "category": "权威",
           "semantics": "天使捐款修正；最终概率／文字／实体由各显示或世界owner承接，不用这些值在Client重算",
-          "evidence": "6F08D0／6F51C0；700570达到阈值调用903930解锁；docs/design/binary-state/run-synchronization-review.md",
+          "evidence": "6F08D0／6F51C0；700570达到阈值调用903930解锁；docs/archive/design/binary-state/run-synchronization-review.md",
           "status": "已核"
         },
         {
@@ -2034,7 +2034,7 @@
           "type": "i32",
           "category": "权威",
           "semantics": "商店生产计数；最终概率／文字／实体由各显示或世界owner承接，不用这些值在Client重算",
-          "evidence": "6F08D0／6F51C0；700570达到阈值调用903930解锁；docs/design/binary-state/run-synchronization-review.md",
+          "evidence": "6F08D0／6F51C0；700570达到阈值调用903930解锁；docs/archive/design/binary-state/run-synchronization-review.md",
           "status": "已核"
         },
         {
@@ -2044,7 +2044,7 @@
           "type": "i32",
           "category": "权威",
           "semantics": "商店访问辅助生产计数；最终概率／文字／实体由各显示或世界owner承接，不用这些值在Client重算",
-          "evidence": "6F08D0／6F51C0；700570达到阈值调用903930解锁；docs/design/binary-state/run-synchronization-review.md",
+          "evidence": "6F08D0／6F51C0；700570达到阈值调用903930解锁；docs/archive/design/binary-state/run-synchronization-review.md",
           "status": "已核"
         },
         {
@@ -2054,7 +2054,7 @@
           "type": "i32",
           "category": "权威",
           "semantics": "星象房生成辅助历史；最终概率／文字／实体由各显示或世界owner承接，不用这些值在Client重算",
-          "evidence": "6F08D0／6F51C0；700570达到阈值调用903930解锁；docs/design/binary-state/run-synchronization-review.md",
+          "evidence": "6F08D0／6F51C0；700570达到阈值调用903930解锁；docs/archive/design/binary-state/run-synchronization-review.md",
           "status": "已核"
         },
         {
@@ -2108,7 +2108,7 @@
           "type": "bytes[2]",
           "category": "未知",
           "semantics": "尚无具体语义／所属嵌套owner内字段证据；不读取不发送，不以构造初值或对齐猜填充",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
           "status": "未知"
         },
         {
@@ -2118,7 +2118,7 @@
           "type": "bytes[12]",
           "category": "未知",
           "semantics": "保留原fade范围尚未逐项核定的字节，不读取、不发送",
-          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "evidence": "docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
           "status": "未知"
         },
         {
@@ -2128,7 +2128,7 @@
           "type": "f32",
           "category": "状态",
           "semantics": "当前secondary alpha；终结分支由Host决定，不按本机墙钟递减",
-          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "evidence": "docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
           "status": "已核",
           "wire": {
             "kind": "copy",
@@ -2142,7 +2142,7 @@
           "type": "bytes[20]",
           "category": "未知",
           "semantics": "原fade范围未核定字节，保留原始未知事实",
-          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "evidence": "docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
           "status": "未知"
         },
         {
@@ -2152,7 +2152,7 @@
           "type": "f32",
           "category": "状态",
           "semantics": "当前primary alpha；Client的Pα资格只检查已安装值>0",
-          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "evidence": "docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
           "status": "已核",
           "wire": {
             "kind": "copy",
@@ -2166,7 +2166,7 @@
           "type": "bytes[12]",
           "category": "未知",
           "semantics": "fade生产颜色／速度／生命周期控制未逐项核定；不作Client动作命令",
-          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "evidence": "docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
           "status": "未知"
         },
         {
@@ -2186,7 +2186,7 @@
           "type": "bytes[4]",
           "category": "未知",
           "semantics": "尚无具体语义／所属嵌套owner内字段证据；不读取不发送，不以构造初值或对齐猜填充",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
           "status": "未知"
         },
         {
@@ -2217,7 +2217,7 @@
           "type": "bytes[8]",
           "category": "未知",
           "semantics": "尚无具体语义／所属嵌套owner内字段证据；不读取不发送，不以构造初值或对齐猜填充",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
           "status": "未知"
         },
         {
@@ -2237,7 +2237,7 @@
           "type": "bytes[12]",
           "category": "未知",
           "semantics": "尚无具体语义／所属嵌套owner内字段证据；不读取不发送，不以构造初值或对齐猜填充",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
           "status": "未知"
         },
         {
@@ -2285,7 +2285,7 @@
           "type": "bytes[308]",
           "category": "未知",
           "semantics": "GenericPrompt真实文本／Sprite／显示存在性归Presentation；不能只用paused替代；这是跨域委派范围，不能据此删除同步或宣称该对象完整",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
           "status": "未知"
         },
         {
@@ -2295,7 +2295,7 @@
           "type": "bytes[276]",
           "category": "未知",
           "semantics": "6F7A80在25E20分支Render此Sprite；资源／动画／文字列表归Presentation；这是跨域委派范围，不能据此删除同步或宣称该对象完整",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
           "status": "未知"
         },
         {
@@ -2359,7 +2359,7 @@
           "type": "bytes[3]",
           "category": "未知",
           "semantics": "尚无具体语义／所属嵌套owner内字段证据；不读取不发送，不以构造初值或对齐猜填充",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
           "status": "未知"
         },
         {
@@ -2379,7 +2379,7 @@
           "type": "i32",
           "category": "状态",
           "semantics": "Retrovision当前倒计时；Room Render用它求淡入淡出",
-          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "evidence": "docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
           "status": "已核",
           "wire": {
             "kind": "copy",
@@ -2393,7 +2393,7 @@
           "type": "i32",
           "category": "状态",
           "semantics": "Retrovision总时间；Client不本地递减",
-          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "evidence": "docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
           "status": "已核",
           "wire": {
             "kind": "copy",
@@ -2477,7 +2477,7 @@
           "type": "bool",
           "category": "状态",
           "semantics": "Q8颜色显示开关；与current六值同world安装，不在Client推进target／step",
-          "evidence": "6F6D30／7021A0；docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "evidence": "6F6D30／7021A0；docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
           "status": "已核",
           "wire": {
             "kind": "copy",
@@ -2491,7 +2491,7 @@
           "type": "bytes[3]",
           "category": "未知",
           "semantics": "尚无具体语义／所属嵌套owner内字段证据；不读取不发送，不以构造初值或对齐猜填充",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
           "status": "未知"
         },
         {
@@ -2535,7 +2535,7 @@
           "type": "bytes[44]",
           "category": "未知",
           "semantics": "尚无具体语义／所属嵌套owner内字段证据；不读取不发送，不以构造初值或对齐猜填充",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
           "status": "未知"
         },
         {
@@ -2633,7 +2633,7 @@
           "type": "bytes[24]",
           "category": "未知",
           "semantics": "尚无具体语义／所属嵌套owner内字段证据；不读取不发送，不以构造初值或对齐猜填充",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
           "status": "未知"
         },
         {
@@ -2643,7 +2643,7 @@
           "type": "bytes[4]",
           "category": "未知",
           "semantics": "6F7A80用clamp(value/90,0,1)画整屏覆盖；Update另触发转场，最终显示归Presentation；这是跨域委派范围，不能据此删除同步或宣称该对象完整",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md §4；Game.zhl及对应嵌套ZHL",
           "status": "未知"
         },
         {
@@ -2673,7 +2673,7 @@
           "type": "bytes[2]",
           "category": "未知",
           "semantics": "尚无具体语义／所属嵌套owner内字段证据；不读取不发送，不以构造初值或对齐猜填充",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
           "status": "未知"
         },
         {
@@ -2693,7 +2693,7 @@
           "type": "bytes[12]",
           "category": "未知",
           "semantics": "对象尾部尚未解释；明确列出，不读取不发送，不假定为填充",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md",
           "status": "未知"
         }
       ],
@@ -4096,7 +4096,7 @@
           "name": "hud_progress_blocked",
           "type": "u8",
           "semantics": "97C300正常Host显示调用已产生的最终禁用成就图标结果；绑定真实run/world/显示批次。不是AchievementUnlocksDisallowed完整API，不允许写回资格；缺真实批次报Gap",
-          "evidence": "97C300的custom/Seeds资格/rerun/debug/challenge分支；docs/design/binary-state/run-synchronization-review.md",
+          "evidence": "97C300的custom/Seeds资格/rerun/debug/challenge分支；docs/archive/design/binary-state/run-synchronization-review.md",
           "host": "run_hud_progress_result_observed",
           "client": "run_hud_progress_result_draw_borrow"
         },
@@ -4104,7 +4104,7 @@
           "name": "host_paused",
           "type": "u8",
           "semantics": "Q12同一world的Host Game::IsPaused结果；不得用旧D0或Client Manager状态替代",
-          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-1/early-return-branches.md",
+          "evidence": "docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-1/early-return-branches.md",
           "host": "run_host_paused_read",
           "client": "run_host_paused_install"
         },
@@ -4112,7 +4112,7 @@
           "name": "display_branch",
           "type": "u8",
           "semantics": "Q12终结分支枚举display_branch 0..12；不是paused的别名",
-          "evidence": "docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-1/early-return-branches.md",
+          "evidence": "docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）；RE-1/early-return-branches.md",
           "host": "run_display_branch_read",
           "client": "run_display_branch_install"
         }
@@ -4121,53 +4121,53 @@
         "game_frame": {
           "type": "world-header-u32",
           "semantics": "Game+25A70由同world帧头game_frame承载，Run不重复发送",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md"
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md"
         },
         "draw_clock": {
           "type": "presentation-D0",
           "semantics": "ManagerFrame/paused/两份既有纯绘制RNG归8.2.1；未实施的新Run表不重复它们",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md"
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md"
         },
         "level": {
           "type": "step7-level-room",
           "semantics": "第7步实际Room/Level/descriptor/配置与effective_curses，不能用本地生成／种子／Update补齐",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md"
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md"
         },
         "participants": {
           "type": "step5-participant-body",
           "semantics": "第5步的参与者/control group/身体/roster；设备／Player*不作网络身份",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md"
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md"
         },
         "presentation": {
           "type": "step8-named-presentation",
           "semantics": "实际HUD/Minimap/Prompt/Overlay/Pause/转场/Sprite/Image/文本/最终shader结果；第4节逐项交接，仍未实施，缺来源Gap",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md"
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md"
         },
         "stat_hud": {
           "type": "step8-stat-hud-final-cache",
           "semantics": "Host既有StatHUD value/delta/previous/threshold/countdown与最终概率；不能为显示重算devil/angel/planetarium或推进随机",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md"
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md"
         },
         "current_run_title": {
           "type": "step8-current-run-title",
           "semantics": "实际当前challenge/daily名称与最终文字／资源；区别Game当前run参数与Manager预告对象，Owner尚待接线",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md"
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md"
         },
         "local_ui": {
           "type": "local-ui-owner",
           "semantics": "各端本地菜单／选中项／Font／视口／CompletionWidget／设备；Host暂停语义独立用D0，不复制操作",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md"
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md"
         },
         "resources": {
           "type": "step7-resource-result",
           "semantics": "当前实际配置／Image/Shader等结果；不以Host种子或指针重建，不调用pool/生成/解锁",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md"
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md"
         }
       },
       "notes": "Game的Run视图，不代表整个Game完整。932AB3 push680E8/932ACF调用6ED4B0核实际分配大小；跨域委派余段继续保留UNKNOWN。版本72按Q8/Q11/Q12安装Host当前值，取代旧的显示作用域借用／恢复方案；GameFrame由帧头唯一承载，相机偏移留本机。Host主线程同run/world有资格窗口复制，后台只持自有纯值；不进入原版Online/Isaac Sync或玩法Update。所有新handler仍为声明，正式接线归10/13步。",
       "catalog_rows": [
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 1,
           "id": "Ambush.GetCurrentWave",
           "owner": "Ambush",
@@ -4179,7 +4179,7 @@
           "reason": "Host玩法／历史／生产查询，API可见或旧目录标ReplicatedState不是发送理由；显示需要最终Stats/资源/世界结果时走具名owner，不同步原生产历史；原stream行3140归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 2,
           "id": "Ambush.GetMaxBossChallengeWaves",
           "owner": "Ambush",
@@ -4191,7 +4191,7 @@
           "reason": "REPENTOGON全局bossAmbushWaves，不在Ambush对象；Host生成配置不传；原stream行3141归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 3,
           "id": "Ambush.GetMaxBossrushWaves",
           "owner": "Ambush",
@@ -4203,7 +4203,7 @@
           "reason": "Host玩法／历史／生产查询，API可见或旧目录标ReplicatedState不是发送理由；显示需要最终Stats/资源/世界结果时走具名owner，不同步原生产历史；原stream行3142归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 4,
           "id": "Ambush.GetMaxChallengeWaves",
           "owner": "Ambush",
@@ -4215,7 +4215,7 @@
           "reason": "REPENTOGON全局ambushWaves，不在Ambush对象；Host生成配置不传；原stream行3143归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 5,
           "id": "Ambush.GetNextWave",
           "owner": "Ambush",
@@ -4227,7 +4227,7 @@
           "reason": "官方接口复制RNG后GetRandomRoom；属于Host候选选择，不额外执行；原stream行3144归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 6,
           "id": "Ambush.GetNextWaves",
           "owner": "Ambush",
@@ -4239,7 +4239,7 @@
           "reason": "官方接口临时以reduceWeight=true更改RoomConfig权重再恢复；正式采集不执行此预览；原stream行3145归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 7,
           "id": "Ambush.SetMaxBossChallengeWaves",
           "owner": "Ambush",
@@ -4251,7 +4251,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3146归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 8,
           "id": "Ambush.SetMaxBossrushWaves",
           "owner": "Ambush",
@@ -4263,7 +4263,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3147归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 9,
           "id": "Ambush.SetMaxChallengeWaves",
           "owner": "Ambush",
@@ -4275,7 +4275,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3148归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 10,
           "id": "Ambush.SpawnBossrushWave",
           "owner": "Ambush",
@@ -4287,7 +4287,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3149归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 11,
           "id": "Ambush.SpawnWave",
           "owner": "Ambush",
@@ -4299,7 +4299,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3150归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 12,
           "id": "Ambush.StartChallenge",
           "owner": "Ambush",
@@ -4311,7 +4311,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3151归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 13,
           "id": "ChallengeParam.CanShoot",
           "owner": "ChallengeParam",
@@ -4323,7 +4323,7 @@
           "reason": "挑战起始／生成／路线／完成参数留Host；RunChallengeParam231记录原生存储，实际Player/Room与标题最终结果独立承接，不在Client应用规则；原stream行3152归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 14,
           "id": "ChallengeParam.GetAchievementList",
           "owner": "ChallengeParam",
@@ -4335,7 +4335,7 @@
           "reason": "挑战起始／生成／路线／完成参数留Host；RunChallengeParam231记录原生存储，实际Player/Room与标题最终结果独立承接，不在Client应用规则；原stream行3153归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 15,
           "id": "ChallengeParam.GetAddDamage",
           "owner": "ChallengeParam",
@@ -4347,7 +4347,7 @@
           "reason": "挑战起始／生成／路线／完成参数留Host；RunChallengeParam231记录原生存储，实际Player/Room与标题最终结果独立承接，不在Client应用规则；原stream行3154归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 16,
           "id": "ChallengeParam.GetBlackHearts",
           "owner": "ChallengeParam",
@@ -4359,7 +4359,7 @@
           "reason": "挑战起始／生成／路线／完成参数留Host；RunChallengeParam231记录原生存储，实际Player/Room与标题最终结果独立承接，不在Client应用规则；原stream行3155归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 17,
           "id": "ChallengeParam.GetCoins",
           "owner": "ChallengeParam",
@@ -4371,7 +4371,7 @@
           "reason": "挑战起始／生成／路线／完成参数留Host；RunChallengeParam231记录原生存储，实际Player/Room与标题最终结果独立承接，不在Client应用规则；原stream行3156归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 18,
           "id": "ChallengeParam.GetCollectibleList",
           "owner": "ChallengeParam",
@@ -4383,7 +4383,7 @@
           "reason": "挑战起始／生成／路线／完成参数留Host；RunChallengeParam231记录原生存储，实际Player/Room与标题最终结果独立承接，不在Client应用规则；原stream行3157归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 19,
           "id": "ChallengeParam.GetCollectibleTwinList",
           "owner": "ChallengeParam",
@@ -4395,7 +4395,7 @@
           "reason": "挑战起始／生成／路线／完成参数留Host；RunChallengeParam231记录原生存储，实际Player/Room与标题最终结果独立承接，不在Client应用规则；原stream行3158归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 20,
           "id": "ChallengeParam.GetCurse",
           "owner": "ChallengeParam",
@@ -4407,7 +4407,7 @@
           "reason": "挑战起始／生成／路线／完成参数留Host；RunChallengeParam231记录原生存储，实际Player/Room与标题最终结果独立承接，不在Client应用规则；原stream行3159归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 21,
           "id": "ChallengeParam.GetCurseFilter",
           "owner": "ChallengeParam",
@@ -4419,7 +4419,7 @@
           "reason": "挑战起始／生成／路线／完成参数留Host；RunChallengeParam231记录原生存储，实际Player/Room与标题最终结果独立承接，不在Client应用规则；原stream行3160归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 22,
           "id": "ChallengeParam.GetDifficulty",
           "owner": "ChallengeParam",
@@ -4431,7 +4431,7 @@
           "reason": "挑战起始／生成／路线／完成参数留Host；RunChallengeParam231记录原生存储，实际Player/Room与标题最终结果独立承接，不在Client应用规则；原stream行3161归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 23,
           "id": "ChallengeParam.GetEndStage",
           "owner": "ChallengeParam",
@@ -4443,7 +4443,7 @@
           "reason": "挑战起始／生成／路线／完成参数留Host；RunChallengeParam231记录原生存储，实际Player/Room与标题最终结果独立承接，不在Client应用规则；原stream行3162归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 24,
           "id": "ChallengeParam.GetHearts",
           "owner": "ChallengeParam",
@@ -4455,7 +4455,7 @@
           "reason": "挑战起始／生成／路线／完成参数留Host；RunChallengeParam231记录原生存储，实际Player/Room与标题最终结果独立承接，不在Client应用规则；原stream行3163归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 25,
           "id": "ChallengeParam.GetMaxHearts",
           "owner": "ChallengeParam",
@@ -4467,7 +4467,7 @@
           "reason": "挑战起始／生成／路线／完成参数留Host；RunChallengeParam231记录原生存储，实际Player/Room与标题最终结果独立承接，不在Client应用规则；原stream行3164归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 26,
           "id": "ChallengeParam.GetMinFireRate",
           "owner": "ChallengeParam",
@@ -4479,7 +4479,7 @@
           "reason": "挑战起始／生成／路线／完成参数留Host；RunChallengeParam231记录原生存储，实际Player/Room与标题最终结果独立承接，不在Client应用规则；原stream行3165归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 27,
           "id": "ChallengeParam.GetName",
           "owner": "ChallengeParam",
@@ -4493,7 +4493,7 @@
           "reason": "当前run的实际标题由Presentation承接，不从Manager下一日参数替换；原stream行3166归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 28,
           "id": "ChallengeParam.GetPlayerType",
           "owner": "ChallengeParam",
@@ -4505,7 +4505,7 @@
           "reason": "挑战起始／生成／路线／完成参数留Host；RunChallengeParam231记录原生存储，实际Player/Room与标题最终结果独立承接，不在Client应用规则；原stream行3167归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 29,
           "id": "ChallengeParam.GetRoomFilter",
           "owner": "ChallengeParam",
@@ -4517,7 +4517,7 @@
           "reason": "挑战起始／生成／路线／完成参数留Host；RunChallengeParam231记录原生存储，实际Player/Room与标题最终结果独立承接，不在Client应用规则；原stream行3168归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 30,
           "id": "ChallengeParam.GetSoulHearts",
           "owner": "ChallengeParam",
@@ -4529,7 +4529,7 @@
           "reason": "挑战起始／生成／路线／完成参数留Host；RunChallengeParam231记录原生存储，实际Player/Room与标题最终结果独立承接，不在Client应用规则；原stream行3169归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 31,
           "id": "ChallengeParam.GetStartingCard",
           "owner": "ChallengeParam",
@@ -4541,7 +4541,7 @@
           "reason": "挑战起始／生成／路线／完成参数留Host；RunChallengeParam231记录原生存储，实际Player/Room与标题最终结果独立承接，不在Client应用规则；原stream行3170归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 32,
           "id": "ChallengeParam.GetStartingPill",
           "owner": "ChallengeParam",
@@ -4553,7 +4553,7 @@
           "reason": "挑战起始／生成／路线／完成参数留Host；RunChallengeParam231记录原生存储，实际Player/Room与标题最终结果独立承接，不在Client应用规则；原stream行3171归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 33,
           "id": "ChallengeParam.GetTrinketList",
           "owner": "ChallengeParam",
@@ -4565,7 +4565,7 @@
           "reason": "挑战起始／生成／路线／完成参数留Host；RunChallengeParam231记录原生存储，实际Player/Room与标题最终结果独立承接，不在Client应用规则；原stream行3172归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 34,
           "id": "ChallengeParam.IsAltPath",
           "owner": "ChallengeParam",
@@ -4577,7 +4577,7 @@
           "reason": "挑战起始／生成／路线／完成参数留Host；RunChallengeParam231记录原生存储，实际Player/Room与标题最终结果独立承接，不在Client应用规则；原stream行3173归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 35,
           "id": "ChallengeParam.IsBeastPath",
           "owner": "ChallengeParam",
@@ -4589,7 +4589,7 @@
           "reason": "挑战起始／生成／路线／完成参数留Host；RunChallengeParam231记录原生存储，实际Player/Room与标题最终结果独立承接，不在Client应用规则；原stream行3174归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 36,
           "id": "ChallengeParam.IsBigRangeEnabled",
           "owner": "ChallengeParam",
@@ -4601,7 +4601,7 @@
           "reason": "挑战起始／生成／路线／完成参数留Host；RunChallengeParam231记录原生存储，实际Player/Room与标题最终结果独立承接，不在Client应用规则；原stream行3175归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 37,
           "id": "ChallengeParam.IsMaxDamageEnabled",
           "owner": "ChallengeParam",
@@ -4613,7 +4613,7 @@
           "reason": "挑战起始／生成／路线／完成参数留Host；RunChallengeParam231记录原生存储，实际Player/Room与标题最终结果独立承接，不在Client应用规则；原stream行3176归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 38,
           "id": "ChallengeParam.IsMegaSatanRun",
           "owner": "ChallengeParam",
@@ -4625,7 +4625,7 @@
           "reason": "挑战起始／生成／路线／完成参数留Host；RunChallengeParam231记录原生存储，实际Player/Room与标题最终结果独立承接，不在Client应用规则；原stream行3177归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 39,
           "id": "ChallengeParam.IsMinShotSpeedEnabled",
           "owner": "ChallengeParam",
@@ -4637,7 +4637,7 @@
           "reason": "挑战起始／生成／路线／完成参数留Host；RunChallengeParam231记录原生存储，实际Player/Room与标题最终结果独立承接，不在Client应用规则；原stream行3178归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 40,
           "id": "ChallengeParam.IsSecretPath",
           "owner": "ChallengeParam",
@@ -4649,7 +4649,7 @@
           "reason": "挑战起始／生成／路线／完成参数留Host；RunChallengeParam231记录原生存储，实际Player/Room与标题最终结果独立承接，不在Client应用规则；原stream行3179归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 53,
           "id": "DailyChallenge.GetChallengeParams",
           "owner": "DailyChallenge",
@@ -4661,7 +4661,7 @@
           "reason": "官方LuaDailyChallenge.cpp取Manager当前预告对象，区别Game当前run副本；不网络化菜单daily配置；原stream行3192归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 74,
           "id": "Game.AchievementUnlocksDisallowed",
           "owner": "Game",
@@ -4673,7 +4673,7 @@
           "reason": "API资格结果与HUD最终图标非同义；仅后者由hud_progress_blocked承接，不复制custom/debug/解锁查询或改访客资格；原stream行3213归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 75,
           "id": "Game.AddDebugFlags",
           "owner": "Game",
@@ -4685,7 +4685,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3214归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 76,
           "id": "Game.AddDevilRoomDeal",
           "owner": "Game",
@@ -4697,7 +4697,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3215归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 77,
           "id": "Game.AddEncounteredBoss",
           "owner": "Game",
@@ -4709,7 +4709,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3216归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 78,
           "id": "Game.AddPixelation",
           "owner": "Game",
@@ -4721,7 +4721,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3217归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 79,
           "id": "Game.AddShopVisits",
           "owner": "Game",
@@ -4733,7 +4733,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3218归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 80,
           "id": "Game.AddStageWithoutDamage",
           "owner": "Game",
@@ -4745,7 +4745,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3219归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 81,
           "id": "Game.AddStageWithoutHeartsPicked",
           "owner": "Game",
@@ -4757,7 +4757,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3220归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 82,
           "id": "Game.AddTreasureRoomsVisited",
           "owner": "Game",
@@ -4769,7 +4769,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3221归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 83,
           "id": "Game.BlueWombParTime",
           "owner": "Game",
@@ -4781,7 +4781,7 @@
           "reason": "Host玩法／历史／生产查询，API可见或旧目录标ReplicatedState不是发送理由；显示需要最终Stats/资源/世界结果时走具名owner，不同步原生产历史；原stream行3222归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 84,
           "id": "Game.BombDamage",
           "owner": "Game",
@@ -4793,7 +4793,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3223归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 85,
           "id": "Game.BombExplosionEffects",
           "owner": "Game",
@@ -4805,7 +4805,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3224归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 86,
           "id": "Game.BombTearflagEffects",
           "owner": "Game",
@@ -4817,7 +4817,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3225归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 87,
           "id": "Game.BossRushParTime",
           "owner": "Game",
@@ -4829,7 +4829,7 @@
           "reason": "Host玩法／历史／生产查询，API可见或旧目录标ReplicatedState不是发送理由；显示需要最终Stats/资源/世界结果时走具名owner，不同步原生产历史；原stream行3226归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 88,
           "id": "Game.ButterBeanFart",
           "owner": "Game",
@@ -4841,7 +4841,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3227归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 89,
           "id": "Game.ChainLightning",
           "owner": "Game",
@@ -4853,7 +4853,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3228归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 90,
           "id": "Game.Challenge",
           "owner": "Game",
@@ -4867,7 +4867,7 @@
           "reason": "当前显示身份，不执行挑战规则；原stream行3229归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 91,
           "id": "Game.ChangeRoom",
           "owner": "Game",
@@ -4879,7 +4879,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3230归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 92,
           "id": "Game.CharmFart",
           "owner": "Game",
@@ -4891,7 +4891,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3231归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 93,
           "id": "Game.ClearDonationModAngel",
           "owner": "Game",
@@ -4903,7 +4903,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3232归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 94,
           "id": "Game.ClearDonationModGreed",
           "owner": "Game",
@@ -4915,7 +4915,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3233归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 95,
           "id": "Game.ClearErasedEnemies",
           "owner": "Game",
@@ -4927,7 +4927,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3234归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 96,
           "id": "Game.ClearStagesWithoutDamage",
           "owner": "Game",
@@ -4939,7 +4939,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3235归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 97,
           "id": "Game.ClearStagesWithoutHeartsPicked",
           "owner": "Game",
@@ -4951,7 +4951,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3236归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 98,
           "id": "Game.Darken",
           "owner": "Game",
@@ -4963,7 +4963,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3237归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 99,
           "id": "Game.DevolveEnemy",
           "owner": "Game",
@@ -4975,7 +4975,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3238归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 100,
           "id": "Game.Difficulty",
           "owner": "Game",
@@ -4989,7 +4989,7 @@
           "reason": "实际难度显示，保留0..3；原stream行3239归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 101,
           "id": "Game.DonateAngel",
           "owner": "Game",
@@ -5001,7 +5001,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3240归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 102,
           "id": "Game.DonateGreed",
           "owner": "Game",
@@ -5013,7 +5013,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3241归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 103,
           "id": "Game.End",
           "owner": "Game",
@@ -5025,7 +5025,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3242归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 104,
           "id": "Game.Fadein",
           "owner": "Game",
@@ -5037,7 +5037,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3243归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 105,
           "id": "Game.Fadein",
           "owner": "Game",
@@ -5049,7 +5049,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3244归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 106,
           "id": "Game.Fadeout",
           "owner": "Game",
@@ -5061,7 +5061,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3245归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 107,
           "id": "Game.Fadeout",
           "owner": "Game",
@@ -5073,7 +5073,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3246归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 108,
           "id": "Game.Fart",
           "owner": "Game",
@@ -5085,7 +5085,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3247归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 109,
           "id": "Game.FinishChallenge",
           "owner": "Game",
@@ -5097,7 +5097,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3248归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 110,
           "id": "Game.Game",
           "owner": "Game",
@@ -5109,7 +5109,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3249归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 111,
           "id": "Game.GetAmbush",
           "owner": "Game",
@@ -5121,7 +5121,7 @@
           "reason": "Host玩法／历史／生产查询，API可见或旧目录标ReplicatedState不是发送理由；显示需要最终Stats/资源/世界结果时走具名owner，不同步原生产历史；原stream行3250归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 112,
           "id": "Game.GetChallengeParams",
           "owner": "Game",
@@ -5133,7 +5133,7 @@
           "reason": "702320按Game当前daily或Manager challenge配置返回Host参数对象；不发原生指针／初始化输入，实际标题交@current_run_title；原stream行3251归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 113,
           "id": "Game.GetCurrentColorModifier",
           "owner": "Game",
@@ -5147,7 +5147,7 @@
           "reason": "只传current六值，target/lerp留Host；原stream行3252归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 114,
           "id": "Game.GetDarknessModifier",
           "owner": "Game",
@@ -5161,7 +5161,7 @@
           "reason": "实际Render直接读取；原stream行3253归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 115,
           "id": "Game.GetDebugFlags",
           "owner": "Game",
@@ -5173,7 +5173,7 @@
           "reason": "Host玩法／历史／生产查询，API可见或旧目录标ReplicatedState不是发送理由；显示需要最终Stats/资源/世界结果时走具名owner，不同步原生产历史；原stream行3254归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 116,
           "id": "Game.GetDevilRoomDeals",
           "owner": "Game",
@@ -5185,7 +5185,7 @@
           "reason": "Host玩法／历史／生产查询，API可见或旧目录标ReplicatedState不是发送理由；显示需要最终Stats/资源/世界结果时走具名owner，不同步原生产历史；原stream行3255归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 117,
           "id": "Game.GetDizzyAmount",
           "owner": "Game",
@@ -5199,7 +5199,7 @@
           "reason": "当前显示值，target/speed留Host；原stream行3256归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 118,
           "id": "Game.GetDonationModAngel",
           "owner": "Game",
@@ -5211,7 +5211,7 @@
           "reason": "Host玩法／历史／生产查询，API可见或旧目录标ReplicatedState不是发送理由；显示需要最终Stats/资源/世界结果时走具名owner，不同步原生产历史；原stream行3257归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 119,
           "id": "Game.GetDonationModGreed",
           "owner": "Game",
@@ -5223,7 +5223,7 @@
           "reason": "Host玩法／历史／生产查询，API可见或旧目录标ReplicatedState不是发送理由；显示需要最终Stats/资源/世界结果时走具名owner，不同步原生产历史；原stream行3258归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 120,
           "id": "Game.GetFont",
           "owner": "Game",
@@ -5235,7 +5235,7 @@
           "reason": "本地纯转换／配置查询／菜单交互，不是当前run状态负载；不把该API作为远程调用；原stream行3259归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 121,
           "id": "Game.GetFrameCount",
           "owner": "Game",
@@ -5249,7 +5249,7 @@
           "reason": "同world帧头唯一承载；原stream行3260归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 122,
           "id": "Game.GetGenericPrompt",
           "owner": "Game",
@@ -5263,7 +5263,7 @@
           "reason": "实际Prompt存在性／资源／文本，未实施时报Gap；原stream行3261归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 123,
           "id": "Game.GetGreedBossWaveNum",
           "owner": "Game",
@@ -5275,7 +5275,7 @@
           "reason": "Host玩法／历史／生产查询，API可见或旧目录标ReplicatedState不是发送理由；显示需要最终Stats/资源/世界结果时走具名owner，不同步原生产历史；原stream行3262归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 124,
           "id": "Game.GetGreedWavesNum",
           "owner": "Game",
@@ -5287,7 +5287,7 @@
           "reason": "Host玩法／历史／生产查询，API可见或旧目录标ReplicatedState不是发送理由；显示需要最终Stats/资源/世界结果时走具名owner，不同步原生产历史；原stream行3263归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 125,
           "id": "Game.GetHUD",
           "owner": "Game",
@@ -5301,7 +5301,7 @@
           "reason": "实际HUD owner；未知资源／缓存仍待本步后续；原stream行3264归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 126,
           "id": "Game.GetItemOverlay",
           "owner": "Game",
@@ -5315,7 +5315,7 @@
           "reason": "实际Overlay显示owner，未实施不能冒充可调用；原stream行3265归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 127,
           "id": "Game.GetItemPool",
           "owner": "Game",
@@ -5329,7 +5329,7 @@
           "reason": "只显示已声明资源／最终pill身份；不下发pool或开放随机选择；原stream行3266归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 128,
           "id": "Game.GetLastDevilRoomStage",
           "owner": "Game",
@@ -5341,7 +5341,7 @@
           "reason": "Host玩法／历史／生产查询，API可见或旧目录标ReplicatedState不是发送理由；显示需要最终Stats/资源/世界结果时走具名owner，不同步原生产历史；原stream行3267归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 129,
           "id": "Game.GetLastLevelWithDamage",
           "owner": "Game",
@@ -5353,7 +5353,7 @@
           "reason": "Host玩法／历史／生产查询，API可见或旧目录标ReplicatedState不是发送理由；显示需要最终Stats/资源/世界结果时走具名owner，不同步原生产历史；原stream行3268归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 130,
           "id": "Game.GetLastLevelWithoutHalfHp",
           "owner": "Game",
@@ -5365,7 +5365,7 @@
           "reason": "Host玩法／历史／生产查询，API可见或旧目录标ReplicatedState不是发送理由；显示需要最终Stats/资源/世界结果时走具名owner，不同步原生产历史；原stream行3269归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 131,
           "id": "Game.GetLerpColorModifier",
           "owner": "Game",
@@ -5377,7 +5377,7 @@
           "reason": "原始Host生产／过渡参数Getter留Host；实际当前值／最终pass与资源见第4节具体Presentation交接，不从最终结果反推该Getter原值；原stream行3270归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 132,
           "id": "Game.GetLevel",
           "owner": "Game",
@@ -5391,7 +5391,7 @@
           "reason": "实际第7步owner视图，不发送Game指针；原stream行3271归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 133,
           "id": "Game.GetNearestPlayer",
           "owner": "Game",
@@ -5403,7 +5403,7 @@
           "reason": "Host玩法／历史／生产查询，API可见或旧目录标ReplicatedState不是发送理由；显示需要最终Stats/资源/世界结果时走具名owner，不同步原生产历史；原stream行3272归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 134,
           "id": "Game.GetNumEncounteredBosses",
           "owner": "Game",
@@ -5415,7 +5415,7 @@
           "reason": "Host玩法／历史／生产查询，API可见或旧目录标ReplicatedState不是发送理由；显示需要最终Stats/资源/世界结果时走具名owner，不同步原生产历史；原stream行3273归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 135,
           "id": "Game.GetNumPlayers",
           "owner": "Game",
@@ -5429,7 +5429,7 @@
           "reason": "第5步实际roster/body，参与者不等于EntityPlayer数；原stream行3274归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 136,
           "id": "Game.GetPauseMenuState",
           "owner": "Game",
@@ -5441,7 +5441,7 @@
           "reason": "本地纯转换／配置查询／菜单交互，不是当前run状态负载；不把该API作为远程调用；原stream行3275归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 137,
           "id": "Game.GetPlanetariumsVisited",
           "owner": "Game",
@@ -5453,7 +5453,7 @@
           "reason": "Host玩法／历史／生产查询，API可见或旧目录标ReplicatedState不是发送理由；显示需要最终Stats/资源/世界结果时走具名owner，不同步原生产历史；原stream行3276归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 138,
           "id": "Game.GetPlayer",
           "owner": "Game",
@@ -5467,7 +5467,7 @@
           "reason": "已提交ordinal/body成员与当前代次绑定；原stream行3277归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 139,
           "id": "Game.GetRandomPlayer",
           "owner": "Game",
@@ -5479,7 +5479,7 @@
           "reason": "Host玩法／历史／生产查询，API可见或旧目录标ReplicatedState不是发送理由；显示需要最终Stats/资源/世界结果时走具名owner，不同步原生产历史；原stream行3278归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 140,
           "id": "Game.GetRoom",
           "owner": "Game",
@@ -5493,7 +5493,7 @@
           "reason": "实际当前Room身份与结构，不发Room*；原stream行3279归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 141,
           "id": "Game.GetScreenShakeCountdown",
           "owner": "Game",
@@ -5505,7 +5505,7 @@
           "reason": "原始Host生产／过渡参数Getter留Host；实际当前值／最终pass与资源见第4节具体Presentation交接，不从最终结果反推该Getter原值；原stream行3280归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 142,
           "id": "Game.GetSeeds",
           "owner": "Game",
@@ -5519,7 +5519,7 @@
           "reason": "只绑定RunSeeds已声明视图，不开放全部原生种子getter；原stream行3281归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 143,
           "id": "Game.GetShopVisits",
           "owner": "Game",
@@ -5531,7 +5531,7 @@
           "reason": "Host玩法／历史／生产查询，API可见或旧目录标ReplicatedState不是发送理由；显示需要最终Stats/资源/世界结果时走具名owner，不同步原生产历史；原stream行3282归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 144,
           "id": "Game.GetStagesWithoutDamage",
           "owner": "Game",
@@ -5543,7 +5543,7 @@
           "reason": "Host玩法／历史／生产查询，API可见或旧目录标ReplicatedState不是发送理由；显示需要最终Stats/资源/世界结果时走具名owner，不同步原生产历史；原stream行3283归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 145,
           "id": "Game.GetStagesWithoutHeartsPicked",
           "owner": "Game",
@@ -5555,7 +5555,7 @@
           "reason": "Host玩法／历史／生产查询，API可见或旧目录标ReplicatedState不是发送理由；显示需要最终Stats/资源/世界结果时走具名owner，不同步原生产历史；原stream行3284归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 146,
           "id": "Game.GetStateFlag",
           "owner": "Game",
@@ -5567,7 +5567,7 @@
           "reason": "完整参数查询留Host；仅bit48已有具体显示消费者，另经game_flags生成1B投影，不恢复通用flags查询字典；原stream行3285归属NotReplicated保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 147,
           "id": "Game.GetTargetColorModifier",
           "owner": "Game",
@@ -5579,7 +5579,7 @@
           "reason": "原始Host生产／过渡参数Getter留Host；实际当前值／最终pass与资源见第4节具体Presentation交接，不从最终结果反推该Getter原值；原stream行3286归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 148,
           "id": "Game.GetTargetDarkness",
           "owner": "Game",
@@ -5593,7 +5593,7 @@
           "reason": "第二浮点有实际Render乘法消费者，不能按名称裁掉；原stream行3287归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 149,
           "id": "Game.GetTreasureRoomVisitCount",
           "owner": "Game",
@@ -5605,7 +5605,7 @@
           "reason": "Host玩法／历史／生产查询，API可见或旧目录标ReplicatedState不是发送理由；显示需要最终Stats/资源/世界结果时走具名owner，不同步原生产历史；原stream行3288归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 150,
           "id": "Game.GetVictoryLap",
           "owner": "Game",
@@ -5617,7 +5617,7 @@
           "reason": "Host玩法／历史／生产查询，API可见或旧目录标ReplicatedState不是发送理由；显示需要最终Stats/资源/世界结果时走具名owner，不同步原生产历史；原stream行3289归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 151,
           "id": "Game.HasEncounteredBoss",
           "owner": "Game",
@@ -5629,7 +5629,7 @@
           "reason": "Host玩法／历史／生产查询，API可见或旧目录标ReplicatedState不是发送理由；显示需要最终Stats/资源/世界结果时走具名owner，不同步原生产历史；原stream行3290归属NotReplicated保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 152,
           "id": "Game.HasHallucination",
           "owner": "Game",
@@ -5641,7 +5641,7 @@
           "reason": "原始Host生产／过渡参数Getter留Host；实际当前值／最终pass与资源见第4节具体Presentation交接，不从最终结果反推该Getter原值；原stream行3291归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 153,
           "id": "Game.IsErased",
           "owner": "Game",
@@ -5653,7 +5653,7 @@
           "reason": "Host玩法／历史／生产查询，API可见或旧目录标ReplicatedState不是发送理由；显示需要最终Stats/资源/世界结果时走具名owner，不同步原生产历史；原stream行3292归属NotReplicated保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 154,
           "id": "Game.IsErased",
           "owner": "Game",
@@ -5665,7 +5665,7 @@
           "reason": "Host玩法／历史／生产查询，API可见或旧目录标ReplicatedState不是发送理由；显示需要最终Stats/资源/世界结果时走具名owner，不同步原生产历史；原stream行3293归属NotReplicated保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 155,
           "id": "Game.IsGreedBoss",
           "owner": "Game",
@@ -5677,7 +5677,7 @@
           "reason": "Host玩法／历史／生产查询，API可见或旧目录标ReplicatedState不是发送理由；显示需要最终Stats/资源/世界结果时走具名owner，不同步原生产历史；原stream行3294归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 156,
           "id": "Game.IsGreedFinalBoss",
           "owner": "Game",
@@ -5689,7 +5689,7 @@
           "reason": "Host玩法／历史／生产查询，API可见或旧目录标ReplicatedState不是发送理由；显示需要最终Stats/资源/世界结果时走具名owner，不同步原生产历史；原stream行3295归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 157,
           "id": "Game.IsGreedMode",
           "owner": "Game",
@@ -5703,7 +5703,7 @@
           "reason": "实际difficulty为2或3；原stream行3296归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 158,
           "id": "Game.IsHardMode",
           "owner": "Game",
@@ -5717,7 +5717,7 @@
           "reason": "实际difficulty为1或3；原stream行3297归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 159,
           "id": "Game.IsPauseMenuOpen",
           "owner": "Game",
@@ -5729,7 +5729,7 @@
           "reason": "本地纯转换／配置查询／菜单交互，不是当前run状态负载；不把该API作为远程调用；原stream行3298归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 160,
           "id": "Game.IsPaused",
           "owner": "Game",
@@ -5743,7 +5743,7 @@
           "reason": "仅D0.paused的Host绘制暂停结果，不是Client菜单操作；原stream行3299归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 161,
           "id": "Game.IsRerun",
           "owner": "Game",
@@ -5755,7 +5755,7 @@
           "reason": "Host rerun生产/资格来源；97C300只用它生成最终进度图标，已有hud_progress_blocked结果，不重复同步该输入或改访客资格。；原stream行3300归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 162,
           "id": "Game.IsStartingFromState",
           "owner": "Game",
@@ -5767,7 +5767,7 @@
           "reason": "Host玩法／历史／生产查询，API可见或旧目录标ReplicatedState不是发送理由；显示需要最终Stats/资源/世界结果时走具名owner，不同步原生产历史；原stream行3301归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 163,
           "id": "Game.MakeShockwave",
           "owner": "Game",
@@ -5779,7 +5779,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3302归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 164,
           "id": "Game.MoveToRandomRoom",
           "owner": "Game",
@@ -5791,7 +5791,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3303归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 165,
           "id": "Game.NextVictoryLap",
           "owner": "Game",
@@ -5803,7 +5803,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3304归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 166,
           "id": "Game.RecordPlayerCompletion",
           "owner": "Game",
@@ -5815,7 +5815,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3305归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 167,
           "id": "Game.Render",
           "owner": "Game",
@@ -5827,7 +5827,7 @@
           "reason": "原生Render内可重算分数／写反馈／进入原版显示；不是网络命令，不因目录存在就放行整个Render；原stream行3306归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 168,
           "id": "Game.RerollEnemy",
           "owner": "Game",
@@ -5839,7 +5839,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3307归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 169,
           "id": "Game.RerollLevelCollectibles",
           "owner": "Game",
@@ -5851,7 +5851,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3308归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 170,
           "id": "Game.RerollLevelPickups",
           "owner": "Game",
@@ -5863,7 +5863,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3309归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 171,
           "id": "Game.ScreenShakeOffset",
           "owner": "Game",
@@ -5877,7 +5877,7 @@
           "reason": "最终震动偏移，生产计时不传；原stream行3310归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 172,
           "id": "Game.SetBloom",
           "owner": "Game",
@@ -5889,7 +5889,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3311归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 173,
           "id": "Game.SetColorModifier",
           "owner": "Game",
@@ -5901,7 +5901,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3312归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 174,
           "id": "Game.SetDizzyAmount",
           "owner": "Game",
@@ -5913,7 +5913,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3313归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 175,
           "id": "Game.SetDonationModAngel",
           "owner": "Game",
@@ -5925,7 +5925,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3314归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 176,
           "id": "Game.SetDonationModGreed",
           "owner": "Game",
@@ -5937,7 +5937,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3315归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 177,
           "id": "Game.SetLastDevilRoomStage",
           "owner": "Game",
@@ -5949,7 +5949,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3316归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 178,
           "id": "Game.SetLastLevelWithDamage",
           "owner": "Game",
@@ -5961,7 +5961,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3317归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 179,
           "id": "Game.SetLastLevelWithoutHalfHp",
           "owner": "Game",
@@ -5973,7 +5973,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3318归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 180,
           "id": "Game.SetStateFlag",
           "owner": "Game",
@@ -5985,7 +5985,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3319归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 181,
           "id": "Game.ShakeScreen",
           "owner": "Game",
@@ -5997,7 +5997,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3320归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 182,
           "id": "Game.ShowFortune",
           "owner": "Game",
@@ -6009,7 +6009,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3321归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 183,
           "id": "Game.ShowGenericLeaderboard",
           "owner": "Game",
@@ -6021,7 +6021,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3322归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 184,
           "id": "Game.ShowHallucination",
           "owner": "Game",
@@ -6033,7 +6033,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3323归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 185,
           "id": "Game.ShowRule",
           "owner": "Game",
@@ -6045,7 +6045,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3324归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 186,
           "id": "Game.Spawn",
           "owner": "Game",
@@ -6057,7 +6057,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3325归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 187,
           "id": "Game.SpawnBombCrater",
           "owner": "Game",
@@ -6069,7 +6069,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3326归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 188,
           "id": "Game.SpawnEntityDesc",
           "owner": "Game",
@@ -6081,7 +6081,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3327归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 189,
           "id": "Game.SpawnParticles",
           "owner": "Game",
@@ -6093,7 +6093,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3328归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 190,
           "id": "Game.StartRoomTransition",
           "owner": "Game",
@@ -6105,7 +6105,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3329归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 191,
           "id": "Game.StartStageTransition",
           "owner": "Game",
@@ -6117,7 +6117,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3330归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 192,
           "id": "Game.StartStageTransition",
           "owner": "Game",
@@ -6129,7 +6129,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3331归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 193,
           "id": "Game.TimeCounter",
           "owner": "Game",
@@ -6143,7 +6143,7 @@
           "reason": "实际计时显示，区别GameFrame；由time_counter_base与同world帧头按模2^32还原i32，直接改时会更新基准；原stream行3332归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 194,
           "id": "Game.Update",
           "owner": "Game",
@@ -6155,7 +6155,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3333归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 195,
           "id": "Game.UpdateStrangeAttractor",
           "owner": "Game",
@@ -6167,7 +6167,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3334归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 371,
           "id": "Seeds.AddSeedEffect",
           "owner": "Seeds",
@@ -6179,7 +6179,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3510归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 372,
           "id": "Seeds.CanAddSeedEffect",
           "owner": "Seeds",
@@ -6191,7 +6191,7 @@
           "reason": "本地纯转换／配置查询／菜单交互，不是当前run状态负载；不把该API作为远程调用；原stream行3511归属NotReplicated保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 373,
           "id": "Seeds.ClearSeedEffects",
           "owner": "Seeds",
@@ -6203,7 +6203,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3512归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 374,
           "id": "Seeds.ClearStartSeed",
           "owner": "Seeds",
@@ -6215,7 +6215,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3513归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 375,
           "id": "Seeds.CountSeedEffects",
           "owner": "Seeds",
@@ -6227,7 +6227,7 @@
           "reason": "完整树数量是Host容器维护，不能从七显示位推导或伪造；不发送全树只为原值相等；原stream行3514归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 376,
           "id": "Seeds.CountUnlockedSeedEffects",
           "owner": "Seeds",
@@ -6239,7 +6239,7 @@
           "reason": "本地纯转换／配置查询／菜单交互，不是当前run状态负载；不把该API作为远程调用；原stream行3515归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 377,
           "id": "Seeds.ForgetStageSeed",
           "owner": "Seeds",
@@ -6251,7 +6251,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3516归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 378,
           "id": "Seeds.GetNextSeed",
           "owner": "Seeds",
@@ -6263,7 +6263,7 @@
           "reason": "实际随机推进，不额外调用／轮询／重放；原stream行3517归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 379,
           "id": "Seeds.GetPlayerInitSeed",
           "owner": "Seeds",
@@ -6275,7 +6275,7 @@
           "reason": "Host角色初始化来源／实际调用，不在Client重新生成Player；原stream行3518归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 380,
           "id": "Seeds.GetSeedEffect",
           "owner": "Seeds",
@@ -6287,7 +6287,7 @@
           "reason": "本地纯转换／配置查询／菜单交互，不是当前run状态负载；不把该API作为远程调用；原stream行3519归属NotReplicated保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 381,
           "id": "Seeds.GetStageSeed",
           "owner": "Seeds",
@@ -6299,7 +6299,7 @@
           "reason": "Host生成种子；不能把有副作用的种子推进与正式只读采集混同，必要实际房间结果独立同步；原stream行3520归属NotReplicated保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 382,
           "id": "Seeds.GetStartSeed",
           "owner": "Seeds",
@@ -6313,7 +6313,7 @@
           "reason": "RunSeeds.start_seed元数据；原stream行3521归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 383,
           "id": "Seeds.GetStartSeedString",
           "owner": "Seeds",
@@ -6327,7 +6327,7 @@
           "reason": "由已同步start_seed做纯Seed2String；不调用种子初始化；原stream行3522归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 384,
           "id": "Seeds.HasSeedEffect",
           "owner": "Seeds",
@@ -6339,7 +6339,7 @@
           "reason": "完整参数查询留Host；只有8/9/10/29/30/78/79另经display_flags固定投影供已声明显示消费者使用；原stream行3523归属NotReplicated保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 385,
           "id": "Seeds.InitSeedInfo",
           "owner": "Seeds",
@@ -6351,7 +6351,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3524归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 386,
           "id": "Seeds.IsCustomRun",
           "owner": "Seeds",
@@ -6363,7 +6363,7 @@
           "reason": "Host玩法／历史／生产查询，API可见或旧目录标ReplicatedState不是发送理由；显示需要最终Stats/资源/世界结果时走具名owner，不同步原生产历史；原stream行3525归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 387,
           "id": "Seeds.IsInitialized",
           "owner": "Seeds",
@@ -6375,7 +6375,7 @@
           "reason": "本地纯转换／配置查询／菜单交互，不是当前run状态负载；不把该API作为远程调用；原stream行3526归属ReplicatedState保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 388,
           "id": "Seeds.IsSeedComboBanned",
           "owner": "Seeds",
@@ -6387,7 +6387,7 @@
           "reason": "本地纯转换／配置查询／菜单交互，不是当前run状态负载；不把该API作为远程调用；原stream行3527归属NotReplicated保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 389,
           "id": "Seeds.IsSpecialSeed",
           "owner": "Seeds",
@@ -6399,7 +6399,7 @@
           "reason": "本地纯转换／配置查询／菜单交互，不是当前run状态负载；不把该API作为远程调用；原stream行3528归属NotReplicated保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 390,
           "id": "Seeds.IsStringValidSeed",
           "owner": "Seeds",
@@ -6411,7 +6411,7 @@
           "reason": "本地纯转换／配置查询／菜单交互，不是当前run状态负载；不把该API作为远程调用；原stream行3529归属NotReplicated保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 391,
           "id": "Seeds.RemoveBlockingSeedEffects",
           "owner": "Seeds",
@@ -6423,7 +6423,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3530归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 392,
           "id": "Seeds.RemoveSeedEffect",
           "owner": "Seeds",
@@ -6435,7 +6435,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3531归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 393,
           "id": "Seeds.Reset",
           "owner": "Seeds",
@@ -6447,7 +6447,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3532归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 394,
           "id": "Seeds.Restart",
           "owner": "Seeds",
@@ -6459,7 +6459,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3533归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 395,
           "id": "Seeds.Seed2String",
           "owner": "Seeds",
@@ -6471,7 +6471,7 @@
           "reason": "本地纯转换／配置查询／菜单交互，不是当前run状态负载；不把该API作为远程调用；原stream行3534归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 396,
           "id": "Seeds.SetStageSeed",
           "owner": "Seeds",
@@ -6483,7 +6483,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3535归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 397,
           "id": "Seeds.SetStartSeed",
           "owner": "Seeds",
@@ -6495,7 +6495,7 @@
           "reason": "Host命令／随机／玩法／生命周期实际调用，不作为状态同步RPC，也不为采集额外执行或在Client回放；最终世界／显示／事件由各owner承接；原stream行3536归属AuthorityOnly保留为历史，本轮重新决定。"
         },
         {
-          "catalog": "docs/design/observation-expansion/run-catalog.json",
+          "catalog": "mod/binding/catalog/run-catalog.json",
           "ordinal": 398,
           "id": "Seeds.String2Seed",
           "owner": "Seeds",
@@ -6631,7 +6631,7 @@
           "type": "bytes[2]",
           "category": "未知",
           "semantics": "尚无具体语义／所属嵌套owner内字段证据；不读取不发送，不以构造初值或对齐猜填充",
-          "evidence": "docs/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
+          "evidence": "docs/archive/design/binary-state/run-synchronization-review.md；官方SDK未具名或本轮未接管的明确孔",
           "status": "未知"
         },
         {
@@ -6641,7 +6641,7 @@
           "type": "i32",
           "category": "状态",
           "semantics": "当前SeedEffect的完整id；只读原有节点，线上为有界有序唯一id列表",
-          "evidence": "452580／662BC0检查+10；原版SeedEffect.md枚举0..79；docs/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
+          "evidence": "452580／662BC0检查+10；原版SeedEffect.md枚举0..79；docs/archive/design/binary-state/client-display-delegation.md 第4.6、8.4节（Q8／D1—D8）",
           "status": "已核",
           "wire": {
             "kind": "copy",

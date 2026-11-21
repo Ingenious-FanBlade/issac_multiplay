@@ -186,7 +186,7 @@
       "notes": "版本50沿用版本48的四项16B描述展示输入，原生3B UNKNOWN保持。SpawnSeed保留Light实际依赖，Host初始化/玩法/保存元数据不恢复。119项全目录及运行接线仍待后续；见grid-common-evidence.md与grid-common-synchronization-review.md。",
       "catalog_rows": [
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 46,
           "id": "GridEntityDesc.Initialized",
           "owner": "GridEntityDesc",
@@ -198,7 +198,7 @@
           "reason": "来源Init见证，Client以自己的工厂/资源owner建立资格。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行46原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 47,
           "id": "GridEntityDesc.SpawnCount",
           "owner": "GridEntityDesc",
@@ -210,7 +210,7 @@
           "reason": "Host Init次数及其随机分支，不是Client最终显示值。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行47原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 48,
           "id": "GridEntityDesc.SpawnSeed",
           "owner": "GridEntityDesc",
@@ -224,7 +224,7 @@
           "reason": "通用198保留实际Light临时RNG输入；224在PressurePlate/Door无随机Light消费者，留Host；不得要求全类SpawnSeed原值相等。 Light以种子加同world的Host GameFrame生成临时绘制随机，不发送对象_rng。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行48原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 49,
           "id": "GridEntityDesc.State",
           "owner": "GridEntityDesc",
@@ -238,7 +238,7 @@
           "reason": "Grid绘制、水面及光照的直接输入。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行49原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 50,
           "id": "GridEntityDesc.Type",
           "owner": "GridEntityDesc",
@@ -252,7 +252,7 @@
           "reason": "结构类型和Room绘制分支的直接输入。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行50原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 51,
           "id": "GridEntityDesc.VarData",
           "owner": "GridEntityDesc",
@@ -264,7 +264,7 @@
           "reason": "Host伤害/奖励/Update状态；旧观测原值相等不能恢复同步。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行51原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 52,
           "id": "GridEntityDesc.VariableSeed",
           "owner": "GridEntityDesc",
@@ -276,7 +276,7 @@
           "reason": "Host玩法随机保存种子，区别于有Light消费者的SpawnSeed。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行52原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 53,
           "id": "GridEntityDesc.Variant",
           "owner": "GridEntityDesc",
@@ -373,7 +373,7 @@
           "category": "权威",
           "semantics": "Host物理/碰撞原值；Lock只在Host合成最终水面结果时读取。Client本地构造owner初始化中性0，wrapper原链各一次后按实例安装water_clip_flags；不重建Host碰撞",
           "status": "已核",
-          "evidence": "J273 Init 0x70507E仅是初值，随后虚调InitSubclass；Lock WaterClip 0x70CCE0读对象+3C；grid-common-evidence.md；版本49按最终C/S wrapper复核，见docs/design/binary-state/grid-common-synchronization-review.md"
+          "evidence": "J273 Init 0x70507E仅是初值，随后虚调InitSubclass；Lock WaterClip 0x70CCE0读对象+3C；grid-common-evidence.md；版本49按最终C/S wrapper复核，见docs/archive/design/binary-state/grid-common-synchronization-review.md"
         },
         {
           "offset": "0x40",
@@ -383,7 +383,7 @@
           "category": "状态",
           "semantics": "主Sprite的Grid专用展示视图；不发默认动画名/待加载图层路径，保留实际Image/姿态及1B故障纹理最终选择；UNKNOWN及证据等级沿用ANM2",
           "status": "已核",
-          "evidence": "J273 ctor 0x704FCD lea ecx,[esi+40]，0x705014调用ANM2 ctor0x402B00；公共Free 0x705020析构该对象；各Render真实消费；grid-common-evidence.md；版本49展示视图：docs/design/binary-state/grid-common-synchronization-review.md",
+          "evidence": "J273 ctor 0x704FCD lea ecx,[esi+40]，0x705014调用ANM2 ctor0x402B00；公共Free 0x705020析构该对象；各Render真实消费；grid-common-evidence.md；版本49展示视图：docs/archive/design/binary-state/grid-common-synchronization-review.md",
           "read_requires": "grid-current-window",
           "wire": {
             "kind": "nested",
@@ -393,7 +393,7 @@
         }
       ],
       "conversions": {
-        "read_grid_final_water_clip_flags": "按实际RTTI/slot6函数族合成原生结果。Lock VA70CCE0只读Host+3C，返回collision==0?38:57，完全不读/应用Plus；官方1.1.3没有Lock水面hook。其余六族由同index官方静态旁表决定是否覆盖：模块zhlREPENTOGON.dll RVA62E650，448项、stride12，slot+8先读u8 engaged并校验0/1；仅为1时读取+4完整u32，无覆盖保留原生结果。模块/CRT来源、index、根身份/实际RTTI/room/use及grid-current-window稳定；读取失败报Gap，不能当Null/0。直接有界读，不调用GetGridEntityPlus、Lua/原生getter/Init/Update/RNG，不复制optional的8B或未设置payload。详见docs/design/binary-state/grid-plus-water-source-evidence.md",
+        "read_grid_final_water_clip_flags": "按实际RTTI/slot6函数族合成原生结果。Lock VA70CCE0只读Host+3C，返回collision==0?38:57，完全不读/应用Plus；官方1.1.3没有Lock水面hook。其余六族由同index官方静态旁表决定是否覆盖：模块zhlREPENTOGON.dll RVA62E650，448项、stride12，slot+8先读u8 engaged并校验0/1；仅为1时读取+4完整u32，无覆盖保留原生结果。模块/CRT来源、index、根身份/实际RTTI/room/use及grid-current-window稳定；读取失败报Gap，不能当Null/0。直接有界读，不调用GetGridEntityPlus、Lua/原生getter/Init/Update/RNG，不复制optional的8B或未设置payload。详见docs/archive/design/binary-state/grid-plus-water-source-evidence.md",
         "install_grid_final_water_clip_flags": "将最终完整u32安装到C/S per-instance owner，key含本地实例/use而非仅index，不写官方共享Plus或Host collision。现有六个常驻wrapper只覆盖六族，Lock VA70CCE0必须在第13步经统一清单增加第七覆盖点，原链各一次后再写out.bitFlags；缺Lock分派不能ACK或声称全Grid完成。本地构造owner先将+3C初始化为0；out+4 float由七族原链写0，不传。完整u32不沿用旧JSON<=255限制；停用/退休只撤本地结果，不调用官方Set/Reset覆盖API。"
       },
       "validators": {
@@ -418,7 +418,7 @@
         "grid_water_source": {
           "type": "Host-Grid-final-water-source",
           "semantics": "官方1.1.3模块静态owner：table=module+0x62E650、end=module+0x62FB50，448×0xC；GridEntityPlus229仅ABI目录，不是伴随线负载。模块CRT完成且仍存活、主线程普通完整窗口、真实root/use/room/RTTI/index关系稳定；index共享，无Room或对象地址键。CreateGridEntity整链返回及Init整链完成后的当前值可读，Init入口会清共享项；跨房/复用/同index其它对象创建或Init撤旧C/S借用，不能据此假设官方自动清表。未设置是有效来源，缺源是Gap；Lock展示分支不依赖旁表。实际reader仍归第10步。",
-          "evidence": "docs/design/binary-state/grid-plus-water-source-evidence.md；官方GridEntityPlus.cpp:14-50；官方DLL getter RVA261C90、CRT2A450、Factory261D50、Init261DA0"
+          "evidence": "docs/archive/design/binary-state/grid-plus-water-source-evidence.md；官方GridEntityPlus.cpp:14-50；官方DLL getter RVA261C90、CRT2A450、Factory261D50、Init261DA0"
         }
       },
       "members": [
@@ -621,7 +621,7 @@
           "name": "water_clip_flags",
           "type": "u32",
           "semantics": "同grid-current-window按实际RTTI族得到最终完整u32：六族应用同index官方Plus nullable覆盖（包括有效0）；Lock忽略旁表、按Host collision合成。没有对象偏移，不发optional原值/engaged/地址或命令。",
-          "evidence": "docs/design/binary-state/grid-plus-water-source-evidence.md；J273七个WaterClip族与官方1.1.3 DLL六个hook；既有六个C/S wrapper缺Lock，第13步补齐",
+          "evidence": "docs/archive/design/binary-state/grid-plus-water-source-evidence.md；J273七个WaterClip族与官方1.1.3 DLL六个hook；既有六个C/S wrapper缺Lock，第13步补齐",
           "host": "read_grid_final_water_clip_flags",
           "client": "install_grid_final_water_clip_flags",
           "sequence": "world"
@@ -629,7 +629,7 @@
       ],
       "catalog_rows": [
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 1,
           "id": "GridEntity.CollisionClass",
           "owner": "GridEntity",
@@ -641,7 +641,7 @@
           "reason": "70CCE0按碰撞合成；Plus与第七Lock缺口以grid-plus-water-source-evidence.md为准。 原生对象+3C为Host碰撞输入；Lock 70CCE0依此合成38/57，六族另应用官方Plus。只发最终water_clip_flags，第13步仍须补Lock第七覆盖点，不宣称现有六wrapper已覆盖Lock。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行1原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 2,
           "id": "GridEntity.GetSaveState",
           "owner": "GridEntity",
@@ -653,7 +653,7 @@
           "reason": "公开名Desc、parameters=null；与第8行同地址但原行身份不合并。 Desc属性与GetSaveState方法均指向对象+4的32B描述（74D6A0返回this+4）；完整八项API留Host，当前显示子集由实际nested_layout的198/224承接，不复制间隙或承诺八项相等。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行2原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 3,
           "id": "GridEntity.Destroy",
           "owner": "GridEntity",
@@ -665,7 +665,7 @@
           "reason": "J273注册8520B7指向844420，以空EntityRef转虚表slot5；立即/延后销毁与掉落由Host决定，Client只接成员结构及最终状态。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行3原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 4,
           "id": "GridEntity.DestroyWithSource",
           "owner": "GridEntity",
@@ -677,7 +677,7 @@
           "reason": "J273注册8520AD指向8ABF2D，转虚表slot5并保留EntityRef；来源伤害身份及副作用不在Client回放。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行4原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 5,
           "id": "GridEntity.GetGridIndex",
           "owner": "GridEntity",
@@ -691,7 +691,7 @@
           "reason": "格子位置以及Room/门关系核对所需。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行5原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 6,
           "id": "GridEntity.GetRNG",
           "owner": "GridEntity",
@@ -703,7 +703,7 @@
           "reason": "对象_rng只在Host推进；Light的临时RNG不是该对象。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行6原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 7,
           "id": "GridEntity.GetRenderPosition",
           "owner": "GridEntity",
@@ -719,7 +719,7 @@
           "reason": "705110以7050B0位置、视口、0.65与pixel scale取整；不发送Host屏幕坐标。 按本地视口和pixel scale计算，不安装Host屏幕坐标。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行7原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 8,
           "id": "GridEntity.GetSaveState",
           "owner": "GridEntity",
@@ -731,7 +731,7 @@
           "reason": "公开名GetSaveState、parameters=\" \"；74D6A0仅返回this+4，不据方法名制造另一份描述或保存RPC。 Desc属性与GetSaveState方法均指向对象+4的32B描述（74D6A0返回this+4）；完整八项API留Host，当前显示子集由实际nested_layout的198/224承接，不复制间隙或承诺八项相等。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行8原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 9,
           "id": "GridEntity.GetSprite",
           "owner": "GridEntity",
@@ -747,7 +747,7 @@
           "reason": "五类主色由Room派生；Statue216三块空；Rock215/214条件裁剪；Door226仅alpha入口，详见各类布局。 按实际RTTI布局的nested_layout选主Sprite视图，不硬编码201；必覆写色、Rock/Statue裁剪、Door入口判断依具体消费者保留，资源/姿态/glitch与UNKNOWN仍按正式布局。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行9原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 10,
           "id": "GridEntity.GetType",
           "owner": "GridEntity",
@@ -761,7 +761,7 @@
           "reason": "取desc.type；该子字段保留形态标记。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行10原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 11,
           "id": "GridEntity.GetVariant",
           "owner": "GridEntity",
@@ -775,7 +775,7 @@
           "reason": "取desc.variant，不调用SetVariant或Init。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行11原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 12,
           "id": "GridEntity.GetWaterClipFlags",
           "owner": "GridEntity",
@@ -789,7 +789,7 @@
           "reason": "最终完整u32含有效覆盖0；六族读共享Plus而Lock忽略Plus；不发送optional/地址/重置历史，运行reader与第七wrapper仍待第10/13步。 只同步当前最终完整u32；六族按官方共享nullable覆盖，Lock只按Host collision原生结果、不应用Plus。Client第13步须补第七Lock覆盖点；旁表原值/指针/重置历史不上线，实际reader/writer仍待接线。 证据：grid-plus-water-source-evidence.md；旧应用行12原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 13,
           "id": "GridEntity.Hurt",
           "owner": "GridEntity",
@@ -801,7 +801,7 @@
           "reason": "J273注册8520CB指向8443B0，以空EntityRef转虚表slot4；复制最终Desc/Sprite/成员，不重打一次伤害。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行13原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 14,
           "id": "GridEntity.HurtDamage",
           "owner": "GridEntity",
@@ -813,7 +813,7 @@
           "reason": "官方LuaGridEntity.cpp::Lua_GridEntityHurtDamage调用hurt_func；DamageFlags实际uint64_t，保留旧目录int签名用于追溯，不据旧签名缩窄原生ABI。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行14原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 15,
           "id": "GridEntity.HurtSurroundings",
           "owner": "GridEntity",
@@ -825,7 +825,7 @@
           "reason": "官方LuaGridEntity.cpp::Lua_GridEntityHurtSurroundings调用hurt_surroundings，范围伤害、奖励和RNG留Host，实际生成结果按各域发布。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行15原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 16,
           "id": "GridEntity.HurtWithSource",
           "owner": "GridEntity",
@@ -837,7 +837,7 @@
           "reason": "J273注册8520C1指向8ABF19，转虚表slot4；EntityRef及伤害命令不是跨端复制状态。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行16原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 17,
           "id": "GridEntity.Init",
           "owner": "GridEntity",
@@ -849,7 +849,7 @@
           "reason": "J273705070写SpawnSeed、清碰撞、调用slot10、递增SpawnCount、设Initialized和SpawnFrame；只属来源生产，不在Client执行来补资格。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行17原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 18,
           "id": "GridEntity.IsBreakableRock",
           "owner": "GridEntity",
@@ -863,7 +863,7 @@
           "reason": "7060C0接受type=2/4/5/6/22/25/26/27，排除3/24；只是查询，不是Client破坏授权。 J2730x7060C0仅读type，排除3/24，接受2/4/5/6/22/25/26/27；不当作破坏授权。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行18原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 19,
           "id": "GridEntity.Position",
           "owner": "GridEntity",
@@ -878,7 +878,7 @@
           "reason": "7050B0以当前Room.width取商余，40*(index%width)+40、40*(index/width)+120；无独立Vector存储。 40*(index%width)+40、40*(index/width)+120；没有独立原生位置字节。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行19原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 20,
           "id": "GridEntity.PostInit",
           "owner": "GridEntity",
@@ -890,7 +890,7 @@
           "reason": "J273注册8520E9指向8ABF28，转虚表slot1；可创建巨型便便其它成员、选资源或修改关系，Client用结构事务和最终状态。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行20原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 21,
           "id": "GridEntity.Render",
           "owner": "GridEntity",
@@ -902,7 +902,7 @@
           "reason": "J273注册8520D5指向8ABF50，转虚表slot3；此公开调用本身留Host，不发送Offset/RPC。Client纯绘制adapter另按真实RTTI视图与同world上下文实现，Rock等原Render有副作用，不能直接重放。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行21原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 22,
           "id": "GridEntity.ResetWaterClipFlags",
           "owner": "GridEntity",
@@ -914,7 +914,7 @@
           "reason": "Host命令：仅令共享项engaged=false；不是最终值0，也不销毁旁表或改变同index实例身份。Client不回放Reset、不复制未设置payload；Lock当前getter不消费覆盖。 证据：grid-plus-water-source-evidence.md；旧应用行22原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 23,
           "id": "GridEntity.SetType",
           "owner": "GridEntity",
@@ -926,7 +926,7 @@
           "reason": "J273704F70直接写对象+4的Desc.Type；命令留Host，真实type/RTTI变化按第11/13步结构事务安装，不调用setter冒充原生换类。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行23原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 24,
           "id": "GridEntity.SetVariant",
           "owner": "GridEntity",
@@ -938,7 +938,7 @@
           "reason": "J273732990直接写对象+8的Desc.Variant；命令留Host，最终variant及其实际Sprite/结构结果另传，不在Client重演生产。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行24原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 25,
           "id": "GridEntity.SetWaterClipFlags",
           "owner": "GridEntity",
@@ -950,7 +950,7 @@
           "reason": "Host命令：官方Lua将参数转换为u32，写同index Plus+4并置+8=1；不能在Client重演，也不传命令/optional，六族只发最终结果；Lock的此命令不影响其当前水面getter。 证据：grid-plus-water-source-evidence.md；旧应用行25原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 26,
           "id": "GridEntity.State",
           "owner": "GridEntity",
@@ -964,7 +964,7 @@
           "reason": "8520FD/852102注册读写访问器；和Desc.State是一份原生字，不重复负载。 与desc.state同一原生地址，不能重复传输。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行26原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 44,
           "id": "GridEntity.Update",
           "owner": "GridEntity",
@@ -976,7 +976,7 @@
           "reason": "J273注册8520DF指向8ABF3C，转虚表slot2；玩法、周期、转场与奖励只在Host推进。 证据：grid-common-evidence.md / grid-common-synchronization-review.md；旧应用行44原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 45,
           "id": "GridEntity.VarData",
           "owner": "GridEntity",
@@ -1040,7 +1040,7 @@
           "category": "权威",
           "semantics": "Host未来图像加载请求的路径元数据；当前展示只安装实际image_selection。可写不构成同步必要性，不在Client重演ReplaceSpritesheet/LoadGraphics；不要求此路径原值相等",
           "status": "SDK声明",
-          "evidence": "LayerState.zhl +0x08 std::string；LuaSprite.cpp GetSpritesheetPath 直接返回 GetSpritesheetPath().c_str()；版本49：docs/design/binary-state/grid-common-synchronization-review.md"
+          "evidence": "LayerState.zhl +0x08 std::string；LuaSprite.cpp GetSpritesheetPath 直接返回 GetSpritesheetPath().c_str()；版本49：docs/archive/design/binary-state/grid-common-synchronization-review.md"
         },
         {
           "offset": "0x20",
@@ -1110,7 +1110,7 @@
           "category": "本地",
           "semantics": "本地图层资源加载／重载维护标志；ReplaceSpritesheet可置false同时保留旧Image，不跨进程复制，也不按Host原值覆盖Client加载结果",
           "status": "SDK声明",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics；版本32同步职责复核：docs/design/binary-state/animation-resource-synchronization-review.md"
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics；版本32同步职责复核：docs/archive/design/binary-state/animation-resource-synchronization-review.md"
         },
         {
           "offset": "0x31",
@@ -1493,7 +1493,7 @@
           "category": "资源",
           "semantics": "可空ANM2文件资源选择；Host loaded=false编码0xFFFF，true编码文件资源号；不以路径非空猜测存在性",
           "status": "SDK声明",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；J273 Render VA0x4059E0读取+109；Reset VA0x403530清文件／资源及loaded，Load VA0x407B52置1；版本32见docs/design/binary-state/animation-resource-synchronization-review.md",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；J273 Render VA0x4059E0读取+109；Reset VA0x403530清文件／资源及loaded，Load VA0x407B52置1；版本32见docs/archive/design/binary-state/animation-resource-synchronization-review.md",
           "wire": {
             "kind": "resource",
             "type": "u16",
@@ -1511,7 +1511,7 @@
           "category": "权威",
           "semantics": "Host默认动画控制元数据；Grid展示安装明确的当前动画资源/selector，Rock绘制的RubbleAnim也是显式名字，不重演默认动画选择。可写事实保留，不声称不可变或无条件由文件派生",
           "status": "已核",
-          "evidence": "J273 VA 0x407AF0 Load 调 VA 0x409680；VA 0x4099D4/0x4099E9 将 cache 字符串复制到 this+0x18；SetAnimation VA 0x405F50 只切换 AnimationData。REP ANM2.zhl；版本49：docs/design/binary-state/grid-common-synchronization-review.md"
+          "evidence": "J273 VA 0x407AF0 Load 调 VA 0x409680；VA 0x4099D4/0x4099E9 将 cache 字符串复制到 this+0x18；SetAnimation VA 0x405F50 只切换 AnimationData。REP ANM2.zhl；版本49：docs/archive/design/binary-state/grid-common-synchronization-review.md"
         },
         {
           "offset": "0x30",
@@ -1792,7 +1792,7 @@
           "category": "状态",
           "semantics": "播放速度兼绘制插值的半帧比例输入；不在Client推进动画",
           "status": "SDK声明",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；REPENTOGON/Patches/InterpolV2.cpp按_playbackSpeed计算lerpappend；版本32见docs/design/binary-state/animation-resource-synchronization-review.md",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；REPENTOGON/Patches/InterpolV2.cpp按_playbackSpeed计算lerpappend；版本32见docs/archive/design/binary-state/animation-resource-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -1817,7 +1817,7 @@
           "category": "本地",
           "semantics": "本地ANM2构造／加载／重置结果；Host只用它确定file_name的可空资源选择，Client由资源owner完成准备后维护，不直接传布尔字节",
           "status": "已核",
-          "evidence": "J273 Load VA 0x407AF0 的 VA 0x407B52 写 +0x109=1；属于本地资源生命周期状态；J273 IsLoaded VA0x41B820/RVA0x1B820直接return this[0x109]，主审已复读；版本32同步职责复核：docs/design/binary-state/animation-resource-synchronization-review.md"
+          "evidence": "J273 Load VA 0x407AF0 的 VA 0x407B52 写 +0x109=1；属于本地资源生命周期状态；J273 IsLoaded VA0x41B820/RVA0x1B820直接return this[0x109]，主审已复读；版本32同步职责复核：docs/archive/design/binary-state/animation-resource-synchronization-review.md"
         },
         {
           "offset": "0x10A",
@@ -2066,7 +2066,7 @@
           "name": "glitch_draw_bits",
           "type": "u8",
           "semantics": "按Host当前ANM2地址在自有纯值RNG以shift-index35计算两次RandomInt(2)的最终选择：bit0=0为+90/1为-90，bit1为flipX。只发0..3结果，不发地址/随机种子或游标；绑定subject/use/shape/Sprite角色",
-          "evidence": "docs/design/binary-state/grid-common-synchronization-review.md；J273 Room Render804500与RenderFrame404570；官方Utils/ANM2Utils.hpp::GetFrameSourceQuad",
+          "evidence": "docs/archive/design/binary-state/grid-common-synchronization-review.md；J273 Room Render804500与RenderFrame404570；官方Utils/ANM2Utils.hpp::GetFrameSourceQuad",
           "host": "read_grid_sprite_glitch_draw_bits",
           "client": "install_grid_sprite_glitch_draw_bits",
           "sequence": "body"
@@ -2123,7 +2123,7 @@
           "category": "权威",
           "semantics": "Host旁表覆盖输入，仅+8 engaged为1时读取；未设置时payload不读不清零，不能单独上线。六个官方hook用它替换最终bitFlags；Lock完全不消费。",
           "status": "已核",
-          "evidence": "官方LuaGridEntity.cpp:57-74；DLL setter RVA1174A8、handle261CEF及六hook261E28等；docs/design/binary-state/grid-plus-water-source-evidence.md"
+          "evidence": "官方LuaGridEntity.cpp:57-74；DLL setter RVA1174A8、handle261CEF及六hook261E28等；docs/archive/design/binary-state/grid-plus-water-source-evidence.md"
         },
         {
           "offset": "0x8",
@@ -2152,7 +2152,7 @@
         "official_grid_plus_owner": {
           "type": "REPENTOGON-1.1.3-Win32-grid-plus-array",
           "semantics": "module+62E650起448项，stride0xC，总0x1500B；边界62FB50。只按已核当前Grid+24索引，不分配、不调用helper、不从对象未知字节找指针。Factory返回后/Init进入前reset，LuaSet/Reset可写；没有Free/Remove/Room/session清理hook，C/S只撤自己的借用。原生GetGridEntityPlus(GridEntity*)为cdecl、栈参、EAX返回借用指针且未导出；不能直接链接/复制CPP另造数组。",
-          "evidence": "docs/design/binary-state/grid-plus-water-source-evidence.md；DLL getter261C90、reset261D10、Factory261D50、Init261DA0、CRT2A450及4CFCF0"
+          "evidence": "docs/archive/design/binary-state/grid-plus-water-source-evidence.md；DLL getter261C90、reset261D10、Factory261D50、Init261DA0、CRT2A450及4CFCF0"
         }
       },
       "notes": "版本54：仅登记官方1.1.3 DLL外部旁表元素的12B ABI，不是第19个Grid RTTI，不在Grid根范围内，不作为companion或独立下行记录。所有字节归属已核、0B UNKNOWN；没有任何发送块/字段。Grid199已有4B最终water_clip_flags承接真实展示需求，各Grid根UNKNOWN不变。官方六水面hook不含Lock，Client必须另补Lock最终输出覆盖点；实际Host绑定/reader及Clientwriter仍归第10/13步，第15步前无测试。",

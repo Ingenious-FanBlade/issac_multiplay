@@ -54,13 +54,13 @@ add_custom_command(OUTPUT "${GENERATED}/state_capture.inc" "${GENERATED}/state_w
   "${GENERATED}/state_room_view.inc" "${GENERATED}/state_body_codec.inc" "${GENERATED}/state_resource_protocol.inc" "${GENERATED}/state_protocol.inc" "${GENERATED}/state_budget.inc"
     "${GENERATED}/state_display_install.inc" "${GENERATED}/state_host_fields.inc" "${GENERATED}/state_grid_factory.inc"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_state_layout.py"
-    --out "${GENERATED}" --docs "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/binary-state/layouts"
+    --out "${GENERATED}" --docs "${CMAKE_CURRENT_SOURCE_DIR}/binding/layouts"
   DEPENDS tools/gen_state_layout.py tools/gen_flat_layout.py ${STATE_LAYOUT_SOURCES} binding/world_layout.json
-    "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-19/entity-application.json"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-20/player-application.json"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/observation-expansion/grid-catalog.json"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/observation-expansion/run-catalog.json"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-21/stream-catalog.json" VERBATIM)
+    binding/catalog/entity-application.json
+    binding/catalog/player-application.json
+    binding/catalog/grid-catalog.json
+    binding/catalog/run-catalog.json
+    binding/catalog/stream-catalog.json VERBATIM)
 # AVX2 独立为机器码目标，链接期优化不能把它内联到 SSE2 基线路径。
 add_library(isaac_cs_flat_avx2 OBJECT src/state/flat_simd_avx2.cpp)
 target_compile_options(isaac_cs_flat_avx2 PRIVATE /arch:AVX2 /W4 /Zi /utf-8)
@@ -114,12 +114,12 @@ add_custom_command(OUTPUT "${GENERATED}/entity_application.inc" "${GENERATED}/en
   # 静态合同随功能目录生成；修改研究索引也必须更新嵌入目录，避免残留旧采用约束。
   DEPENDS tools/gen_entity_application_catalog.py tools/gen_replica_catalog.py tools/cpp_catalog.py tools/replica_projection_policy.py
    src/game/client/entity/client_entity_fields.inc src/game/client/entity/client_entity_class_fields.inc src/game/client/entity/client_entity_links.inc
-    "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-19/entity-native-contracts.json" ${REPLICA_CATALOGS} VERBATIM)
+    binding/catalog/entity-native-contracts.json ${REPLICA_CATALOGS} VERBATIM)
 add_custom_command(OUTPUT "${GENERATED}/player_application.inc" "${GENERATED}/player-application.json"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_player_application_catalog.py" --out "${GENERATED}"
   DEPENDS tools/gen_player_application_catalog.py tools/gen_entity_application_catalog.py tools/gen_replica_catalog.py tools/cpp_catalog.py tools/replica_projection_policy.py
    src/game/client/player/client_player_fields.inc src/game/client/player/client_player_roles.inc
-    "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-20/player-native-contracts.json" ${REPLICA_CATALOGS} VERBATIM)
+    binding/catalog/player-native-contracts.json ${REPLICA_CATALOGS} VERBATIM)
 # 控制编码只生成固定名称，状态字段由二进制布局生成器管理。
 add_custom_command(OUTPUT "${GENERATED}/stream_names_by_text.inc" "${GENERATED}/stream_names_by_code.inc"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_control_names.py"
@@ -164,7 +164,7 @@ endif()
 add_custom_command(OUTPUT "${GENERATED}/hooks_generated.cpp" "${GENERATED}/binding_v1_9_7_12.inc" "${GENERATED}/hook-manifest.json" "${GENERATED}/permanent_patches.inc" "${GENERATED}/host_patches.inc" "${GENERATED}/hook_capacity.h" "${GENERATED}/world_layout.inc" "${GENERATED}/world-layout.json"
   BYPRODUCTS "${GENERATED}/exit_patch.inc" "${GENERATED}/shutdown_patch.inc" "${GENERATED}/backdrop_patch.inc" "${GENERATED}/display_patch.inc" "${GENERATED}/random_runtime.inc" "${GENERATED}/client_display_memory_imports.inc" "${GENERATED}/hook-manifest.md"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_binding.py" --out "${GENERATED}"
-  DEPENDS tools/gen_binding.py binding/hooks.json binding/world_layout.json binding/v1_9_7_12-static.json ../docs/hooks/repentogon-binding.json VERBATIM)
+  DEPENDS tools/gen_binding.py binding/hooks.json binding/world_layout.json binding/v1_9_7_12-static.json binding/repentogon-binding.json VERBATIM)
 # game 按职责分目录；保持既有源码登记顺序、目标和编译条件，只迁移路径。
 add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions.cpp
   src/binding/world_layout.cpp src/hooks/registry.cpp src/hooks/context.cpp

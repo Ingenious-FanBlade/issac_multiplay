@@ -10,35 +10,35 @@
         {
           "offset": "0x410", "size": "0x4", "name": "text_counter", "type": "i32", "category": "权威",
           "semantics": "Host更新计数；基础Text绘制不读取，仅variant2的Scaled臂保留真实缩放消费者；Client不推进计数或按其移除",
-          "status": "已核", "evidence": "docs/design/binary-state/text-dummy-evidence.md"
+          "status": "已核", "evidence": "docs/archive/design/binary-state/text-dummy-evidence.md"
         },
         {
           "offset": "0x414", "size": "0x4", "name": "text_duration", "type": "i32", "category": "权威",
           "semantics": "Host淡出/闪烁颜色与移除输入；最终RGBA及成员生命周期分别同步，Render不读取duration，不做计时锚点或Client到期移除",
-          "status": "已核", "evidence": "docs/design/binary-state/text-dummy-evidence.md"
+          "status": "已核", "evidence": "docs/archive/design/binary-state/text-dummy-evidence.md"
         },
         {
           "offset": "0x418", "size": "0x100", "name": "text_bytes", "type": "bytes[256]", "category": "容器",
           "semantics": "内联零终止原始字节串，仅发送首个零之前0—255B；无编码假设。Init不初始化，必须有本use/revision真实writer见证；终止后的旧槽数据不读取或复制",
-          "status": "已核", "evidence": "docs/design/binary-state/text-dummy-evidence.md",
+          "status": "已核", "evidence": "docs/archive/design/binary-state/text-dummy-evidence.md",
           "read_requires": "text-current-use-writer",
           "wire": {"kind": "container", "storage": "c-string", "element": "u8", "stride": 1, "limit": 255, "host": "read_text_bytes", "client": "install_text_bytes"}, "sequence": "world"
         },
         {
           "offset": "0x518", "size": "0x10", "name": "text_rgba", "type": "f32[4]", "category": "状态",
           "semantics": "固定Text字体路径实际读取的最终RGBA；与公共Sprite ColorMod分开，保留Host已计算淡出/闪烁，不在Client调用Update重算",
-          "status": "已核", "evidence": "docs/design/binary-state/text-dummy-evidence.md",
+          "status": "已核", "evidence": "docs/archive/design/binary-state/text-dummy-evidence.md",
           "read_requires": "entity-current-window", "wire": {"kind": "copy", "type": "f32[4]"}, "sequence": "world"
         },
         {
           "offset": "0x528", "size": "0x4", "name": "text_color_space", "type": "u32", "category": "权威",
           "semantics": "KColor颜色空间标签，非填充也非未知opaque。Text固定FontSettings关闭callback，字体仅传递末字；最终Image Render只取前16B，不消费标签。此具体Text路径不传该值，通用KColor布局仍保留20B",
-          "status": "已核", "evidence": "docs/design/binary-state/text-dummy-evidence.md；docs/design/binary-state/base-types-evidence.md"
+          "status": "已核", "evidence": "docs/archive/design/binary-state/text-dummy-evidence.md；docs/archive/design/binary-state/base-types-evidence.md"
         },
         {
           "offset": "0x52c", "size": "0x4", "name": "text_unknown_52c", "type": "bytes[4]", "category": "未知",
           "semantics": "0x530池步长及删除析构size证明对象上界；未核尾字用途，不能由未见直接访问推成填充，不读取或上线",
-          "status": "未知", "evidence": "docs/design/binary-state/text-dummy-evidence.md"
+          "status": "未知", "evidence": "docs/archive/design/binary-state/text-dummy-evidence.md"
         }
       ],
       "conversions": {},
@@ -47,7 +47,7 @@
         "text_presentation": {
           "type": "world-presentation-context",
           "semantics": "同一已应用world的Manager展示帧和pause；variant2取pause?0:(manager_frame+1)%2，不能用GameFrame/AuthorityTick/Client本地帧替换。字体为本地已加载Font6，屏幕尺寸/渲染offset由Client展示owner提供。旧独立Render样本保持原scope，不拼接普通状态",
-          "evidence": "docs/design/binary-state/text-dummy-evidence.md；第7/8/10/13步"
+          "evidence": "docs/archive/design/binary-state/text-dummy-evidence.md；第7/8/10/13步"
         }
       },
       "members": [
@@ -67,7 +67,7 @@
               {
                 "offset": "0x410", "size": "0x4", "name": "text_counter", "type": "i32", "category": "状态",
                 "semantics": "variant2 Render直接读取的有符号counter，与同world Manager/pause子帧计算缩放；保持精确原值，不套递减到期锚点，不在Client推进或用于退休",
-                "status": "已核", "evidence": "docs/design/binary-state/text-dummy-evidence.md",
+                "status": "已核", "evidence": "docs/archive/design/binary-state/text-dummy-evidence.md",
                 "read_requires": "entity-current-window", "wire": {"kind": "copy", "type": "i32"}, "sequence": "world"
               }
             ],

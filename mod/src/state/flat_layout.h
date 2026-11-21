@@ -6,10 +6,13 @@ namespace cs::state {
 enum class FlatStream : std::uint8_t { World, Body };
 enum class FlatSetMode : std::uint8_t { Bitmap=0, Deltas=1, All=2, Legacy=255 };
 inline constexpr std::size_t kFlatRecordHeaderBytes=9;
-inline constexpr std::uint16_t kFlatRecordContractVersion=85;
-// 85 是独立的平铺试验合同。86 继续使用 84 的块编码，增加属性栏输入。
+// 平铺记录合同的起始布局版本。历史：85 为首个平铺试验合同；86—89 回到 84 的块编码
+// （86 属性栏输入，87 预测对账字段与寻路阻挡，88 道具历史 _history_items，89 predict_gate）；
+// 2026-11-21 起自 90 正式切回平铺记录，之后的版本一律沿用平铺合同。
+inline constexpr std::uint16_t kFlatRecordContractVersion=90;
+// 实体、Player 两条流与 Grid 是否按平铺记录编码；全局根与控制组 196 仍走块编码。
 constexpr bool UsesFlatRecordContract(std::uint16_t version) noexcept {
-  return version==kFlatRecordContractVersion;
+  return version>=kFlatRecordContractVersion;
 }
 enum class FlatPatchKind : std::uint8_t {
   Copy, Zero, Reference, Resource, Container, Owner, Convert

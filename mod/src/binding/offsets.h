@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 namespace cs::offset {
-// 仅适用于 v1.9.7.12；名称和依据见 docs/hooks/repentogon-binding.md。
+// 仅适用于 v1.9.7.12；名称和依据见 docs/archive/hooks/repentogon-binding.md。
 inline constexpr uintptr_t Game = 0x7E49F4, Manager = 0x7E4A1C,
                            LuaEngine = 0x7E4A0C;
 inline constexpr uintptr_t InputManager = 0x7CE438;

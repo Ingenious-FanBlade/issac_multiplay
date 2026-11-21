@@ -18,7 +18,7 @@
         "floor_tint": {
           "type": "ColorMod",
           "semantics": "同一已应用world的Room+72A4地板色，11个float共44B；绘制期间借用，结束后精确恢复；不是独立Sprite负载",
-          "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md；VA973190/719270"
+          "evidence": "docs/archive/design/binary-state/grid-eight-subclasses-evidence.md；VA973190/719270"
         }
       },
       "ranges": [
@@ -30,7 +30,7 @@
           "category": "资源",
           "semantics": "可空ANM2文件资源选择；Host loaded=false编码0xFFFF，true编码文件资源号；不以路径非空猜测存在性",
           "status": "SDK声明",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；J273 Render VA0x4059E0读取+109；Reset VA0x403530清文件／资源及loaded，Load VA0x407B52置1；版本32见docs/design/binary-state/animation-resource-synchronization-review.md",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；J273 Render VA0x4059E0读取+109；Reset VA0x403530清文件／资源及loaded，Load VA0x407B52置1；版本32见docs/archive/design/binary-state/animation-resource-synchronization-review.md",
           "wire": {
             "kind": "resource",
             "type": "u16",
@@ -48,7 +48,7 @@
           "category": "权威",
           "semantics": "Host默认动画控制元数据；Grid展示安装明确的当前动画资源/selector，Rock绘制的RubbleAnim也是显式名字，不重演默认动画选择。可写事实保留，不声称不可变或无条件由文件派生",
           "status": "已核",
-          "evidence": "J273 VA 0x407AF0 Load 调 VA 0x409680；VA 0x4099D4/0x4099E9 将 cache 字符串复制到 this+0x18；SetAnimation VA 0x405F50 只切换 AnimationData。REP ANM2.zhl；版本49：docs/design/binary-state/grid-common-synchronization-review.md"
+          "evidence": "J273 VA 0x407AF0 Load 调 VA 0x409680；VA 0x4099D4/0x4099E9 将 cache 字符串复制到 this+0x18；SetAnimation VA 0x405F50 只切换 AnimationData。REP ANM2.zhl；版本49：docs/archive/design/binary-state/grid-common-synchronization-review.md"
         },
         {
           "offset": "0x30",
@@ -249,7 +249,7 @@
           "category": "派生",
           "semantics": "每次有效绘制前由同world Room.floorColor完整覆盖44B；不读取或同步Host旧颜色，Client绘制借用后恢复自己的颜色",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-eight-subclasses-evidence.md"
         },
         {
           "offset": "0xD4",
@@ -324,7 +324,7 @@
           "category": "状态",
           "semantics": "播放速度兼绘制插值的半帧比例输入；不在Client推进动画",
           "status": "SDK声明",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；REPENTOGON/Patches/InterpolV2.cpp按_playbackSpeed计算lerpappend；版本32见docs/design/binary-state/animation-resource-synchronization-review.md",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；REPENTOGON/Patches/InterpolV2.cpp按_playbackSpeed计算lerpappend；版本32见docs/archive/design/binary-state/animation-resource-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -349,7 +349,7 @@
           "category": "本地",
           "semantics": "本地ANM2构造／加载／重置结果；Host只用它确定file_name的可空资源选择，Client由资源owner完成准备后维护，不直接传布尔字节",
           "status": "已核",
-          "evidence": "J273 Load VA 0x407AF0 的 VA 0x407B52 写 +0x109=1；属于本地资源生命周期状态；J273 IsLoaded VA0x41B820/RVA0x1B820直接return this[0x109]，主审已复读；版本32同步职责复核：docs/design/binary-state/animation-resource-synchronization-review.md"
+          "evidence": "J273 Load VA 0x407AF0 的 VA 0x407B52 写 +0x109=1；属于本地资源生命周期状态；J273 IsLoaded VA0x41B820/RVA0x1B820直接return this[0x109]，主审已复读；版本32同步职责复核：docs/archive/design/binary-state/animation-resource-synchronization-review.md"
         },
         {
           "offset": "0x10A",
@@ -442,7 +442,7 @@
           "name": "glitch_draw_bits",
           "type": "u8",
           "semantics": "按Host当前ANM2地址在自有纯值RNG以shift-index35计算两次RandomInt(2)的最终选择：bit0=0为+90/1为-90，bit1为flipX。只发0..3结果，不发地址/随机种子或游标；绑定subject/use/shape/Sprite角色",
-          "evidence": "docs/design/binary-state/grid-common-synchronization-review.md；J273 Room Render804500与RenderFrame404570；官方Utils/ANM2Utils.hpp::GetFrameSourceQuad",
+          "evidence": "docs/archive/design/binary-state/grid-common-synchronization-review.md；J273 Room Render804500与RenderFrame404570；官方Utils/ANM2Utils.hpp::GetFrameSourceQuad",
           "host": "read_grid_sprite_glitch_draw_bits",
           "client": "install_grid_sprite_glitch_draw_bits",
           "sequence": "body"
@@ -517,7 +517,7 @@
           "category": "派生",
           "semantics": "Fire Render逐粒子在主AnimationData非空时调用SetFrame：从该粒子age/maxLife与动画frameCount算出整帧，清零并重新求图层/空层选择器；旧缓存不传，空动画保持本地安全空数组",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-eight-subclasses-evidence.md"
         },
         {
           "offset": "0xC",
@@ -527,7 +527,7 @@
           "category": "派生",
           "semantics": "Fire Render逐粒子在主AnimationData非空时调用SetFrame：从该粒子age/maxLife与动画frameCount算出整帧，清零并重新求图层/空层选择器；旧缓存不传，空动画保持本地安全空数组",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-eight-subclasses-evidence.md"
         },
         {
           "offset": "0x10",
@@ -537,7 +537,7 @@
           "category": "派生",
           "semantics": "Fire Render逐粒子在主AnimationData非空时调用SetFrame：从该粒子age/maxLife与动画frameCount算出整帧，清零并重新求图层/空层选择器；旧缓存不传，空动画保持本地安全空数组",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-eight-subclasses-evidence.md"
         },
         {
           "offset": "0x14",
@@ -547,7 +547,7 @@
           "category": "状态",
           "semantics": "播放标志兼绘制插值输入；直接安装最终值，不授权Client推进动画",
           "status": "SDK声明",
-          "evidence": "J273 VA 0x404390（RVA 0x4390）SetLayerFrame；VA 0x4040B0（RVA 0x40B0）AdvanceNullLayerPosition；官方 AnimationState.zhl；REPENTOGON/Patches/InterpolV2.cpp:34读取_isPlaying；版本32复核见docs/design/binary-state/animation-resource-synchronization-review.md",
+          "evidence": "J273 VA 0x404390（RVA 0x4390）SetLayerFrame；VA 0x4040B0（RVA 0x40B0）AdvanceNullLayerPosition；官方 AnimationState.zhl；REPENTOGON/Patches/InterpolV2.cpp:34读取_isPlaying；版本32复核见docs/archive/design/binary-state/animation-resource-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "u8"
@@ -572,7 +572,7 @@
           "category": "权威",
           "semantics": "Host动画事件消费位；Client安装最终姿态，不推进或重放事件，构造／换动画后本地清零",
           "status": "已核",
-          "evidence": "J273 AnimationState::IsEventTriggered 读取 this+0x18（imagebase 0x400000）；官方 AnimationState.zhl；版本32同步职责复核：docs/design/binary-state/animation-resource-synchronization-review.md"
+          "evidence": "J273 AnimationState::IsEventTriggered 读取 this+0x18（imagebase 0x400000）；官方 AnimationState.zhl；版本32同步职责复核：docs/archive/design/binary-state/animation-resource-synchronization-review.md"
         },
         {
           "offset": "0x1C",
@@ -582,7 +582,7 @@
           "category": "权威",
           "semantics": "Host动画事件历史位；不表示可靠事件队列，不进入Client状态或漂移比较",
           "status": "已核",
-          "evidence": "J273 AnimationState::WasEventTriggered 读取 this+0x1C（imagebase 0x400000）；官方 AnimationState.zhl；版本32同步职责复核：docs/design/binary-state/animation-resource-synchronization-review.md"
+          "evidence": "J273 AnimationState::WasEventTriggered 读取 this+0x1C（imagebase 0x400000）；官方 AnimationState.zhl；版本32同步职责复核：docs/archive/design/binary-state/animation-resource-synchronization-review.md"
         }
       ],
       "conversions": {},
@@ -622,7 +622,7 @@
           "category": "资源",
           "semantics": "可空ANM2文件资源选择；Host loaded=false编码0xFFFF，true编码文件资源号；不以路径非空猜测存在性",
           "status": "SDK声明",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；J273 Render VA0x4059E0读取+109；Reset VA0x403530清文件／资源及loaded，Load VA0x407B52置1；版本32见docs/design/binary-state/animation-resource-synchronization-review.md",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；J273 Render VA0x4059E0读取+109；Reset VA0x403530清文件／资源及loaded，Load VA0x407B52置1；版本32见docs/archive/design/binary-state/animation-resource-synchronization-review.md",
           "wire": {
             "kind": "resource",
             "type": "u16",
@@ -640,7 +640,7 @@
           "category": "权威",
           "semantics": "Host默认动画控制元数据；Grid展示安装明确的当前动画资源/selector，Rock绘制的RubbleAnim也是显式名字，不重演默认动画选择。可写事实保留，不声称不可变或无条件由文件派生",
           "status": "已核",
-          "evidence": "J273 VA 0x407AF0 Load 调 VA 0x409680；VA 0x4099D4/0x4099E9 将 cache 字符串复制到 this+0x18；SetAnimation VA 0x405F50 只切换 AnimationData。REP ANM2.zhl；版本49：docs/design/binary-state/grid-common-synchronization-review.md"
+          "evidence": "J273 VA 0x407AF0 Load 调 VA 0x409680；VA 0x4099D4/0x4099E9 将 cache 字符串复制到 this+0x18；SetAnimation VA 0x405F50 只切换 AnimationData。REP ANM2.zhl；版本49：docs/archive/design/binary-state/grid-common-synchronization-review.md"
         },
         {
           "offset": "0x30",
@@ -650,7 +650,7 @@
           "category": "状态",
           "semantics": "粒子共享模板的主动画选择和播放插值开关；旧逐粒子帧/选择器不发，绘制前由真实age/maxLife重建",
           "status": "SDK声明",
-          "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md；J27367B721-67B75E/4042A0/InterpolV2.cpp",
+          "evidence": "docs/archive/design/binary-state/grid-eight-subclasses-evidence.md；J27367B721-67B75E/4042A0/InterpolV2.cpp",
           "wire": {
             "kind": "nested",
             "type": "GridFireEmberAnimation"
@@ -921,7 +921,7 @@
           "category": "状态",
           "semantics": "播放速度兼绘制插值的半帧比例输入；不在Client推进动画",
           "status": "SDK声明",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；REPENTOGON/Patches/InterpolV2.cpp按_playbackSpeed计算lerpappend；版本32见docs/design/binary-state/animation-resource-synchronization-review.md",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；REPENTOGON/Patches/InterpolV2.cpp按_playbackSpeed计算lerpappend；版本32见docs/archive/design/binary-state/animation-resource-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -946,7 +946,7 @@
           "category": "本地",
           "semantics": "本地ANM2构造／加载／重置结果；Host只用它确定file_name的可空资源选择，Client由资源owner完成准备后维护，不直接传布尔字节",
           "status": "已核",
-          "evidence": "J273 Load VA 0x407AF0 的 VA 0x407B52 写 +0x109=1；属于本地资源生命周期状态；J273 IsLoaded VA0x41B820/RVA0x1B820直接return this[0x109]，主审已复读；版本32同步职责复核：docs/design/binary-state/animation-resource-synchronization-review.md"
+          "evidence": "J273 Load VA 0x407AF0 的 VA 0x407B52 写 +0x109=1；属于本地资源生命周期状态；J273 IsLoaded VA0x41B820/RVA0x1B820直接return this[0x109]，主审已复读；版本32同步职责复核：docs/archive/design/binary-state/animation-resource-synchronization-review.md"
         },
         {
           "offset": "0x10A",
@@ -1030,7 +1030,7 @@
           "name": "glitch_draw_bits",
           "type": "u8",
           "semantics": "按Host当前ANM2地址在自有纯值RNG以shift-index35计算两次RandomInt(2)的最终选择：bit0=0为+90/1为-90，bit1为flipX。只发0..3结果，不发地址/随机种子或游标；绑定subject/use/shape/Sprite角色",
-          "evidence": "docs/design/binary-state/grid-common-synchronization-review.md；J273 Room Render804500与RenderFrame404570；官方Utils/ANM2Utils.hpp::GetFrameSourceQuad",
+          "evidence": "docs/archive/design/binary-state/grid-common-synchronization-review.md；J273 Room Render804500与RenderFrame404570；官方Utils/ANM2Utils.hpp::GetFrameSourceQuad",
           "host": "read_grid_sprite_glitch_draw_bits",
           "client": "install_grid_sprite_glitch_draw_bits",
           "sequence": "body"
@@ -1078,7 +1078,7 @@
           "category": "状态",
           "semantics": "相对Grid渲染位置的当前粒子偏移；Render加到格子屏幕坐标，不发送Host屏幕位置",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md",
+          "evidence": "docs/archive/design/binary-state/grid-eight-subclasses-evidence.md",
           "wire": {
             "kind": "nested",
             "type": "Vector"
@@ -1094,7 +1094,7 @@
           "category": "权威",
           "semantics": "Update积分和随机扰动输入，Render不读，不发到Client，不据其外推位置",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md",
+          "evidence": "docs/archive/design/binary-state/grid-eight-subclasses-evidence.md",
           "native_type": "Vector"
         },
         {
@@ -1105,7 +1105,7 @@
           "category": "状态",
           "semantics": "当前粒子年龄；Render以float(age)/float(max_life)*AnimationData.frameCount截断整帧，不能因名称为计数器就删除",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md",
+          "evidence": "docs/archive/design/binary-state/grid-eight-subclasses-evidence.md",
           "wire": {
             "kind": "copy",
             "type": "i32"
@@ -1121,7 +1121,7 @@
           "category": "状态",
           "semantics": "Render帧计算的真实除数；正常更新尾部为1..29，必须与age同版且age<max_life，不发到期帧替代原值",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md",
+          "evidence": "docs/archive/design/binary-state/grid-eight-subclasses-evidence.md",
           "wire": {
             "kind": "copy",
             "type": "i32"
@@ -1165,7 +1165,7 @@
         "grid_class": {
           "type": "native-grid-class",
           "semantics": "实际RTTI GridEntity_Decoration与工厂type=1，按同room/subject/use/shape合法匹配；只作本地类识别，不传vptr/RTTI地址，不调用Lua cast",
-          "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-eight-subclasses-evidence.md"
         }
       },
       "members": [
@@ -1184,12 +1184,12 @@
         "sprite": {
           "type": "GridFloorSprite",
           "semantics": "本类主Sprite的地板色绘制视图；颜色每次绘制前被Room.floorColor覆盖，省去44B旧颜色；实际Image、姿态、图层及glitch仍同步，未知14B保持",
-          "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md；J273 VA973190/719270"
+          "evidence": "docs/archive/design/binary-state/grid-eight-subclasses-evidence.md；J273 VA973190/719270"
         }
       },
       "catalog_rows": [
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 27,
           "id": "GridEntity.ToDecoration",
           "owner": "GridEntity",
@@ -1220,7 +1220,7 @@
         "grid_class": {
           "type": "native-grid-class",
           "semantics": "实际RTTI GridEntity_Gravity与工厂type=19，按同room/subject/use/shape合法匹配；只作本地类识别，不传vptr/RTTI地址，不调用Lua cast",
-          "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-eight-subclasses-evidence.md"
         }
       },
       "members": [
@@ -1239,12 +1239,12 @@
         "sprite": {
           "type": "GridFloorSprite",
           "semantics": "本类主Sprite的地板色绘制视图；颜色每次绘制前被Room.floorColor覆盖，省去44B旧颜色；实际Image、姿态、图层及glitch仍同步，未知14B保持",
-          "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md；J273 VA973190/719270"
+          "evidence": "docs/archive/design/binary-state/grid-eight-subclasses-evidence.md；J273 VA973190/719270"
         }
       },
       "catalog_rows": [
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 30,
           "id": "GridEntity.ToGravity",
           "owner": "GridEntity",
@@ -1275,7 +1275,7 @@
         "grid_class": {
           "type": "native-grid-class",
           "semantics": "实际RTTI GridEntity_Stairs与工厂type=18，按同room/subject/use/shape合法匹配；只作本地类识别，不传vptr/RTTI地址，不调用Lua cast",
-          "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-eight-subclasses-evidence.md"
         }
       },
       "members": [
@@ -1294,12 +1294,12 @@
         "sprite": {
           "type": "GridFloorSprite",
           "semantics": "本类主Sprite的地板色绘制视图；颜色每次绘制前被Room.floorColor覆盖，省去44B旧颜色；实际Image、姿态、图层及glitch仍同步，未知14B保持",
-          "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md；J273 VA973190/719270"
+          "evidence": "docs/archive/design/binary-state/grid-eight-subclasses-evidence.md；J273 VA973190/719270"
         }
       },
       "catalog_rows": [
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 37,
           "id": "GridEntity.ToStairs",
           "owner": "GridEntity",
@@ -1330,7 +1330,7 @@
         "grid_class": {
           "type": "native-grid-class",
           "semantics": "实际RTTI GridEntity_Teleporter与工厂type=23，按同room/subject/use/shape合法匹配；只作本地类识别，不传vptr/RTTI地址，不调用Lua cast",
-          "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-eight-subclasses-evidence.md"
         }
       },
       "members": [
@@ -1347,7 +1347,7 @@
       "notes": "版本51：J273工厂type=23，分配范围0x154；真实父类GridEntity，G0—G3继承一次。六个等大类之一，无子类尾字节；主Sprite仍用201；根UNKNOWN17B保持（Fire为45B）；本步仅静态字节归属/生成，实际来源、writer、绘制与生命周期接线仍待第10/13步，第15步唯一统一验收。",
       "catalog_rows": [
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 40,
           "id": "GridEntity.ToTeleporter",
           "owner": "GridEntity",
@@ -1378,7 +1378,7 @@
         "grid_class": {
           "type": "native-grid-class",
           "semantics": "实际RTTI GridEntity_Wall与工厂type=15，按同room/subject/use/shape合法匹配；只作本地类识别，不传vptr/RTTI地址，不调用Lua cast",
-          "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-eight-subclasses-evidence.md"
         }
       },
       "members": [
@@ -1395,7 +1395,7 @@
       "notes": "版本51：J273工厂type=15，分配范围0x154；真实父类GridEntity，G0—G3继承一次。六个等大类之一，无子类尾字节；主Sprite仍用201；根UNKNOWN17B保持（Fire为45B）；本步仅静态字节归属/生成，实际来源、writer、绘制与生命周期接线仍待第10/13步，第15步唯一统一验收。Wall仅RoomType==16时覆写色，其他房间直接读Sprite颜色，不能套用202或删除44B。PostInit按邻接/随机选择的最终动画照常保留，不在Client重新生成。",
       "catalog_rows": [
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 42,
           "id": "GridEntity.ToWall",
           "owner": "GridEntity",
@@ -1426,7 +1426,7 @@
         "grid_class": {
           "type": "native-grid-class",
           "semantics": "实际RTTI GridEntity_Web与工厂type=10，按同room/subject/use/shape合法匹配；只作本地类识别，不传vptr/RTTI地址，不调用Lua cast",
-          "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-eight-subclasses-evidence.md"
         }
       },
       "members": [
@@ -1445,12 +1445,12 @@
         "sprite": {
           "type": "GridFloorSprite",
           "semantics": "本类主Sprite的地板色绘制视图；颜色每次绘制前被Room.floorColor覆盖，省去44B旧颜色；实际Image、姿态、图层及glitch仍同步，未知14B保持",
-          "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md；J273 VA973190/719270"
+          "evidence": "docs/archive/design/binary-state/grid-eight-subclasses-evidence.md；J273 VA973190/719270"
         }
       },
       "catalog_rows": [
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 43,
           "id": "GridEntity.ToWeb",
           "owner": "GridEntity",
@@ -1483,7 +1483,7 @@
           "category": "权威",
           "semantics": "工厂清零、Update递增并以<150参与特殊开闭玩法；Render不读，最终state与Sprite已同步，不传计数器、不在Client运行入口/换层判断",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md；VA706521/71A713/71A876"
+          "evidence": "docs/archive/design/binary-state/grid-eight-subclasses-evidence.md；VA706521/71A713/71A876"
         }
       ],
       "conversions": {},
@@ -1492,7 +1492,7 @@
         "grid_class": {
           "type": "native-grid-class",
           "semantics": "实际RTTI GridEntity_TrapDoor与工厂type=17，按同room/subject/use/shape合法匹配；只作本地类识别，不传vptr/RTTI地址，不调用Lua cast",
-          "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-eight-subclasses-evidence.md"
         }
       },
       "members": [
@@ -1517,12 +1517,12 @@
         "sprite": {
           "type": "GridFloorSprite",
           "semantics": "本类主Sprite的地板色绘制视图；颜色每次绘制前被Room.floorColor覆盖，省去44B旧颜色；实际Image、姿态、图层及glitch仍同步，未知14B保持",
-          "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md；J273 VA973190/719270"
+          "evidence": "docs/archive/design/binary-state/grid-eight-subclasses-evidence.md；J273 VA973190/719270"
         }
       },
       "catalog_rows": [
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 41,
           "id": "GridEntity.ToTrapDoor",
           "owner": "GridEntity",
@@ -1555,7 +1555,7 @@
           "category": "状态",
           "semantics": "第二ANM2：独立火焰stage最终资源与姿态，Render总会尝试绘制；不以desc.state在Client重跑FireStage选择",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md；VA706418/67B6AC-67B700",
+          "evidence": "docs/archive/design/binary-state/grid-eight-subclasses-evidence.md；VA706418/67B6AC-67B700",
           "wire": {
             "kind": "nested",
             "type": "GridSprite"
@@ -1571,7 +1571,7 @@
           "category": "权威",
           "semantics": "红火焰发射冷却，Update写84并递减，Render不读；最终projectile走Entity成员同步",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-eight-subclasses-evidence.md"
         },
         {
           "offset": "0x26c",
@@ -1581,7 +1581,7 @@
           "category": "权威",
           "semantics": "Init随机选0..2，Update用于NoFire/Flickering动画名查表；已生成的主Sprite姿态同步，不发样式原索引",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-eight-subclasses-evidence.md"
         },
         {
           "offset": "0x270",
@@ -1591,7 +1591,7 @@
           "category": "容器",
           "semantics": "只投影当前可绘制的有序粒子；desc.state>=4编码空列表且不读粒子数据，state<4保留完整顺序/位置/寿命。三指针地址/容量不上线，不模拟粒子",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md",
+          "evidence": "docs/archive/design/binary-state/grid-eight-subclasses-evidence.md",
           "wire": {
             "kind": "container",
             "storage": "vector",
@@ -1613,7 +1613,7 @@
           "category": "状态",
           "semantics": "第三ANM2共享绘制模板；主动画帧/选择器由粒子重建，overlay仍发送独立姿态，loaded由本地资源owner建立",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md；VA706445/67B721-67B7D5",
+          "evidence": "docs/archive/design/binary-state/grid-eight-subclasses-evidence.md；VA706445/67B721-67B7D5",
           "wire": {
             "kind": "nested",
             "type": "GridFireEmberSprite"
@@ -1631,7 +1631,7 @@
         "grid_class": {
           "type": "native-grid-class",
           "semantics": "实际RTTI GridEntity_Fire与工厂type=13，按同room/subject/use/shape合法匹配；只作本地类识别，不传vptr/RTTI地址，不调用Lua cast",
-          "evidence": "docs/design/binary-state/grid-eight-subclasses-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-eight-subclasses-evidence.md"
         }
       },
       "members": [
@@ -1688,7 +1688,7 @@
       "notes": "版本51：J273工厂type=13，分配范围0x390；真实父类GridEntity，G0—G3继承一次。主Sprite仍用201；根UNKNOWN17B保持（Fire为45B）；本步仅静态字节归属/生成，实际来源、writer、绘制与生命周期接线仍待第10/13步，第15步唯一统一验收。原生子类区572B全部登记：两ANM2共552B、Host两个标量8B、vector头12B；两ANM2递归各14B UNKNOWN，根45B，不能称完整。公共加第二Sprite118B、模板110B及空粒子头2B，最小372B。",
       "catalog_rows": [
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 29,
           "id": "GridEntity.ToFire",
           "owner": "GridEntity",
@@ -1726,7 +1726,7 @@
         "rock_draw_role": {
           "type": "grid-layer-role",
           "semantics": "同world的真实Rock desc.state及图层序号；只有state==2且layer_index==0时位置为逐碎块派生值",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md"
         }
       },
       "ranges": [
@@ -1758,7 +1758,7 @@
           "category": "权威",
           "semantics": "Host未来图像加载请求的路径元数据；当前展示只安装实际image_selection。可写不构成同步必要性，不在Client重演ReplaceSpritesheet/LoadGraphics；不要求此路径原值相等",
           "status": "SDK声明",
-          "evidence": "LayerState.zhl +0x08 std::string；LuaSprite.cpp GetSpritesheetPath 直接返回 GetSpritesheetPath().c_str()；版本49：docs/design/binary-state/grid-common-synchronization-review.md"
+          "evidence": "LayerState.zhl +0x08 std::string；LuaSprite.cpp GetSpritesheetPath 直接返回 GetSpritesheetPath().c_str()；版本49：docs/archive/design/binary-state/grid-common-synchronization-review.md"
         },
         {
           "offset": "0x20",
@@ -1828,7 +1828,7 @@
           "category": "本地",
           "semantics": "本地图层资源加载／重载维护标志；ReplaceSpritesheet可置false同时保留旧Image，不跨进程复制，也不按Host原值覆盖Client加载结果",
           "status": "SDK声明",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics；版本32同步职责复核：docs/design/binary-state/animation-resource-synchronization-review.md"
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics；版本32同步职责复核：docs/archive/design/binary-state/animation-resource-synchronization-review.md"
         },
         {
           "offset": "0x31",
@@ -2068,7 +2068,7 @@
           "name": "has_position",
           "type": "u8",
           "semantics": "state==2且layer_index==0为0，其余为1；须与父Rock及容器序号一致",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md",
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md",
           "host": "read_grid_rock_layer_has_position",
           "client": "install_grid_rock_layer_has_position",
           "sequence": "body"
@@ -2105,7 +2105,7 @@
         "rock_state": {
           "type": "i32",
           "semantics": "同world父Rock的desc.state；state==2时主动画由RubbleAnim/variant/有序碎块派生，overlay仍保留真实姿态",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md"
         }
       },
       "ranges": [
@@ -2117,7 +2117,7 @@
           "category": "资源",
           "semantics": "可空ANM2文件资源选择；Host loaded=false编码0xFFFF，true编码文件资源号；不以路径非空猜测存在性",
           "status": "SDK声明",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；J273 Render VA0x4059E0读取+109；Reset VA0x403530清文件／资源及loaded，Load VA0x407B52置1；版本32见docs/design/binary-state/animation-resource-synchronization-review.md",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；J273 Render VA0x4059E0读取+109；Reset VA0x403530清文件／资源及loaded，Load VA0x407B52置1；版本32见docs/archive/design/binary-state/animation-resource-synchronization-review.md",
           "wire": {
             "kind": "resource",
             "type": "u16",
@@ -2135,7 +2135,7 @@
           "category": "权威",
           "semantics": "Host默认动画控制元数据；Grid展示安装明确的当前动画资源/selector，Rock绘制的RubbleAnim也是显式名字，不重演默认动画选择。可写事实保留，不声称不可变或无条件由文件派生",
           "status": "已核",
-          "evidence": "J273 VA 0x407AF0 Load 调 VA 0x409680；VA 0x4099D4/0x4099E9 将 cache 字符串复制到 this+0x18；SetAnimation VA 0x405F50 只切换 AnimationData。REP ANM2.zhl；版本49：docs/design/binary-state/grid-common-synchronization-review.md"
+          "evidence": "J273 VA 0x407AF0 Load 调 VA 0x409680；VA 0x4099D4/0x4099E9 将 cache 字符串复制到 this+0x18；SetAnimation VA 0x405F50 只切换 AnimationData。REP ANM2.zhl；版本49：docs/archive/design/binary-state/grid-common-synchronization-review.md"
         },
         {
           "offset": "0x30",
@@ -2426,7 +2426,7 @@
           "category": "状态",
           "semantics": "播放速度兼绘制插值的半帧比例输入；不在Client推进动画",
           "status": "SDK声明",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；REPENTOGON/Patches/InterpolV2.cpp按_playbackSpeed计算lerpappend；版本32见docs/design/binary-state/animation-resource-synchronization-review.md",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；REPENTOGON/Patches/InterpolV2.cpp按_playbackSpeed计算lerpappend；版本32见docs/archive/design/binary-state/animation-resource-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -2451,7 +2451,7 @@
           "category": "本地",
           "semantics": "本地ANM2构造／加载／重置结果；Host只用它确定file_name的可空资源选择，Client由资源owner完成准备后维护，不直接传布尔字节",
           "status": "已核",
-          "evidence": "J273 Load VA 0x407AF0 的 VA 0x407B52 写 +0x109=1；属于本地资源生命周期状态；J273 IsLoaded VA0x41B820/RVA0x1B820直接return this[0x109]，主审已复读；版本32同步职责复核：docs/design/binary-state/animation-resource-synchronization-review.md"
+          "evidence": "J273 Load VA 0x407AF0 的 VA 0x407B52 写 +0x109=1；属于本地资源生命周期状态；J273 IsLoaded VA0x41B820/RVA0x1B820直接return this[0x109]，主审已复读；版本32同步职责复核：docs/archive/design/binary-state/animation-resource-synchronization-review.md"
         },
         {
           "offset": "0x10A",
@@ -2546,7 +2546,7 @@
           "name": "glitch_draw_bits",
           "type": "u8",
           "semantics": "按Host当前ANM2地址在自有纯值RNG以shift-index35计算两次RandomInt(2)的最终选择：bit0=0为+90/1为-90，bit1为flipX。只发0..3结果，不发地址/随机种子或游标；绑定subject/use/shape/Sprite角色",
-          "evidence": "docs/design/binary-state/grid-common-synchronization-review.md；J273 Room Render804500与RenderFrame404570；官方Utils/ANM2Utils.hpp::GetFrameSourceQuad",
+          "evidence": "docs/archive/design/binary-state/grid-common-synchronization-review.md；J273 Room Render804500与RenderFrame404570；官方Utils/ANM2Utils.hpp::GetFrameSourceQuad",
           "host": "read_grid_sprite_glitch_draw_bits",
           "client": "install_grid_sprite_glitch_draw_bits",
           "sequence": "body"
@@ -2555,7 +2555,7 @@
           "name": "has_main_pose",
           "type": "u8",
           "semantics": "父Rock state==2为0，其余为1；与父状态强制一致",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md",
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md",
           "host": "read_grid_rock_has_main_pose",
           "client": "install_grid_rock_has_main_pose",
           "sequence": "body"
@@ -2611,7 +2611,7 @@
           "category": "权威",
           "semantics": "Statue专用不上线：slot3 Render为空、Light默认返回，真实外观由独立Entity承接；原字段事实：可空ANM2文件资源选择；Host loaded=false编码0xFFFF，true编码文件资源号；不以路径非空猜测存在性",
           "status": "SDK声明",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；J273 Render VA0x4059E0读取+109；Reset VA0x403530清文件／资源及loaded，Load VA0x407B52置1；版本32见docs/design/binary-state/animation-resource-synchronization-review.md"
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；J273 Render VA0x4059E0读取+109；Reset VA0x403530清文件／资源及loaded，Load VA0x407B52置1；版本32见docs/archive/design/binary-state/animation-resource-synchronization-review.md"
         },
         {
           "offset": "0x18",
@@ -2621,7 +2621,7 @@
           "category": "权威",
           "semantics": "Statue专用不上线：slot3 Render为空、Light默认返回，真实外观由独立Entity承接；原字段事实：Host默认动画控制元数据；Grid展示安装明确的当前动画资源/selector，Rock绘制的RubbleAnim也是显式名字，不重演默认动画选择。可写事实保留，不声称不可变或无条件由文件派生",
           "status": "已核",
-          "evidence": "J273 VA 0x407AF0 Load 调 VA 0x409680；VA 0x4099D4/0x4099E9 将 cache 字符串复制到 this+0x18；SetAnimation VA 0x405F50 只切换 AnimationData。REP ANM2.zhl；版本49：docs/design/binary-state/grid-common-synchronization-review.md"
+          "evidence": "J273 VA 0x407AF0 Load 调 VA 0x409680；VA 0x4099D4/0x4099E9 将 cache 字符串复制到 this+0x18；SetAnimation VA 0x405F50 只切换 AnimationData。REP ANM2.zhl；版本49：docs/archive/design/binary-state/grid-common-synchronization-review.md"
         },
         {
           "offset": "0x30",
@@ -2846,7 +2846,7 @@
           "category": "权威",
           "semantics": "Statue专用不上线：slot3 Render为空、Light默认返回，真实外观由独立Entity承接；原字段事实：播放速度兼绘制插值的半帧比例输入；不在Client推进动画",
           "status": "SDK声明",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；REPENTOGON/Patches/InterpolV2.cpp按_playbackSpeed计算lerpappend；版本32见docs/design/binary-state/animation-resource-synchronization-review.md"
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；REPENTOGON/Patches/InterpolV2.cpp按_playbackSpeed计算lerpappend；版本32见docs/archive/design/binary-state/animation-resource-synchronization-review.md"
         },
         {
           "offset": "0x108",
@@ -2866,7 +2866,7 @@
           "category": "本地",
           "semantics": "本地ANM2构造／加载／重置结果；Host只用它确定file_name的可空资源选择，Client由资源owner完成准备后维护，不直接传布尔字节",
           "status": "已核",
-          "evidence": "J273 Load VA 0x407AF0 的 VA 0x407B52 写 +0x109=1；属于本地资源生命周期状态；J273 IsLoaded VA0x41B820/RVA0x1B820直接return this[0x109]，主审已复读；版本32同步职责复核：docs/design/binary-state/animation-resource-synchronization-review.md"
+          "evidence": "J273 Load VA 0x407AF0 的 VA 0x407B52 写 +0x109=1；属于本地资源生命周期状态；J273 IsLoaded VA0x41B820/RVA0x1B820直接return this[0x109]，主审已复读；版本32同步职责复核：docs/archive/design/binary-state/animation-resource-synchronization-review.md"
         },
         {
           "offset": "0x10A",
@@ -2925,7 +2925,7 @@
           "category": "权威",
           "semantics": "Init按道具380决定的金币解锁模式；TryUnlock扣币/扣钥匙并选择音效，最终IdleCoin/Break等姿态已在主Sprite；Render不读",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 70C4C0/70C74C/70C782/70C83F"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 70C4C0/70C74C/70C782/70C83F"
         },
         {
           "offset": "0x155",
@@ -2935,7 +2935,7 @@
           "category": "未知",
           "semantics": "只见+154单字节写，没有填充或其它语义证明",
           "status": "未知",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 70C4C0"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 70C4C0"
         }
       ],
       "conversions": {},
@@ -2961,13 +2961,13 @@
         "grid_class": {
           "type": "native-grid-class",
           "semantics": "实际RTTI GridEntity_Lock，工厂type=11；同room/subject/use/shape，不发RTTI/vptr地址",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md"
         }
       },
       "notes": "版本52：本轮仅静态字节归属、正式生成与纯编译；实际reader/writer/展示owner仍归第10/13步，第15步唯一统一验收；UNKNOWN保留，不宣称完整或已实测。",
       "catalog_rows": [
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 31,
           "id": "GridEntity.ToLock",
           "owner": "GridEntity",
@@ -2981,7 +2981,7 @@
           "reason": "公开To接口按类型投影；采集与安装须核真实RTTI/成员身份，失配不伪造成功，不传vptr/指针或调用Lua cast。工厂706100及类/虚表点位见对应字节证据。 按真实工厂/RTTI匹配，无独立cast负载。 证据：grid-seven-subclasses-evidence.md；旧应用行31原归属=DerivedWitness，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 86,
           "id": "GridEntityLock.TryUnlock",
           "owner": "GridEntityLock",
@@ -3012,7 +3012,7 @@
           "category": "权威",
           "semantics": "SetLadder/UpdateCollision仅决定collisionClass=5/1及PathTrail；桥纹理由Desc.State与Sprite layer1承接，Render/Light/TexturedPit不读此byte",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 70E1C7/70F0C6/70F072"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 70E1C7/70F0C6/70F072"
         },
         {
           "offset": "0x155",
@@ -3022,7 +3022,7 @@
           "category": "未知",
           "semantics": "仅+154一字节初始化；不能按对象对齐假定填充",
           "status": "未知",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 70E1C7"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 70E1C7"
         }
       ],
       "conversions": {},
@@ -3066,7 +3066,7 @@
         "grid_class": {
           "type": "native-grid-class",
           "semantics": "实际RTTI GridEntity_Pit，工厂type=7；同room/subject/use/shape，不发RTTI/vptr地址",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md"
         }
       },
       "notes": "版本52：本轮仅静态字节归属、正式生成与纯编译；实际reader/writer/展示owner仍归第10/13步，第15步唯一统一验收；UNKNOWN保留，不宣称完整或已实测。",
@@ -3074,12 +3074,12 @@
         "sprite": {
           "type": "GridFloorSprite",
           "semantics": "Pit的主Sprite专用展示视图；按具体Render消费者裁剪，原生范围和未知不变",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md"
         }
       },
       "catalog_rows": [
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 32,
           "id": "GridEntity.ToPit",
           "owner": "GridEntity",
@@ -3093,7 +3093,7 @@
           "reason": "公开To接口按类型投影；采集与安装须核真实RTTI/成员身份，失配不伪造成功，不传vptr/指针或调用Lua cast。工厂706100及类/虚表点位见对应字节证据。 按真实工厂/RTTI匹配，无独立cast负载。 证据：grid-seven-subclasses-evidence.md；旧应用行32原归属=DerivedWitness，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 87,
           "id": "GridEntityPit.HasLadder",
           "owner": "GridEntityPit",
@@ -3105,7 +3105,7 @@
           "reason": "852509注册1B；70EFF0只用于碰撞，真实桥纹理由state、Sprite layer1与Image呈现，不用HasLadder充当visible。 Host碰撞/桥状态生产；Client用最终Desc/Sprite/水面结果，绝不调用操作补图像。 证据：grid-seven-subclasses-evidence.md；旧应用行87原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 88,
           "id": "GridEntityPit.MakeBridge",
           "owner": "GridEntityPit",
@@ -3117,7 +3117,7 @@
           "reason": "70F0E0依据父Grid type/历史设桥state并改碰撞；Client接最终状态和真实成员，不发送父裸指针或操作。 Host碰撞/桥状态生产；Client用最终Desc/Sprite/水面结果，绝不调用操作补图像。 证据：grid-seven-subclasses-evidence.md；旧应用行88原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 89,
           "id": "GridEntityPit.SetLadder",
           "owner": "GridEntityPit",
@@ -3129,7 +3129,7 @@
           "reason": "70F0C0写+154并调用70EFF0；不在Client以setter补桥层。 Host碰撞/桥状态生产；Client用最终Desc/Sprite/水面结果，绝不调用操作补图像。 证据：grid-seven-subclasses-evidence.md；旧应用行89原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 90,
           "id": "GridEntityPit.UpdateCollision",
           "owner": "GridEntityPit",
@@ -3160,7 +3160,7 @@
           "category": "权威",
           "semantics": "周期升降倒计时；Init=30或12*variant，Update递减/重置60或停用-1；最终state/动画同步，Render不读",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 718989/7189C1/718B77/718FBF/718FCA/718FD6/719089"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 718989/7189C1/718B77/718FBF/718FCA/718FD6/719089"
         }
       ],
       "conversions": {},
@@ -3186,7 +3186,7 @@
         "grid_class": {
           "type": "native-grid-class",
           "semantics": "实际RTTI GridEntity_Spikes，工厂type=8/9；同room/subject/use/shape，不发RTTI/vptr地址",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md"
         }
       },
       "notes": "版本52：本轮仅静态字节归属、正式生成与纯编译；实际reader/writer/展示owner仍归第10/13步，第15步唯一统一验收；UNKNOWN保留，不宣称完整或已实测。",
@@ -3194,12 +3194,12 @@
         "sprite": {
           "type": "GridFloorSprite",
           "semantics": "Spikes的主Sprite专用展示视图；按具体Render消费者裁剪，原生范围和未知不变",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md"
         }
       },
       "catalog_rows": [
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 36,
           "id": "GridEntity.ToSpikes",
           "owner": "GridEntity",
@@ -3213,7 +3213,7 @@
           "reason": "公开To接口按类型投影；采集与安装须核真实RTTI/成员身份，失配不伪造成功，不传vptr/指针或调用Lua cast。工厂706100及类/虚表点位见对应字节证据。 按真实工厂/RTTI匹配，无独立cast负载。 证据：grid-seven-subclasses-evidence.md；旧应用行36原归属=DerivedWitness，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 118,
           "id": "GridEntitySpikes.Timeout",
           "owner": "GridEntitySpikes",
@@ -3244,7 +3244,7 @@
           "category": "权威",
           "semantics": "Host Init创建并登记的实体裸指针；Destroy对其调用slot10并清零，Statue自身Render为空，真实外观/生命周期走独立Entity域；不发Host地址或重复引用",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 82DC18/82D14F/82D15B/82D15E"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 82DC18/82D14F/82D15B/82D15E"
         }
       ],
       "conversions": {},
@@ -3270,7 +3270,7 @@
         "grid_class": {
           "type": "native-grid-class",
           "semantics": "实际RTTI GridEntity_Statue，工厂type=21；同room/subject/use/shape，不发RTTI/vptr地址",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md"
         }
       },
       "notes": "版本52：本轮仅静态字节归属、正式生成与纯编译；实际reader/writer/展示owner仍归第10/13步，第15步唯一统一验收；UNKNOWN保留，不宣称完整或已实测。",
@@ -3278,12 +3278,12 @@
         "sprite": {
           "type": "GridStatueUnusedSprite",
           "semantics": "Statue的主Sprite专用展示视图；按具体Render消费者裁剪，原生范围和未知不变",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md"
         }
       },
       "catalog_rows": [
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 38,
           "id": "GridEntity.ToStatue",
           "owner": "GridEntity",
@@ -3316,7 +3316,7 @@
           "category": "权威",
           "semantics": "SDK _frameCount/公开FrameCnt；state<4 Init=3否则-1，state4倒计时归零生成爆炸/掉落，Destroy立即路径写-1；不是ANM2帧，Render不读",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 71952C/7195C0/7195E2/719CBE"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 71952C/7195C0/7195E2/719CBE"
         }
       ],
       "conversions": {},
@@ -3342,7 +3342,7 @@
         "grid_class": {
           "type": "native-grid-class",
           "semantics": "实际RTTI GridEntity_TNT，工厂type=12；同room/subject/use/shape，不发RTTI/vptr地址",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md"
         }
       },
       "notes": "版本52：本轮仅静态字节归属、正式生成与纯编译；实际reader/writer/展示owner仍归第10/13步，第15步唯一统一验收；UNKNOWN保留，不宣称完整或已实测。",
@@ -3350,12 +3350,12 @@
         "sprite": {
           "type": "GridFloorSprite",
           "semantics": "TNT的主Sprite专用展示视图；按具体Render消费者裁剪，原生范围和未知不变",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md"
         }
       },
       "catalog_rows": [
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 39,
           "id": "GridEntity.ToTNT",
           "owner": "GridEntity",
@@ -3369,7 +3369,7 @@
           "reason": "公开To接口按类型投影；采集与安装须核真实RTTI/成员身份，失配不伪造成功，不传vptr/指针或调用Lua cast。工厂706100及类/虚表点位见对应字节证据。 按真实工厂/RTTI匹配，无独立cast负载。 证据：grid-seven-subclasses-evidence.md；旧应用行39原归属=DerivedWitness，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 119,
           "id": "GridEntityTNT.FrameCnt",
           "owner": "GridEntityTNT",
@@ -3400,7 +3400,7 @@
           "category": "权威",
           "semantics": "红便便复生倒计时；Hurt/RespawnRedPoop写120，Update递减；Render不读",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 71079B/711673/70F7CC/70F7DB"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 71079B/711673/70F7CC/70F7DB"
         },
         {
           "offset": "0x158",
@@ -3410,7 +3410,7 @@
           "category": "权威",
           "semantics": "公开可写的StateAnimation控制字符串；工厂构造，当前Init/Update使用栈上State%d显式名字，Render只消费已选主Sprite；不传string头或旧控制元数据",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 706342-706360/852491/70F230/711513"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 706342-706360/852491/70F230/711513"
         },
         {
           "offset": "0x170",
@@ -3420,7 +3420,7 @@
           "category": "权威",
           "semantics": "公开UnderPlayer，玩法恢复碰撞条件；Init清零或设1，Update清零；不是绘制可见位",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 7108D2/710A3B/70FE33/70FF6F"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 7108D2/710A3B/70FE33/70FF6F"
         },
         {
           "offset": "0x171",
@@ -3430,7 +3430,7 @@
           "category": "权威",
           "semantics": "非玩家Entity仍压在新便便下方时的碰撞延后标志；Update查询附近Entity并清零，原生真实名字未声明",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 7108D2/70FE7C/70FF4E"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 7108D2/70FE7C/70FF4E"
         },
         {
           "offset": "0x172",
@@ -3440,7 +3440,7 @@
           "category": "未知",
           "semantics": "SDK尾端两字节没有本类消费者/写入或填充证明；不能把其它Entity+172/+173的访问错归Poop",
           "status": "未知",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 706342-7063D9/7108D2"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 706342-7063D9/7108D2"
         },
         {
           "offset": "0x174",
@@ -3450,7 +3450,7 @@
           "category": "权威",
           "semantics": "内嵌EntityRef：伤害源Type；伤害/复生归Host，Render无消费者，不能将地址或整段40B复制到Client",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 706367-7063D9/710751/EntityRef.zhl"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 706367-7063D9/710751/EntityRef.zhl"
         },
         {
           "offset": "0x178",
@@ -3460,7 +3460,7 @@
           "category": "权威",
           "semantics": "内嵌EntityRef：伤害源Variant；伤害/复生归Host，Render无消费者，不能将地址或整段40B复制到Client",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 706367-7063D9/710751/EntityRef.zhl"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 706367-7063D9/710751/EntityRef.zhl"
         },
         {
           "offset": "0x17c",
@@ -3470,7 +3470,7 @@
           "category": "权威",
           "semantics": "内嵌EntityRef：伤害源SpawnerType；伤害/复生归Host，Render无消费者，不能将地址或整段40B复制到Client",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 706367-7063D9/710751/EntityRef.zhl"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 706367-7063D9/710751/EntityRef.zhl"
         },
         {
           "offset": "0x180",
@@ -3480,7 +3480,7 @@
           "category": "权威",
           "semantics": "内嵌EntityRef：伤害源SpawnerVariant；伤害/复生归Host，Render无消费者，不能将地址或整段40B复制到Client",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 706367-7063D9/710751/EntityRef.zhl"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 706367-7063D9/710751/EntityRef.zhl"
         },
         {
           "offset": "0x184",
@@ -3490,7 +3490,7 @@
           "category": "权威",
           "semantics": "内嵌EntityRef：伤害源位置；伤害/复生归Host，Render无消费者，不能将地址或整段40B复制到Client",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 706367-7063D9/710751/EntityRef.zhl"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 706367-7063D9/710751/EntityRef.zhl"
         },
         {
           "offset": "0x18c",
@@ -3500,7 +3500,7 @@
           "category": "权威",
           "semantics": "内嵌EntityRef：伤害源速度；伤害/复生归Host，Render无消费者，不能将地址或整段40B复制到Client",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 706367-7063D9/710751/EntityRef.zhl"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 706367-7063D9/710751/EntityRef.zhl"
         },
         {
           "offset": "0x194",
@@ -3510,7 +3510,7 @@
           "category": "权威",
           "semantics": "内嵌EntityRef：伤害源flags；伤害/复生归Host，Render无消费者，不能将地址或整段40B复制到Client",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 706367-7063D9/710751/EntityRef.zhl"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 706367-7063D9/710751/EntityRef.zhl"
         },
         {
           "offset": "0x198",
@@ -3520,7 +3520,7 @@
           "category": "权威",
           "semantics": "内嵌EntityRef：伤害源裸指针；伤害/复生归Host，Render无消费者，不能将地址或整段40B复制到Client",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 706367-7063D9/710751/EntityRef.zhl"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 706367-7063D9/710751/EntityRef.zhl"
         }
       ],
       "conversions": {},
@@ -3576,7 +3576,7 @@
         "grid_class": {
           "type": "native-grid-class",
           "semantics": "实际RTTI GridEntity_Poop，工厂type=14；同room/subject/use/shape，不发RTTI/vptr地址",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md"
         }
       },
       "notes": "版本52：本轮仅静态字节归属、正式生成与纯编译；实际reader/writer/展示owner仍归第10/13步，第15步唯一统一验收；UNKNOWN保留，不宣称完整或已实测。",
@@ -3584,12 +3584,12 @@
         "sprite": {
           "type": "GridFloorSprite",
           "semantics": "Poop的主Sprite专用展示视图；按具体Render消费者裁剪，原生范围和未知不变",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md"
         }
       },
       "catalog_rows": [
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 33,
           "id": "GridEntity.ToPoop",
           "owner": "GridEntity",
@@ -3603,7 +3603,7 @@
           "reason": "公开To接口按类型投影；采集与安装须核真实RTTI/成员身份，失配不伪造成功，不传vptr/指针或调用Lua cast。工厂706100及类/虚表点位见对应字节证据。 按真实工厂/RTTI匹配，无独立cast负载。 证据：grid-seven-subclasses-evidence.md；旧应用行33原归属=DerivedWitness，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 91,
           "id": "GridEntityPoop.ReduceSpawnRate",
           "owner": "GridEntityPoop",
@@ -3615,7 +3615,7 @@
           "reason": "452660仅写对象+18=1；与已经移除的ReducedSpawnRate属性不同，不新造bool负载。 真实当前展示由Desc/主Sprite和独立成员承接；该API属于Host控制/伤害/碰撞路径。 证据：grid-seven-subclasses-evidence.md；旧应用行91原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 92,
           "id": "GridEntityPoop.ReducedSpawnRate",
           "owner": "GridEntityPoop",
@@ -3627,7 +3627,7 @@
           "reason": "IsaacDocs/docs/GridEntityPoop.md:32明确Repentance移除；J273852478..8524D9未注册该属性，UNKNOWN172..173仍保持未知。 原版Wiki明确该旧属性自Repentance移除；J273注册没有该属性，不能误对应+171或新造字段。 证据：grid-seven-subclasses-evidence.md；旧应用行92原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 93,
           "id": "GridEntityPoop.RespawnRedPoop",
           "owner": "GridEntityPoop",
@@ -3639,7 +3639,7 @@
           "reason": "711660写复生计时120并进入Host恢复生产；最终Desc/Sprite/成员另传，不在Client再次复生。 真实当前展示由Desc/主Sprite和独立成员承接；该API属于Host控制/伤害/碰撞路径。 证据：grid-seven-subclasses-evidence.md；旧应用行93原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 94,
           "id": "GridEntityPoop.ReviveTimer",
           "owner": "GridEntityPoop",
@@ -3651,7 +3651,7 @@
           "reason": "71079B/711673写120，70F7CC/70F7DB递减；Render710130不消费，不需要帧锚点。 真实当前展示由Desc/主Sprite和独立成员承接；该API属于Host控制/伤害/碰撞路径。 证据：grid-seven-subclasses-evidence.md；旧应用行94原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 95,
           "id": "GridEntityPoop.StateAnimation",
           "owner": "GridEntityPoop",
@@ -3663,7 +3663,7 @@
           "reason": "852491注册+158 string；当前生产用栈上State%d，不能因它名含Animation而替代真实Sprite姿态。 真实当前展示由Desc/主Sprite和独立成员承接；该API属于Host控制/伤害/碰撞路径。 证据：grid-seven-subclasses-evidence.md；旧应用行95原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 96,
           "id": "GridEntityPoop.UnderPlayer",
           "owner": "GridEntityPoop",
@@ -3694,7 +3694,7 @@
           "category": "权威",
           "semantics": "Anim控制名供Init/UpdateAnimFrame；当前完整主姿态已承接非碎块展示，Render碎块分支显式使用RubbleAnim，故不发Anim字符串",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 70618B-7061A9/714BCE/7156C0-7156D2"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 70618B-7061A9/714BCE/7156C0-7156D2"
         },
         {
           "offset": "0x16c",
@@ -3704,7 +3704,7 @@
           "category": "资源",
           "semantics": "state==2真正绘制的RubbleAnim，按当前ANM2文件转动画资源号；其它状态规范为空，不读取旧字符串。仅发稳定u16，绝不复制string头",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 7061B0-7061CE/714801-71487A",
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 7061B0-7061CE/714801-71487A",
           "wire": {
             "kind": "resource",
             "type": "u16",
@@ -3723,7 +3723,7 @@
           "category": "容器",
           "semantics": "state==2逐条绘制的有序layer0偏移；原生8B元素全值同步，非碎块态规范空；不是邻居表，不能截断/排序/按Seed重抽",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 7061D5-7061E9/714841-714938/71510A-715249",
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 7061D5-7061E9/714841-714938/71510A-715249",
           "wire": {
             "kind": "container",
             "element": "Vector",
@@ -3744,7 +3744,7 @@
           "category": "权威",
           "semantics": "公开FrameCnt：爆炸岩石倒计时，Update递减，非碎块绘制帧；不进入Client时钟",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 714ECD/713EDD/713EE6/714490"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 714ECD/713EDD/713EE6/714490"
         },
         {
           "offset": "0x194",
@@ -3754,7 +3754,7 @@
           "category": "权威",
           "semantics": "Init/Update保存旧Desc.State供外部玩法判断（例如MakeBridge识别type25 state1）；Render不读，不是结构事务版本",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 7152FE/7143B4/70F0F6"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md；J273 VA 7152FE/7143B4/70F0F6"
         }
       ],
       "conversions": {
@@ -3904,7 +3904,7 @@
         "grid_class": {
           "type": "native-grid-class",
           "semantics": "实际RTTI GridEntity_Rock，工厂type=2/3/4/5/6/22/24/25/26/27；同room/subject/use/shape，不发RTTI/vptr地址",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md"
         }
       },
       "notes": "版本52：本轮仅静态字节归属、正式生成与纯编译；实际reader/writer/展示owner仍归第10/13步，第15步唯一统一验收；UNKNOWN保留，不宣称完整或已实测。 碎块资源2B+空列表2B；RockSprite新增主姿态存在性1B、各实际层位置存在性1B，state2省去主姿态及layer0位置，仍保留真实overlay和颜色。不能直接执行含动画推进及selector释放的原Render。",
@@ -3912,12 +3912,12 @@
         "sprite": {
           "type": "GridRockSprite",
           "semantics": "Rock的主Sprite专用展示视图；按具体Render消费者裁剪，原生范围和未知不变",
-          "evidence": "docs/design/binary-state/grid-seven-subclasses-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-seven-subclasses-evidence.md"
         }
       },
       "catalog_rows": [
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 35,
           "id": "GridEntity.ToRock",
           "owner": "GridEntity",
@@ -3931,7 +3931,7 @@
           "reason": "公开To接口按类型投影；采集与安装须核真实RTTI/成员身份，失配不伪造成功，不传vptr/指针或调用Lua cast。工厂706100及类/虚表点位见对应字节证据。 按真实工厂/RTTI匹配，无独立cast负载。 证据：grid-seven-subclasses-evidence.md；旧应用行35原归属=DerivedWitness，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 101,
           "id": "GridEntityRock.Anim",
           "owner": "GridEntityRock",
@@ -3943,7 +3943,7 @@
           "reason": "85258A注册+154，7156A0消费控制名；当前选出的资源/动画/帧从主Sprite读取，控制string不发。 Host控制/玩法/音效生产；当前Sprite、Desc及独立Entity成员承接最终展示，不在Client重演。 证据：grid-seven-subclasses-evidence.md；旧应用行101原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 102,
           "id": "GridEntityRock.FrameCnt",
           "owner": "GridEntityRock",
@@ -3955,7 +3955,7 @@
           "reason": "852572注册+190，713EDD/713EE6倒计时；不是ANM2当前帧，不制造Client炸弹生产或到期锚点。 Host控制/玩法/音效生产；当前Sprite、Desc及独立Entity成员承接最终展示，不在Client重演。 证据：grid-seven-subclasses-evidence.md；旧应用行102原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 103,
           "id": "GridEntityRock.GetAltRockType",
           "owner": "GridEntityRock",
@@ -3967,7 +3967,7 @@
           "reason": "LuaGridEntityRock.cpp同时注册实例和全局类函数；旧目录这一行签名保留，不额外扩为另一行或发送查询结果。 Host按Backdrop选择玩法岩石类型；Client使用实际Desc.type/资源。 证据：grid-seven-subclasses-evidence.md；旧应用行103原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 104,
           "id": "GridEntityRock.GetBigRockFrame",
           "owner": "GridEntityRock",
@@ -3981,7 +3981,7 @@
           "reason": "原始715683 cmp eax,3E8h、715688 jnb；包括负i32位型也走u32分支，不能以有符号>=1000简化。 J273715680原始cmp/jnb按u32比较variant位型：小于1000返回-1，否则32位减1000；不错误套用有符号variant>=1000，不复制getter结果。 证据：grid-seven-subclasses-evidence.md；旧应用行104原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 105,
           "id": "GridEntityRock.RubbleAnim",
           "owner": "GridEntityRock",
@@ -3995,7 +3995,7 @@
           "reason": "公开名GetRubbleAnim，5CCDD0/8525B2；和第110行同一string，但保留方法行；只在state2且资源可绘时读取/转资源号，其它状态空投影不读取旧值。 碎块Render正面消费者，按所属ANM2解析资源身份。 证据：grid-seven-subclasses-evidence.md；旧应用行105原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 106,
           "id": "GridEntityRock.GetSprite",
           "owner": "GridEntityRock",
@@ -4011,7 +4011,7 @@
           "reason": "主Sprite同一+40；state2主pose与layer0.position由有序碎块派生，overlay及其它层保留；Statue/通用201不可替代该视图。 真实Sprite展示状态，state2主姿态和layer0位置走条件派生。 证据：grid-seven-subclasses-evidence.md；旧应用行106原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 107,
           "id": "GridEntityRock.PlayBreakSound",
           "owner": "GridEntityRock",
@@ -4023,7 +4023,7 @@
           "reason": "官方PlayBreakSound为音效操作；一次性声音归Presentation音画事件owner，不在Client因状态到达再次播放。 Host控制/玩法/音效生产；当前Sprite、Desc及独立Entity成员承接最终展示，不在Client重演。 证据：grid-seven-subclasses-evidence.md；旧应用行107原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 108,
           "id": "GridEntityRock.RegisterRockDestroyed",
           "owner": "GridEntityRock",
@@ -4035,7 +4035,7 @@
           "reason": "官方RegisterRockDestroyed修改Host统计/销毁记录，不属于Client展示；不写访客进度。 Host控制/玩法/音效生产；当前Sprite、Desc及独立Entity成员承接最终展示，不在Client重演。 证据：grid-seven-subclasses-evidence.md；旧应用行108原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 109,
           "id": "GridEntityRock.RenderTop",
           "owner": "GridEntityRock",
@@ -4052,7 +4052,7 @@
           "reason": "7149E0仅非state2的type24画layer1，强制visible后须恢复；源pass/overlay及独立selector依赖仍归第8/10/13步，不表示可直接调用原RenderTop。 Pillar专用顶层pass；使用相同Host颜色/动画和独立layer1 selector，临时visible强制值退出恢复。 证据：grid-seven-subclasses-evidence.md；旧应用行109原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 110,
           "id": "GridEntityRock.RubbleAnim",
           "owner": "GridEntityRock",
@@ -4066,7 +4066,7 @@
           "reason": "公开名RubbleAnim、parameters=null，85257E注册+16C；与第105行共用资源投影，不重复负载或比较Host旧字符串。 碎块Render正面消费者，按所属ANM2解析资源身份。 证据：grid-seven-subclasses-evidence.md；旧应用行110原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 111,
           "id": "GridEntityRock.SetBigRockFrame",
           "owner": "GridEntityRock",
@@ -4078,7 +4078,7 @@
           "reason": "8525A8注册715550，改variant/资源/姿态；Client由最终Desc与Sprite安装，不重放setter。 Host控制/玩法/音效生产；当前Sprite、Desc及独立Entity成员承接最终展示，不在Client重演。 证据：grid-seven-subclasses-evidence.md；旧应用行111原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 112,
           "id": "GridEntityRock.SpawnDrops",
           "owner": "GridEntityRock",
@@ -4090,7 +4090,7 @@
           "reason": "官方静态函数接受位置、类型、variant、种子与backdrop，实际返回void；掉落/统计/随机留Host，真实产生成员另发。 Host控制/玩法/音效生产；当前Sprite、Desc及独立Entity成员承接最终展示，不在Client重演。 证据：grid-seven-subclasses-evidence.md；旧应用行112原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 113,
           "id": "GridEntityRock.TrySpawnLadder",
           "owner": "GridEntityRock",
@@ -4102,7 +4102,7 @@
           "reason": "官方接口调用TrySpawnLadder，原生返回bool而旧目录returns=void仍原样保留；不据目录void猜无副作用或新造结果状态。 Host控制/玩法/音效生产；当前Sprite、Desc及独立Entity成员承接最终展示，不在Client重演。 证据：grid-seven-subclasses-evidence.md；旧应用行113原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 114,
           "id": "GridEntityRock.TrySpawnWorms",
           "owner": "GridEntityRock",
@@ -4114,7 +4114,7 @@
           "reason": "官方TrySpawnWorms创建玩法实体；最终Entity成员发布，不以Client调用补出生。 Host控制/玩法/音效生产；当前Sprite、Desc及独立Entity成员承接最终展示，不在Client重演。 证据：grid-seven-subclasses-evidence.md；旧应用行114原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 115,
           "id": "GridEntityRock.UpdateAnimFrame",
           "owner": "GridEntityRock",
@@ -4126,7 +4126,7 @@
           "reason": "7156A0生产主动画/帧并用Anim；不能作为Client收到包后的快捷安装方法。 Host控制/玩法/音效生产；当前Sprite、Desc及独立Entity成员承接最终展示，不在Client重演。 证据：grid-seven-subclasses-evidence.md；旧应用行115原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 116,
           "id": "GridEntityRock.UpdateCollision",
           "owner": "GridEntityRock",
@@ -4138,7 +4138,7 @@
           "reason": "官方UpdateCollision调用原生update_collision；碰撞/PathTrail留Host，最终water_clip_flags另传。 Host控制/玩法/音效生产；当前Sprite、Desc及独立Entity成员承接最终展示，不在Client重演。 证据：grid-seven-subclasses-evidence.md；旧应用行116原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 117,
           "id": "GridEntityRock.UpdateNeighbors",
           "owner": "GridEntityRock",
@@ -4225,7 +4225,7 @@
           "category": "权威",
           "semantics": "仅PressurePlate/Door：来源初始化/随机种子留Host；Light公共prologue建栈RNG但这两臂不消费，Client保留工厂合法默认值",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md；VA801BFF/801C0D及801BE0各case"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md；VA801BFF/801C0D及801BE0各case"
         },
         {
           "offset": "0x14",
@@ -4348,7 +4348,7 @@
           "category": "派生",
           "semantics": "入口通过后必被同world Room.wallColor完整覆盖；旧值不读不发，draw后恢复本地状态",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md；VA707FA1/707FA8、70800E-708019"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md；VA707FA1/707FA8、70800E-708019"
         },
         {
           "offset": "0x4",
@@ -4358,7 +4358,7 @@
           "category": "派生",
           "semantics": "入口通过后必被同world Room.wallColor完整覆盖；旧值不读不发，draw后恢复本地状态",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md；VA707FA1/707FA8、70800E-708019"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md；VA707FA1/707FA8、70800E-708019"
         },
         {
           "offset": "0x8",
@@ -4368,7 +4368,7 @@
           "category": "派生",
           "semantics": "入口通过后必被同world Room.wallColor完整覆盖；旧值不读不发，draw后恢复本地状态",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md；VA707FA1/707FA8、70800E-708019"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md；VA707FA1/707FA8、70800E-708019"
         },
         {
           "offset": "0xC",
@@ -4378,7 +4378,7 @@
           "category": "换算",
           "semantics": "有限原alpha的alpha>0入口判断转1B布尔；随后实际颜色全取Room.wallColor，不发原alpha幅值",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md；VA707FA1/707FA8、70800E-708019",
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md；VA707FA1/707FA8、70800E-708019",
           "wire": {
             "kind": "convert",
             "type": "u8",
@@ -4396,7 +4396,7 @@
           "category": "派生",
           "semantics": "入口通过后必被同world Room.wallColor完整覆盖；旧值不读不发，draw后恢复本地状态",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md；VA707FA1/707FA8、70800E-708019"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md；VA707FA1/707FA8、70800E-708019"
         },
         {
           "offset": "0x14",
@@ -4406,7 +4406,7 @@
           "category": "派生",
           "semantics": "入口通过后必被同world Room.wallColor完整覆盖；旧值不读不发，draw后恢复本地状态",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md；VA707FA1/707FA8、70800E-708019"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md；VA707FA1/707FA8、70800E-708019"
         },
         {
           "offset": "0x18",
@@ -4416,7 +4416,7 @@
           "category": "派生",
           "semantics": "入口通过后必被同world Room.wallColor完整覆盖；旧值不读不发，draw后恢复本地状态",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md；VA707FA1/707FA8、70800E-708019"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md；VA707FA1/707FA8、70800E-708019"
         },
         {
           "offset": "0x1C",
@@ -4426,7 +4426,7 @@
           "category": "派生",
           "semantics": "入口通过后必被同world Room.wallColor完整覆盖；旧值不读不发，draw后恢复本地状态",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md；VA707FA1/707FA8、70800E-708019"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md；VA707FA1/707FA8、70800E-708019"
         },
         {
           "offset": "0x20",
@@ -4436,7 +4436,7 @@
           "category": "派生",
           "semantics": "入口通过后必被同world Room.wallColor完整覆盖；旧值不读不发，draw后恢复本地状态",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md；VA707FA1/707FA8、70800E-708019"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md；VA707FA1/707FA8、70800E-708019"
         },
         {
           "offset": "0x24",
@@ -4446,7 +4446,7 @@
           "category": "派生",
           "semantics": "入口通过后必被同world Room.wallColor完整覆盖；旧值不读不发，draw后恢复本地状态",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md；VA707FA1/707FA8、70800E-708019"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md；VA707FA1/707FA8、70800E-708019"
         },
         {
           "offset": "0x28",
@@ -4456,7 +4456,7 @@
           "category": "派生",
           "semantics": "入口通过后必被同world Room.wallColor完整覆盖；旧值不读不发，draw后恢复本地状态",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md；VA707FA1/707FA8、70800E-708019"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md；VA707FA1/707FA8、70800E-708019"
         }
       ],
       "conversions": {
@@ -4492,7 +4492,7 @@
         "door_wall_tint": {
           "type": "same-world-Room-wallColor",
           "semantics": "Room+72D0完整44B墙色，主alpha入口通过后完整覆写；不能用floorColor/旧色替代，draw后恢复；来源/应用归第7/10/13步",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md"
         }
       },
       "ranges": [
@@ -4504,7 +4504,7 @@
           "category": "资源",
           "semantics": "可空ANM2文件资源选择；Host loaded=false编码0xFFFF，true编码文件资源号；不以路径非空猜测存在性",
           "status": "SDK声明",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；J273 Render VA0x4059E0读取+109；Reset VA0x403530清文件／资源及loaded，Load VA0x407B52置1；版本32见docs/design/binary-state/animation-resource-synchronization-review.md",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；J273 Render VA0x4059E0读取+109；Reset VA0x403530清文件／资源及loaded，Load VA0x407B52置1；版本32见docs/archive/design/binary-state/animation-resource-synchronization-review.md",
           "wire": {
             "kind": "resource",
             "type": "u16",
@@ -4522,7 +4522,7 @@
           "category": "权威",
           "semantics": "Host默认动画控制元数据；Grid展示安装明确的当前动画资源/selector，Rock绘制的RubbleAnim也是显式名字，不重演默认动画选择。可写事实保留，不声称不可变或无条件由文件派生",
           "status": "已核",
-          "evidence": "J273 VA 0x407AF0 Load 调 VA 0x409680；VA 0x4099D4/0x4099E9 将 cache 字符串复制到 this+0x18；SetAnimation VA 0x405F50 只切换 AnimationData。REP ANM2.zhl；版本49：docs/design/binary-state/grid-common-synchronization-review.md"
+          "evidence": "J273 VA 0x407AF0 Load 调 VA 0x409680；VA 0x4099D4/0x4099E9 将 cache 字符串复制到 this+0x18；SetAnimation VA 0x405F50 只切换 AnimationData。REP ANM2.zhl；版本49：docs/archive/design/binary-state/grid-common-synchronization-review.md"
         },
         {
           "offset": "0x30",
@@ -4723,7 +4723,7 @@
           "category": "状态",
           "semantics": "Door主Sprite颜色视图：alpha正值入口布尔及同world墙色，原资源/姿态/选择器保持",
           "status": "SDK声明",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md；VA707F90",
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md；VA707F90",
           "wire": {
             "kind": "nested",
             "type": "GridDoorTint"
@@ -4803,7 +4803,7 @@
           "category": "状态",
           "semantics": "播放速度兼绘制插值的半帧比例输入；不在Client推进动画",
           "status": "SDK声明",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；REPENTOGON/Patches/InterpolV2.cpp按_playbackSpeed计算lerpappend；版本32见docs/design/binary-state/animation-resource-synchronization-review.md",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；REPENTOGON/Patches/InterpolV2.cpp按_playbackSpeed计算lerpappend；版本32见docs/archive/design/binary-state/animation-resource-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -4828,7 +4828,7 @@
           "category": "本地",
           "semantics": "本地ANM2构造／加载／重置结果；Host只用它确定file_name的可空资源选择，Client由资源owner完成准备后维护，不直接传布尔字节",
           "status": "已核",
-          "evidence": "J273 Load VA 0x407AF0 的 VA 0x407B52 写 +0x109=1；属于本地资源生命周期状态；J273 IsLoaded VA0x41B820/RVA0x1B820直接return this[0x109]，主审已复读；版本32同步职责复核：docs/design/binary-state/animation-resource-synchronization-review.md"
+          "evidence": "J273 Load VA 0x407AF0 的 VA 0x407B52 写 +0x109=1；属于本地资源生命周期状态；J273 IsLoaded VA0x41B820/RVA0x1B820直接return this[0x109]，主审已复读；版本32同步职责复核：docs/archive/design/binary-state/animation-resource-synchronization-review.md"
         },
         {
           "offset": "0x10A",
@@ -5077,7 +5077,7 @@
           "name": "glitch_draw_bits",
           "type": "u8",
           "semantics": "按Host当前ANM2地址在自有纯值RNG以shift-index35计算两次RandomInt(2)的最终选择：bit0=0为+90/1为-90，bit1为flipX。只发0..3结果，不发地址/随机种子或游标；绑定subject/use/shape/Sprite角色",
-          "evidence": "docs/design/binary-state/grid-common-synchronization-review.md；J273 Room Render804500与RenderFrame404570；官方Utils/ANM2Utils.hpp::GetFrameSourceQuad",
+          "evidence": "docs/archive/design/binary-state/grid-common-synchronization-review.md；J273 Room Render804500与RenderFrame404570；官方Utils/ANM2Utils.hpp::GetFrameSourceQuad",
           "host": "read_grid_sprite_glitch_draw_bits",
           "client": "install_grid_sprite_glitch_draw_bits",
           "sequence": "body"
@@ -5125,7 +5125,7 @@
           "category": "状态",
           "semantics": "真实内嵌TimerPlate，Render按loaded判断绘制，不按variant=2限制；外加(0,21)属绘制位置，自身Offset仍同步",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md；Factory7065B6/Render95E23F-95E2B9/Free70683C",
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md；Factory7065B6/Render95E23F-95E2B9/Free70683C",
           "wire": {
             "kind": "nested",
             "type": "GridSprite"
@@ -5141,7 +5141,7 @@
           "category": "权威",
           "semantics": "Greed Update的下一动画选择，95B990比较并Play成最终主Sprite；Render不读。指针地址/借用及字符串内容均不发，不为安装调用Play",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md"
         },
         {
           "offset": "0x26c",
@@ -5151,7 +5151,7 @@
           "category": "权威",
           "semantics": "Greed奖励/波次生产RNG四个u32，Init用SpawnSeed及4/3/27配置；展示不消费，不复制游标/发奖/刷波",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md",
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md",
           "native_type": "RNG"
         }
       ],
@@ -5161,12 +5161,12 @@
         "grid_class": {
           "type": "native-grid-class",
           "semantics": "真实GridEntity_PressurePlate RTTI与工厂type=20，按同room/subject/use/shape识别，不从Lua cast成功推导生命周期",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md"
         },
         "pressure_plate_clock": {
           "type": "same-world-pressure-plate-text",
           "semantics": "variant=2文字读Room.greedWaveTimer(+723C)i32、Host GameFrame(+25A70)、Game.screenShakeOffset(+25A84)与本地font/视口；timer-1及/30/60保留原生有符号32位运算，闪红还看Host frame%4。第7/8步提供同world来源，不新增Grid字段，不用Client Update/墙钟倒计时；TimerPlate外加(0,21)不写自身Offset。",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md；VA95E2D3-95E3F7；Room.zhl/Game.zhl"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md；VA95E2D3-95E3F7；Room.zhl/Game.zhl"
         }
       },
       "members": [
@@ -5212,18 +5212,18 @@
         "desc": {
           "type": "GridNonrandomLightDesc",
           "semantics": "本类描述展示视图：type/variant/state12B；Light不消费临时RNG，SpawnSeed留Host，其余归属及3B UNKNOWN保持",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md"
         },
         "sprite": {
           "type": "GridFloorSprite",
           "semantics": "主Sprite每次Render被Room.floorColor完整覆写，旧44B色不发；资源/姿态/图层/插值/glitch及14B未知保持",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md；VA95E1AF-95E1E6"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md；VA95E1AF-95E1E6"
         }
       },
       "notes": "版本53：实际27Ch全范围归属，尾部276B TimerPlate+4B const-char*+16B RNG。主Sprite202/描述224，G0=20B，根最小212B（公共94+TimerPlate118）；UNKNOWN31B=Desc3+双ANM2各14。文字上下文归第7/8步，正式来源/安装归第10/13步，第15步统一验收。",
       "catalog_rows": [
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 34,
           "id": "GridEntity.ToPressurePlate",
           "owner": "GridEntity",
@@ -5237,7 +5237,7 @@
           "reason": "公开To接口按类型投影；采集与安装须核真实RTTI/成员身份，失配不伪造成功，不传vptr/指针或调用Lua cast。工厂706100及类/虚表点位见对应字节证据。 实际RTTI投影，无独立状态字节，不传指针或执行Lua cast。 证据：grid-pressure-door-evidence.md；旧应用行34原归属=DerivedWitness，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 97,
           "id": "GridEntityPressurePlate.GreedModeRNG",
           "owner": "GridEntityPressurePlate",
@@ -5249,7 +5249,7 @@
           "reason": "85264E注册+26C，95E8DB..95E8EE用SpawnSeed与4/3/27初始化；不推进或恢复奖励/波次RNG。 Host奖励/波次RNG，不是本地绘制随机。 证据：grid-pressure-door-evidence.md；旧应用行97原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 98,
           "id": "GridEntityPressurePlate.NextGreedAnimation",
           "owner": "GridEntityPressurePlate",
@@ -5261,7 +5261,7 @@
           "reason": "85265A注册+268；95B880选择常量名、95B990消费，Render95E140不读；不发送地址，也不发送内容字符串。 后续动画生产选择；最终主Sprite已传，不因Wiki称visual或setter存在而发字符串。 证据：grid-pressure-door-evidence.md；旧应用行98原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 99,
           "id": "GridEntityPressurePlate.Reward",
           "owner": "GridEntityPressurePlate",
@@ -5273,7 +5273,7 @@
           "reason": "852670注册95CBA0；奖励/刷波生产只在Host，已产生实体与状态各域同步。 奖励/波次命令，不是安装入口。 证据：grid-pressure-door-evidence.md；旧应用行99原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 100,
           "id": "GridEntityPressurePlate.TimerPlate",
           "owner": "GridEntityPressurePlate",
@@ -5308,7 +5308,7 @@
           "category": "权威",
           "semantics": "Init清零、Update按dword递增；不是coin-mode bool，不能用相邻Lock Init70C3C0解释Door",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md"
         },
         {
           "offset": "0x158",
@@ -5318,7 +5318,7 @@
           "category": "权威",
           "semantics": "Host过门/路径使用的primary slot；Room八槽主体/候选/route由第7步结构独立同步，显示不读原值，Client本地门槽owner维护关联",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md"
         },
         {
           "offset": "0x15c",
@@ -5328,7 +5328,7 @@
           "category": "权威",
           "semantics": "Host资源/动画与门规则选型输入，实际Render/Light不读；最终双Sprite已承接",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md"
         },
         {
           "offset": "0x160",
@@ -5338,7 +5338,7 @@
           "category": "状态",
           "semantics": "GridLight直接区分27和15等分支，不能从主Sprite或当前Room.Type还原",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md；VA8021A8/802BB4",
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md；VA8021A8/802BB4",
           "wire": {
             "kind": "copy",
             "type": "i32"
@@ -5354,7 +5354,7 @@
           "category": "权威",
           "semantics": "Host方向/特效/解锁输入；setter写主/extra旋转，最终两Sprite.rotation已传，不再调用方向setter",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md"
         },
         {
           "offset": "0x168",
@@ -5364,7 +5364,7 @@
           "category": "状态",
           "semantics": "独立额外ANM2的资源/颜色/双动画/图层；主入口通过且ExtraVisible时绘制，不套主颜色裁剪",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md；Factory706228/Render708070-70808E/官方GetExtraSprite",
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md；Factory706228/Render708070-70808E/官方GetExtraSprite",
           "wire": {
             "kind": "nested",
             "type": "GridSprite"
@@ -5380,7 +5380,7 @@
           "category": "状态",
           "semantics": "Render控制extra绘制，独立于本地loaded及主alpha入口，原布尔1B",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md；VA708070",
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md；VA708070",
           "wire": {
             "kind": "copy",
             "type": "u8"
@@ -5396,7 +5396,7 @@
           "category": "权威",
           "semantics": "Host破开结果/查询，Render/Light不读，最终破开动画/附属显示/结构另传",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md"
         },
         {
           "offset": "0x27e",
@@ -5406,7 +5406,7 @@
           "category": "权威",
           "semantics": "TryUnlock写1、Update/开闭判断读的Host解锁锁存，不作为Client解锁权限",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md"
         },
         {
           "offset": "0x27f",
@@ -5416,7 +5416,7 @@
           "category": "未知",
           "semantics": "三个已知bool与target索引间未解释字节；Init只写27C两字节及27E单字节，无填充证明，不读不发",
           "status": "未知",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md"
         },
         {
           "offset": "0x280",
@@ -5426,7 +5426,7 @@
           "category": "状态",
           "semantics": "目标描述索引，保留负特殊值；GridLight据其查询descriptor.Flags的40000位，不是指针或Client过门授权",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md；VA8028AE-8028BB",
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md；VA8028AE-8028BB",
           "wire": {
             "kind": "copy",
             "type": "i32"
@@ -5442,7 +5442,7 @@
           "category": "权威",
           "semantics": "Init/PlayAnimation维护的历史缓存供动画生产读取；最终双Sprite已同步，不是重放状态/差分基线",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md"
         },
         {
           "offset": "0x288",
@@ -5452,7 +5452,7 @@
           "category": "权威",
           "semantics": "Init/PlayAnimation历史变体缓存用于Vanish等最终选择；不与当前Variant重复下发",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md"
         },
         {
           "offset": "0x28c",
@@ -5462,7 +5462,7 @@
           "category": "换算",
           "semantics": "Host规则标志word，仅bit0x20被已核GridLight消费，线1B布尔，其它位留Host，不发完整word",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md；VA802A16-802A21",
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md；VA802A16-802A21",
           "wire": {
             "kind": "convert",
             "type": "u8",
@@ -5480,7 +5480,7 @@
           "category": "权威",
           "semantics": "Host开闭/锁定动画选择字符串，Update/PlayAnimation产出最终ANM2；Render/Light不直接读，内容及地址/容量不上线，本地正常构造/析构",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md"
         },
         {
           "offset": "0x2a8",
@@ -5490,7 +5490,7 @@
           "category": "权威",
           "semantics": "Host开闭/锁定动画选择字符串，Update/PlayAnimation产出最终ANM2；Render/Light不直接读，内容及地址/容量不上线，本地正常构造/析构",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md"
         },
         {
           "offset": "0x2c0",
@@ -5500,7 +5500,7 @@
           "category": "权威",
           "semantics": "Host开闭/锁定动画选择字符串，Update/PlayAnimation产出最终ANM2；Render/Light不直接读，内容及地址/容量不上线，本地正常构造/析构",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md"
         },
         {
           "offset": "0x2d8",
@@ -5510,7 +5510,7 @@
           "category": "权威",
           "semantics": "Host开闭/锁定动画选择字符串，Update/PlayAnimation产出最终ANM2；Render/Light不直接读，内容及地址/容量不上线，本地正常构造/析构",
           "status": "已核",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md"
         }
       ],
       "conversions": {
@@ -5531,12 +5531,12 @@
         "grid_class": {
           "type": "native-grid-class",
           "semantics": "真实GridEntity_Door RTTI与工厂type=16，按同room/subject/use/shape识别，不从Lua cast成功推导生命周期",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md"
         },
         "door_display_dependencies": {
           "type": "same-world-door-Light-and-aliases",
           "semantics": "target_room_index须经同world Level描述表/特殊目标映射解析到Client自有descriptor，Light读其Flags&40000；当前Data.StageId==35(Home)、维度、stage suffix、主Sprite layer3/layer5与当前动画/帧依实际资源和第7/8步来源提供。2026-11-10补核80276C读配置+0，旧说明RoomConfig.type35字段名误认，历史纠错见证据文档；不改字段/类型号/布局版本。负索引保留，不把未知目标当空或调用Host getter补值；Room八槽alias/候选/route独立归第7步结构，不按这些标量启动Client换房。",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md；docs/design/binary-state/room-display-resource-design.md；VA801BE0/8021A8/802758/802761/80276C/8028AE/802A16"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md；docs/archive/design/binary-state/room-display-resource-design.md；VA801BE0/8021A8/802758/802761/80276C/8028AE/802A16"
         }
       },
       "members": [
@@ -5776,18 +5776,18 @@
         "desc": {
           "type": "GridNonrandomLightDesc",
           "semantics": "本类描述展示视图：type/variant/state12B；Light不消费临时RNG，SpawnSeed留Host，其余归属及3B UNKNOWN保持",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md"
         },
         "sprite": {
           "type": "GridDoorSprite",
           "semantics": "Door主Sprite226：颜色只留1B入口布尔及同world墙色，资源/姿态/图层/插值/glitch及14B未知保持",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md；VA707F90"
+          "evidence": "docs/archive/design/binary-state/grid-pressure-door-evidence.md；VA707F90"
         }
       },
       "notes": "版本53：实际2F0h完整归属，SDK外最后4B为OpenLockedAnimation.capacity，不是独立未知尾字。UNKNOWN32B=Desc3+双ANM2各14+27F间隙1。主Sprite226/描述224，G0=20B，公共最小95B，GD4=10B，extra最小118B，根最小223B；保留target type/index、ExtraVisible/Light bit5，历史缓存/四字符串/current类型/slot/direction/busted/解锁/计数留Host。正式接线归第7/8/10/13步，第15步统一验收。",
       "catalog_rows": [
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 28,
           "id": "GridEntity.ToDoor",
           "owner": "GridEntity",
@@ -5801,7 +5801,7 @@
           "reason": "公开To接口按类型投影；采集与安装须核真实RTTI/成员身份，失配不伪造成功，不传vptr/指针或调用Lua cast。工厂706100及类/虚表点位见对应字节证据。 实际RTTI投影，无独立状态字节，不传指针或执行Lua cast。 证据：grid-pressure-door-evidence.md；旧应用行28原归属=DerivedWitness，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 54,
           "id": "GridEntityDoor.Bar",
           "owner": "GridEntityDoor",
@@ -5813,7 +5813,7 @@
           "reason": "Host玩法/查询/动画生产输入或命令；最终双Sprite/展示字段与Room结构承接，不为旧字段相等或mutator存在恢复同步/执行。 证据：grid-pressure-door-evidence.md；旧应用行54原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 55,
           "id": "GridEntityDoor.Busted",
           "owner": "GridEntityDoor",
@@ -5825,7 +5825,7 @@
           "reason": "85226A注册+27D；Render/Light不读，双Sprite与extra_visible承接外观。 Host破开原值/查询，实际Render/Light不读，显示由双Sprite和ExtraVisible承接。 证据：grid-pressure-door-evidence.md；旧应用行55原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 56,
           "id": "GridEntityDoor.CanBlowOpen",
           "owner": "GridEntityDoor",
@@ -5837,7 +5837,7 @@
           "reason": "852314注册70A450，判断是否可破开属Host玩法许可，不在Client重算或视作可见位。 Host玩法/查询/动画生产输入或命令；最终双Sprite/展示字段与Room结构承接，不为旧字段相等或mutator存在恢复同步/执行。 证据：grid-pressure-door-evidence.md；旧应用行56原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 57,
           "id": "GridEntityDoor.Close",
           "owner": "GridEntityDoor",
@@ -5849,7 +5849,7 @@
           "reason": "Host玩法/查询/动画生产输入或命令；最终双Sprite/展示字段与Room结构承接，不为旧字段相等或mutator存在恢复同步/执行。 证据：grid-pressure-door-evidence.md；旧应用行57原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 58,
           "id": "GridEntityDoor.CloseAnimation",
           "owner": "GridEntityDoor",
@@ -5861,7 +5861,7 @@
           "reason": "Host玩法/查询/动画生产输入或命令；最终双Sprite/展示字段与Room结构承接，不为旧字段相等或mutator存在恢复同步/执行。 证据：grid-pressure-door-evidence.md；旧应用行58原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 59,
           "id": "GridEntityDoor.CurrentRoomType",
           "owner": "GridEntityDoor",
@@ -5873,7 +5873,7 @@
           "reason": "8522A6注册+15C；不是同world RoomConfig.type，Light所需当前房间上下文归第7/8步。 Host玩法/查询/动画生产输入或命令；最终双Sprite/展示字段与Room结构承接，不为旧字段相等或mutator存在恢复同步/执行。 证据：grid-pressure-door-evidence.md；旧应用行59原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 60,
           "id": "GridEntityDoor.Direction",
           "owner": "GridEntityDoor",
@@ -5885,7 +5885,7 @@
           "reason": "70C180方向setter同时更新两Sprite旋转；按最终旋转安装，不调用setter重演。 Host玩法/查询/动画生产输入或命令；最终双Sprite/展示字段与Room结构承接，不为旧字段相等或mutator存在恢复同步/执行。 证据：grid-pressure-door-evidence.md；旧应用行60原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 61,
           "id": "GridEntityDoor.ExtraSprite",
           "owner": "GridEntityDoor",
@@ -5901,7 +5901,7 @@
           "reason": "原版ExtraSprite属性可能返回值副本；仅借真实+168 owner采集，不把副本Offset/flags当原对象状态。 实际内嵌+168，同GetExtraSprite；两个公开签名共用来源，属性副本不当原生姿态。 证据：grid-pressure-door-evidence.md；旧应用行61原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 62,
           "id": "GridEntityDoor.ExtraVisible",
           "owner": "GridEntityDoor",
@@ -5915,7 +5915,7 @@
           "reason": "真实Render分支输入。 证据：grid-pressure-door-evidence.md；旧应用行62原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 63,
           "id": "GridEntityDoor.ExtraSprite",
           "owner": "GridEntityDoor",
@@ -5931,7 +5931,7 @@
           "reason": "官方LuaGridEntityDoor.cpp::Lua_GridEntityDoor_GetExtraSprite返回真实+168指针；与第61行共用数据，但保留方法签名与来源。 实际内嵌+168，同GetExtraSprite；两个公开签名共用来源，属性副本不当原生姿态。 证据：grid-pressure-door-evidence.md；旧应用行63原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 64,
           "id": "GridEntityDoor.GetSpriteOffset",
           "owner": "GridEntityDoor",
@@ -5945,7 +5945,7 @@
           "reason": "8446D0原始lea eax,[ecx+D4h]；是主Sprite.Offset，不是Door尾部另一个Vector。 主Sprite.Offset（对象+D4）别名，不是尾部Vector。 证据：grid-pressure-door-evidence.md；旧应用行64原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 65,
           "id": "GridEntityDoor.IsBusted",
           "owner": "GridEntityDoor",
@@ -5957,7 +5957,7 @@
           "reason": "8522CE注册7329C0；返回+27D的Host查询，非额外状态。 Host破开原值/查询，实际Render/Light不读，显示由双Sprite和ExtraVisible承接。 证据：grid-pressure-door-evidence.md；旧应用行65原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 66,
           "id": "GridEntityDoor.IsKeyFamiliarTarget",
           "owner": "GridEntityDoor",
@@ -5969,7 +5969,7 @@
           "reason": "606CF0只看variant==5；当前同步虽已有variant，接口职责仍为Host钥匙跟班目标查询，不开放玩法调用。 Host玩法/查询/动画生产输入或命令；最终双Sprite/展示字段与Room结构承接，不为旧字段相等或mutator存在恢复同步/执行。 证据：grid-pressure-door-evidence.md；旧应用行66原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 67,
           "id": "GridEntityDoor.IsLocked",
           "owner": "GridEntityDoor",
@@ -5983,7 +5983,7 @@
           "reason": "431680逐项比较variant=1/2/3/4/5；不执行SetLocked/TryUnlock。 公开431680看Desc.Variant 1..5，不放行解锁/伤害。 证据：grid-pressure-door-evidence.md；旧应用行67原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 68,
           "id": "GridEntityDoor.IsOpen",
           "owner": "GridEntityDoor",
@@ -5997,7 +5997,7 @@
           "reason": "431670只看state==2；不能混同内部门规则更新谓词或开放过门FSM。 公开431670只看Desc.State==2，不放行内部门规则更新谓词。 证据：grid-pressure-door-evidence.md；旧应用行68原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 69,
           "id": "GridEntityDoor.IsRoomType",
           "owner": "GridEntityDoor",
@@ -6009,7 +6009,7 @@
           "reason": "5CCBB0比较对象+15C或+160与参数；当前只保留target显示输入，不恢复current以兼容全参数查询。 Host玩法/查询/动画生产输入或命令；最终双Sprite/展示字段与Room结构承接，不为旧字段相等或mutator存在恢复同步/执行。 证据：grid-pressure-door-evidence.md；旧应用行69原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 70,
           "id": "GridEntityDoor.IsTargetRoomArcade",
           "owner": "GridEntityDoor",
@@ -6021,7 +6021,7 @@
           "reason": "70C2D0还依赖Run/玩家380道具查询与场景规则，不能仅按TargetRoomType==9派生，也不为此复制额外玩法状态。 Host玩法/查询/动画生产输入或命令；最终双Sprite/展示字段与Room结构承接，不为旧字段相等或mutator存在恢复同步/执行。 证据：grid-pressure-door-evidence.md；旧应用行70原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 71,
           "id": "GridEntityDoor.LockedAnimation",
           "owner": "GridEntityDoor",
@@ -6033,7 +6033,7 @@
           "reason": "Host玩法/查询/动画生产输入或命令；最终双Sprite/展示字段与Room结构承接，不为旧字段相等或mutator存在恢复同步/执行。 证据：grid-pressure-door-evidence.md；旧应用行71原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 72,
           "id": "GridEntityDoor.Open",
           "owner": "GridEntityDoor",
@@ -6045,7 +6045,7 @@
           "reason": "Host玩法/查询/动画生产输入或命令；最终双Sprite/展示字段与Room结构承接，不为旧字段相等或mutator存在恢复同步/执行。 证据：grid-pressure-door-evidence.md；旧应用行72原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 73,
           "id": "GridEntityDoor.OpenAnimation",
           "owner": "GridEntityDoor",
@@ -6057,7 +6057,7 @@
           "reason": "Host玩法/查询/动画生产输入或命令；最终双Sprite/展示字段与Room结构承接，不为旧字段相等或mutator存在恢复同步/执行。 证据：grid-pressure-door-evidence.md；旧应用行73原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 74,
           "id": "GridEntityDoor.OpenLockedAnimation",
           "owner": "GridEntityDoor",
@@ -6069,7 +6069,7 @@
           "reason": "最后4B +2EC..+2EF是正常string capacity；不抹成UNKNOWN或按SDK2EC截断。 Host玩法/查询/动画生产输入或命令；最终双Sprite/展示字段与Room结构承接，不为旧字段相等或mutator存在恢复同步/执行。 证据：grid-pressure-door-evidence.md；旧应用行74原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 75,
           "id": "GridEntityDoor.PlayAnimation",
           "owner": "GridEntityDoor",
@@ -6081,7 +6081,7 @@
           "reason": "官方LuaGridEntityDoor.cpp::Lua_GridEntityDoor_PlayAnimation调用play_animation；生产最终双Sprite并更新previous，Client不回放。 Host玩法/查询/动画生产输入或命令；最终双Sprite/展示字段与Room结构承接，不为旧字段相等或mutator存在恢复同步/执行。 证据：grid-pressure-door-evidence.md；旧应用行75原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 76,
           "id": "GridEntityDoor.PreviousState",
           "owner": "GridEntityDoor",
@@ -6093,7 +6093,7 @@
           "reason": "官方LuaGridEntityDoor.cpp修复getter直接读_previousState；字段API修复不改变Host动画历史归属。 Init/PlayAnimation历史缓存，无Render/Light消费；官方getter修复不改变归属。 证据：grid-pressure-door-evidence.md；旧应用行76原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 77,
           "id": "GridEntityDoor.PreviousVariant",
           "owner": "GridEntityDoor",
@@ -6105,7 +6105,7 @@
           "reason": "官方LuaGridEntityDoor.cpp修复getter直接读_previousVariant；不作为网络增量previous或与当前Variant重复传。 Init/PlayAnimation历史缓存，无Render/Light消费；官方getter修复不改变归属。 证据：grid-pressure-door-evidence.md；旧应用行77原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 78,
           "id": "GridEntityDoor.SetLocked",
           "owner": "GridEntityDoor",
@@ -6117,7 +6117,7 @@
           "reason": "Host玩法/查询/动画生产输入或命令；最终双Sprite/展示字段与Room结构承接，不为旧字段相等或mutator存在恢复同步/执行。 证据：grid-pressure-door-evidence.md；旧应用行78原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 79,
           "id": "GridEntityDoor.SetRoomTypes",
           "owner": "GridEntityDoor",
@@ -6129,7 +6129,7 @@
           "reason": "setter同时选资源/动画/标志；仅其最终target显示输入与双Sprite下发，不让Client重演。 Host玩法/查询/动画生产输入或命令；最终双Sprite/展示字段与Room结构承接，不为旧字段相等或mutator存在恢复同步/执行。 证据：grid-pressure-door-evidence.md；旧应用行79原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 80,
           "id": "GridEntityDoor.Slot",
           "owner": "GridEntityDoor",
@@ -6141,7 +6141,7 @@
           "reason": "MakeDoor7E4DE0建立primary slot；Room八槽候选/主体/route另传，不能从此标量猜door_aliases或过门权限。 Host玩法/查询/动画生产输入或命令；最终双Sprite/展示字段与Room结构承接，不为旧字段相等或mutator存在恢复同步/执行。 证据：grid-pressure-door-evidence.md；旧应用行80原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 81,
           "id": "GridEntityDoor.SpawnDust",
           "owner": "GridEntityDoor",
@@ -6153,7 +6153,7 @@
           "reason": "Host玩法/查询/动画生产输入或命令；最终双Sprite/展示字段与Room结构承接，不为旧字段相等或mutator存在恢复同步/执行。 证据：grid-pressure-door-evidence.md；旧应用行81原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 82,
           "id": "GridEntityDoor.TargetRoomIndex",
           "owner": "GridEntityDoor",
@@ -6167,7 +6167,7 @@
           "reason": "Light8028AE查目标descriptor、8028BB读Flags40000h；保留负特殊索引，需同world Level映射而非指针/旧JSON值域。 GridLight目标descriptor查询输入，保留负特殊值；不是过门授权。 证据：grid-pressure-door-evidence.md；旧应用行82原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 83,
           "id": "GridEntityDoor.TargetRoomType",
           "owner": "GridEntityDoor",
@@ -6181,7 +6181,7 @@
           "reason": "Light8021A8/802BB4直接比较27/15；是正面展示输入，不能与相邻current_room_type整体删除或整段复制。 GridLight分支输入。 证据：grid-pressure-door-evidence.md；旧应用行83原归属=ReplicatedState，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 84,
           "id": "GridEntityDoor.TryBlowOpen",
           "owner": "GridEntityDoor",
@@ -6193,7 +6193,7 @@
           "reason": "Host玩法/查询/动画生产输入或命令；最终双Sprite/展示字段与Room结构承接，不为旧字段相等或mutator存在恢复同步/执行。 证据：grid-pressure-door-evidence.md；旧应用行84原归属=AuthorityOnly，新处置不回写旧事实。"
         },
         {
-          "catalog": "docs/design/observation-expansion/grid-catalog.json",
+          "catalog": "mod/binding/catalog/grid-catalog.json",
           "ordinal": 85,
           "id": "GridEntityDoor.TryUnlock",
           "owner": "GridEntityDoor",

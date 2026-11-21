@@ -122,7 +122,7 @@
           "name": "player",
           "type": "u16",
           "semantics": "真实身体引用",
-          "evidence": "docs/design/binary-state/hud-local-presentation.md；J273 832C10→90A490/92F610",
+          "evidence": "docs/archive/design/binary-state/hud-local-presentation.md；J273 832C10→90A490/92F610",
           "host": "hud_local_player_capture",
           "client": "hud_local_player_prepare",
           "wire": {
@@ -137,7 +137,7 @@
           "name": "binding_revision",
           "type": "u64",
           "semantics": "同控制组绑定代次",
-          "evidence": "docs/design/binary-state/hud-local-presentation.md；J273 832C10→90A490/92F610",
+          "evidence": "docs/archive/design/binary-state/hud-local-presentation.md；J273 832C10→90A490/92F610",
           "host": "hud_local_binding_revision_capture",
           "client": "hud_local_binding_revision_prepare"
         },
@@ -145,7 +145,7 @@
           "name": "update_ordinal",
           "type": "u64",
           "semantics": "该HUD实例已正常完成的有效显示更新次数；非Authority tick/渲染帧/ACK",
-          "evidence": "docs/design/binary-state/hud-local-presentation.md；J273 832C10→90A490/92F610",
+          "evidence": "docs/archive/design/binary-state/hud-local-presentation.md；J273 832C10→90A490/92F610",
           "host": "hud_local_update_ordinal_capture",
           "client": "hud_local_update_ordinal_prepare"
         },
@@ -153,7 +153,7 @@
           "name": "sample_game_frame",
           "type": "u32",
           "semantics": "最后一次有效HUD更新的真实GameFrame；冻结期间不随到包推进",
-          "evidence": "docs/design/binary-state/hud-local-presentation.md；J273 832C10→90A490/92F610",
+          "evidence": "docs/archive/design/binary-state/hud-local-presentation.md；J273 832C10→90A490/92F610",
           "host": "hud_local_sample_game_frame_capture",
           "client": "hud_local_sample_game_frame_prepare"
         },
@@ -161,7 +161,7 @@
           "name": "critical_health",
           "type": "u8",
           "semantics": "同次HUD生产的red+eternal+soul+bone原生32位和是否等于1",
-          "evidence": "docs/design/binary-state/hud-local-presentation.md；J273 832C10→90A490/92F610",
+          "evidence": "docs/archive/design/binary-state/hud-local-presentation.md；J273 832C10→90A490/92F610",
           "host": "hud_local_critical_health_capture",
           "client": "hud_local_critical_health_prepare"
         },
@@ -169,7 +169,7 @@
           "name": "mantle_source_revision",
           "type": "u64",
           "semantics": "最近允许护盾查询时封存的P8效果来源修订；冻结/冷连接必须取得该修订的完整纯值输入",
-          "evidence": "docs/design/binary-state/hud-local-presentation.md；J273 832C10→90A490/92F610",
+          "evidence": "docs/archive/design/binary-state/hud-local-presentation.md；J273 832C10→90A490/92F610",
           "host": "hud_local_mantle_source_revision_capture",
           "client": "hud_local_mantle_source_revision_prepare"
         },
@@ -177,7 +177,7 @@
           "name": "drop_anchor_update",
           "type": "u64",
           "semantics": "最近实际消费Drop状态变化或恢复时的已完成HUD更新锚点",
-          "evidence": "docs/design/binary-state/hud-local-presentation.md；J273 832C10→90A490/92F610",
+          "evidence": "docs/archive/design/binary-state/hud-local-presentation.md；J273 832C10→90A490/92F610",
           "host": "hud_local_drop_anchor_update_capture",
           "client": "hud_local_drop_anchor_update_prepare"
         },
@@ -185,7 +185,7 @@
           "name": "drop_held",
           "type": "u8",
           "semantics": "该身体在832C10尾部92F610实际消费后的Drop持续状态",
-          "evidence": "docs/design/binary-state/hud-local-presentation.md；J273 832C10→90A490/92F610",
+          "evidence": "docs/archive/design/binary-state/hud-local-presentation.md；J273 832C10→90A490/92F610",
           "host": "hud_local_drop_held_capture",
           "client": "hud_local_drop_held_prepare"
         },
@@ -193,7 +193,7 @@
           "name": "drop_anchor_phase",
           "type": "u8",
           "semantics": "锚点更新完成后的有限0..4相位；只用于初建/变化/纠正，不是逐帧浮点结果",
-          "evidence": "docs/design/binary-state/hud-local-presentation.md；J273 832C10→90A490/92F610",
+          "evidence": "docs/archive/design/binary-state/hud-local-presentation.md；J273 832C10→90A490/92F610",
           "host": "hud_local_drop_anchor_phase_capture",
           "client": "hud_local_drop_anchor_phase_prepare"
         }
@@ -347,7 +347,7 @@
           "name": "player",
           "type": "u16",
           "semantics": "这份历史P8投影的真实身体；完整身份由结果subject/use/shape解释",
-          "evidence": "docs/design/binary-state/hud-local-implementation.md",
+          "evidence": "docs/archive/design/binary-state/hud-local-implementation.md",
           "host": "hud_mantle_effects_player_capture",
           "client": "hud_mantle_effects_player_prepare",
           "wire": {

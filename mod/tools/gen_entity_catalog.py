@@ -48,9 +48,9 @@ def members():
                 e['sources'].append({'wiki':wiki,'path':str(path).replace('\\','/'),'line':no})
     for name,typ in [('counter','int'),('duration','int'),('text','string'),('draw_color','native_kcolor20'),('draw_phase','native_render_dependency')]:
         reason='J273 real-current-use-writer-witness;Init-does-not-initialize-buffer' if name=='text' else 'independent-native-text-render-v1;not-ordinary-phase' if name=='draw_phase' else 'J273 completed creation owner;KColor20 includes opaque32;see native supplements'
-        entries[('NativeText',name,name)]={'class':'NativeText','member':name,'signature':typ+' '+name,'returns':typ,'parameters':None,'category':'native_field','reason':reason,'sources':[{'wiki':'native-J273','path':str(ROOT/'docs/design/observation-expansion/entity-native-supplements.md').replace('\\','/'),'line':1}]}
+        entries[('NativeText',name,name)]={'class':'NativeText','member':name,'signature':typ+' '+name,'returns':typ,'parameters':None,'category':'native_field','reason':reason,'sources':[{'wiki':'native-J273','path':str(ROOT/'docs/archive/design/observation-expansion/entity-native-supplements.md').replace('\\','/'),'line':1}]}
     for name,typ in [('sample_mode_raw','int8'),('start_offset_mode_opaque32','int32')]:
-        entries[('EntityLaser',name,name)]={'class':'EntityLaser','member':name,'signature':typ+' '+name,'returns':typ,'parameters':None,'category':'native_field','reason':'J273 Laser Init+completed owner; signed sample byte and opaque draw branch; not gameplay setter','sources':[{'wiki':'native-J273','path':str(ROOT/'docs/design/tx-04-19/entity-source-research.md').replace('\\','/'),'line':1}]}
+        entries[('EntityLaser',name,name)]={'class':'EntityLaser','member':name,'signature':typ+' '+name,'returns':typ,'parameters':None,'category':'native_field','reason':'J273 Laser Init+completed owner; signed sample byte and opaque draw branch; not gameplay setter','sources':[{'wiki':'native-J273','path':str(ROOT/'docs/archive/design/tx-04-19/entity-source-research.md').replace('\\','/'),'line':1}]}
     result=sorted(entries.values(),key=lambda e:(e['class'],e['member'],e['signature']))
     # 字段使用规范名称，重载共用名称但保留完整来源／参数签名。
     fields={(e['class'],e['member']) for e in result if e['category']=='field'}
@@ -103,7 +103,7 @@ def main():
     for e in data:
         groups.setdefault(e['class'],[]).append({**{k:e[k] for k in ['id','member','returns','parameters','category','reason']},'owner':e['class'],'static':e['signature'].startswith('static ')})
     (dest/'schema.lua').write_text('-- 由 gen_entity_catalog.py 生成；此表只声明读能力，不动态执行动作。\nreturn '+lua(groups)+'\n',encoding='utf-8')
-    out=ROOT/'docs/design/observation-expansion/entity-catalog.json'
+    out=ROOT/'mod/binding/catalog/entity-catalog.json'
     out.write_text(json.dumps({'format':'isaac.cs.entity.catalog','version':2,'members':data},ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     (dest.parents[1]/'entity-catalog.json').write_text(out.read_text(encoding='utf-8'),encoding='utf-8')
     lines=['# tx-04-10 Entity 逐成员来源目录','','由 `mod/tools/gen_entity_catalog.py` 从两套本地 Wiki 生成。实现与实机覆盖分别记录；目录行不等于运行通过。继承字段由 Entity 统一管理。参数查询保留完整签名与默认值；无界向量／字符串查询按显式请求采集，不假称遍历全部参数。','','| 规范字段／接口 | 签名 | 分类及实现 | 来源 |','| --- | --- | --- | --- |']

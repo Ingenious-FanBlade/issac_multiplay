@@ -930,7 +930,7 @@ impl Run {
             Some("V12")=>"artifacts/repentogon/tx-04-08-v12-build",
             Some("V2")=>"artifacts/repentogon/tx-04-08-v2-build",Some("V5")=>"artifacts/repentogon/tx-04-08-v5-build",
             _=>"artifacts/repentogon/tx-04-08-v6-build"};
-        for folder in [build_folder,"docs/design/tx-04-08","docs/research"] {
+        for folder in [build_folder,"docs/archive/design/tx-04-08","docs/archive/research"] {
             crate::copy_tree(&self.repo.join(folder),&self.out.join("sources").join(folder))?;
         }
         // 旧材料只复制原始文件，在最终 L7 才通过生产 decoder 导入；不在准备阶段试跑工具。

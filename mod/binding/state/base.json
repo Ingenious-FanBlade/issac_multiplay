@@ -618,7 +618,7 @@
           "category": "状态",
           "semantics": "红色分量",
           "status": "已核",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\KColor.zhl；docs/design/tx-04-19/entity-application.json 中 KColor RGBA+opaque32；J273 VA0x9E39F0转换前三个f32并复制+0xC Alpha，+0x10颜色空间另行处理",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\KColor.zhl；mod/binding/catalog/entity-application.json 中 KColor RGBA+opaque32；J273 VA0x9E39F0转换前三个f32并复制+0xC Alpha，+0x10颜色空间另行处理",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -633,7 +633,7 @@
           "category": "状态",
           "semantics": "绿色分量",
           "status": "已核",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\KColor.zhl；docs/design/tx-04-19/entity-application.json 中 KColor RGBA+opaque32；J273 VA0x9E39F0转换前三个f32并复制+0xC Alpha，+0x10颜色空间另行处理",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\KColor.zhl；mod/binding/catalog/entity-application.json 中 KColor RGBA+opaque32；J273 VA0x9E39F0转换前三个f32并复制+0xC Alpha，+0x10颜色空间另行处理",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -648,7 +648,7 @@
           "category": "状态",
           "semantics": "蓝色分量",
           "status": "已核",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\KColor.zhl；docs/design/tx-04-19/entity-application.json 中 KColor RGBA+opaque32；J273 VA0x9E39F0转换前三个f32并复制+0xC Alpha，+0x10颜色空间另行处理",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\KColor.zhl；mod/binding/catalog/entity-application.json 中 KColor RGBA+opaque32；J273 VA0x9E39F0转换前三个f32并复制+0xC Alpha，+0x10颜色空间另行处理",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -663,7 +663,7 @@
           "category": "状态",
           "semantics": "透明度分量",
           "status": "已核",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\KColor.zhl；docs/design/tx-04-19/entity-application.json 中 KColor RGBA+opaque32；J273 VA0x9E39F0转换前三个f32并复制+0xC Alpha，+0x10颜色空间另行处理",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\KColor.zhl；mod/binding/catalog/entity-application.json 中 KColor RGBA+opaque32；J273 VA0x9E39F0转换前三个f32并复制+0xC Alpha，+0x10颜色空间另行处理",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -1068,7 +1068,7 @@
           "category": "状态",
           "semantics": "播放标志兼绘制插值输入；直接安装最终值，不授权Client推进动画",
           "status": "SDK声明",
-          "evidence": "J273 VA 0x404390（RVA 0x4390）SetLayerFrame；VA 0x4040B0（RVA 0x40B0）AdvanceNullLayerPosition；官方 AnimationState.zhl；REPENTOGON/Patches/InterpolV2.cpp:34读取_isPlaying；版本32复核见docs/design/binary-state/animation-resource-synchronization-review.md",
+          "evidence": "J273 VA 0x404390（RVA 0x4390）SetLayerFrame；VA 0x4040B0（RVA 0x40B0）AdvanceNullLayerPosition；官方 AnimationState.zhl；REPENTOGON/Patches/InterpolV2.cpp:34读取_isPlaying；版本32复核见docs/archive/design/binary-state/animation-resource-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "u8"
@@ -1093,7 +1093,7 @@
           "category": "权威",
           "semantics": "Host动画事件消费位；Client安装最终姿态，不推进或重放事件，构造／换动画后本地清零",
           "status": "已核",
-          "evidence": "J273 AnimationState::IsEventTriggered 读取 this+0x18（imagebase 0x400000）；官方 AnimationState.zhl；版本32同步职责复核：docs/design/binary-state/animation-resource-synchronization-review.md"
+          "evidence": "J273 AnimationState::IsEventTriggered 读取 this+0x18（imagebase 0x400000）；官方 AnimationState.zhl；版本32同步职责复核：docs/archive/design/binary-state/animation-resource-synchronization-review.md"
         },
         {
           "offset": "0x1C",
@@ -1103,7 +1103,7 @@
           "category": "权威",
           "semantics": "Host动画事件历史位；不表示可靠事件队列，不进入Client状态或漂移比较",
           "status": "已核",
-          "evidence": "J273 AnimationState::WasEventTriggered 读取 this+0x1C（imagebase 0x400000）；官方 AnimationState.zhl；版本32同步职责复核：docs/design/binary-state/animation-resource-synchronization-review.md"
+          "evidence": "J273 AnimationState::WasEventTriggered 读取 this+0x1C（imagebase 0x400000）；官方 AnimationState.zhl；版本32同步职责复核：docs/archive/design/binary-state/animation-resource-synchronization-review.md"
         }
       ],
       "conversions": {},
@@ -1261,7 +1261,7 @@
           "category": "本地",
           "semantics": "本地图层资源加载／重载维护标志；ReplaceSpritesheet可置false同时保留旧Image，不跨进程复制，也不按Host原值覆盖Client加载结果",
           "status": "SDK声明",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics；版本32同步职责复核：docs/design/binary-state/animation-resource-synchronization-review.md"
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics；版本32同步职责复核：docs/archive/design/binary-state/animation-resource-synchronization-review.md"
         },
         {
           "offset": "0x31",
@@ -1648,7 +1648,7 @@
           "category": "资源",
           "semantics": "可空ANM2文件资源选择；Host loaded=false编码0xFFFF，true编码文件资源号；不以路径非空猜测存在性",
           "status": "SDK声明",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；J273 Render VA0x4059E0读取+109；Reset VA0x403530清文件／资源及loaded，Load VA0x407B52置1；版本32见docs/design/binary-state/animation-resource-synchronization-review.md",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；J273 Render VA0x4059E0读取+109；Reset VA0x403530清文件／资源及loaded，Load VA0x407B52置1；版本32见docs/archive/design/binary-state/animation-resource-synchronization-review.md",
           "wire": {
             "kind": "resource",
             "type": "u16",
@@ -1947,7 +1947,7 @@
           "category": "状态",
           "semantics": "播放速度兼绘制插值的半帧比例输入；不在Client推进动画",
           "status": "SDK声明",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；REPENTOGON/Patches/InterpolV2.cpp按_playbackSpeed计算lerpappend；版本32见docs/design/binary-state/animation-resource-synchronization-review.md",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；REPENTOGON/Patches/InterpolV2.cpp按_playbackSpeed计算lerpappend；版本32见docs/archive/design/binary-state/animation-resource-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -1972,7 +1972,7 @@
           "category": "本地",
           "semantics": "本地ANM2构造／加载／重置结果；Host只用它确定file_name的可空资源选择，Client由资源owner完成准备后维护，不直接传布尔字节",
           "status": "已核",
-          "evidence": "J273 Load VA 0x407AF0 的 VA 0x407B52 写 +0x109=1；属于本地资源生命周期状态；J273 IsLoaded VA0x41B820/RVA0x1B820直接return this[0x109]，主审已复读；版本32同步职责复核：docs/design/binary-state/animation-resource-synchronization-review.md"
+          "evidence": "J273 Load VA 0x407AF0 的 VA 0x407B52 写 +0x109=1；属于本地资源生命周期状态；J273 IsLoaded VA0x41B820/RVA0x1B820直接return this[0x109]，主审已复读；版本32同步职责复核：docs/archive/design/binary-state/animation-resource-synchronization-review.md"
         },
         {
           "offset": "0x10A",
@@ -2281,7 +2281,7 @@
       "notes": "J273 SetSeed 写入全部四 DWORD；RandomInt/RandomFloat/Next 读取三个 shift 并更新 seed。此类型是 authority-only，不加入发送块。",
       "catalog_rows": [
         {
-          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "catalog": "mod/binding/catalog/stream-catalog.json",
           "ordinal": 3483,
           "id": "RNG.GetSeed",
           "owner": "RNG",
@@ -2293,7 +2293,7 @@
           "reason": "普通owner的16B状态和随机API归Host；GetSeed/Shift是观察信息而非网络字段。两个具名纯绘制实例发送已产生alpha／资格，seed不上线，见room-random-handoff.md"
         },
         {
-          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "catalog": "mod/binding/catalog/stream-catalog.json",
           "ordinal": 3484,
           "id": "RNG.GetShiftIdx",
           "owner": "RNG",
@@ -2305,7 +2305,7 @@
           "reason": "普通owner的16B状态和随机API归Host；GetSeed/Shift是观察信息而非网络字段。两个具名纯绘制实例发送已产生alpha／资格，seed不上线，见room-random-handoff.md"
         },
         {
-          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "catalog": "mod/binding/catalog/stream-catalog.json",
           "ordinal": 3485,
           "id": "RNG.Next",
           "owner": "RNG",
@@ -2317,7 +2317,7 @@
           "reason": "普通owner的16B状态和随机API归Host；GetSeed/Shift是观察信息而非网络字段。两个具名纯绘制实例发送已产生alpha／资格，seed不上线，见room-random-handoff.md"
         },
         {
-          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "catalog": "mod/binding/catalog/stream-catalog.json",
           "ordinal": 3486,
           "id": "RNG.PhantomFloat",
           "owner": "RNG",
@@ -2329,7 +2329,7 @@
           "reason": "普通owner的16B状态和随机API归Host；GetSeed/Shift是观察信息而非网络字段。两个具名纯绘制实例发送已产生alpha／资格，seed不上线，见room-random-handoff.md；Phantom系列实现不同，正常返回不推进原状态不等于正式采集许可；PhantomNext还会短暂改原seed"
         },
         {
-          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "catalog": "mod/binding/catalog/stream-catalog.json",
           "ordinal": 3487,
           "id": "RNG.PhantomInt",
           "owner": "RNG",
@@ -2341,7 +2341,7 @@
           "reason": "普通owner的16B状态和随机API归Host；GetSeed/Shift是观察信息而非网络字段。两个具名纯绘制实例发送已产生alpha／资格，seed不上线，见room-random-handoff.md；Phantom系列实现不同，正常返回不推进原状态不等于正式采集许可；PhantomNext还会短暂改原seed"
         },
         {
-          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "catalog": "mod/binding/catalog/stream-catalog.json",
           "ordinal": 3488,
           "id": "RNG.PhantomNext",
           "owner": "RNG",
@@ -2353,7 +2353,7 @@
           "reason": "普通owner的16B状态和随机API归Host；GetSeed/Shift是观察信息而非网络字段。两个具名纯绘制实例发送已产生alpha／资格，seed不上线，见room-random-handoff.md；Phantom系列实现不同，正常返回不推进原状态不等于正式采集许可；PhantomNext还会短暂改原seed"
         },
         {
-          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "catalog": "mod/binding/catalog/stream-catalog.json",
           "ordinal": 3489,
           "id": "RNG.PhantomPrevious",
           "owner": "RNG",
@@ -2365,7 +2365,7 @@
           "reason": "普通owner的16B状态和随机API归Host；GetSeed/Shift是观察信息而非网络字段。两个具名纯绘制实例发送已产生alpha／资格，seed不上线，见room-random-handoff.md；Phantom系列实现不同，正常返回不推进原状态不等于正式采集许可；PhantomNext还会短暂改原seed"
         },
         {
-          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "catalog": "mod/binding/catalog/stream-catalog.json",
           "ordinal": 3490,
           "id": "RNG.PhantomVector",
           "owner": "RNG",
@@ -2377,7 +2377,7 @@
           "reason": "普通owner的16B状态和随机API归Host；GetSeed/Shift是观察信息而非网络字段。两个具名纯绘制实例发送已产生alpha／资格，seed不上线，见room-random-handoff.md；Phantom系列实现不同，正常返回不推进原状态不等于正式采集许可；PhantomNext还会短暂改原seed"
         },
         {
-          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "catalog": "mod/binding/catalog/stream-catalog.json",
           "ordinal": 3491,
           "id": "RNG.Previous",
           "owner": "RNG",
@@ -2389,7 +2389,7 @@
           "reason": "普通owner的16B状态和随机API归Host；GetSeed/Shift是观察信息而非网络字段。两个具名纯绘制实例发送已产生alpha／资格，seed不上线，见room-random-handoff.md"
         },
         {
-          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "catalog": "mod/binding/catalog/stream-catalog.json",
           "ordinal": 3492,
           "id": "RNG.RNG",
           "owner": "RNG",
@@ -2401,7 +2401,7 @@
           "reason": "普通owner的16B状态和随机API归Host；GetSeed/Shift是观察信息而非网络字段。两个具名纯绘制实例发送已产生alpha／资格，seed不上线，见room-random-handoff.md"
         },
         {
-          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "catalog": "mod/binding/catalog/stream-catalog.json",
           "ordinal": 3493,
           "id": "RNG.RNG",
           "owner": "RNG",
@@ -2413,7 +2413,7 @@
           "reason": "普通owner的16B状态和随机API归Host；GetSeed/Shift是观察信息而非网络字段。两个具名纯绘制实例发送已产生alpha／资格，seed不上线，见room-random-handoff.md"
         },
         {
-          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "catalog": "mod/binding/catalog/stream-catalog.json",
           "ordinal": 3494,
           "id": "RNG.RandomFloat",
           "owner": "RNG",
@@ -2425,7 +2425,7 @@
           "reason": "普通owner的16B状态和随机API归Host；GetSeed/Shift是观察信息而非网络字段。两个具名纯绘制实例发送已产生alpha／资格，seed不上线，见room-random-handoff.md"
         },
         {
-          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "catalog": "mod/binding/catalog/stream-catalog.json",
           "ordinal": 3495,
           "id": "RNG.RandomInt",
           "owner": "RNG",
@@ -2437,7 +2437,7 @@
           "reason": "普通owner的16B状态和随机API归Host；GetSeed/Shift是观察信息而非网络字段。两个具名纯绘制实例发送已产生alpha／资格，seed不上线，见room-random-handoff.md"
         },
         {
-          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "catalog": "mod/binding/catalog/stream-catalog.json",
           "ordinal": 3496,
           "id": "RNG.RandomInt",
           "owner": "RNG",
@@ -2449,7 +2449,7 @@
           "reason": "普通owner的16B状态和随机API归Host；GetSeed/Shift是观察信息而非网络字段。两个具名纯绘制实例发送已产生alpha／资格，seed不上线，见room-random-handoff.md"
         },
         {
-          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "catalog": "mod/binding/catalog/stream-catalog.json",
           "ordinal": 3497,
           "id": "RNG.RandomVector",
           "owner": "RNG",
@@ -2461,7 +2461,7 @@
           "reason": "普通owner的16B状态和随机API归Host；GetSeed/Shift是观察信息而非网络字段。两个具名纯绘制实例发送已产生alpha／资格，seed不上线，见room-random-handoff.md"
         },
         {
-          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "catalog": "mod/binding/catalog/stream-catalog.json",
           "ordinal": 3498,
           "id": "RNG.SetSeed",
           "owner": "RNG",
@@ -2473,7 +2473,7 @@
           "reason": "普通owner的16B状态和随机API归Host；GetSeed/Shift是观察信息而非网络字段。两个具名纯绘制实例发送已产生alpha／资格，seed不上线，见room-random-handoff.md"
         },
         {
-          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "catalog": "mod/binding/catalog/stream-catalog.json",
           "ordinal": 3499,
           "id": "RNG.SetSeed",
           "owner": "RNG",
@@ -2617,7 +2617,7 @@
           "category": "权威",
           "semantics": "颜色覆盖优先级；仅Host合成队列消费，Client接收最终颜色",
           "status": "已核",
-          "evidence": "官方 ColorParams.zhl；REPENTOGON\\LuaInterfaces\\LuaColorParams.cpp（Get/Set Duration、Lifespan、Fadeout、Shared）；版本32同步职责复核：docs/design/binary-state/animation-resource-synchronization-review.md"
+          "evidence": "官方 ColorParams.zhl；REPENTOGON\\LuaInterfaces\\LuaColorParams.cpp（Get/Set Duration、Lifespan、Fadeout、Shared）；版本32同步职责复核：docs/archive/design/binary-state/animation-resource-synchronization-review.md"
         },
         {
           "offset": "0x4",
@@ -2627,7 +2627,7 @@
           "category": "权威",
           "semantics": "覆盖输入ColorMod；仅Host合成，不能与最终Entity.Color／ANM2.color混同",
           "status": "已核",
-          "evidence": "官方 ColorParams.zhl；REPENTOGON\\LuaInterfaces\\LuaColorParams.cpp（Get/Set Duration、Lifespan、Fadeout、Shared）；版本32同步职责复核：docs/design/binary-state/animation-resource-synchronization-review.md"
+          "evidence": "官方 ColorParams.zhl；REPENTOGON\\LuaInterfaces\\LuaColorParams.cpp（Get/Set Duration、Lifespan、Fadeout、Shared）；版本32同步职责复核：docs/archive/design/binary-state/animation-resource-synchronization-review.md"
         },
         {
           "offset": "0x30",
@@ -2637,7 +2637,7 @@
           "category": "权威",
           "semantics": "Duration／+30，淡出比例分母；原生颜色更新不递减，仅Host消费",
           "status": "已核",
-          "evidence": "ColorParams.zhl +0x30；官方 LuaColorParams.cpp 的 GetDuration/SetDuration 直接读取写入 _duration1；第3步核对J273颜色更新循环，递减位置为+34，+30仅作比例分母；版本32同步职责复核：docs/design/binary-state/animation-resource-synchronization-review.md"
+          "evidence": "ColorParams.zhl +0x30；官方 LuaColorParams.cpp 的 GetDuration/SetDuration 直接读取写入 _duration1；第3步核对J273颜色更新循环，递减位置为+34，+30仅作比例分母；版本32同步职责复核：docs/archive/design/binary-state/animation-resource-synchronization-review.md"
         },
         {
           "offset": "0x34",
@@ -2647,7 +2647,7 @@
           "category": "权威",
           "semantics": "Lifespan／+34，每次颜色更新有符号减一，负值也递减、仅结果0删项；留Host，不再编码颜色锚点",
           "status": "已核",
-          "evidence": "ColorParams.zhl +0x34；官方 LuaColorParams.cpp 的 GetLifespan/SetLifespan 直接读取写入 _duration2；J273 Entity::Update VA0x6AA122读+34、VA0x6AA12A dec、VA0x6AA12E写，VA0x6AA13B检查0并删除；主审已复读；版本32同步职责复核：docs/design/binary-state/animation-resource-synchronization-review.md"
+          "evidence": "ColorParams.zhl +0x34；官方 LuaColorParams.cpp 的 GetLifespan/SetLifespan 直接读取写入 _duration2；J273 Entity::Update VA0x6AA122读+34、VA0x6AA12A dec、VA0x6AA12E写，VA0x6AA13B检查0并删除；主审已复读；版本32同步职责复核：docs/archive/design/binary-state/animation-resource-synchronization-review.md"
         },
         {
           "offset": "0x38",
@@ -2657,7 +2657,7 @@
           "category": "权威",
           "semantics": "是否按Lifespan／Duration淡出；仅Host颜色合成消费",
           "status": "已核",
-          "evidence": "官方 ColorParams.zhl；REPENTOGON\\LuaInterfaces\\LuaColorParams.cpp（Get/Set Duration、Lifespan、Fadeout、Shared）；版本32同步职责复核：docs/design/binary-state/animation-resource-synchronization-review.md"
+          "evidence": "官方 ColorParams.zhl；REPENTOGON\\LuaInterfaces\\LuaColorParams.cpp（Get/Set Duration、Lifespan、Fadeout、Shared）；版本32同步职责复核：docs/archive/design/binary-state/animation-resource-synchronization-review.md"
         },
         {
           "offset": "0x39",
@@ -2667,7 +2667,7 @@
           "category": "权威",
           "semantics": "颜色共享／传播标志；由Host处理关联实体的颜色结果，Client不重演传播",
           "status": "已核",
-          "evidence": "官方 ColorParams.zhl；REPENTOGON\\LuaInterfaces\\LuaColorParams.cpp（Get/Set Duration、Lifespan、Fadeout、Shared）；版本32同步职责复核：docs/design/binary-state/animation-resource-synchronization-review.md"
+          "evidence": "官方 ColorParams.zhl；REPENTOGON\\LuaInterfaces\\LuaColorParams.cpp（Get/Set Duration、Lifespan、Fadeout、Shared）；版本32同步职责复核：docs/archive/design/binary-state/animation-resource-synchronization-review.md"
         },
         {
           "offset": "0x3A",
@@ -2743,7 +2743,7 @@
           "category": "状态",
           "semantics": "主动道具配置 ID；PlayerHUD::RenderActiveItem VA0x835B40直接或经7897C0/789810消费，保留最终值。",
           "status": "已核",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ActiveItemDesc.zhl；docs/design/tx-04-20/tx-04-20-state-installation.md:37-38；player-i39-source.md:71；docs/design/binary-state/player-equipment-plus-synchronization-review.md",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ActiveItemDesc.zhl；docs/archive/design/tx-04-20/tx-04-20-state-installation.md:37-38；player-i39-source.md:71；docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "i32"
@@ -2758,7 +2758,7 @@
           "category": "权威",
           "semantics": "Host获得／保存／掉落时的来源池，AddCollectible VA0x759864写入；当前Player/HUD展示不读取。 不采集／编码／安装或比较原值。",
           "status": "已核",
-          "evidence": "docs/design/tx-04-20/tx-04-20-state-installation.md:38；J273 AddCollectible VA 0x758F00 于 VA 0x759864 写入最后一个 item pool 参数；docs/design/binary-state/player-equipment-plus-synchronization-review.md"
+          "evidence": "docs/archive/design/tx-04-20/tx-04-20-state-installation.md:38；J273 AddCollectible VA 0x758F00 于 VA 0x759864 写入最后一个 item pool 参数；docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md"
         },
         {
           "offset": "0x8",
@@ -2768,7 +2768,7 @@
           "category": "状态",
           "semantics": "充能数；PlayerHUD::RenderActiveItem VA0x835B40直接或经7897C0/789810消费，保留最终值。",
           "status": "已核",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ActiveItemDesc.zhl；docs/design/tx-04-20/tx-04-20-state-installation.md:37-38；player-i39-source.md:71；docs/design/binary-state/player-equipment-plus-synchronization-review.md",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ActiveItemDesc.zhl；docs/archive/design/tx-04-20/tx-04-20-state-installation.md:37-38；player-i39-source.md:71；docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "i32"
@@ -2783,7 +2783,7 @@
           "category": "状态",
           "semantics": "电池充能数；PlayerHUD::RenderActiveItem VA0x835B40直接或经7897C0/789810消费，保留最终值。",
           "status": "已核",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ActiveItemDesc.zhl；docs/design/tx-04-20/tx-04-20-state-installation.md:37-38；player-i39-source.md:71；docs/design/binary-state/player-equipment-plus-synchronization-review.md",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ActiveItemDesc.zhl；docs/archive/design/tx-04-20/tx-04-20-state-installation.md:37-38；player-i39-source.md:71；docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "i32"
@@ -2798,7 +2798,7 @@
           "category": "状态",
           "semantics": "子充能数；PlayerHUD::RenderActiveItem VA0x835B40直接或经7897C0/789810消费，保留最终值。",
           "status": "已核",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ActiveItemDesc.zhl；docs/design/tx-04-20/tx-04-20-state-installation.md:37-38；player-i39-source.md:71；docs/design/binary-state/player-equipment-plus-synchronization-review.md",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ActiveItemDesc.zhl；docs/archive/design/tx-04-20/tx-04-20-state-installation.md:37-38；player-i39-source.md:71；docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "i32"
@@ -2813,7 +2813,7 @@
           "category": "权威",
           "semantics": "Host主动道具充能更新输入，VA0x789E50/0x78A35B等消费；HUD读取最终charge／partial等，不推进本地充能。 不采集／编码／安装或比较原值。",
           "status": "已核",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ActiveItemDesc.zhl；docs/design/tx-04-20/tx-04-20-state-installation.md:37-38；player-i39-source.md:71；docs/design/binary-state/player-equipment-plus-synchronization-review.md"
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ActiveItemDesc.zhl；docs/archive/design/tx-04-20/tx-04-20-state-installation.md:37-38；player-i39-source.md:71；docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md"
         },
         {
           "offset": "0x18",
@@ -2823,7 +2823,7 @@
           "category": "状态",
           "semantics": "部分充能进度；公开类型为 float；PlayerHUD::RenderActiveItem VA0x835B40直接或经7897C0/789810消费，保留最终值。",
           "status": "已核",
-          "evidence": "player-i39-source.md:71；J273 VA 0x863B93 写 getter closure 的 offset 0x18、VA 0x863BB9 以 PartialCharge 注册；VA 0x863C4E 写 setter closure offset；VA 0x8A4510/0x8A4570 以 movss 读写（imagebase 0x400000）；docs/design/binary-state/player-equipment-plus-synchronization-review.md",
+          "evidence": "player-i39-source.md:71；J273 VA 0x863B93 写 getter closure 的 offset 0x18、VA 0x863BB9 以 PartialCharge 注册；VA 0x863C4E 写 setter closure offset；VA 0x8A4510/0x8A4570 以 movss 读写（imagebase 0x400000）；docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -2838,7 +2838,7 @@
           "category": "状态",
           "semantics": "道具关联 VarData；PlayerHUD::RenderActiveItem VA0x835B40直接或经7897C0/789810消费，保留最终值。",
           "status": "已核",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ActiveItemDesc.zhl；docs/design/tx-04-20/tx-04-20-state-installation.md:37-38；player-i39-source.md:71；docs/design/binary-state/player-equipment-plus-synchronization-review.md",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ActiveItemDesc.zhl；docs/archive/design/tx-04-20/tx-04-20-state-installation.md:37-38；player-i39-source.md:71；docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "i32"
@@ -2898,7 +2898,7 @@
           "id": "ActiveItemDesc.TimedRechargeCooldown",
           "disposition": "authority",
           "fields": [],
-          "reason": "Host充能调度输入，无当前原生展示消费者；只同步最终主动槽与HUD输入。见docs/design/binary-state/player-equipment-plus-synchronization-review.md"
+          "reason": "Host充能调度输入，无当前原生展示消费者；只同步最终主动槽与HUD输入。见docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md"
         },
         {
           "id": "ActiveItemDesc.VarData",
@@ -2944,7 +2944,7 @@
           "category": "权威",
           "semantics": "Host玩法Weapon所属关系；当前充能条公式不读取owner。Client工厂使用本地承载身体，退休前owner=null；不发送Host引用。",
           "status": "已核",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\Weapon.zhl；J273 VA 0x9C4EB0 ctor、0x9C5200 Init、0x9C5090 IsAxisAligned（imagebase 0x400000）；player-application.json:62582；docs/design/binary-state/player-equipment-plus-synchronization-review.md"
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\Weapon.zhl；J273 VA 0x9C4EB0 ctor、0x9C5200 Init、0x9C5090 IsAxisAligned（imagebase 0x400000）；player-application.json:62582；docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md"
         },
         {
           "offset": "0x8",
@@ -2964,7 +2964,7 @@
           "category": "权威",
           "semantics": "Host Weapon::Update VA0x9C5220使用owner速度倍率递减的射击冷却；当前展示不用，不作为Client时钟。",
           "status": "SDK声明",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\Weapon.zhl；J273 VA 0x9C4EB0 ctor、0x9C5200 Init、0x9C5090 IsAxisAligned（imagebase 0x400000）；player-application.json:62582；docs/design/binary-state/player-equipment-plus-synchronization-review.md"
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\Weapon.zhl；J273 VA 0x9C4EB0 ctor、0x9C5200 Init、0x9C5090 IsAxisAligned（imagebase 0x400000）；player-application.json:62582；docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md"
         },
         {
           "offset": "0x10",
@@ -2974,7 +2974,7 @@
           "category": "状态",
           "semantics": "最大射击冷却；Player758850／Familiar62C0C0经Weapon slot7→slot6纯字段公式消费；保留，不运行Update／Fire。",
           "status": "SDK声明",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\Weapon.zhl；J273 VA 0x9C4EB0 ctor、0x9C5200 Init、0x9C5090 IsAxisAligned（imagebase 0x400000）；player-application.json:62582；docs/design/binary-state/player-equipment-plus-synchronization-review.md",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\Weapon.zhl；J273 VA 0x9C4EB0 ctor、0x9C5200 Init、0x9C5090 IsAxisAligned（imagebase 0x400000）；player-application.json:62582；docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -2989,7 +2989,7 @@
           "category": "状态",
           "semantics": "武器充能；Player758850／Familiar62C0C0经Weapon slot7→slot6纯字段公式消费；保留，不运行Update／Fire。",
           "status": "SDK声明",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\Weapon.zhl；J273 VA 0x9C4EB0 ctor、0x9C5200 Init、0x9C5090 IsAxisAligned（imagebase 0x400000）；player-application.json:62582；docs/design/binary-state/player-equipment-plus-synchronization-review.md",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\Weapon.zhl；J273 VA 0x9C4EB0 ctor、0x9C5200 Init、0x9C5090 IsAxisAligned（imagebase 0x400000）；player-application.json:62582；docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -3014,7 +3014,7 @@
           "category": "权威",
           "semantics": "Host Fire／瞄准输入；Player最终朝向、Sprite与攻击实体单独安装，当前装备展示不消费此Vector。",
           "status": "SDK声明",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\Weapon.zhl；J273 VA 0x9C4EB0 ctor、0x9C5200 Init、0x9C5090 IsAxisAligned（imagebase 0x400000）；player-application.json:62582；docs/design/binary-state/player-equipment-plus-synchronization-review.md"
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\Weapon.zhl；J273 VA 0x9C4EB0 ctor、0x9C5200 Init、0x9C5090 IsAxisAligned（imagebase 0x400000）；player-application.json:62582；docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md"
         },
         {
           "offset": "0x28",
@@ -3024,7 +3024,7 @@
           "category": "权威",
           "semantics": "IsAxisAligned VA0x9C5090同时读取+28/+2C及owner／道具；不是原生绘制输入，两个f32类型事实保留但不传输。",
           "status": "推断",
-          "evidence": "J273 Weapon::IsAxisAligned VA 0x9C5090 读取 this+0x28 与 +0x2C；具体含义未核；docs/design/binary-state/player-equipment-plus-synchronization-review.md"
+          "evidence": "J273 Weapon::IsAxisAligned VA 0x9C5090 读取 this+0x28 与 +0x2C；具体含义未核；docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md"
         },
         {
           "offset": "0x30",
@@ -3034,7 +3034,7 @@
           "category": "状态",
           "semantics": "HUD RenderActiveItem VA0x836093区分type12，Familiar60C190区分type15；由工厂动态类及初始化类型核对，保留。",
           "status": "SDK声明",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\Weapon.zhl；J273 VA 0x9C4EB0 ctor、0x9C5200 Init、0x9C5090 IsAxisAligned（imagebase 0x400000）；player-application.json:62582；docs/design/binary-state/player-equipment-plus-synchronization-review.md",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\Weapon.zhl；J273 VA 0x9C4EB0 ctor、0x9C5200 Init、0x9C5090 IsAxisAligned（imagebase 0x400000）；player-application.json:62582；docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "i32"
@@ -3050,7 +3050,7 @@
           "category": "状态",
           "semantics": "武器修改标志；Player758850／Familiar62C0C0经Weapon slot7→slot6纯字段公式消费；保留，不运行Update／Fire。",
           "status": "SDK声明",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\Weapon.zhl；J273 VA 0x9C4EB0 ctor、0x9C5200 Init、0x9C5090 IsAxisAligned（imagebase 0x400000）；player-application.json:62582；docs/design/binary-state/player-equipment-plus-synchronization-review.md",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\Weapon.zhl；J273 VA 0x9C4EB0 ctor、0x9C5200 Init、0x9C5090 IsAxisAligned（imagebase 0x400000）；player-application.json:62582；docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "u32"
@@ -3065,7 +3065,7 @@
           "category": "权威",
           "semantics": "Host发射历史／公开查询值；当前Player/HUD/Familiar展示不消费。",
           "status": "SDK声明",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\Weapon.zhl；J273 VA 0x9C4EB0 ctor、0x9C5200 Init、0x9C5090 IsAxisAligned（imagebase 0x400000）；player-application.json:62582；docs/design/binary-state/player-equipment-plus-synchronization-review.md"
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\Weapon.zhl；J273 VA 0x9C4EB0 ctor、0x9C5200 Init、0x9C5090 IsAxisAligned（imagebase 0x400000）；player-application.json:62582；docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md"
         },
         {
           "offset": "0x3C",
@@ -3112,13 +3112,13 @@
           "id": "Weapon.GetDirection",
           "disposition": "authority",
           "fields": [],
-          "reason": "Host玩法／查询，无当前原生装备展示消费；不发送原值或建立身份依赖。见docs/design/binary-state/player-equipment-plus-synchronization-review.md"
+          "reason": "Host玩法／查询，无当前原生装备展示消费；不发送原值或建立身份依赖。见docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md"
         },
         {
           "id": "Weapon.GetFireDelay",
           "disposition": "authority",
           "fields": [],
-          "reason": "Host玩法／查询，无当前原生装备展示消费；不发送原值或建立身份依赖。见docs/design/binary-state/player-equipment-plus-synchronization-review.md"
+          "reason": "Host玩法／查询，无当前原生装备展示消费；不发送原值或建立身份依赖。见docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md"
         },
         {
           "id": "Weapon.GetMaxFireDelay",
@@ -3140,13 +3140,13 @@
           "id": "Weapon.GetNumFired",
           "disposition": "authority",
           "fields": [],
-          "reason": "Host玩法／查询，无当前原生装备展示消费；不发送原值或建立身份依赖。见docs/design/binary-state/player-equipment-plus-synchronization-review.md"
+          "reason": "Host玩法／查询，无当前原生装备展示消费；不发送原值或建立身份依赖。见docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md"
         },
         {
           "id": "Weapon.GetOwner",
           "disposition": "authority",
           "fields": [],
-          "reason": "Host玩法／查询，无当前原生装备展示消费；不发送原值或建立身份依赖。见docs/design/binary-state/player-equipment-plus-synchronization-review.md"
+          "reason": "Host玩法／查询，无当前原生装备展示消费；不发送原值或建立身份依赖。见docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md"
         },
         {
           "id": "Weapon.GetWeaponType",
@@ -3178,7 +3178,7 @@
           "category": "资源",
           "semantics": "配置资源身份，必须保留(type,id)及本地config.cooldown；90A7A0/90A900按类别与id查找，Player/HUD直接消费。",
           "status": "已核",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\TemporaryEffect.zhl；docs/design/tx-04-19/entity-application.json TemporaryEffect.*；docs/design/binary-state/player-equipment-plus-synchronization-review.md",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\TemporaryEffect.zhl；mod/binding/catalog/entity-application.json TemporaryEffect.*；docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md",
           "wire": {
             "kind": "resource",
             "type": "u16",
@@ -3196,7 +3196,7 @@
           "category": "状态",
           "semantics": "叠加数；HUD835CDF→90A900及Player769E90等查询读取，不由库存或costume推导。",
           "status": "已核",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\TemporaryEffect.zhl；docs/design/tx-04-19/entity-application.json TemporaryEffect.*；J273 AddEffect VA0x90A090/RVA0x50A090：VA0x90A0E3加count(+4)，VA0x90A0E9加cooldown(+8)，插入元素步长0x10；主审已复读；docs/design/binary-state/player-equipment-plus-synchronization-review.md",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\TemporaryEffect.zhl；mod/binding/catalog/entity-application.json TemporaryEffect.*；J273 AddEffect VA0x90A090/RVA0x50A090：VA0x90A0E3加count(+4)，VA0x90A0E9加cooldown(+8)，插入元素步长0x10；主审已复读；docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "i32"
@@ -3211,7 +3211,7 @@
           "category": "状态",
           "semantics": "最终剩余冷却；角色27进度环758952直接读取+8，除以配置+78 cooldown；保留同帧原值，不在Client递减。",
           "status": "已核",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\TemporaryEffect.zhl；docs/design/tx-04-19/entity-application.json TemporaryEffect.*；J273 AddEffect VA0x90A090/RVA0x50A090：VA0x90A0E3加count(+4)，VA0x90A0E9加cooldown(+8)，插入元素步长0x10；主审已复读；docs/design/binary-state/player-equipment-plus-synchronization-review.md",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\TemporaryEffect.zhl；mod/binding/catalog/entity-application.json TemporaryEffect.*；J273 AddEffect VA0x90A090/RVA0x50A090：VA0x90A0E3加count(+4)，VA0x90A0E9加cooldown(+8)，插入元素步长0x10；主审已复读；docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "i32"
@@ -3280,7 +3280,7 @@
           "category": "引用",
           "semantics": "Familiar60C1F0经Weapon slot10读取的真实主实体；目标先构造并用EntityPtr维护。该展示helper只在目标Type=3时借用，其余真实目标不据此伪装Null或猜成非法。",
           "status": "已核",
-          "evidence": "docs/design/binary-state/player-equipment-plus-synchronization-review.md",
+          "evidence": "docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md",
           "wire": {
             "kind": "reference",
             "type": "u16",
@@ -3325,7 +3325,7 @@
           "category": "权威",
           "semantics": "Host待重算属性CacheFlag mask；不是虚表。Client安装最终属性，不运行EvaluateItems。",
           "status": "已核",
-          "evidence": "docs/design/binary-state/player-equipment-plus-synchronization-review.md"
+          "evidence": "docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md"
         },
         {
           "offset": "0x4",
@@ -3335,7 +3335,7 @@
           "category": "容器",
           "semantics": "原顺序完整临时效果列表；配置身份／count／cooldown独立保留，不按id去重或由costume反推。",
           "status": "已核",
-          "evidence": "docs/design/binary-state/player-equipment-plus-synchronization-review.md",
+          "evidence": "docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md",
           "wire": {
             "kind": "container",
             "element": "TemporaryEffect",
@@ -3356,7 +3356,7 @@
           "category": "权威",
           "semantics": "Host下一次属性重算请求；Client使用最终属性，不写入或消费请求。",
           "status": "已核",
-          "evidence": "docs/design/binary-state/player-equipment-plus-synchronization-review.md"
+          "evidence": "docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md"
         },
         {
           "offset": "0x11",
@@ -3366,7 +3366,7 @@
           "category": "状态",
           "semantics": "90A7A0/90A900等展示查询先检查的禁用开关；独立于容器是否为空，须与内容同目标版本安装。",
           "status": "已核",
-          "evidence": "docs/design/binary-state/player-equipment-plus-synchronization-review.md",
+          "evidence": "docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "u8"
@@ -3382,7 +3382,7 @@
           "category": "未知",
           "semantics": "SDK字段间两字节未核；不因对齐归填充。",
           "status": "未知",
-          "evidence": "docs/design/binary-state/player-equipment-plus-synchronization-review.md"
+          "evidence": "docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md"
         },
         {
           "offset": "0x14",
@@ -3392,7 +3392,7 @@
           "category": "本地",
           "semantics": "本地承载Player回指，由外层P8 owner建立与退休，不发送Host地址或额外网络关系。",
           "status": "已核",
-          "evidence": "docs/design/binary-state/player-equipment-plus-synchronization-review.md"
+          "evidence": "docs/archive/design/binary-state/player-equipment-plus-synchronization-review.md"
         }
       ],
       "conversions": {},

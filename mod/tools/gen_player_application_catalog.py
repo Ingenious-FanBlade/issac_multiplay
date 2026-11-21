@@ -11,7 +11,7 @@ from replica_projection_policy import PLAYER_PROJECTION_REVIEW, consumer_review
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "mod/observation/isaac-cs-observation"
 # 运行状态独立于具名安装器；最终验收结束时统一更新，不把每个目录成员标作参数穷尽通过。
-RUNTIME_ACCEPTANCE = "tx-04-20:I39-complete;114-logical-Source/cold-Client;18-49+5/19-65-regressions;finite-matrix;see-docs/design/tx-04-20/tx-04-20-e2e.md"
+RUNTIME_ACCEPTANCE = "tx-04-20:I39-complete;114-logical-Source/cold-Client;18-49+5/19-65-regressions;finite-matrix;see-docs/archive/design/tx-04-20/tx-04-20-e2e.md"
 RUNTIME_MEMBER = "named-scene coverage only;captured queries are not independent native query replay;not every parameter or nonempty optional branch"
 CLASSES = PLAYER_RELATED | RESOURCE_CLASSES | {
     "Entity", "EntityPlayer", "PlayerManager", "ItemConfigItem", "ItemConfigCostume",
@@ -167,13 +167,13 @@ def generate():
                     implementation="mod/src/game/client/resources/client_resource_model.cpp;mod/src/game/client/resources/client_resources_native.cpp;mod/src/game/client/entity/client_entity_draw_native.cpp",
                     implementation_status="implemented-shared-resource-owner;nullable and zero-length animation semantics preserved",
                     cleanup="own ANM/Image/selector generations;CPU/GPU drain;explicit scalar restoration after native copy/Swap")
-    research_path = ROOT / "docs/design/tx-04-20/player-native-contracts.json"
+    research_path = ROOT / "mod/binding/catalog/player-native-contracts.json"
     return {"format": "isaac.cs.player.application-catalog", "version": 1,
             "target_contract": "player-target-v2", "source_contract": "player-source-v2",
             "projection_review": PLAYER_PROJECTION_REVIEW,
             "native_apply": True, "runtime_acceptance": RUNTIME_ACCEPTANCE, "runtime_coverage_semantics": RUNTIME_MEMBER,
-            "acceptance_document": "docs/design/tx-04-20/tx-04-20-e2e.md",
-            "supplementary_research": "docs/design/tx-04-20/player-i39-source.md;historical R01-R16 unknowns are not rewritten as runtime proof",
+            "acceptance_document": "docs/archive/design/tx-04-20/tx-04-20-e2e.md",
+            "supplementary_research": "docs/archive/design/tx-04-20/player-i39-source.md;historical R01-R16 unknowns are not rewritten as runtime proof",
             "source_qualifications": {"2": "CreationOwnerCompleted", "3": "user-accepted current exact-pair PlayerUpdate witness only", "4": "observed ctor/base Init and named child/full-role owner completed", "5": "named state-slot owner completed;input binding separate;lifecycle revokes"},
             "i36_i37_implementation": {
                 "status": "implemented;product and E2E built;runtime result separately reported",
@@ -221,7 +221,7 @@ def generate():
                     ("private_presentation", "entity.application_player.native_presentation", "Player draw;private fields require named current witness", "I18/I29"),
                     ("native_membership", "player.bodies.native_membership:v1;source-v2;room/render/update/valid+four typed storage links", "ClientPlayers role-qualified borrow and relation owner", "I07/I09/I10"),
                 ]],
-            "handoff_from_entity19": "docs/design/tx-04-19/entity-application.json:Player/PLAYER_RELATED;single-Isaac support retained",
+            "handoff_from_entity19": "mod/binding/catalog/entity-application.json:Player/PLAYER_RELATED;single-Isaac support retained",
             "static_research": json.loads(research_path.read_text(encoding="utf-8-sig")) if research_path.exists() else {"status": "I04-in-progress"}}
 
 
@@ -236,7 +236,7 @@ def main():
     (args.out / "player-application.json").write_text(data + "\n", encoding="utf-8")
     (args.out / "player_application.inc").write_text(string_expression(data, "ICSP"), encoding="utf-8")
     if args.docs:
-        (ROOT / "docs/design/tx-04-20/player-application.json").write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        (ROOT / "mod/binding/catalog/player-application.json").write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 if __name__ == "__main__":

@@ -51,7 +51,7 @@
           "name": "layout_version",
           "type": "u16",
           "semantics": "唯一布局整数版本，必须与本地相等",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statecommonheader_layout_version_encode",
           "client": "statecommonheader_layout_version_decode"
         },
@@ -59,7 +59,7 @@
           "name": "session",
           "type": "u64",
           "semantics": "现有WorldScope的session稳定身份／代次，非索引或地址",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statecommonheader_session_encode",
           "client": "statecommonheader_session_decode"
         },
@@ -67,7 +67,7 @@
           "name": "run",
           "type": "u64",
           "semantics": "现有WorldScope的run稳定身份／代次，非索引或地址",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statecommonheader_run_encode",
           "client": "statecommonheader_run_decode"
         },
@@ -75,7 +75,7 @@
           "name": "floor",
           "type": "u64",
           "semantics": "现有WorldScope的floor稳定身份／代次，非索引或地址",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statecommonheader_floor_encode",
           "client": "statecommonheader_floor_decode"
         },
@@ -83,7 +83,7 @@
           "name": "dimension",
           "type": "u64",
           "semantics": "现有WorldScope的dimension稳定身份／代次，非索引或地址",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statecommonheader_dimension_encode",
           "client": "statecommonheader_dimension_decode"
         },
@@ -91,7 +91,7 @@
           "name": "room",
           "type": "u64",
           "semantics": "现有WorldScope的room稳定身份／代次，非索引或地址",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statecommonheader_room_encode",
           "client": "statecommonheader_room_decode"
         },
@@ -99,7 +99,7 @@
           "name": "scene",
           "type": "u64",
           "semantics": "现有WorldScope的scene稳定身份／代次，非索引或地址",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statecommonheader_scene_encode",
           "client": "statecommonheader_scene_decode"
         }
@@ -159,7 +159,7 @@
           "name": "section_count",
           "type": "u8",
           "semantics": "1单序列，2为world随后body的共同提交",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateframeheader_section_count_encode",
           "client": "stateframeheader_section_count_decode"
         },
@@ -167,7 +167,7 @@
           "name": "flags",
           "type": "u8",
           "semantics": "bit0共同提交；单分段为0、双分段为1",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateframeheader_flags_encode",
           "client": "stateframeheader_flags_decode"
         }
@@ -260,7 +260,7 @@
           "name": "stream",
           "type": "u8",
           "semantics": "0 world、1按Peer统一body序列",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statesectionheader_stream_encode",
           "client": "statesectionheader_stream_decode"
         },
@@ -268,7 +268,7 @@
           "name": "flags",
           "type": "u8",
           "semantics": "bit0 baseline，当且仅当base_version为0",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statesectionheader_flags_encode",
           "client": "statesectionheader_flags_decode"
         },
@@ -276,7 +276,7 @@
           "name": "member_epoch",
           "type": "u32",
           "semantics": "引用成员表的精确快照版本",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statesectionheader_member_epoch_encode",
           "client": "statesectionheader_member_epoch_decode"
         },
@@ -284,7 +284,7 @@
           "name": "resource_epoch",
           "type": "u32",
           "semantics": "引用资源表的精确快照版本",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statesectionheader_resource_epoch_encode",
           "client": "statesectionheader_resource_epoch_decode"
         },
@@ -292,7 +292,7 @@
           "name": "base_version",
           "type": "u32",
           "semantics": "本Peer本序列已确认继承起点，0完整重建",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statesectionheader_base_version_encode",
           "client": "statesectionheader_base_version_decode"
         },
@@ -300,7 +300,7 @@
           "name": "target_version",
           "type": "u32",
           "semantics": "本Peer本序列目标，单调非零，不回绕",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statesectionheader_target_version_encode",
           "client": "statesectionheader_target_version_decode"
         },
@@ -308,7 +308,7 @@
           "name": "source_revision",
           "type": "u64",
           "semantics": "Host封存的本序列来源修订，先于Peer目标版本存在",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statesectionheader_source_revision_encode",
           "client": "statesectionheader_source_revision_decode"
         },
@@ -316,7 +316,7 @@
           "name": "presentation_batch",
           "type": "u64",
           "semantics": "配对显示批次身份；不是第三条确认序列",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statesectionheader_presentation_batch_encode",
           "client": "statesectionheader_presentation_batch_decode"
         },
@@ -324,7 +324,7 @@
           "name": "game_frame",
           "type": "u32",
           "semantics": "Host原生GameFrame位模式，不能代替来源身份",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statesectionheader_game_frame_encode",
           "client": "statesectionheader_game_frame_decode"
         },
@@ -332,7 +332,7 @@
           "name": "record_count",
           "type": "u16",
           "semantics": "后随12B头的成员记录数",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statesectionheader_record_count_encode",
           "client": "statesectionheader_record_count_decode"
         },
@@ -340,7 +340,7 @@
           "name": "group_count",
           "type": "u16",
           "semantics": "记录后随沿用成员编号数",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statesectionheader_group_count_encode",
           "client": "statesectionheader_group_count_decode"
         },
@@ -348,7 +348,7 @@
           "name": "event_count",
           "type": "u16",
           "semantics": "后随音频事件数；body必须为0",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statesectionheader_event_count_encode",
           "client": "statesectionheader_event_count_decode"
         },
@@ -356,7 +356,7 @@
           "name": "event_watermark",
           "type": "u64",
           "semantics": "world目标覆盖的连续事件水位；body必须为0",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statesectionheader_event_watermark_encode",
           "client": "statesectionheader_event_watermark_decode"
         }
@@ -405,7 +405,7 @@
           "name": "member",
           "type": "u16",
           "semantics": "非FFFF成员序号",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "staterecordheader_member_encode",
           "client": "staterecordheader_member_decode"
         },
@@ -413,7 +413,7 @@
           "name": "layout",
           "type": "u16",
           "semantics": "与指定成员快照一致的布局号",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "staterecordheader_layout_encode",
           "client": "staterecordheader_layout_decode"
         },
@@ -421,7 +421,7 @@
           "name": "block_mask",
           "type": "u32",
           "semantics": "块号0—31；未知位与空预留块置位均拒绝",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "staterecordheader_block_mask_encode",
           "client": "staterecordheader_block_mask_decode"
         },
@@ -429,7 +429,7 @@
           "name": "record_bytes",
           "type": "u32",
           "semantics": "仅后随块正文的精确长度，不含本12B头",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "staterecordheader_record_bytes_encode",
           "client": "staterecordheader_record_bytes_decode"
         }
@@ -475,7 +475,7 @@
           "name": "epoch",
           "type": "u32",
           "semantics": "本次不可变表快照版本，非零",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statetableheader_epoch_encode",
           "client": "statetableheader_epoch_decode"
         },
@@ -483,7 +483,7 @@
           "name": "previous_epoch",
           "type": "u32",
           "semantics": "0全量表，否则精确的前一快照版本",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statetableheader_previous_epoch_encode",
           "client": "statetableheader_previous_epoch_decode"
         },
@@ -491,7 +491,7 @@
           "name": "entry_count",
           "type": "u16",
           "semantics": "后随表项数",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statetableheader_entry_count_encode",
           "client": "statetableheader_entry_count_decode"
         }
@@ -559,7 +559,7 @@
           "name": "member",
           "type": "u16",
           "semantics": "成员序号，不能FFFF",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statememberentry_member_encode",
           "client": "statememberentry_member_decode"
         },
@@ -567,7 +567,7 @@
           "name": "op",
           "type": "u8",
           "semantics": "0加入、1形态变化、2离开；全量只允许加入",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statememberentry_op_encode",
           "client": "statememberentry_op_decode"
         },
@@ -575,7 +575,7 @@
           "name": "space",
           "type": "u32",
           "semantics": "完整身份空间；只接受本地已登记空间",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statememberentry_space_encode",
           "client": "statememberentry_space_decode"
         },
@@ -583,7 +583,7 @@
           "name": "layout",
           "type": "u16",
           "semantics": "本成员当前／退休布局号",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statememberentry_layout_encode",
           "client": "statememberentry_layout_decode"
         },
@@ -591,7 +591,7 @@
           "name": "id",
           "type": "u64",
           "semantics": "稳定对象身份id",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statememberentry_id_encode",
           "client": "statememberentry_id_decode"
         },
@@ -599,7 +599,7 @@
           "name": "use",
           "type": "u64",
           "semantics": "实例使用代次，不能用原生地址替代",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statememberentry_use_encode",
           "client": "statememberentry_use_decode"
         },
@@ -607,7 +607,7 @@
           "name": "shape",
           "type": "u64",
           "semantics": "形态代次",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statememberentry_shape_encode",
           "client": "statememberentry_shape_decode"
         }
@@ -697,7 +697,7 @@
           "name": "op",
           "type": "u8",
           "semantics": "0完整替换、1显式引用合法不可变缓存、2退休",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateresultgroupheader_op_encode",
           "client": "stateresultgroupheader_op_decode"
         },
@@ -705,7 +705,7 @@
           "name": "flags",
           "type": "u8",
           "semantics": "当前必须0",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateresultgroupheader_flags_encode",
           "client": "stateresultgroupheader_flags_decode"
         },
@@ -713,7 +713,7 @@
           "name": "owner_member",
           "type": "u16",
           "semantics": "真实owner成员；FFFF为当前公共world/run根",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateresultgroupheader_owner_member_encode",
           "client": "stateresultgroupheader_owner_member_decode"
         },
@@ -721,7 +721,7 @@
           "name": "subject_member",
           "type": "u16",
           "semantics": "真实subject成员；FFFF只用于合同允许的world结果",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateresultgroupheader_subject_member_encode",
           "client": "stateresultgroupheader_subject_member_decode"
         },
@@ -729,7 +729,7 @@
           "name": "purpose",
           "type": "u16",
           "semantics": "固定用途编号，按生成用途目录解释",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateresultgroupheader_purpose_encode",
           "client": "stateresultgroupheader_purpose_decode"
         },
@@ -737,7 +737,7 @@
           "name": "layout",
           "type": "u16",
           "semantics": "已有具名结果payload布局，非任意函数／字典",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateresultgroupheader_layout_encode",
           "client": "stateresultgroupheader_layout_decode"
         },
@@ -745,7 +745,7 @@
           "name": "owner_instance",
           "type": "u64",
           "semantics": "Host在同session/run内唯一分配给用途实例的id；不能改绑其他subject，不是地址",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateresultgroupheader_owner_instance_encode",
           "client": "stateresultgroupheader_owner_instance_decode"
         },
@@ -753,7 +753,7 @@
           "name": "owner_generation",
           "type": "u64",
           "semantics": "显示owner实例代次",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateresultgroupheader_owner_generation_encode",
           "client": "stateresultgroupheader_owner_generation_decode"
         },
@@ -761,7 +761,7 @@
           "name": "produced_revision",
           "type": "u64",
           "semantics": "实际初次生产的来源修订；缓存引用不能重贴新修订",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateresultgroupheader_produced_revision_encode",
           "client": "stateresultgroupheader_produced_revision_decode"
         },
@@ -769,7 +769,7 @@
           "name": "dependency_count",
           "type": "u16",
           "semantics": "32B具名依赖条目数",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateresultgroupheader_dependency_count_encode",
           "client": "stateresultgroupheader_dependency_count_decode"
         },
@@ -777,7 +777,7 @@
           "name": "contribution_count",
           "type": "u16",
           "semantics": "16B贡献定位条目数",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateresultgroupheader_contribution_count_encode",
           "client": "stateresultgroupheader_contribution_count_decode"
         },
@@ -785,7 +785,7 @@
           "name": "payload_bytes",
           "type": "u32",
           "semantics": "后随依赖、贡献定位及typed结果正文总长度",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateresultgroupheader_payload_bytes_encode",
           "client": "stateresultgroupheader_payload_bytes_decode"
         }
@@ -858,7 +858,7 @@
           "name": "kind",
           "type": "u8",
           "semantics": "0成员、1资源、2Player拓扑、3结果组、4配对序列目标",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statedependencyentry_kind_encode",
           "client": "statedependencyentry_kind_decode"
         },
@@ -866,7 +866,7 @@
           "name": "table",
           "type": "u8",
           "semantics": "资源空间；非资源必须FF",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statedependencyentry_table_encode",
           "client": "statedependencyentry_table_decode"
         },
@@ -874,7 +874,7 @@
           "name": "member",
           "type": "u16",
           "semantics": "成员／组owner；不适用FFFF",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statedependencyentry_member_encode",
           "client": "statedependencyentry_member_decode"
         },
@@ -882,7 +882,7 @@
           "name": "purpose",
           "type": "u16",
           "semantics": "结果组用途；不适用FFFF",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statedependencyentry_purpose_encode",
           "client": "statedependencyentry_purpose_decode"
         },
@@ -890,7 +890,7 @@
           "name": "index",
           "type": "u16",
           "semantics": "资源序号或配对stream；不适用FFFF",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statedependencyentry_index_encode",
           "client": "statedependencyentry_index_decode"
         },
@@ -898,7 +898,7 @@
           "name": "revision",
           "type": "u64",
           "semantics": "拓扑u32／来源修订／Peer目标u32；只按kind解释",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statedependencyentry_revision_encode",
           "client": "statedependencyentry_revision_decode"
         },
@@ -906,7 +906,7 @@
           "name": "instance",
           "type": "u64",
           "semantics": "结果组owner实例；不适用0",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statedependencyentry_instance_encode",
           "client": "statedependencyentry_instance_decode"
         },
@@ -914,7 +914,7 @@
           "name": "generation",
           "type": "u64",
           "semantics": "结果组owner代次；不适用0",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statedependencyentry_generation_encode",
           "client": "statedependencyentry_generation_decode"
         }
@@ -977,7 +977,7 @@
           "name": "contribution_id",
           "type": "u32",
           "semantics": "本组稠密Host贡献身份，从0开始",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statecontributionentry_contribution_id_encode",
           "client": "statecontributionentry_contribution_id_decode"
         },
@@ -985,7 +985,7 @@
           "name": "parent_id",
           "type": "u32",
           "semantics": "父贡献id，FFFFFFFF为组根；非根必须先于本项",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statecontributionentry_parent_id_encode",
           "client": "statecontributionentry_parent_id_decode"
         },
@@ -993,7 +993,7 @@
           "name": "pass",
           "type": "u16",
           "semantics": "固定用途允许的pass编号，不按Client访问计数",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statecontributionentry_pass_encode",
           "client": "statecontributionentry_pass_decode"
         },
@@ -1001,7 +1001,7 @@
           "name": "field",
           "type": "u16",
           "semantics": "父节点生成布局的字段索引；FFFF表示当前根值",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statecontributionentry_field_encode",
           "client": "statecontributionentry_field_decode"
         },
@@ -1009,7 +1009,7 @@
           "name": "element",
           "type": "u16",
           "semantics": "原有有序容器元素索引；FFFF为非容器值",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statecontributionentry_element_encode",
           "client": "statecontributionentry_element_decode"
         },
@@ -1017,7 +1017,7 @@
           "name": "flags",
           "type": "u16",
           "semantics": "当前必须0",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "statecontributionentry_flags_encode",
           "client": "statecontributionentry_flags_decode"
         }
@@ -1102,7 +1102,7 @@
           "name": "event_sequence",
           "type": "u64",
           "semantics": "同session/run稳定事件号，重复发送不重新分配",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateaudioeventheader_event_sequence_encode",
           "client": "stateaudioeventheader_event_sequence_decode"
         },
@@ -1110,7 +1110,7 @@
           "name": "logical_frame",
           "type": "u32",
           "semantics": "原生逻辑时点，非硬件游标",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateaudioeventheader_logical_frame_encode",
           "client": "stateaudioeventheader_logical_frame_decode"
         },
@@ -1118,7 +1118,7 @@
           "name": "owner_member",
           "type": "u16",
           "semantics": "voice所属owner成员；FFFF为world/run根",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateaudioeventheader_owner_member_encode",
           "client": "stateaudioeventheader_owner_member_decode"
         },
@@ -1126,7 +1126,7 @@
           "name": "purpose",
           "type": "u16",
           "semantics": "已登记音频用途，不允许隐式全局Clear",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateaudioeventheader_purpose_encode",
           "client": "stateaudioeventheader_purpose_decode"
         },
@@ -1134,7 +1134,7 @@
           "name": "voice_id",
           "type": "u64",
           "semantics": "稳定voice实例，非SoundID或后端handle",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateaudioeventheader_voice_id_encode",
           "client": "stateaudioeventheader_voice_id_decode"
         },
@@ -1142,7 +1142,7 @@
           "name": "voice_generation",
           "type": "u64",
           "semantics": "voice代次",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateaudioeventheader_voice_generation_encode",
           "client": "stateaudioeventheader_voice_generation_decode"
         },
@@ -1150,7 +1150,7 @@
           "name": "clear_scope",
           "type": "u8",
           "semantics": "0精确voice、1owner用途、2当前world用途、3当前run用途",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateaudioeventheader_clear_scope_encode",
           "client": "stateaudioeventheader_clear_scope_decode"
         },
@@ -1158,7 +1158,7 @@
           "name": "flags",
           "type": "u8",
           "semantics": "当前必须0",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateaudioeventheader_flags_encode",
           "client": "stateaudioeventheader_flags_decode"
         },
@@ -1166,7 +1166,7 @@
           "name": "layout",
           "type": "u16",
           "semantics": "必须383 AudioWorldEvent",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateaudioeventheader_layout_encode",
           "client": "stateaudioeventheader_layout_decode"
         },
@@ -1174,7 +1174,7 @@
           "name": "payload_bytes",
           "type": "u32",
           "semantics": "后随既有AudioWorldEvent精确长度",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateaudioeventheader_payload_bytes_encode",
           "client": "stateaudioeventheader_payload_bytes_decode"
         }
@@ -1234,7 +1234,7 @@
           "name": "entry_count",
           "type": "u8",
           "semantics": "确认项数1或2；共同提交回报两项",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateappliedackheader_entry_count_encode",
           "client": "stateappliedackheader_entry_count_decode"
         },
@@ -1242,7 +1242,7 @@
           "name": "flags",
           "type": "u8",
           "semantics": "bit0共同提交，必须与原发送帧对应",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateappliedackheader_flags_encode",
           "client": "stateappliedackheader_flags_decode"
         }
@@ -1303,7 +1303,7 @@
           "name": "stream",
           "type": "u8",
           "semantics": "0 world、1 body",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateappliedackentry_stream_encode",
           "client": "stateappliedackentry_stream_decode"
         },
@@ -1311,7 +1311,7 @@
           "name": "target_version",
           "type": "u32",
           "semantics": "完整解码并保留为差分基线的 Host 目标",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateappliedackentry_target_version_encode",
           "client": "stateappliedackentry_target_version_decode"
         },
@@ -1319,7 +1319,7 @@
           "name": "member_epoch",
           "type": "u32",
           "semantics": "该目标使用的成员快照",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateappliedackentry_member_epoch_encode",
           "client": "stateappliedackentry_member_epoch_decode"
         },
@@ -1327,7 +1327,7 @@
           "name": "resource_epoch",
           "type": "u32",
           "semantics": "该目标使用的资源快照",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateappliedackentry_resource_epoch_encode",
           "client": "stateappliedackentry_resource_epoch_decode"
         },
@@ -1335,7 +1335,7 @@
           "name": "event_watermark",
           "type": "u64",
           "semantics": "World 已接管的连续事件水位；body为0",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateappliedackentry_event_watermark_encode",
           "client": "stateappliedackentry_event_watermark_decode"
         }
@@ -1407,7 +1407,7 @@
           "name": "stream_mask",
           "type": "u8",
           "semantics": "bit0 world、bit1 body，不能0",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateresyncheader_stream_mask_encode",
           "client": "stateresyncheader_stream_mask_decode"
         },
@@ -1415,7 +1415,7 @@
           "name": "reason",
           "type": "u16",
           "semantics": "1基线不符、2表、3依赖、4预算、5应用失败、6事件缺口、7生命周期／时钟",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateresyncheader_reason_encode",
           "client": "stateresyncheader_reason_decode"
         },
@@ -1423,7 +1423,7 @@
           "name": "installed_world",
           "type": "u32",
           "semantics": "本端已成功安装world版本，尚无为0",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateresyncheader_installed_world_encode",
           "client": "stateresyncheader_installed_world_decode"
         },
@@ -1431,7 +1431,7 @@
           "name": "installed_body",
           "type": "u32",
           "semantics": "本端已成功安装body版本，尚无为0",
-          "evidence": "docs/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
+          "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateresyncheader_installed_body_encode",
           "client": "stateresyncheader_installed_body_decode"
         }
@@ -1471,7 +1471,7 @@
           "name": "bytes",
           "type": "u8",
           "semantics": "bytes",
-          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "evidence": "docs/archive/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
           "host": "resource_bytes_encode",
           "client": "resource_bytes_decode",
           "wire": {
@@ -1532,7 +1532,7 @@
           "name": "path",
           "type": "ResourcePath",
           "semantics": "path",
-          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "evidence": "docs/archive/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
           "host": "resource_path_encode",
           "client": "resource_path_decode",
           "wire": {
@@ -1544,7 +1544,7 @@
           "name": "logical_w",
           "type": "u16",
           "semantics": "实际逻辑／储存几何；不含像素",
-          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "evidence": "docs/archive/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
           "host": "resource_logical_w_encode",
           "client": "resource_logical_w_decode"
         },
@@ -1552,7 +1552,7 @@
           "name": "logical_h",
           "type": "u16",
           "semantics": "实际逻辑／储存几何；不含像素",
-          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "evidence": "docs/archive/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
           "host": "resource_logical_h_encode",
           "client": "resource_logical_h_decode"
         },
@@ -1560,7 +1560,7 @@
           "name": "stored_w",
           "type": "u16",
           "semantics": "实际逻辑／储存几何；不含像素",
-          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "evidence": "docs/archive/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
           "host": "resource_stored_w_encode",
           "client": "resource_stored_w_decode"
         },
@@ -1568,7 +1568,7 @@
           "name": "stored_h",
           "type": "u16",
           "semantics": "实际逻辑／储存几何；不含像素",
-          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "evidence": "docs/archive/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
           "host": "resource_stored_h_encode",
           "client": "resource_stored_h_decode"
         }
@@ -1615,7 +1615,7 @@
           "name": "shader_type",
           "type": "u8",
           "semantics": "官方20种内置shader类型；不传路径／地址／参数字典",
-          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "evidence": "docs/archive/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
           "host": "resource_shader_type_encode",
           "client": "resource_shader_type_decode"
         }
@@ -1674,7 +1674,7 @@
           "name": "file",
           "type": "u16",
           "semantics": "file",
-          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "evidence": "docs/archive/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
           "host": "resource_file_encode",
           "client": "resource_file_decode",
           "wire": {
@@ -1690,7 +1690,7 @@
           "name": "name",
           "type": "ResourceName",
           "semantics": "name",
-          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "evidence": "docs/archive/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
           "host": "resource_name_encode",
           "client": "resource_name_decode",
           "wire": {
@@ -1702,7 +1702,7 @@
           "name": "length",
           "type": "u32",
           "semantics": "length",
-          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "evidence": "docs/archive/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
           "host": "resource_length_encode",
           "client": "resource_length_decode"
         },
@@ -1710,7 +1710,7 @@
           "name": "layers",
           "type": "ResourceAnimationLayer",
           "semantics": "layers",
-          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "evidence": "docs/archive/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
           "host": "resource_layers_encode",
           "client": "resource_layers_decode",
           "wire": {
@@ -1727,7 +1727,7 @@
           "name": "null_layers",
           "type": "ResourceAnimationLayer",
           "semantics": "null_layers",
-          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "evidence": "docs/archive/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
           "host": "resource_null_layers_encode",
           "client": "resource_null_layers_decode",
           "wire": {
@@ -1776,7 +1776,7 @@
           "name": "bytes",
           "type": "u8",
           "semantics": "bytes",
-          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "evidence": "docs/archive/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
           "host": "resource_bytes_encode",
           "client": "resource_bytes_decode",
           "wire": {
@@ -1836,7 +1836,7 @@
           "name": "layer_id",
           "type": "u16",
           "semantics": "layer_id",
-          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "evidence": "docs/archive/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
           "host": "resource_layer_id_encode",
           "client": "resource_layer_id_decode"
         },
@@ -1844,7 +1844,7 @@
           "name": "frame_count",
           "type": "u32",
           "semantics": "frame_count",
-          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "evidence": "docs/archive/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
           "host": "resource_frame_count_encode",
           "client": "resource_frame_count_decode"
         }
@@ -1908,7 +1908,7 @@
           "name": "type",
           "type": "u32",
           "semantics": "type",
-          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "evidence": "docs/archive/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
           "host": "resource_type_encode",
           "client": "resource_type_decode"
         },
@@ -1916,7 +1916,7 @@
           "name": "id",
           "type": "u32",
           "semantics": "id",
-          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "evidence": "docs/archive/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
           "host": "resource_id_encode",
           "client": "resource_id_decode"
         },
@@ -1924,7 +1924,7 @@
           "name": "cooldown",
           "type": "i32",
           "semantics": "cooldown",
-          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "evidence": "docs/archive/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
           "host": "resource_cooldown_encode",
           "client": "resource_cooldown_decode"
         },
@@ -1932,7 +1932,7 @@
           "name": "image",
           "type": "u16",
           "semantics": "image",
-          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "evidence": "docs/archive/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
           "host": "resource_image_encode",
           "client": "resource_image_decode",
           "wire": {
@@ -1947,7 +1947,7 @@
           "name": "costume_file",
           "type": "u16",
           "semantics": "costume_file",
-          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "evidence": "docs/archive/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
           "host": "resource_costume_file_encode",
           "client": "resource_costume_file_decode",
           "wire": {
@@ -2014,7 +2014,7 @@
           "name": "type",
           "type": "u32",
           "semantics": "type",
-          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "evidence": "docs/archive/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
           "host": "resource_type_encode",
           "client": "resource_type_decode"
         },
@@ -2022,7 +2022,7 @@
           "name": "variant",
           "type": "u32",
           "semantics": "variant",
-          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "evidence": "docs/archive/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
           "host": "resource_variant_encode",
           "client": "resource_variant_decode"
         },
@@ -2030,7 +2030,7 @@
           "name": "subtype",
           "type": "i32",
           "semantics": "subtype",
-          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "evidence": "docs/archive/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
           "host": "resource_subtype_encode",
           "client": "resource_subtype_decode"
         },
@@ -2038,7 +2038,7 @@
           "name": "anm2",
           "type": "u16",
           "semantics": "anm2",
-          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "evidence": "docs/archive/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
           "host": "resource_anm2_encode",
           "client": "resource_anm2_decode",
           "wire": {
@@ -2053,7 +2053,7 @@
           "name": "portrait",
           "type": "i32",
           "semantics": "portrait",
-          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "evidence": "docs/archive/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
           "host": "resource_portrait_encode",
           "client": "resource_portrait_decode"
         },
@@ -2061,7 +2061,7 @@
           "name": "shadow_size",
           "type": "f32",
           "semantics": "shadow_size",
-          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "evidence": "docs/archive/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
           "host": "resource_shadow_size_encode",
           "client": "resource_shadow_size_decode"
         }
@@ -2125,7 +2125,7 @@
           "name": "audio_class",
           "type": "u8",
           "semantics": "0选定sample、1音乐声部、2jingle；不是sound ID",
-          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "evidence": "docs/archive/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
           "host": "resource_audio_class_encode",
           "client": "resource_audio_class_decode"
         },
@@ -2133,7 +2133,7 @@
           "name": "main",
           "type": "ResourcePath",
           "semantics": "main",
-          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "evidence": "docs/archive/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
           "host": "resource_main_encode",
           "client": "resource_main_decode",
           "wire": {
@@ -2145,7 +2145,7 @@
           "name": "has_intro",
           "type": "u8",
           "semantics": "has_intro",
-          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "evidence": "docs/archive/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
           "host": "resource_has_intro_encode",
           "client": "resource_has_intro_decode"
         },
@@ -2153,7 +2153,7 @@
           "name": "intro",
           "type": "ResourcePath",
           "semantics": "intro",
-          "evidence": "docs/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
+          "evidence": "docs/archive/design/binary-state/9-resource-protocol.md；本地Wiki／官方SDK优先，版本63自有资源合同",
           "host": "resource_intro_encode",
           "client": "resource_intro_decode",
           "wire": {

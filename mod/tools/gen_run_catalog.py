@@ -49,10 +49,10 @@ def main():
     binding='F:/projects_isaac/REPENTOGON-1.1.3/repentogon/LuaInterfaces/HUD/LuaHUD.cpp'
     data['binding_supplements']=[dict(id=name,source=binding,line=line,implementation='domains/presentation/collect.lua:messages',semantics='current_message_or_public_getter;no_update_or_render') for name,line in [('HUD.GetMainMessage',264),('HUD.GetStackedMessage',265),('HUD.GetCoopPlayerMessage',266),('HUDMessage.GetSprite',239),('HUDMessage.IsShowing',240),('HUDMessage.GetMainText',243),('HUDMessage.GetSubText',245)]]
     data['binding_supplements'].append(dict(id='Game.GetGenericPrompt',source='F:/projects_isaac/REPENTOGON-1.1.3/repentogon/LuaInterfaces/LuaGame.cpp',implementation='IsaacCSObservationNative.PromptState',semantics='direct_main_thread_live_root;avoid_unconstructed_cpp_ANM2_copy;public_fields_and_sprite_only'))
-    for p in (dest,ROOT/'docs/design/observation-expansion'):(p/'run-catalog.json').write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    for p in (dest,ROOT/'docs/archive/design/observation-expansion'):(p/'run-catalog.json').write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     lines=['# tx-04-14 四域逐成员目录','','本地Wiki逐成员分类；目录不等于实机覆盖。真实调用不额外执行；无界参数查询按显式请求。','','| 成员 | 分类 | 参数／来源 |','| --- | --- | --- |']
     for e in members:lines.append('| `'+e['id']+'` | '+e['category']+' '+e['reason']+' | '+str(e['parameters'] or '').replace('|','&#124;')+' '+'<br>'.join(f"[{s['wiki']}]({s['path']}) L{s['line']}" for s in e['sources'])+' |')
     lines+=['','## 当前绑定补充','','HUD旧Sprite别名由当前HUDMessage的真实Getter提供；通用Prompt通过安全纯值桥接读取，不复制C++对象。','']
     for e in data['binding_supplements']:lines.append('- `'+e['id']+'`：'+e['implementation']+'；来源 '+e['source'])
-    (ROOT/'docs/design/observation-expansion/run-catalog.md').write_text('\n'.join(lines)+'\n',encoding='utf-8')
+    (ROOT/'mod/binding/catalog/run-catalog.md').write_text('\n'.join(lines)+'\n',encoding='utf-8')
 if __name__=='__main__':main()

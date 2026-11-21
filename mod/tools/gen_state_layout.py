@@ -5,6 +5,7 @@
 """
 import argparse
 import copy
+import os
 import json
 import posixpath
 import re
@@ -14,6 +15,9 @@ from pathlib import Path
 from gen_flat_layout import emit_flat_layouts
 
 ROOT = Path(__file__).resolve().parents[2]
+# 生成布局文档所属的二进制重构总计划目录（已归档）；PLAN_LINK 是它相对布局输出根的路径。
+PLAN_DIR = ROOT / 'docs/archive/design/binary-state'
+PLAN_LINK = ''
 CATEGORIES = dict(zip(
     ['状态', '换算', '引用', '资源', '容器', '本地', '派生', '权威', '填充', '未知'],
     ['State', 'Convert', 'Reference', 'Resource', 'Container', 'Local', 'Derived', 'Authority', 'Padding', 'Unknown']))
@@ -1479,7 +1483,7 @@ def emit_state_protocol(compiler, plans, out, docs):
     for c in compiler.protocol_constants:
         if c['domain'] in ('acceptance_policy', 'presentation_budget', 'message'):
             body.append(f'constexpr std::uint32_t kW_{c["name"]} = {c["value"]}u;\n')
-    summary += '\n接受、ACK丢失、不可变目标与污染恢复见[第五项合同](../../9-acceptance-recovery.md)。字节保护不替代10Mbps／首次准备预算。\n'
+    summary += '\n接受、ACK丢失、不可变目标与污染恢复见[第五项合同](../' + PLAN_LINK + '/9-acceptance-recovery.md)。字节保护不替代10Mbps／首次准备预算。\n'
     write(out / 'state_protocol.inc', ''.join(body))
     write(docs / '09-wire-format/state-protocol-plan.md', summary)
 
@@ -1647,6 +1651,9 @@ def emit_hud_local(compiler, plans, out):
 
 def emit(compiler, plans, out, docs):
     """四份 .inc 共享相同字段索引；代码表、协议偏移与文档在一次构建内同时更新。"""
+    # 生成布局文档链接到总计划目录；按实际输出目录计算相对路径，输出目录可移动。
+    global PLAN_LINK
+    PLAN_LINK = Path(os.path.relpath(PLAN_DIR, docs)).as_posix()
     header = '// 由 gen_state_layout.py 生成；只修改 mod/binding/state/*.json。\n'
     emit_grid_description(compiler, plans, out)
     emit_room_description(compiler, plans, out)
@@ -1875,7 +1882,7 @@ def emit(compiler, plans, out, docs):
     for filename, content in [('state_wire.inc', wire), ('state_capture.inc', capture), ('state_client.inc', client), ('state_members.inc', members)]:
         write(out / filename, ''.join(content))
     index = '# 按总计划步骤归类的生成布局索引\n\n'
-    index += '上级：[二进制重构总计划](../README.md#7-步骤)。按总计划步骤号阅读，步骤号与布局编号分别管理；各步骤内按布局编号排列。\n\n'
+    index += '上级：[二进制重构总计划](' + PLAN_LINK + '/README.md#7-步骤)。按总计划步骤号阅读，步骤号与布局编号分别管理；各步骤内按布局编号排列。\n\n'
     index += '布局内容只修改 `mod/binding/state/`；目录与索引由 `mod/tools/gen_state_layout.py` 同源生成。未知和未核声明照实保留，不能据本表宣称原生同步已可用。\n\n'
     index += '以布局源所属步骤归类，变体与附属类型随所属域；共享类型只保存一份。第7步已登记的显示／资源结构仍随第7步，后续协议与运行职责见对应计划，不以目录位置宣称已实现。\n\n'
     index += '第0—1步负责起点与生成机制，没有单独类型表；第9步登记公共报文固定头与常量，第10—15步的运行接线和验收仍见总计划。\n\n'
@@ -1888,7 +1895,7 @@ def emit(compiler, plans, out, docs):
     for step, (title, plan_file) in DOC_STEPS.items():
         selected = [p for p in plans if compiler.doc_steps[p['entry']['type']] == step]
         index += f'| [{title}]({step}/README.md) | {len(selected)} | {catalog_counts[step]} |\n'
-        body = f'# {title}：生成布局\n\n[返回布局总索引](../README.md) · [对应总计划步骤](../../{plan_file})\n\n'
+        body = f'# {title}：生成布局\n\n[返回布局总索引](../README.md) · [对应总计划步骤](../{PLAN_LINK}/{plan_file})\n\n'
         body += '按布局编号排列；共享类型通过引用复用，不重复生成。未知字节保留原生事实；需求覆盖只说明清单字段已生成计划，不表示采集、应用或验收已完成。\n\n'
         body += '| 类型 | 布局编号 | 原生字节 | 未知字节 | 需求覆盖 |\n|---|---|---|---|---|\n'
         body += ''.join(f'| [{p["entry"]["type"]}]({p["entry"]["type"]}.md) | {p["entry"]["layout"]} | {p["entry"]["native_size"]} | {p["unknown"]} | {"是" if p["complete"] else "否"} |\n' for p in selected)
@@ -1984,7 +1991,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--source', type=Path, default=ROOT / 'mod/binding/state')
     parser.add_argument('--out', type=Path, required=True)
-    parser.add_argument('--docs', type=Path, default=ROOT / 'docs/design/binary-state/layouts')
+    parser.add_argument('--docs', type=Path, default=ROOT / 'mod/binding/layouts')
     args = parser.parse_args()
     compiler = Compiler(args.source)
     plans = compiler.compile()

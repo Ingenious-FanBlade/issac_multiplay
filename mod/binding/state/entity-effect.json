@@ -18,7 +18,7 @@
           "category": "本地",
           "semantics": "具体payload虚表；只供本地动态类型检查",
           "status": "已核",
-          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md"
+          "evidence": "docs/archive/design/binary-state/slot-projectile-effect-evidence.md"
         },
         {
           "offset": "0x4",
@@ -28,7 +28,7 @@
           "category": "权威",
           "semantics": "VA0x5D1EB0的目标处理分支；+4在寻找目标及状态1中读写；不供Render消费。",
           "status": "已核",
-          "evidence": "docs/design/binary-state/effect-synchronization-review.md"
+          "evidence": "docs/archive/design/binary-state/effect-synchronization-review.md"
         },
         {
           "offset": "0x8",
@@ -38,7 +38,7 @@
           "category": "状态",
           "semantics": "MrMe最终Sprite",
           "status": "已核",
-          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "evidence": "docs/archive/design/binary-state/slot-projectile-effect-evidence.md",
           "wire": {
             "kind": "nested",
             "type": "ANM2"
@@ -54,7 +54,7 @@
           "category": "权威",
           "semantics": "VA0x5D2FB5暂存目标Entity+188碰撞类别，VA0x5D31C2恢复；不是Sprite状态。 不采集／编码／安装或比较。",
           "status": "已核",
-          "evidence": "docs/design/binary-state/effect-synchronization-review.md"
+          "evidence": "docs/archive/design/binary-state/effect-synchronization-review.md"
         },
         {
           "offset": "0x120",
@@ -64,7 +64,7 @@
           "category": "权威",
           "semantics": "VA0x5D21F3/0x5D2301写-1／目标格子序号，VA0x5D2978读取；Host寻路／交互输入。 不采集／编码／安装或比较。",
           "status": "已核",
-          "evidence": "docs/design/binary-state/effect-synchronization-review.md"
+          "evidence": "docs/archive/design/binary-state/effect-synchronization-review.md"
         },
         {
           "offset": "0x124",
@@ -74,7 +74,7 @@
           "category": "权威",
           "semantics": "VA0x5D289E/0x5D28A8递增，VA0x5D2875清零；Host状态动作计数。 不采集／编码／安装或比较。",
           "status": "已核",
-          "evidence": "docs/design/binary-state/effect-synchronization-review.md"
+          "evidence": "docs/archive/design/binary-state/effect-synchronization-review.md"
         }
       ],
       "conversions": {},
@@ -102,7 +102,7 @@
           "category": "状态",
           "semantics": "Host历史节点位置；5DA2E7从Entity+33C复制，Render按逻辑逆序读取。",
           "status": "已核",
-          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md；docs/design/binary-state/effect-synchronization-review.md",
+          "evidence": "docs/archive/design/binary-state/slot-projectile-effect-evidence.md；docs/archive/design/binary-state/effect-synchronization-review.md",
           "wire": {
             "kind": "nested",
             "type": "Vector"
@@ -118,7 +118,7 @@
           "category": "状态",
           "semantics": "轨迹节点颜色",
           "status": "已核",
-          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md；docs/design/binary-state/effect-synchronization-review.md",
+          "evidence": "docs/archive/design/binary-state/slot-projectile-effect-evidence.md；docs/archive/design/binary-state/effect-synchronization-review.md",
           "wire": {
             "kind": "nested",
             "type": "ColorMod"
@@ -134,7 +134,7 @@
           "category": "状态",
           "semantics": "节点缩放原值",
           "status": "已核",
-          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md；docs/design/binary-state/effect-synchronization-review.md",
+          "evidence": "docs/archive/design/binary-state/slot-projectile-effect-evidence.md；docs/archive/design/binary-state/effect-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -150,7 +150,7 @@
           "category": "状态",
           "semantics": "producer 5DA396/5DA3A9按相邻点距离累加的绘制参数位模式；Render60167D传入419D30。不是Rotation；保留u32，不另作f32有限值约束。",
           "status": "已核",
-          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md；docs/design/binary-state/effect-synchronization-review.md",
+          "evidence": "docs/archive/design/binary-state/slot-projectile-effect-evidence.md；docs/archive/design/binary-state/effect-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "u32"
@@ -166,7 +166,7 @@
           "category": "状态",
           "semantics": "节点透明度原值",
           "status": "已核",
-          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md；docs/design/binary-state/effect-synchronization-review.md",
+          "evidence": "docs/archive/design/binary-state/slot-projectile-effect-evidence.md；docs/archive/design/binary-state/effect-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -207,7 +207,7 @@
           "category": "本地",
           "semantics": "SpriteTrailData具体虚表",
           "status": "已核",
-          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md"
+          "evidence": "docs/archive/design/binary-state/slot-projectile-effect-evidence.md"
         },
         {
           "offset": "0x4",
@@ -217,7 +217,7 @@
           "category": "容器",
           "semantics": "指针map承载的有序deque；每节点由606190独立分配64B。只按逻辑起点／数量遍历，不把节点当连续数组或传输proxy／map／capacity／offset。 版本40：5DA480—5DA50D在正常Update尾部裁至count<128；完整采集窗只接受0—127，不截短、不抽样。原生Update中途的128不是合法采集状态。",
           "status": "已核",
-          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md；docs/design/binary-state/effect-synchronization-review.md；docs/design/binary-state/effect-next-five-evidence.md",
+          "evidence": "docs/archive/design/binary-state/slot-projectile-effect-evidence.md；docs/archive/design/binary-state/effect-synchronization-review.md；docs/archive/design/binary-state/effect-next-five-evidence.md",
           "wire": {
             "kind": "container",
             "element": "EffectTrailNode",
@@ -264,7 +264,7 @@
           "category": "资源",
           "semantics": "可空ANM2文件资源选择；Host loaded=false编码0xFFFF，true编码文件资源号；不以路径非空猜测存在性",
           "status": "SDK声明",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；J273 Render VA0x4059E0读取+109；Reset VA0x403530清文件／资源及loaded，Load VA0x407B52置1；版本32见docs/design/binary-state/animation-resource-synchronization-review.md",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；J273 Render VA0x4059E0读取+109；Reset VA0x403530清文件／资源及loaded，Load VA0x407B52置1；版本32见docs/archive/design/binary-state/animation-resource-synchronization-review.md",
           "wire": {
             "kind": "resource",
             "type": "u16",
@@ -448,7 +448,7 @@
           "category": "派生",
           "semantics": "Effect191 Render VA0x602F4E—0x602F68逐次由宿主／Effect及图层最终姿态派生，完全覆写后才调4059E0；不采集或同步该原值，draw scope须精确恢复。",
           "status": "已核",
-          "evidence": "docs/design/binary-state/effect-synchronization-review.md"
+          "evidence": "docs/archive/design/binary-state/effect-synchronization-review.md"
         },
         {
           "offset": "0x9C",
@@ -458,7 +458,7 @@
           "category": "派生",
           "semantics": "Effect191 Render VA0x602F4E—0x602F68逐次由宿主／Effect及图层最终姿态派生，完全覆写后才调4059E0；不采集或同步该原值，draw scope须精确恢复。",
           "status": "已核",
-          "evidence": "docs/design/binary-state/effect-synchronization-review.md"
+          "evidence": "docs/archive/design/binary-state/effect-synchronization-review.md"
         },
         {
           "offset": "0xA4",
@@ -553,7 +553,7 @@
           "category": "状态",
           "semantics": "播放速度兼绘制插值的半帧比例输入；不在Client推进动画",
           "status": "SDK声明",
-          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；REPENTOGON/Patches/InterpolV2.cpp按_playbackSpeed计算lerpappend；版本32见docs/design/binary-state/animation-resource-synchronization-review.md",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；REPENTOGON/Patches/InterpolV2.cpp按_playbackSpeed计算lerpappend；版本32见docs/archive/design/binary-state/animation-resource-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -578,7 +578,7 @@
           "category": "本地",
           "semantics": "本地ANM2构造／加载／重置结果；Host只用它确定file_name的可空资源选择，Client由资源owner完成准备后维护，不直接传布尔字节",
           "status": "已核",
-          "evidence": "J273 Load VA 0x407AF0 的 VA 0x407B52 写 +0x109=1；属于本地资源生命周期状态；J273 IsLoaded VA0x41B820/RVA0x1B820直接return this[0x109]，主审已复读；版本32同步职责复核：docs/design/binary-state/animation-resource-synchronization-review.md"
+          "evidence": "J273 Load VA 0x407AF0 的 VA 0x407B52 写 +0x109=1；属于本地资源生命周期状态；J273 IsLoaded VA0x41B820/RVA0x1B820直接return this[0x109]，主审已复读；版本32同步职责复核：docs/archive/design/binary-state/animation-resource-synchronization-review.md"
         },
         {
           "offset": "0x10A",
@@ -684,7 +684,7 @@
           "category": "本地",
           "semantics": "PickupGhostData具体虚表",
           "status": "已核",
-          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md"
+          "evidence": "docs/archive/design/binary-state/slot-projectile-effect-evidence.md"
         },
         {
           "offset": "0x4",
@@ -694,7 +694,7 @@
           "category": "容器",
           "semantics": "原生固定四槽，各0x114B；只发送[0,ghost_count)有效前缀，保持索引与完整资源／动画／图层；未使用槽不发。",
           "status": "已核",
-          "evidence": "docs/design/binary-state/effect-synchronization-review.md",
+          "evidence": "docs/archive/design/binary-state/effect-synchronization-review.md",
           "wire": {
             "kind": "container",
             "element": "EffectPickupGhostSprite",
@@ -717,7 +717,7 @@
           "category": "派生",
           "semantics": "Host原生有效前缀长度，605830最多填4个；Client由三投影一致的u16 count重建i32，不再独立发送i32。Host编码前须拒绝负数或>4。",
           "status": "已核",
-          "evidence": "docs/design/binary-state/effect-synchronization-review.md"
+          "evidence": "docs/archive/design/binary-state/effect-synchronization-review.md"
         }
       ],
       "conversions": {},
@@ -744,7 +744,7 @@
           "category": "权威",
           "semantics": "Host粒子纵向运动输入；Update VA0x5EA066消费，最终公共位置／PositionOffset和Sprite单独同步；无当前原生展示消费者。",
           "status": "已核",
-          "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc；docs/design/binary-state/effect-synchronization-review.md"
+          "evidence": "mod/binding/catalog/entity-application.json:class_native；client_entity_class_fields.inc；docs/archive/design/binary-state/effect-synchronization-review.md"
         },
         {
           "offset": "0x414",
@@ -754,7 +754,7 @@
           "category": "权威",
           "semantics": "Host下落更新输入；VA0x5E9FC4/0x5EA02E消费；Client不运行Update／Interpolate，接收最终位置／姿态。",
           "status": "已核",
-          "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc；docs/design/binary-state/effect-synchronization-review.md"
+          "evidence": "mod/binding/catalog/entity-application.json:class_native；client_entity_class_fields.inc；docs/archive/design/binary-state/effect-synchronization-review.md"
         },
         {
           "offset": "0x418",
@@ -764,7 +764,7 @@
           "category": "权威",
           "semantics": "Host下落加速度；Update VA0x5EA018/0x5EA99C消费，不参与当前原生展示。",
           "status": "已核",
-          "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc；docs/design/binary-state/effect-synchronization-review.md"
+          "evidence": "mod/binding/catalog/entity-application.json:class_native；client_entity_class_fields.inc；docs/archive/design/binary-state/effect-synchronization-review.md"
         },
         {
           "offset": "0x41c",
@@ -774,7 +774,7 @@
           "category": "未知",
           "semantics": "全映像直接/跨边界候选与邻近取址复核未确认Effect本体的语义访问；四字节位于三个f32与变体区之间。SDK BitSet128仅声明四个u32，不能以此证明8B对齐；仍属未知，不读取、不复制",
           "status": "未知",
-          "evidence": "docs/design/binary-state/step4-first-four-evidence.md；docs/design/binary-state/projectile-effect-residual-evidence.md"
+          "evidence": "docs/archive/design/binary-state/step4-first-four-evidence.md；docs/archive/design/binary-state/projectile-effect-residual-evidence.md"
         },
         {
           "offset": "0x420",
@@ -784,7 +784,7 @@
           "category": "未知",
           "semantics": "未核variant复用区；前16B公共Init清零不证明用途，后16B默认不初始化。已核传播/Timer/生成/计数/113及167/19/71/194另选臂，其他variant保持UNKNOWN。",
           "status": "未知",
-          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md；docs/design/binary-state/effect-next-five-evidence.md；docs/design/binary-state/projectile-effect-residual-evidence.md"
+          "evidence": "docs/archive/design/binary-state/slot-projectile-effect-evidence.md；docs/archive/design/binary-state/effect-next-five-evidence.md；docs/archive/design/binary-state/projectile-effect-residual-evidence.md"
         },
         {
           "offset": "0x440",
@@ -794,7 +794,7 @@
           "category": "权威",
           "semantics": "Effect传播helper VA0x5D3280的分支模式，已见1/2/4；后续生成与玩法更新只在Host运行，不作为Client状态",
           "status": "已核",
-          "evidence": "docs/design/binary-state/step4-first-four-evidence.md"
+          "evidence": "docs/archive/design/binary-state/step4-first-four-evidence.md"
         },
         {
           "offset": "0x444",
@@ -804,7 +804,7 @@
           "category": "权威",
           "semantics": "传播来源关系槽；VA0x633460写入后以槽地址向目标反向登记；Host传播输入，不读取/发送其地址，不在Client复制或撤边。本项确认字段用途与同步归属，不外推原版全部生命周期",
           "status": "已核",
-          "evidence": "docs/design/binary-state/step4-first-four-evidence.md"
+          "evidence": "docs/archive/design/binary-state/step4-first-four-evidence.md"
         },
         {
           "offset": "0x448",
@@ -814,7 +814,7 @@
           "category": "权威",
           "semantics": "传播helper模式1用于旋转方向的角度参数，并传入后继Effect；Client安装生成结果，不在本地推进传播",
           "status": "已核",
-          "evidence": "docs/design/binary-state/step4-first-four-evidence.md"
+          "evidence": "docs/archive/design/binary-state/step4-first-four-evidence.md"
         },
         {
           "offset": "0x44c",
@@ -824,7 +824,7 @@
           "category": "未知",
           "semantics": "传播参数之后、State之前的四字节；全映像45条MEM/33函数按实际对象排除，邻近+0x444关系槽仅4B，+0x43C向量仅8B。聚合体边界及对齐原因仍缺正面证据，不把阴性搜索升级为已核填充",
           "status": "未知",
-          "evidence": "docs/design/binary-state/step4-first-four-evidence.md；docs/design/binary-state/projectile-effect-residual-evidence.md"
+          "evidence": "docs/archive/design/binary-state/step4-first-four-evidence.md；docs/archive/design/binary-state/projectile-effect-residual-evidence.md"
         },
         {
           "offset": "0x450",
@@ -834,7 +834,7 @@
           "category": "状态",
           "semantics": "Render VA0x601247/0x604222等直接选择图层／MrMe携物等展示分支；保留最终State。",
           "status": "已核",
-          "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc；docs/design/binary-state/effect-synchronization-review.md",
+          "evidence": "mod/binding/catalog/entity-application.json:class_native；client_entity_class_fields.inc；docs/archive/design/binary-state/effect-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "i32"
@@ -850,7 +850,7 @@
           "category": "权威",
           "semantics": "Host冲击波及Trail衰减输入；Update VA0x5D9518、Trail VA0x5DA42C消费；Client接收最终Sprite／轨迹节点。",
           "status": "已核",
-          "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc；docs/design/binary-state/effect-synchronization-review.md"
+          "evidence": "mod/binding/catalog/entity-application.json:class_native；client_entity_class_fields.inc；docs/archive/design/binary-state/effect-synchronization-review.md"
         },
         {
           "offset": "0x458",
@@ -860,7 +860,7 @@
           "category": "权威",
           "semantics": "Host冲击波更新输入；Update VA0x5D85CF/0x5D864A消费；最终成员与Sprite另行同步。",
           "status": "已核",
-          "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc；docs/design/binary-state/effect-synchronization-review.md"
+          "evidence": "mod/binding/catalog/entity-application.json:class_native；client_entity_class_fields.inc；docs/archive/design/binary-state/effect-synchronization-review.md"
         },
         {
           "offset": "0x45c",
@@ -870,7 +870,7 @@
           "category": "换算",
           "semantics": "Render VA0x6017BB/0x6036B1/0x603A33等用于淡入淡出／长度，保留Timeout到期帧；每窗重算，不假设所有分支线性递减。 版本40：公共尾部仅正值递减，101可局部与公共各减一次、141可刷新；每窗重算，不缓存线性假设、不夹限负数。",
           "status": "已核",
-          "evidence": "docs/design/binary-state/4-entity-classes.md:4.1.5；Effect Init VA0x5CD1E7；docs/design/binary-state/effect-synchronization-review.md；docs/design/binary-state/effect-next-five-evidence.md",
+          "evidence": "docs/archive/design/binary-state/4-entity-classes.md:4.1.5；Effect Init VA0x5CD1E7；docs/archive/design/binary-state/effect-synchronization-review.md；docs/archive/design/binary-state/effect-next-five-evidence.md",
           "wire": {
             "kind": "convert",
             "type": "i32",
@@ -888,7 +888,7 @@
           "category": "状态",
           "semantics": "Render VA0x60370F/0x603A9E/0x603B2A作为展示计时比例输入；保留。",
           "status": "已核",
-          "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc；docs/design/binary-state/effect-synchronization-review.md",
+          "evidence": "mod/binding/catalog/entity-application.json:class_native；client_entity_class_fields.inc；docs/archive/design/binary-state/effect-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "i32"
@@ -904,7 +904,7 @@
           "category": "状态",
           "semantics": "variant196 Render VA0x60106B与公共Parent共同选择绘制；保留，不在Client推进跟随运动。",
           "status": "已核",
-          "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc；docs/design/binary-state/effect-synchronization-review.md",
+          "evidence": "mod/binding/catalog/entity-application.json:class_native；client_entity_class_fields.inc；docs/archive/design/binary-state/effect-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "u8"
@@ -920,7 +920,7 @@
           "category": "未知",
           "semantics": "本步骤未核定，保留具名字节缺口，待第3/4步研究",
           "status": "未知",
-          "evidence": "docs/design/binary-state/3-entity-common.md；4-entity-classes.md：尚未核定区；docs/design/binary-state/projectile-effect-residual-evidence.md"
+          "evidence": "docs/archive/design/binary-state/3-entity-common.md；4-entity-classes.md：尚未核定区；docs/archive/design/binary-state/projectile-effect-residual-evidence.md"
         },
         {
           "offset": "0x468",
@@ -930,7 +930,7 @@
           "category": "状态",
           "semantics": "variant160 Render VA0x603251/0x60325F参与连接几何；不能由最终PositionOffset等价替代。",
           "status": "已核",
-          "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc；docs/design/binary-state/effect-synchronization-review.md",
+          "evidence": "mod/binding/catalog/entity-application.json:class_native；client_entity_class_fields.inc；docs/archive/design/binary-state/effect-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "Vector"
@@ -946,7 +946,7 @@
           "category": "权威",
           "semantics": "Host伤害／变体更新参数；Update VA0x5E21F7/0x5FE5E8消费；无当前原生展示消费者。",
           "status": "已核",
-          "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc；docs/design/binary-state/effect-synchronization-review.md"
+          "evidence": "mod/binding/catalog/entity-application.json:class_native；client_entity_class_fields.inc；docs/archive/design/binary-state/effect-synchronization-review.md"
         },
         {
           "offset": "0x474",
@@ -956,7 +956,7 @@
           "category": "状态",
           "semantics": "variant172/subtype1 Render VA0x603998与公共speed_multiplier构成方向旋转；保留。 版本40：已核条件逐Update写路径，归动态FX0；静态路径不是实测频率，仍与全部依赖同目标版本提交。",
           "status": "已核",
-          "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc；docs/design/binary-state/effect-synchronization-review.md；docs/design/binary-state/effect-next-five-evidence.md",
+          "evidence": "mod/binding/catalog/entity-application.json:class_native；client_entity_class_fields.inc；docs/archive/design/binary-state/effect-synchronization-review.md；docs/archive/design/binary-state/effect-next-five-evidence.md",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -972,7 +972,7 @@
           "category": "状态",
           "semantics": "Render VA0x603180及Type1000/variant121 Room Light VA0x8002BB直接消费；保留。 版本40：已核条件逐Update写路径，归动态FX0；静态路径不是实测频率，仍与全部依赖同目标版本提交。",
           "status": "已核",
-          "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc；docs/design/binary-state/effect-synchronization-review.md；docs/design/binary-state/effect-next-five-evidence.md",
+          "evidence": "mod/binding/catalog/entity-application.json:class_native；client_entity_class_fields.inc；docs/archive/design/binary-state/effect-synchronization-review.md；docs/archive/design/binary-state/effect-next-five-evidence.md",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -988,7 +988,7 @@
           "category": "权威",
           "semantics": "variant203生成helper传给Game::Spawn的实体类型；生成由Host裁决，Client接收最终成员",
           "status": "已核",
-          "evidence": "docs/design/binary-state/step4-first-four-evidence.md"
+          "evidence": "docs/archive/design/binary-state/step4-first-four-evidence.md"
         },
         {
           "offset": "0x480",
@@ -998,7 +998,7 @@
           "category": "权威",
           "semantics": "待生成实体变体；也用于Host配置查询和最终Sprite缩放计算",
           "status": "已核",
-          "evidence": "docs/design/binary-state/step4-first-four-evidence.md"
+          "evidence": "docs/archive/design/binary-state/step4-first-four-evidence.md"
         },
         {
           "offset": "0x484",
@@ -1008,7 +1008,7 @@
           "category": "权威",
           "semantics": "待生成实体位置；VA0x5D3543取内嵌Vector地址传Spawn，不是容器头",
           "status": "已核",
-          "evidence": "docs/design/binary-state/step4-first-four-evidence.md"
+          "evidence": "docs/archive/design/binary-state/step4-first-four-evidence.md"
         },
         {
           "offset": "0x48c",
@@ -1018,7 +1018,7 @@
           "category": "权威",
           "semantics": "待生成实体速度；VA0x5D352A取内嵌Vector地址传Spawn，不是容器头",
           "status": "已核",
-          "evidence": "docs/design/binary-state/step4-first-four-evidence.md"
+          "evidence": "docs/archive/design/binary-state/step4-first-four-evidence.md"
         },
         {
           "offset": "0x494",
@@ -1028,7 +1028,7 @@
           "category": "权威",
           "semantics": "传给Game::Spawn的spawner指针；完整关系生命周期未闭合，不复制地址或重建Host生成请求",
           "status": "已核",
-          "evidence": "docs/design/binary-state/step4-first-four-evidence.md"
+          "evidence": "docs/archive/design/binary-state/step4-first-four-evidence.md"
         },
         {
           "offset": "0x498",
@@ -1038,7 +1038,7 @@
           "category": "权威",
           "semantics": "待生成实体subtype；Client不重演生成",
           "status": "已核",
-          "evidence": "docs/design/binary-state/step4-first-four-evidence.md"
+          "evidence": "docs/archive/design/binary-state/step4-first-four-evidence.md"
         },
         {
           "offset": "0x49c",
@@ -1048,7 +1048,7 @@
           "category": "权威",
           "semantics": "待生成实体seed；属于Host随机/生成裁决，不发送随机玩法请求",
           "status": "已核",
-          "evidence": "docs/design/binary-state/step4-first-four-evidence.md"
+          "evidence": "docs/archive/design/binary-state/step4-first-four-evidence.md"
         },
         {
           "offset": "0x4a0",
@@ -1058,7 +1058,7 @@
           "category": "权威",
           "semantics": "Game::Spawn第8个显式参数，SDK仍名unk；只核定参数位置，不杜撰标志语义",
           "status": "已核",
-          "evidence": "docs/design/binary-state/step4-first-four-evidence.md"
+          "evidence": "docs/archive/design/binary-state/step4-first-four-evidence.md"
         },
         {
           "offset": "0x4a4",
@@ -1068,7 +1068,7 @@
           "category": "权威",
           "semantics": "生成后写入新实体+0x32C的出生格子序号；原32位整数，不是浮点数；最终实体经公共字段同步",
           "status": "已核",
-          "evidence": "docs/design/binary-state/step4-first-four-evidence.md；entity-common-evidence.md"
+          "evidence": "docs/archive/design/binary-state/step4-first-four-evidence.md；entity-common-evidence.md"
         },
         {
           "offset": "0x4a8",
@@ -1078,7 +1078,7 @@
           "category": "权威",
           "semantics": "仅Authority更新消费的私有容器，头与内容均不传输",
           "status": "已核",
-          "evidence": "docs/design/binary-state/4-entity-classes.md:4.1.1；client_entity_class_model.cpp:178-179"
+          "evidence": "docs/archive/design/binary-state/4-entity-classes.md:4.1.1；client_entity_class_model.cpp:178-179"
         },
         {
           "offset": "0x4b4",
@@ -1088,7 +1088,7 @@
           "category": "权威",
           "semantics": "版本40：官方目标映像只核到108／166／191三种具体ExtraData；非附属臂的合法holder为空。选臂阶段仍核holder资格，非空未知／错variant／读取失败报Gap，不发送地址、不伪装为空。",
           "status": "已核",
-          "evidence": "docs/design/binary-state/4-entity-classes.md:4.1.2；client_entity_class_model.cpp:93-95；docs/design/binary-state/effect-next-five-evidence.md"
+          "evidence": "docs/archive/design/binary-state/4-entity-classes.md:4.1.2；client_entity_class_model.cpp:93-95；docs/archive/design/binary-state/effect-next-five-evidence.md"
         },
         {
           "offset": "0x4bc",
@@ -1098,7 +1098,7 @@
           "category": "未知",
           "semantics": "对象大小由数组构造及删除析构共同核定为0x4C0；全映像30条MEM/21函数按对象来源排除，+0x4B4共享holder仅8B止于4BB。支持尾部填充假设但保留未知，不缩短对象范围、不复制",
           "status": "未知",
-          "evidence": "docs/design/binary-state/step4-first-four-evidence.md；docs/design/binary-state/projectile-effect-residual-evidence.md"
+          "evidence": "docs/archive/design/binary-state/step4-first-four-evidence.md；docs/archive/design/binary-state/projectile-effect-residual-evidence.md"
         }
       ],
       "conversions": {
@@ -1124,19 +1124,19 @@
           "id": "EntityEffect.m_Height",
           "disposition": "authority",
           "fields": [],
-          "reason": "仅Host玩法更新消费；Client接收最终位置／Sprite／独立成员，不编码、安装或比较该原值。见docs/design/binary-state/effect-synchronization-review.md"
+          "reason": "仅Host玩法更新消费；Client接收最终位置／Sprite／独立成员，不编码、安装或比较该原值。见docs/archive/design/binary-state/effect-synchronization-review.md"
         },
         {
           "id": "EntityEffect.FallingSpeed",
           "disposition": "authority",
           "fields": [],
-          "reason": "仅Host玩法更新消费；Client接收最终位置／Sprite／独立成员，不编码、安装或比较该原值。见docs/design/binary-state/effect-synchronization-review.md"
+          "reason": "仅Host玩法更新消费；Client接收最终位置／Sprite／独立成员，不编码、安装或比较该原值。见docs/archive/design/binary-state/effect-synchronization-review.md"
         },
         {
           "id": "EntityEffect.FallingAcceleration",
           "disposition": "authority",
           "fields": [],
-          "reason": "仅Host玩法更新消费；Client接收最终位置／Sprite／独立成员，不编码、安装或比较该原值。见docs/design/binary-state/effect-synchronization-review.md"
+          "reason": "仅Host玩法更新消费；Client接收最终位置／Sprite／独立成员，不编码、安装或比较该原值。见docs/archive/design/binary-state/effect-synchronization-review.md"
         },
         {
           "id": "EntityEffect.State",
@@ -1158,13 +1158,13 @@
           "id": "EntityEffect.MinRadius",
           "disposition": "authority",
           "fields": [],
-          "reason": "仅Host玩法更新消费；Client接收最终位置／Sprite／独立成员，不编码、安装或比较该原值。见docs/design/binary-state/effect-synchronization-review.md"
+          "reason": "仅Host玩法更新消费；Client接收最终位置／Sprite／独立成员，不编码、安装或比较该原值。见docs/archive/design/binary-state/effect-synchronization-review.md"
         },
         {
           "id": "EntityEffect.MaxRadius",
           "disposition": "authority",
           "fields": [],
-          "reason": "仅Host玩法更新消费；Client接收最终位置／Sprite／独立成员，不编码、安装或比较该原值。见docs/design/binary-state/effect-synchronization-review.md"
+          "reason": "仅Host玩法更新消费；Client接收最终位置／Sprite／独立成员，不编码、安装或比较该原值。见docs/archive/design/binary-state/effect-synchronization-review.md"
         },
         {
           "id": "EntityEffect.LifeSpan",
@@ -1194,7 +1194,7 @@
           "id": "EntityEffect.DamageSource",
           "disposition": "authority",
           "fields": [],
-          "reason": "仅Host玩法更新消费；Client接收最终位置／Sprite／独立成员，不编码、安装或比较该原值。见docs/design/binary-state/effect-synchronization-review.md"
+          "reason": "仅Host玩法更新消费；Client接收最终位置／Sprite／独立成员，不编码、安装或比较该原值。见docs/archive/design/binary-state/effect-synchronization-review.md"
         },
         {
           "id": "EntityEffect.Rotation",
@@ -1243,7 +1243,7 @@
         "EntityEffect"
       ],
       "sdk_size": "0x490",
-      "notes": "版本38：六臂保留原布局号。六项公共更新输入、TearFlags全128位和136描述八成员归Host，FX2均预留；展示State／Timeout／LifeSpan／IsFollowing／ParentOffset／Rotation／Scale保留。MrMe／Trail／Ghost按具体RTTI投影；Ghost只发送有效Sprite前缀。基础复用区和原UNKNOWN继续保留，不能宣称全部变体完整。 版本40：已核VarData另分137—141，102保留54／126／167；共11布局，FX2始终预留。Rotation／Scale移FX0，FX0=16B／FX1=13B；Timeout每窗重算。非附属holder非空或错RTTI报Gap；Trail最多127节点。见docs/design/binary-state/effect-next-five-evidence.md 版本45仅处理残余：167独立148，+430生产语义核为Host伤害快照，+434常数槽及438后8B仍未知；19/71/194内部flags选149但不开放公开API；119尾部按callback复用，6FC690特例不覆盖全部119。三段41C/44C/4BC及465空白保持UNKNOWN。原五项（Timeout/分块/Trail/payload等）不重做，13个布局的正式接线与验收仍在第10/13/15步。",
+      "notes": "版本38：六臂保留原布局号。六项公共更新输入、TearFlags全128位和136描述八成员归Host，FX2均预留；展示State／Timeout／LifeSpan／IsFollowing／ParentOffset／Rotation／Scale保留。MrMe／Trail／Ghost按具体RTTI投影；Ghost只发送有效Sprite前缀。基础复用区和原UNKNOWN继续保留，不能宣称全部变体完整。 版本40：已核VarData另分137—141，102保留54／126／167；共11布局，FX2始终预留。Rotation／Scale移FX0，FX0=16B／FX1=13B；Timeout每窗重算。非附属holder非空或错RTTI报Gap；Trail最多127节点。见docs/archive/design/binary-state/effect-next-five-evidence.md 版本45仅处理残余：167独立148，+430生产语义核为Host伤害快照，+434常数槽及438后8B仍未知；19/71/194内部flags选149但不开放公开API；119尾部按callback复用，6FC690特例不覆盖全部119。三段41C/44C/4BC及465空白保持UNKNOWN。原五项（Timeout/分块/Trail/payload等）不重做，13个布局的正式接线与验收仍在第10/13/15步。",
       "variants": {
         "selector": "variant",
         "arms": [
@@ -1263,7 +1263,7 @@
                 "category": "权威",
                 "semantics": "Host 眼泪效果判定／伤害与派生生成输入；当前展示不读取此范围，不编码／安装／漂移比较；最终主Sprite、实体关系和落地后的真实成员另行同步。",
                 "status": "已核",
-                "evidence": "docs/design/binary-state/4-entity-classes.md:4.1.1；NativeEffect.TearFlags@0x420；docs/design/binary-state/effect-synchronization-review.md"
+                "evidence": "docs/archive/design/binary-state/4-entity-classes.md:4.1.1；NativeEffect.TearFlags@0x420；docs/archive/design/binary-state/effect-synchronization-review.md"
               },
               {
                 "offset": "0x430",
@@ -1273,7 +1273,7 @@
                 "category": "未知",
                 "semantics": "54/126后16B仍无逐字段语义证据；已从本臂分出167，不套113或传播结构，不由无展示命中认定填充。",
                 "status": "未知",
-                "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md；docs/design/binary-state/effect-next-five-evidence.md；docs/design/binary-state/projectile-effect-residual-evidence.md"
+                "evidence": "docs/archive/design/binary-state/slot-projectile-effect-evidence.md；docs/archive/design/binary-state/effect-next-five-evidence.md；docs/archive/design/binary-state/projectile-effect-residual-evidence.md"
               }
             ],
             "members": [
@@ -1281,13 +1281,13 @@
                 "id": "EntityEffect.GetTearFlags",
                 "disposition": "authority",
                 "fields": [],
-                "reason": "仅Host读取／维护；原生展示不消费，Client不重演玩法。见docs/design/binary-state/effect-synchronization-review.md"
+                "reason": "仅Host读取／维护；原生展示不消费，Client不重演玩法。见docs/archive/design/binary-state/effect-synchronization-review.md"
               },
               {
                 "id": "NativeEffect.TearFlags",
                 "disposition": "authority",
                 "fields": [],
-                "reason": "仅Host读取／维护；原生展示不消费，Client不重演玩法。见docs/design/binary-state/effect-synchronization-review.md"
+                "reason": "仅Host读取／维护；原生展示不消费，Client不重演玩法。见docs/archive/design/binary-state/effect-synchronization-review.md"
               }
             ]
           },
@@ -1306,7 +1306,7 @@
                 "category": "权威",
                 "semantics": "Host 举起格子的描述成员 grid_type；当前展示不读取此范围，不编码／安装／漂移比较；最终主Sprite、实体关系和落地后的真实成员另行同步。",
                 "status": "已核",
-                "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc；docs/design/binary-state/effect-synchronization-review.md"
+                "evidence": "mod/binding/catalog/entity-application.json:class_native；client_entity_class_fields.inc；docs/archive/design/binary-state/effect-synchronization-review.md"
               },
               {
                 "offset": "0x424",
@@ -1316,7 +1316,7 @@
                 "category": "权威",
                 "semantics": "Host 举起格子的描述成员 grid_variant；当前展示不读取此范围，不编码／安装／漂移比较；最终主Sprite、实体关系和落地后的真实成员另行同步。",
                 "status": "已核",
-                "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc；docs/design/binary-state/effect-synchronization-review.md"
+                "evidence": "mod/binding/catalog/entity-application.json:class_native；client_entity_class_fields.inc；docs/archive/design/binary-state/effect-synchronization-review.md"
               },
               {
                 "offset": "0x428",
@@ -1326,7 +1326,7 @@
                 "category": "权威",
                 "semantics": "Host 举起格子的描述成员 grid_state；当前展示不读取此范围，不编码／安装／漂移比较；最终主Sprite、实体关系和落地后的真实成员另行同步。",
                 "status": "已核",
-                "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc；docs/design/binary-state/effect-synchronization-review.md"
+                "evidence": "mod/binding/catalog/entity-application.json:class_native；client_entity_class_fields.inc；docs/archive/design/binary-state/effect-synchronization-review.md"
               },
               {
                 "offset": "0x42c",
@@ -1336,7 +1336,7 @@
                 "category": "权威",
                 "semantics": "Host 举起格子的描述成员 grid_spawn_count；当前展示不读取此范围，不编码／安装／漂移比较；最终主Sprite、实体关系和落地后的真实成员另行同步。",
                 "status": "已核",
-                "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc；docs/design/binary-state/effect-synchronization-review.md"
+                "evidence": "mod/binding/catalog/entity-application.json:class_native；client_entity_class_fields.inc；docs/archive/design/binary-state/effect-synchronization-review.md"
               },
               {
                 "offset": "0x430",
@@ -1346,7 +1346,7 @@
                 "category": "权威",
                 "semantics": "Host 举起格子的描述成员 grid_spawn_seed；当前展示不读取此范围，不编码／安装／漂移比较；最终主Sprite、实体关系和落地后的真实成员另行同步。",
                 "status": "已核",
-                "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc；docs/design/binary-state/effect-synchronization-review.md"
+                "evidence": "mod/binding/catalog/entity-application.json:class_native；client_entity_class_fields.inc；docs/archive/design/binary-state/effect-synchronization-review.md"
               },
               {
                 "offset": "0x434",
@@ -1356,7 +1356,7 @@
                 "category": "权威",
                 "semantics": "Host 举起格子的描述成员 grid_var_data；当前展示不读取此范围，不编码／安装／漂移比较；最终主Sprite、实体关系和落地后的真实成员另行同步。",
                 "status": "已核",
-                "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc；docs/design/binary-state/effect-synchronization-review.md"
+                "evidence": "mod/binding/catalog/entity-application.json:class_native；client_entity_class_fields.inc；docs/archive/design/binary-state/effect-synchronization-review.md"
               },
               {
                 "offset": "0x438",
@@ -1366,7 +1366,7 @@
                 "category": "权威",
                 "semantics": "Host 举起格子的描述成员 grid_initialized；当前展示不读取此范围，不编码／安装／漂移比较；最终主Sprite、实体关系和落地后的真实成员另行同步。",
                 "status": "已核",
-                "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc；docs/design/binary-state/effect-synchronization-review.md"
+                "evidence": "mod/binding/catalog/entity-application.json:class_native；client_entity_class_fields.inc；docs/archive/design/binary-state/effect-synchronization-review.md"
               },
               {
                 "offset": "0x439",
@@ -1376,7 +1376,7 @@
                 "category": "未知",
                 "semantics": "本步骤未核定，保留具名字节缺口，待第3/4步研究",
                 "status": "未知",
-                "evidence": "docs/design/binary-state/3-entity-common.md；4-entity-classes.md：尚未核定区"
+                "evidence": "docs/archive/design/binary-state/3-entity-common.md；4-entity-classes.md：尚未核定区"
               },
               {
                 "offset": "0x43c",
@@ -1386,7 +1386,7 @@
                 "category": "权威",
                 "semantics": "Host 举起格子的描述成员 grid_variable_seed；当前展示不读取此范围，不编码／安装／漂移比较；最终主Sprite、实体关系和落地后的真实成员另行同步。",
                 "status": "已核",
-                "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc；docs/design/binary-state/effect-synchronization-review.md"
+                "evidence": "mod/binding/catalog/entity-application.json:class_native；client_entity_class_fields.inc；docs/archive/design/binary-state/effect-synchronization-review.md"
               }
             ],
             "members": [
@@ -1394,7 +1394,7 @@
                 "id": "EntityEffect.GetGridEntityDesc",
                 "disposition": "authority",
                 "fields": [],
-                "reason": "仅Host读取／维护；原生展示不消费，Client不重演玩法。见docs/design/binary-state/effect-synchronization-review.md"
+                "reason": "仅Host读取／维护；原生展示不消费，Client不重演玩法。见docs/archive/design/binary-state/effect-synchronization-review.md"
               }
             ]
           },
@@ -1413,7 +1413,7 @@
                 "category": "容器",
                 "semantics": "经具体RTTI核定的可选payload；只有投影0带u8 present；不存在时各块为最短全零编码；同目标版本由单一原生owner安装",
                 "status": "已核",
-                "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+                "evidence": "docs/archive/design/binary-state/slot-projectile-effect-evidence.md",
                 "wire": {
                   "kind": "nested",
                   "type": "EffectMrMeData",
@@ -1441,7 +1441,7 @@
                 "category": "容器",
                 "semantics": "经具体RTTI核定的可选payload；只有投影0带u8 present；不存在时各块为最短全零编码；同目标版本由单一原生owner安装",
                 "status": "已核",
-                "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+                "evidence": "docs/archive/design/binary-state/slot-projectile-effect-evidence.md",
                 "wire": {
                   "kind": "nested",
                   "type": "EffectSpriteTrailData",
@@ -1469,7 +1469,7 @@
                 "category": "容器",
                 "semantics": "经具体RTTI核定的可选payload；只有投影0带u8 present；不存在时各块为最短全零编码；同目标版本由单一原生owner安装",
                 "status": "已核",
-                "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+                "evidence": "docs/archive/design/binary-state/slot-projectile-effect-evidence.md",
                 "wire": {
                   "kind": "nested",
                   "type": "EffectPickupGhostData",
@@ -1502,7 +1502,7 @@
                 "category": "权威",
                 "semantics": "633425／633431保存原始方向；5D3362—5D33AC按模式旋转／归一化并形成后继位置，只供Host传播。",
                 "status": "已核",
-                "evidence": "docs/design/binary-state/effect-next-five-evidence.md"
+                "evidence": "docs/archive/design/binary-state/effect-next-five-evidence.md"
               },
               {
                 "offset": "0x428",
@@ -1512,7 +1512,7 @@
                 "category": "权威",
                 "semantics": "633437—633454保存max(remaining-1,0)，5D3462交后继生成；不是Client展示计数。",
                 "status": "已核",
-                "evidence": "docs/design/binary-state/effect-next-five-evidence.md"
+                "evidence": "docs/archive/design/binary-state/effect-next-five-evidence.md"
               },
               {
                 "offset": "0x42c",
@@ -1522,7 +1522,7 @@
                 "category": "权威",
                 "semantics": "633481保存、5D33DA按方向长度求后继位置的步长，只供Host。",
                 "status": "已核",
-                "evidence": "docs/design/binary-state/effect-next-five-evidence.md"
+                "evidence": "docs/archive/design/binary-state/effect-next-five-evidence.md"
               },
               {
                 "offset": "0x430",
@@ -1532,7 +1532,7 @@
                 "category": "权威",
                 "semantics": "63340A保存伤害参数，5D32B8／5D344F消费；Client不重演伤害或传播。",
                 "status": "已核",
-                "evidence": "docs/design/binary-state/effect-next-five-evidence.md"
+                "evidence": "docs/archive/design/binary-state/effect-next-five-evidence.md"
               },
               {
                 "offset": "0x434",
@@ -1542,7 +1542,7 @@
                 "category": "权威",
                 "semantics": "633449保存下一次传播的缩放参数，5D32E5／5D3428消费；当前最终Sprite／公共Scale另行同步。",
                 "status": "已核",
-                "evidence": "docs/design/binary-state/effect-next-five-evidence.md"
+                "evidence": "docs/archive/design/binary-state/effect-next-five-evidence.md"
               },
               {
                 "offset": "0x438",
@@ -1552,7 +1552,7 @@
                 "category": "权威",
                 "semantics": "633404写入，5D3299—5D32A7与原生FrameCount相等才触发后继；不是Client展示锚点。",
                 "status": "已核",
-                "evidence": "docs/design/binary-state/effect-next-five-evidence.md"
+                "evidence": "docs/archive/design/binary-state/effect-next-five-evidence.md"
               },
               {
                 "offset": "0x43c",
@@ -1562,7 +1562,7 @@
                 "category": "权威",
                 "semantics": "633489保存、5D3430读取，作为后继Timeout／LifeSpan生成输入；当前Timeout仍用FX0独立换算。",
                 "status": "已核",
-                "evidence": "docs/design/binary-state/effect-next-five-evidence.md"
+                "evidence": "docs/archive/design/binary-state/effect-next-five-evidence.md"
               }
             ]
           },
@@ -1581,7 +1581,7 @@
                 "category": "本地",
                 "semantics": "60482B写本进程函数地址，5FFC00间接调用；不跨进程发送或在Client执行。",
                 "status": "已核",
-                "evidence": "docs/design/binary-state/effect-next-five-evidence.md"
+                "evidence": "docs/archive/design/binary-state/effect-next-five-evidence.md"
               },
               {
                 "offset": "0x424",
@@ -1591,7 +1591,7 @@
                 "category": "权威",
                 "semantics": "604831保存间隔，5FFBE3用原生FrameCount做无符号除法判断回调时机；不上线、不在Client执行。",
                 "status": "已核",
-                "evidence": "docs/design/binary-state/effect-next-five-evidence.md"
+                "evidence": "docs/archive/design/binary-state/effect-next-five-evidence.md"
               },
               {
                 "offset": "0x428",
@@ -1601,7 +1601,7 @@
                 "category": "权威",
                 "semantics": "604837保存次数；5FFC0B—5FFC35仅正值减一、零移除、负值不减。",
                 "status": "已核",
-                "evidence": "docs/design/binary-state/effect-next-five-evidence.md"
+                "evidence": "docs/archive/design/binary-state/effect-next-five-evidence.md"
               },
               {
                 "offset": "0x42c",
@@ -1611,7 +1611,7 @@
                 "category": "未知",
                 "semantics": "callback之外的4B未核；不因420—428初始化而推定此字清零。",
                 "status": "未知",
-                "evidence": "docs/design/binary-state/projectile-effect-residual-evidence.md"
+                "evidence": "docs/archive/design/binary-state/projectile-effect-residual-evidence.md"
               },
               {
                 "offset": "0x430",
@@ -1621,7 +1621,7 @@
                 "category": "未知",
                 "semantics": "当callback==本映像6FC690时：6FBFED/6FBFFE写入64位DamageFlags，6FC716/6FC722读出并交6FAF60伤害处理；其他callback的含义/初始化未闭合，通用119仍保留UNKNOWN，不读取或发送。",
                 "status": "未知",
-                "evidence": "docs/design/binary-state/projectile-effect-residual-evidence.md"
+                "evidence": "docs/archive/design/binary-state/projectile-effect-residual-evidence.md"
               },
               {
                 "offset": "0x438",
@@ -1631,7 +1631,7 @@
                 "category": "未知",
                 "semantics": "Timer后8B仍无具体语义或填充证据。",
                 "status": "未知",
-                "evidence": "docs/design/binary-state/projectile-effect-residual-evidence.md"
+                "evidence": "docs/archive/design/binary-state/projectile-effect-residual-evidence.md"
               }
             ]
           },
@@ -1650,7 +1650,7 @@
                 "category": "权威",
                 "semantics": "5FFCAE读取并交424340作为生成Type；Client只接收最终真实成员。",
                 "status": "已核",
-                "evidence": "docs/design/binary-state/effect-next-five-evidence.md"
+                "evidence": "docs/archive/design/binary-state/effect-next-five-evidence.md"
               },
               {
                 "offset": "0x424",
@@ -1660,7 +1660,7 @@
                 "category": "权威",
                 "semantics": "5FFCC0读取并交424340作为生成Variant；不在Client重演Spawn。",
                 "status": "已核",
-                "evidence": "docs/design/binary-state/effect-next-five-evidence.md"
+                "evidence": "docs/archive/design/binary-state/effect-next-five-evidence.md"
               },
               {
                 "offset": "0x428",
@@ -1670,7 +1670,7 @@
                 "category": "未知",
                 "semantics": "120其余复用字节未核，初始化或相邻字段用途不作完整性证据。",
                 "status": "未知",
-                "evidence": "docs/design/binary-state/effect-next-five-evidence.md"
+                "evidence": "docs/archive/design/binary-state/effect-next-five-evidence.md"
               }
             ]
           },
@@ -1690,7 +1690,7 @@
                 "category": "未知",
                 "semantics": "30／153本段未核，不能因424的计数用途推广。",
                 "status": "未知",
-                "evidence": "docs/design/binary-state/effect-next-five-evidence.md"
+                "evidence": "docs/archive/design/binary-state/effect-next-five-evidence.md"
               },
               {
                 "offset": "0x424",
@@ -1700,7 +1700,7 @@
                 "category": "权威",
                 "semantics": "5CFB9B初始化；5ED577—5ED5A1只在无符号正值时减一，归零走Host Remove。",
                 "status": "已核",
-                "evidence": "docs/design/binary-state/effect-next-five-evidence.md"
+                "evidence": "docs/archive/design/binary-state/effect-next-five-evidence.md"
               },
               {
                 "offset": "0x428",
@@ -1710,7 +1710,7 @@
                 "category": "未知",
                 "semantics": "428虽在5CFBA5清零，但未闭合其完整含义；本段保持未知。",
                 "status": "未知",
-                "evidence": "docs/design/binary-state/effect-next-five-evidence.md"
+                "evidence": "docs/archive/design/binary-state/effect-next-five-evidence.md"
               }
             ]
           },
@@ -1729,7 +1729,7 @@
                 "category": "权威",
                 "semantics": "Host 眼泪效果判定／伤害与派生生成输入；当前展示不读取此范围，不编码／安装／漂移比较；最终主Sprite、实体关系和落地后的真实成员另行同步。",
                 "status": "已核",
-                "evidence": "docs/design/binary-state/4-entity-classes.md:4.1.1；NativeEffect.TearFlags@0x420；docs/design/binary-state/effect-synchronization-review.md"
+                "evidence": "docs/archive/design/binary-state/4-entity-classes.md:4.1.1；NativeEffect.TearFlags@0x420；docs/archive/design/binary-state/effect-synchronization-review.md"
               },
               {
                 "offset": "0x430",
@@ -1739,7 +1739,7 @@
                 "category": "权威",
                 "semantics": "113在5FD04D—5FD053由公共CollisionDamage保存的伤害基准；Host效果处理输入，不是当前展示字段。",
                 "status": "已核",
-                "evidence": "docs/design/binary-state/effect-next-five-evidence.md"
+                "evidence": "docs/archive/design/binary-state/effect-next-five-evidence.md"
               },
               {
                 "offset": "0x434",
@@ -1749,7 +1749,7 @@
                 "category": "权威",
                 "semantics": "113在5FD06B—5FD07E由Size／配置Size形成的比例，5FD0B9—5FD0CF及5FD61D—5FD745继续调整／使用；Host内部输入。",
                 "status": "已核",
-                "evidence": "docs/design/binary-state/effect-next-five-evidence.md"
+                "evidence": "docs/archive/design/binary-state/effect-next-five-evidence.md"
               },
               {
                 "offset": "0x438",
@@ -1759,7 +1759,7 @@
                 "category": "未知",
                 "semantics": "113后8B未核，不能由两个已核标量推造其他字段。",
                 "status": "未知",
-                "evidence": "docs/design/binary-state/effect-next-five-evidence.md"
+                "evidence": "docs/archive/design/binary-state/effect-next-five-evidence.md"
               }
             ],
             "members": [
@@ -1767,13 +1767,13 @@
                 "id": "EntityEffect.GetTearFlags",
                 "disposition": "authority",
                 "fields": [],
-                "reason": "仅Host读取／维护；原生展示不消费，Client不重演玩法。见docs/design/binary-state/effect-synchronization-review.md"
+                "reason": "仅Host读取／维护；原生展示不消费，Client不重演玩法。见docs/archive/design/binary-state/effect-synchronization-review.md"
               },
               {
                 "id": "NativeEffect.TearFlags",
                 "disposition": "authority",
                 "fields": [],
-                "reason": "仅Host读取／维护；原生展示不消费，Client不重演玩法。见docs/design/binary-state/effect-synchronization-review.md"
+                "reason": "仅Host读取／维护；原生展示不消费，Client不重演玩法。见docs/archive/design/binary-state/effect-synchronization-review.md"
               }
             ]
           },
@@ -1792,7 +1792,7 @@
                 "category": "权威",
                 "semantics": "Host 眼泪效果判定／伤害与派生生成输入；当前展示不读取此范围，不编码／安装／漂移比较；最终主Sprite、实体关系和落地后的真实成员另行同步。",
                 "status": "已核",
-                "evidence": "docs/design/binary-state/4-entity-classes.md:4.1.1；NativeEffect.TearFlags@0x420；docs/design/binary-state/effect-synchronization-review.md"
+                "evidence": "docs/archive/design/binary-state/4-entity-classes.md:4.1.1；NativeEffect.TearFlags@0x420；docs/archive/design/binary-state/effect-synchronization-review.md"
               },
               {
                 "offset": "0x430",
@@ -1802,7 +1802,7 @@
                 "category": "权威",
                 "semantics": "Init写3.5；Game::ChainLightning7037A0在7039BA保存最终CollisionDamage。已核为Host生成时的伤害快照，不是展示输入；后续独立消费者未定位，不套113更新公式。",
                 "status": "已核",
-                "evidence": "docs/design/binary-state/projectile-effect-residual-evidence.md"
+                "evidence": "docs/archive/design/binary-state/projectile-effect-residual-evidence.md"
               },
               {
                 "offset": "0x434",
@@ -1812,7 +1812,7 @@
                 "category": "未知",
                 "semantics": "Init5D0703及Game::ChainLightning7039C2写f32 1；未定位后续消费者，不能仅凭常量或与113同址命名为size_ratio。",
                 "status": "未知",
-                "evidence": "docs/design/binary-state/projectile-effect-residual-evidence.md"
+                "evidence": "docs/archive/design/binary-state/projectile-effect-residual-evidence.md"
               },
               {
                 "offset": "0x438",
@@ -1822,7 +1822,7 @@
                 "category": "未知",
                 "semantics": "167后8B仍缺具体生产/消费者和完整初始化证据，不套用其他variant结构。",
                 "status": "未知",
-                "evidence": "docs/design/binary-state/projectile-effect-residual-evidence.md"
+                "evidence": "docs/archive/design/binary-state/projectile-effect-residual-evidence.md"
               }
             ],
             "members": [
@@ -1830,13 +1830,13 @@
                 "id": "EntityEffect.GetTearFlags",
                 "disposition": "authority",
                 "fields": [],
-                "reason": "仅Host读取／维护；原生展示不消费，Client不重演玩法。见docs/design/binary-state/effect-synchronization-review.md"
+                "reason": "仅Host读取／维护；原生展示不消费，Client不重演玩法。见docs/archive/design/binary-state/effect-synchronization-review.md"
               },
               {
                 "id": "NativeEffect.TearFlags",
                 "disposition": "authority",
                 "fields": [],
-                "reason": "仅Host读取／维护；原生展示不消费，Client不重演玩法。见docs/design/binary-state/effect-synchronization-review.md"
+                "reason": "仅Host读取／维护；原生展示不消费，Client不重演玩法。见docs/archive/design/binary-state/effect-synchronization-review.md"
               }
             ]
           },
@@ -1857,7 +1857,7 @@
                 "category": "权威",
                 "semantics": "19按16B效果位决定/清除Host伤害效果；71与126共享的非dead且subtype!=1分支亦读取16B；194将完整16B传677940伤害处理。公共Init清前16B，当前展示不消费；这三variant不因此获得公开TearFlags API资格。",
                 "status": "已核",
-                "evidence": "docs/design/binary-state/projectile-effect-residual-evidence.md"
+                "evidence": "docs/archive/design/binary-state/projectile-effect-residual-evidence.md"
               },
               {
                 "offset": "0x430",
@@ -1867,7 +1867,7 @@
                 "category": "未知",
                 "semantics": "19/71/194的后16B没有随前16B位运算获得语义或初始化证明；继续UNKNOWN。",
                 "status": "未知",
-                "evidence": "docs/design/binary-state/projectile-effect-residual-evidence.md"
+                "evidence": "docs/archive/design/binary-state/projectile-effect-residual-evidence.md"
               }
             ]
           }

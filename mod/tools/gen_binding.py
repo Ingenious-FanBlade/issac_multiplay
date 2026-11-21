@@ -7,7 +7,7 @@
                                      - `world_observations`：19 项 world 观察入口
   mod/binding/world_layout.json      world 只读布局清单（字段/来源/类别/RTTI/常量）
   mod/binding/v1_9_7_12-static.json  目标版本特征字节（自有定义使用）
-  docs/hooks/repentogon-binding.json 旧点位索引（只用于填充 prototype 字段）
+  mod/binding/repentogon-binding.json 旧点位索引（只用于填充 prototype 字段）
 
 生成产物（写入 --out 目录）：
 
@@ -22,7 +22,7 @@
   world-layout.json                  布局清单的规范化导出（E2E / 离线工具）
 
 本脚本只生成构建输入；不运行游戏、不跑测试、不校验哈希。指令特征来自
-v1.9.7.12 IDB 的静态导出；world 布局证据见 docs/research/tx-04-08-*。
+v1.9.7.12 IDB 的静态导出；world 布局证据见 docs/archive/research/tx-04-08-*。
 """
 
 import argparse
@@ -35,7 +35,7 @@ ROOT = Path(__file__).resolve().parents[2]
 HOOKS_PATH = ROOT / 'mod/binding/hooks.json'
 LAYOUT_PATH = ROOT / 'mod/binding/world_layout.json'
 PATTERNS_PATH = ROOT / 'mod/binding/v1_9_7_12-static.json'
-BINDING_PATH = ROOT / 'docs/hooks/repentogon-binding.json'
+BINDING_PATH = ROOT / 'mod/binding/repentogon-binding.json'
 
 # --- 与 C++ 侧一致的表 -----------------------------------------------------
 # world/observation.h 的枚举顺序。

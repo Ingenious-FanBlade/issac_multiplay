@@ -56,7 +56,7 @@ def main():
     dest=ROOT/'mod/observation/isaac-cs-observation'
     (dest/'domains/grid').mkdir(parents=True,exist_ok=True)
     (dest/'domains/grid/schema.lua').write_text('-- 自动生成；动作仅入目录，不由采集执行。\nreturn '+lua(groups)+'\n',encoding='utf-8')
-    out=ROOT/'docs/design/observation-expansion/grid-catalog.json'
+    out=ROOT/'mod/binding/catalog/grid-catalog.json'
     out.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     (dest/'grid-catalog.json').write_text(out.read_text(encoding='utf-8'),encoding='utf-8')
     lines=['# tx-04-11 Grid 逐成员目录','','Sprite／图层／动画／资源的共用规范字段见[资源成员目录](entity-catalog.md)，本目录JSON的shared_resources声明复用范围。','','继承公共字段由 GridEntity 管理；17 个派生接口分别登记，空的派生接口仍保存转换结果和类型。Desc 与 GetSaveState 共用规范字段。操作不在采集时执行，真实更新／生成／破坏与 native 生命周期分 scope 记录。全参数查询见签名；目录不等于全部场景运行覆盖。','','| 规范成员 | 原成员及参数 | 实现 | 来源 |','| --- | --- | --- | --- |']

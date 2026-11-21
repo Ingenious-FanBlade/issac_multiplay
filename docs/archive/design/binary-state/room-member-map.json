@@ -1,0 +1,5412 @@
+{
+  "format": "isaac.cs.room-member-review",
+  "revision": 2,
+  "date": "2026-11-10",
+  "source_catalog": "mod/binding/catalog/stream-catalog.json",
+  "scope": "原isaac.cs.room全部269行；Room本类171行；跨Level/RoomConfig/Presentation的delegated行不冒称本轮字节核对完成",
+  "members": [
+    {
+      "source_ordinal": 2739,
+      "field": 2740,
+      "wire_name": "room-level-catalog.json|Backdrop.GetControlsANM2| |Sprite",
+      "id": "Backdrop.GetControlsANM2",
+      "parameters": " ",
+      "type": "Sprite",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "resource",
+      "destination": "Backdrop实际Sprite／程序图像资源",
+      "reason": "实际采用分支才读；floor/wall是图像内容，不是只传ID／seed／名字；controls按钮按本地C/S设备语义",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Backdrop.md",
+          "line": 20
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2740,
+      "field": 2741,
+      "wire_name": "room-level-catalog.json|Backdrop.GetControlsButtonsANM2| |Sprite",
+      "id": "Backdrop.GetControlsButtonsANM2",
+      "parameters": " ",
+      "type": "Sprite",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "resource",
+      "destination": "Backdrop实际Sprite／程序图像资源",
+      "reason": "实际采用分支才读；floor/wall是图像内容，不是只传ID／seed／名字；controls按钮按本地C/S设备语义",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Backdrop.md",
+          "line": 24
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2741,
+      "field": 2742,
+      "wire_name": "room-level-catalog.json|Backdrop.GetDetailANM2| |Sprite",
+      "id": "Backdrop.GetDetailANM2",
+      "parameters": " ",
+      "type": "Sprite",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "resource",
+      "destination": "Backdrop实际Sprite／程序图像资源",
+      "reason": "实际采用分支才读；floor/wall是图像内容，不是只传ID／seed／名字；controls按钮按本地C/S设备语义",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Backdrop.md",
+          "line": 28
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2742,
+      "field": 2743,
+      "wire_name": "room-level-catalog.json|Backdrop.GetFloorANM2| |Sprite",
+      "id": "Backdrop.GetFloorANM2",
+      "parameters": " ",
+      "type": "Sprite",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "resource",
+      "destination": "Backdrop实际Sprite／程序图像资源",
+      "reason": "实际采用分支才读；floor/wall是图像内容，不是只传ID／seed／名字；controls按钮按本地C/S设备语义",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Backdrop.md",
+          "line": 32
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2743,
+      "field": 2744,
+      "wire_name": "room-level-catalog.json|Backdrop.GetFloorImage| |Image",
+      "id": "Backdrop.GetFloorImage",
+      "parameters": " ",
+      "type": "Image",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "resource",
+      "destination": "Backdrop实际Sprite／程序图像资源",
+      "reason": "实际采用分支才读；floor/wall是图像内容，不是只传ID／seed／名字；controls按钮按本地C/S设备语义",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Backdrop.md",
+          "line": 36
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2744,
+      "field": 2745,
+      "wire_name": "room-level-catalog.json|Backdrop.GetWallImage| |Image",
+      "id": "Backdrop.GetWallImage",
+      "parameters": " ",
+      "type": "Image",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "resource",
+      "destination": "Backdrop实际Sprite／程序图像资源",
+      "reason": "实际采用分支才读；floor/wall是图像内容，不是只传ID／seed／名字；controls按钮按本地C/S设备语义",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Backdrop.md",
+          "line": 41
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2745,
+      "field": 2746,
+      "wire_name": "room-level-catalog.json|Camera.IsClampEnabled| |boolean",
+      "id": "Camera.IsClampEnabled",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "local",
+      "destination": "Camera本地owner／focus意图",
+      "reason": "IsClampEnabled来自官方roomCameraData外部布尔，不在Camera+94内；IsPosVisible是本地视口查询；写命令不重放",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Camera.md",
+          "line": 20
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2746,
+      "field": 2747,
+      "wire_name": "room-level-catalog.json|Camera.IsPosVisible| Vector Pos |boolean",
+      "id": "Camera.IsPosVisible",
+      "parameters": " Vector Pos ",
+      "type": "boolean",
+      "old_ownership": "NotReplicated",
+      "application_category": "parameter_query",
+      "decision": "local",
+      "destination": "Camera本地owner／focus意图",
+      "reason": "IsClampEnabled来自官方roomCameraData外部布尔，不在Camera+94内；IsPosVisible是本地视口查询；写命令不重放",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Camera.md",
+          "line": 25
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2747,
+      "field": 2748,
+      "wire_name": "room-level-catalog.json|Camera.SetClampEnabled| boolean Clamped |void",
+      "id": "Camera.SetClampEnabled",
+      "parameters": " boolean Clamped ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Camera.md",
+          "line": 30
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2748,
+      "field": 2749,
+      "wire_name": "room-level-catalog.json|Camera.SetFocusPosition| Vector Pos |void",
+      "id": "Camera.SetFocusPosition",
+      "parameters": " Vector Pos ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Camera.md",
+          "line": 35
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2749,
+      "field": 2750,
+      "wire_name": "room-level-catalog.json|Camera.SnapToPosition| Vector Pos |void",
+      "id": "Camera.SnapToPosition",
+      "parameters": " Vector Pos ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Camera.md",
+          "line": 44
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2750,
+      "field": 2751,
+      "wire_name": "room-level-catalog.json|Camera.Update| boolean flag = false |void",
+      "id": "Camera.Update",
+      "parameters": " boolean flag = false ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Camera.md",
+          "line": 56
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2751,
+      "field": 2752,
+      "wire_name": "room-level-catalog.json|ColorModifier.A|None|float",
+      "id": "ColorModifier.A",
+      "parameters": null,
+      "type": "float",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "delegated",
+      "destination": "第8步Game.current ColorModState",
+      "reason": "同名颜色不能当同一实例；本地算术不是网络命令；本轮不复活target/lerp/config副本",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/ColorModifier.md",
+          "line": 22
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2752,
+      "field": 2753,
+      "wire_name": "room-level-catalog.json|ColorModifier.B|None|float",
+      "id": "ColorModifier.B",
+      "parameters": null,
+      "type": "float",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "delegated",
+      "destination": "第8步Game.current ColorModState",
+      "reason": "同名颜色不能当同一实例；本地算术不是网络命令；本轮不复活target/lerp/config副本",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/ColorModifier.md",
+          "line": 27
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2753,
+      "field": 2754,
+      "wire_name": "room-level-catalog.json|ColorModifier.Brightness|None|float",
+      "id": "ColorModifier.Brightness",
+      "parameters": null,
+      "type": "float",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "delegated",
+      "destination": "第8步Game.current ColorModState",
+      "reason": "同名颜色不能当同一实例；本地算术不是网络命令；本轮不复活target/lerp/config副本",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/ColorModifier.md",
+          "line": 31
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2754,
+      "field": 2755,
+      "wire_name": "room-level-catalog.json|ColorModifier.ColorModifier| float R = 1, float G = 1, float B = 1, float A = 0, float Brightness = 0, float Contrast = 1 |ColorModifier",
+      "id": "ColorModifier.ColorModifier",
+      "parameters": " float R = 1, float G = 1, float B = 1, float A = 0, float Brightness = 0, float Contrast = 1 ",
+      "type": "ColorModifier",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "local",
+      "destination": "无状态本地值运算",
+      "reason": "颜色算术／比较不产生需要复制的owner，不重放调用日志",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/ColorModifier.md",
+          "line": 18
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2755,
+      "field": 2756,
+      "wire_name": "room-level-catalog.json|ColorModifier.Contrast|None|float",
+      "id": "ColorModifier.Contrast",
+      "parameters": null,
+      "type": "float",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "delegated",
+      "destination": "第8步Game.current ColorModState",
+      "reason": "同名颜色不能当同一实例；本地算术不是网络命令；本轮不复活target/lerp/config副本",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/ColorModifier.md",
+          "line": 35
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2756,
+      "field": 2757,
+      "wire_name": "room-level-catalog.json|ColorModifier.G|None|float",
+      "id": "ColorModifier.G",
+      "parameters": null,
+      "type": "float",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "delegated",
+      "destination": "第8步Game.current ColorModState",
+      "reason": "同名颜色不能当同一实例；本地算术不是网络命令；本轮不复活target/lerp/config副本",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/ColorModifier.md",
+          "line": 39
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2757,
+      "field": 2758,
+      "wire_name": "room-level-catalog.json|ColorModifier.R|None|float",
+      "id": "ColorModifier.R",
+      "parameters": null,
+      "type": "float",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "delegated",
+      "destination": "第8步Game.current ColorModState",
+      "reason": "同名颜色不能当同一实例；本地算术不是网络命令；本轮不复活target/lerp/config副本",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/ColorModifier.md",
+          "line": 43
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2758,
+      "field": 2759,
+      "wire_name": "room-level-catalog.json|ColorModifier.__add| ColorModifier right |ColorModifier",
+      "id": "ColorModifier.__add",
+      "parameters": " ColorModifier right ",
+      "type": "ColorModifier",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "local",
+      "destination": "无状态本地值运算",
+      "reason": "颜色算术／比较不产生需要复制的owner，不重放调用日志",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/ColorModifier.md",
+          "line": 48
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2759,
+      "field": 2760,
+      "wire_name": "room-level-catalog.json|ColorModifier.__div| ColorModifier right |ColorModifier",
+      "id": "ColorModifier.__div",
+      "parameters": " ColorModifier right ",
+      "type": "ColorModifier",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "local",
+      "destination": "无状态本地值运算",
+      "reason": "颜色算术／比较不产生需要复制的owner，不重放调用日志",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/ColorModifier.md",
+          "line": 53
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2760,
+      "field": 2761,
+      "wire_name": "room-level-catalog.json|ColorModifier.__eq| ColorModifier right |ColorModifier",
+      "id": "ColorModifier.__eq",
+      "parameters": " ColorModifier right ",
+      "type": "ColorModifier",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "local",
+      "destination": "无状态本地值运算",
+      "reason": "颜色算术／比较不产生需要复制的owner，不重放调用日志",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/ColorModifier.md",
+          "line": 58
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2761,
+      "field": 2762,
+      "wire_name": "room-level-catalog.json|ColorModifier.__mul| ColorModifier right |ColorModifier",
+      "id": "ColorModifier.__mul",
+      "parameters": " ColorModifier right ",
+      "type": "ColorModifier",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "local",
+      "destination": "无状态本地值运算",
+      "reason": "颜色算术／比较不产生需要复制的owner，不重放调用日志",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/ColorModifier.md",
+          "line": 63
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2762,
+      "field": 2763,
+      "wire_name": "room-level-catalog.json|ColorModifier.__sub| ColorModifier right |ColorModifier",
+      "id": "ColorModifier.__sub",
+      "parameters": " ColorModifier right ",
+      "type": "ColorModifier",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "local",
+      "destination": "无状态本地值运算",
+      "reason": "颜色算术／比较不产生需要复制的owner，不重放调用日志",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/ColorModifier.md",
+          "line": 68
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2763,
+      "field": 2764,
+      "wire_name": "room-level-catalog.json|FXLayers.AddPoopFx| ColorMod Color |boolean",
+      "id": "FXLayers.AddPoopFx",
+      "parameters": " ColorMod Color ",
+      "type": "boolean",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/FXLayers.md",
+          "line": 20
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2764,
+      "field": 2765,
+      "wire_name": "room-level-catalog.json|FXParams.ColorModifier|None|ColorModifier",
+      "id": "FXParams.ColorModifier",
+      "parameters": null,
+      "type": "ColorModifier",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "conversion",
+      "destination": "FXParams用途表／R2最终water/light/current color",
+      "reason": "ColorModifier是配置副本，不是Game current；WaterEffectColor是Effect.Init输入，最终Entity颜色另承接",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/FXParams.md",
+          "line": 19
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2765,
+      "field": 2766,
+      "wire_name": "room-level-catalog.json|FXParams.LightColor|None|KColor",
+      "id": "FXParams.LightColor",
+      "parameters": null,
+      "type": "KColor",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "conversion",
+      "destination": "FXParams用途表／R2最终water/light/current color",
+      "reason": "ColorModifier是配置副本，不是Game current；WaterEffectColor是Effect.Init输入，最终Entity颜色另承接",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/FXParams.md",
+          "line": 25
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2766,
+      "field": 2767,
+      "wire_name": "room-level-catalog.json|FXParams.ShadowAlpha|None|float",
+      "id": "FXParams.ShadowAlpha",
+      "parameters": null,
+      "type": "float",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "conversion",
+      "destination": "FXParams用途表／R2最终water/light/current color",
+      "reason": "ColorModifier是配置副本，不是Game current；WaterEffectColor是Effect.Init输入，最终Entity颜色另承接",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/FXParams.md",
+          "line": 29
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2767,
+      "field": 2768,
+      "wire_name": "room-level-catalog.json|FXParams.ShadowColor|None|KColor",
+      "id": "FXParams.ShadowColor",
+      "parameters": null,
+      "type": "KColor",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "conversion",
+      "destination": "FXParams用途表／R2最终water/light/current color",
+      "reason": "ColorModifier是配置副本，不是Game current；WaterEffectColor是Effect.Init输入，最终Entity颜色另承接",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/FXParams.md",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2768,
+      "field": 2769,
+      "wire_name": "room-level-catalog.json|FXParams.UseWaterV2|None|boolean",
+      "id": "FXParams.UseWaterV2",
+      "parameters": null,
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "conversion",
+      "destination": "FXParams用途表／R2最终water/light/current color",
+      "reason": "ColorModifier是配置副本，不是Game current；WaterEffectColor是Effect.Init输入，最终Entity颜色另承接",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/FXParams.md",
+          "line": 37
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2769,
+      "field": 2770,
+      "wire_name": "room-level-catalog.json|FXParams.WaterColor|None|KColor",
+      "id": "FXParams.WaterColor",
+      "parameters": null,
+      "type": "KColor",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "conversion",
+      "destination": "FXParams用途表／R2最终water/light/current color",
+      "reason": "ColorModifier是配置副本，不是Game current；WaterEffectColor是Effect.Init输入，最终Entity颜色另承接",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/FXParams.md",
+          "line": 42
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2770,
+      "field": 2771,
+      "wire_name": "room-level-catalog.json|FXParams.WaterColorMultiplier|None|KColor",
+      "id": "FXParams.WaterColorMultiplier",
+      "parameters": null,
+      "type": "KColor",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "conversion",
+      "destination": "FXParams用途表／R2最终water/light/current color",
+      "reason": "ColorModifier是配置副本，不是Game current；WaterEffectColor是Effect.Init输入，最终Entity颜色另承接",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/FXParams.md",
+          "line": 46
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2771,
+      "field": 2772,
+      "wire_name": "room-level-catalog.json|FXParams.WaterEffectColor|None|Color",
+      "id": "FXParams.WaterEffectColor",
+      "parameters": null,
+      "type": "Color",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "conversion",
+      "destination": "FXParams用途表／R2最终water/light/current color",
+      "reason": "ColorModifier是配置副本，不是Game current；WaterEffectColor是Effect.Init输入，最终Entity颜色另承接",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/FXParams.md",
+          "line": 50
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2772,
+      "field": 2773,
+      "wire_name": "room-level-catalog.json|LRoomAreaDesc.GetHighBottomRight| |Vector",
+      "id": "LRoomAreaDesc.GetHighBottomRight",
+      "parameters": " ",
+      "type": "Vector",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "derived",
+      "destination": "同world R0 bounds＋RoomConfig.Shape",
+      "reason": "按已核12形表的纯几何规则；不是额外Room私有对象",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/LRoomAreaDesc.md",
+          "line": 20
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2773,
+      "field": 2774,
+      "wire_name": "room-level-catalog.json|LRoomAreaDesc.GetHighTopLeft| |Vector",
+      "id": "LRoomAreaDesc.GetHighTopLeft",
+      "parameters": " ",
+      "type": "Vector",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "derived",
+      "destination": "同world R0 bounds＋RoomConfig.Shape",
+      "reason": "按已核12形表的纯几何规则；不是额外Room私有对象",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/LRoomAreaDesc.md",
+          "line": 25
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2774,
+      "field": 2775,
+      "wire_name": "room-level-catalog.json|LRoomAreaDesc.GetLowBottomRight| |Vector",
+      "id": "LRoomAreaDesc.GetLowBottomRight",
+      "parameters": " ",
+      "type": "Vector",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "derived",
+      "destination": "同world R0 bounds＋RoomConfig.Shape",
+      "reason": "按已核12形表的纯几何规则；不是额外Room私有对象",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/LRoomAreaDesc.md",
+          "line": 30
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2775,
+      "field": 2776,
+      "wire_name": "room-level-catalog.json|LRoomAreaDesc.GetLowTopLeft| |Vector",
+      "id": "LRoomAreaDesc.GetLowTopLeft",
+      "parameters": " ",
+      "type": "Vector",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "derived",
+      "destination": "同world R0 bounds＋RoomConfig.Shape",
+      "reason": "按已核12形表的纯几何规则；不是额外Room私有对象",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/LRoomAreaDesc.md",
+          "line": 35
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2776,
+      "field": 2777,
+      "wire_name": "room-level-catalog.json|LRoomTileDesc.GetHighBottomRight| |int[2]",
+      "id": "LRoomTileDesc.GetHighBottomRight",
+      "parameters": " ",
+      "type": "int[2]",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "derived",
+      "destination": "同world R0 bounds＋RoomConfig.Shape",
+      "reason": "按已核12形表的纯几何规则；不是额外Room私有对象",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/LRoomTileDesc.md",
+          "line": 20
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2777,
+      "field": 2778,
+      "wire_name": "room-level-catalog.json|LRoomTileDesc.GetHighTopLeft| |int[2]",
+      "id": "LRoomTileDesc.GetHighTopLeft",
+      "parameters": " ",
+      "type": "int[2]",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "derived",
+      "destination": "同world R0 bounds＋RoomConfig.Shape",
+      "reason": "按已核12形表的纯几何规则；不是额外Room私有对象",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/LRoomTileDesc.md",
+          "line": 25
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2778,
+      "field": 2779,
+      "wire_name": "room-level-catalog.json|LRoomTileDesc.GetLowBottomRight| |int[2]",
+      "id": "LRoomTileDesc.GetLowBottomRight",
+      "parameters": " ",
+      "type": "int[2]",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "derived",
+      "destination": "同world R0 bounds＋RoomConfig.Shape",
+      "reason": "按已核12形表的纯几何规则；不是额外Room私有对象",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/LRoomTileDesc.md",
+          "line": 30
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2779,
+      "field": 2780,
+      "wire_name": "room-level-catalog.json|LRoomTileDesc.GetLowTopLeft| |int[2]",
+      "id": "LRoomTileDesc.GetLowTopLeft",
+      "parameters": " ",
+      "type": "int[2]",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "derived",
+      "destination": "同world R0 bounds＋RoomConfig.Shape",
+      "reason": "按已核12形表的纯几何规则；不是额外Room私有对象",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/LRoomTileDesc.md",
+          "line": 35
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2780,
+      "field": 2781,
+      "wire_name": "room-level-catalog.json|LRoomTileDesc.GetRandomTile| int Seed |int[2]",
+      "id": "LRoomTileDesc.GetRandomTile",
+      "parameters": " int Seed ",
+      "type": "int[2]",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "actual_call",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/LRoomTileDesc.md",
+          "line": 40
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2868,
+      "field": 2869,
+      "wire_name": "room-level-catalog.json|RailManager.GetRailsSprite| |Sprite",
+      "id": "RailManager.GetRailsSprite",
+      "parameters": " ",
+      "type": "Sprite",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "resource",
+      "destination": "RailManager.sprite资源／必要层覆盖",
+      "reason": "main rail/pitrail与每格帧由实际轨道派生；不发推进状态或创造矿车",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RailManager.md",
+          "line": 20
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2869,
+      "field": 2870,
+      "wire_name": "room-level-catalog.json|Room.CanPickupGridEntity| int GridIndex |boolean",
+      "id": "Room.CanPickupGridEntity",
+      "parameters": " int GridIndex ",
+      "type": "boolean",
+      "old_ownership": "NotReplicated",
+      "application_category": "parameter_query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "寻路／碰撞／生成／计数／伤害／价格生产留Host；实际Entity/门/HUD/音频结果由各自域承接，不为目录相等下发",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 41
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2870,
+      "field": 2871,
+      "wire_name": "room-level-catalog.json|Room.CanSpawnObstacleAtPosition| int GridIndex, boolean Force |boolean",
+      "id": "Room.CanSpawnObstacleAtPosition",
+      "parameters": " int GridIndex, boolean Force ",
+      "type": "boolean",
+      "old_ownership": "NotReplicated",
+      "application_category": "parameter_query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "寻路／碰撞／生成／计数／伤害／价格生产留Host；实际Entity/门/HUD/音频结果由各自域承接，不为目录相等下发",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 46
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2871,
+      "field": 2872,
+      "wire_name": "room-level-catalog.json|Room.CheckLine| Vector Pos1, Vector Pos2, LinecheckMode Mode, int GridPathThreshold = 0, boolean IgnoreWalls = false, boolean IgnoreCrushable = false |(boolean, Vector)",
+      "id": "Room.CheckLine",
+      "parameters": " Vector Pos1, Vector Pos2, LinecheckMode Mode, int GridPathThreshold = 0, boolean IgnoreWalls = false, boolean IgnoreCrushable = false ",
+      "type": "(boolean, Vector)",
+      "old_ownership": "ReplicatedState",
+      "application_category": "derived_query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "寻路／碰撞／生成／计数／伤害／价格生产留Host；实际Entity/门/HUD/音频结果由各自域承接，不为目录相等下发",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 21
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2872,
+      "field": 2873,
+      "wire_name": "room-level-catalog.json|Room.ClearBossHazards| boolean IgnoreNPCs = true, Entity Source = nil |void",
+      "id": "Room.ClearBossHazards",
+      "parameters": " boolean IgnoreNPCs = true, Entity Source = nil ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 50
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2873,
+      "field": 2874,
+      "wire_name": "room-level-catalog.json|Room.DamageGrid| int Index, int Damage |boolean",
+      "id": "Room.DamageGrid",
+      "parameters": " int Index, int Damage ",
+      "type": "boolean",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 54
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2874,
+      "field": 2875,
+      "wire_name": "room-level-catalog.json|Room.DamageGridWithSource| int Index, int Damage, EntityRef Source |boolean",
+      "id": "Room.DamageGridWithSource",
+      "parameters": " int Index, int Damage, EntityRef Source ",
+      "type": "boolean",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 59
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2875,
+      "field": 2876,
+      "wire_name": "room-level-catalog.json|Room.DestroyGrid| int Index, boolean Immediate |boolean",
+      "id": "Room.DestroyGrid",
+      "parameters": " int Index, boolean Immediate ",
+      "type": "boolean",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 63
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2876,
+      "field": 2877,
+      "wire_name": "room-level-catalog.json|Room.DestroyGridWithSource| int Index, boolean Immediate, EntityRef Source |boolean",
+      "id": "Room.DestroyGridWithSource",
+      "parameters": " int Index, boolean Immediate, EntityRef Source ",
+      "type": "boolean",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 69
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2877,
+      "field": 2878,
+      "wire_name": "room-level-catalog.json|Room.DoLightningStrike| int Seed = RandomSeed |void",
+      "id": "Room.DoLightningStrike",
+      "parameters": " int Seed = RandomSeed ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 55
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2878,
+      "field": 2879,
+      "wire_name": "room-level-catalog.json|Room.EmitBloodFromWalls| int Duration, int Count |void",
+      "id": "Room.EmitBloodFromWalls",
+      "parameters": " int Duration, int Count ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "452520写Room+7214 Duration和+7218 Count；只同步已产生效果。",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 73
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2879,
+      "field": 2880,
+      "wire_name": "room-level-catalog.json|Room.FindFreePickupSpawnPosition| Vector Pos, float InitialStep = 0, boolean AvoidActiveEntities = false, boolean AllowPits = false |Vector",
+      "id": "Room.FindFreePickupSpawnPosition",
+      "parameters": " Vector Pos, float InitialStep = 0, boolean AvoidActiveEntities = false, boolean AllowPits = false ",
+      "type": "Vector",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 78
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2880,
+      "field": 2881,
+      "wire_name": "room-level-catalog.json|Room.FindFreeTilePosition| Vector Pos, float DistanceThreshold |Vector",
+      "id": "Room.FindFreeTilePosition",
+      "parameters": " Vector Pos, float DistanceThreshold ",
+      "type": "Vector",
+      "old_ownership": "ReplicatedState",
+      "application_category": "derived_query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "寻路／碰撞／生成／计数／伤害／价格生产留Host；实际Entity/门/HUD/音频结果由各自域承接，不为目录相等下发",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 83
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2881,
+      "field": 2882,
+      "wire_name": "room-level-catalog.json|Room.GetAliveBossesCount| |int",
+      "id": "Room.GetAliveBossesCount",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "寻路／碰撞／生成／计数／伤害／价格生产留Host；实际Entity/门/HUD/音频结果由各自域承接，不为目录相等下发",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 88
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2882,
+      "field": 2883,
+      "wire_name": "room-level-catalog.json|Room.GetAliveEnemiesCount| |int",
+      "id": "Room.GetAliveEnemiesCount",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "寻路／碰撞／生成／计数／伤害／价格生产留Host；实际Entity/门/HUD/音频结果由各自域承接，不为目录相等下发",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 93
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2883,
+      "field": 2884,
+      "wire_name": "room-level-catalog.json|Room.GetAwardSeed| |int",
+      "id": "Room.GetAwardSeed",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "delegated",
+      "destination": "第7步Level/RoomDescriptor或第8步具体显示owner",
+      "reason": "本轮只Room物理范围；描述flags／生成seed等不在这里重复上线，需对应域按消费者核定",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 98
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2884,
+      "field": 2885,
+      "wire_name": "room-level-catalog.json|Room.GetBackdrop| |Backdrop",
+      "id": "Room.GetBackdrop",
+      "parameters": " ",
+      "type": "Backdrop",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "reference",
+      "destination": "Backdrop",
+      "reason": "转资源／正式成员或本地owner，禁止发送地址、STL头、完整候选与缓存",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 60
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2885,
+      "field": 2886,
+      "wire_name": "room-level-catalog.json|Room.GetBackdropType| |BackdropType",
+      "id": "Room.GetBackdropType",
+      "parameters": " ",
+      "type": "BackdropType",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "field",
+      "destination": "Backdrop.backdrop_id",
+      "reason": "保留具体显示消费者所需当前值；Getter本身不作为正式reader",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 103
+        },
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 9
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2886,
+      "field": 2887,
+      "wire_name": "room-level-catalog.json|Room.GetBossID| |int",
+      "id": "Room.GetBossID",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "conversion",
+      "destination": "第8步实际BossIntro资源（原ID归Host）",
+      "reason": "发送当前实际采用显示结果；不为原始API返回值相等复制全部生产依赖",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 109
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2887,
+      "field": 2888,
+      "wire_name": "room-level-catalog.json|Room.GetBossVictoryJingle| |Music",
+      "id": "Room.GetBossVictoryJingle",
+      "parameters": " ",
+      "type": "Music",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "conversion",
+      "destination": "第8步实际选中jingle voice/event（不为采集重新选择）",
+      "reason": "发送当前实际采用显示结果；不为原始API返回值相等复制全部生产依赖",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 65
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2888,
+      "field": 2889,
+      "wire_name": "room-level-catalog.json|Room.GetBottomRightPos| |Vector",
+      "id": "Room.GetBottomRightPos",
+      "parameters": " ",
+      "type": "Vector",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "derived",
+      "destination": "R0 actual geometry＋本地视口",
+      "reason": "只使用已核纯几何；不调用随机tile／寻路／碰撞／玩法更新",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 119
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2889,
+      "field": 2890,
+      "wire_name": "room-level-catalog.json|Room.GetBrokenWatchState| |int",
+      "id": "Room.GetBrokenWatchState",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "寻路／碰撞／生成／计数／伤害／价格生产留Host；实际Entity/门/HUD/音频结果由各自域承接，不为目录相等下发",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 125
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2890,
+      "field": 2891,
+      "wire_name": "room-level-catalog.json|Room.GetCamera| |Camera",
+      "id": "Room.GetCamera",
+      "parameters": " ",
+      "type": "Camera",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "reference",
+      "destination": "本地Camera＋必要focus显示意图",
+      "reason": "转资源／正式成员或本地owner，禁止发送地址、STL头、完整候选与缓存",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 69
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2891,
+      "field": 2892,
+      "wire_name": "room-level-catalog.json|Room.GetCenterPos| |Vector",
+      "id": "Room.GetCenterPos",
+      "parameters": " ",
+      "type": "Vector",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "derived",
+      "destination": "R0 actual geometry＋本地视口",
+      "reason": "只使用已核纯几何；不调用随机tile／寻路／碰撞／玩法更新",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 140
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2892,
+      "field": 2893,
+      "wire_name": "room-level-catalog.json|Room.GetChampionBossChance| |float",
+      "id": "Room.GetChampionBossChance",
+      "parameters": " ",
+      "type": "float",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "寻路／碰撞／生成／计数／伤害／价格生产留Host；实际Entity/门/HUD/音频结果由各自域承接，不为目录相等下发",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 74
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2893,
+      "field": 2894,
+      "wire_name": "room-level-catalog.json|Room.GetClampedGridIndex| Vector Position |int",
+      "id": "Room.GetClampedGridIndex",
+      "parameters": " Vector Position ",
+      "type": "int",
+      "old_ownership": "NotReplicated",
+      "application_category": "parameter_query",
+      "decision": "derived",
+      "destination": "R0 actual geometry＋本地视口",
+      "reason": "只使用已核纯几何；不调用随机tile／寻路／碰撞／玩法更新",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 146
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2894,
+      "field": 2895,
+      "wire_name": "room-level-catalog.json|Room.GetClampedPosition| Vector Pos, float Margin |Vector",
+      "id": "Room.GetClampedPosition",
+      "parameters": " Vector Pos, float Margin ",
+      "type": "Vector",
+      "old_ownership": "NotReplicated",
+      "application_category": "parameter_query",
+      "decision": "derived",
+      "destination": "R0 actual geometry＋本地视口",
+      "reason": "只使用已核纯几何；不调用随机tile／寻路／碰撞／玩法更新",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 152
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2895,
+      "field": 2896,
+      "wire_name": "room-level-catalog.json|Room.GetDecorationSeed| |int",
+      "id": "Room.GetDecorationSeed",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "delegated",
+      "destination": "第7步Level/RoomDescriptor或第8步具体显示owner",
+      "reason": "本轮只Room物理范围；描述flags／生成seed等不在这里重复上线，需对应域按消费者核定",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 158
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2896,
+      "field": 2897,
+      "wire_name": "room-level-catalog.json|Room.GetDeliriumDistance| |int",
+      "id": "Room.GetDeliriumDistance",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "delegated",
+      "destination": "第7步Level/RoomDescriptor或第8步具体显示owner",
+      "reason": "本轮只Room物理范围；描述flags／生成seed等不在这里重复上线，需对应域按消费者核定",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 163
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2897,
+      "field": 2898,
+      "wire_name": "room-level-catalog.json|Room.GetDevilRoomChance| |float",
+      "id": "Room.GetDevilRoomChance",
+      "parameters": " ",
+      "type": "float",
+      "old_ownership": "ReplicatedState",
+      "application_category": "external_reference",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "寻路／碰撞／生成／计数／伤害／价格生产留Host；实际Entity/门/HUD/音频结果由各自域承接，不为目录相等下发",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 168
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2898,
+      "field": 2899,
+      "wire_name": "room-level-catalog.json|Room.GetDoor| DoorSlot Slot |GridEntityDoor",
+      "id": "Room.GetDoor",
+      "parameters": " DoorSlot Slot ",
+      "type": "GridEntityDoor",
+      "old_ownership": "ReplicatedState",
+      "application_category": "domain_value",
+      "decision": "reference",
+      "destination": "R3 nullable成员引用",
+      "reason": "转资源／正式成员或本地owner，禁止发送地址、STL头、完整候选与缓存",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 285
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2899,
+      "field": 2900,
+      "wire_name": "room-level-catalog.json|Room.GetDoorSlotPosition| DoorSlot Slot |Vector",
+      "id": "Room.GetDoorSlotPosition",
+      "parameters": " DoorSlot Slot ",
+      "type": "Vector",
+      "old_ownership": "NotReplicated",
+      "application_category": "parameter_query",
+      "decision": "derived",
+      "destination": "R0 actual geometry＋本地视口",
+      "reason": "只使用已核纯几何；不调用随机tile／寻路／碰撞／玩法更新",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 291
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2900,
+      "field": 2901,
+      "wire_name": "room-level-catalog.json|Room.GetDungeonRockIdx| |int",
+      "id": "Room.GetDungeonRockIdx",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "寻路／碰撞／生成／计数／伤害／价格生产留Host；实际Entity/门/HUD/音频结果由各自域承接，不为目录相等下发",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 296
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2901,
+      "field": 2902,
+      "wire_name": "room-level-catalog.json|Room.GetEffects| |TemporaryEffects",
+      "id": "Room.GetEffects",
+      "parameters": " ",
+      "type": "TemporaryEffects",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "conversion",
+      "destination": "效果481等实际显示资格；原容器留Host",
+      "reason": "发送当前实际采用显示结果；不为原始API返回值相等复制全部生产依赖",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 79
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2902,
+      "field": 2903,
+      "wire_name": "room-level-catalog.json|Room.GetEnemyDamageInflicted| |float",
+      "id": "Room.GetEnemyDamageInflicted",
+      "parameters": " ",
+      "type": "float",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "寻路／碰撞／生成／计数／伤害／价格生产留Host；实际Entity/门/HUD/音频结果由各自域承接，不为目录相等下发",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 301
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2903,
+      "field": 2904,
+      "wire_name": "room-level-catalog.json|Room.GetEntities| |EntityList",
+      "id": "Room.GetEntities",
+      "parameters": " ",
+      "type": "EntityList",
+      "old_ownership": "ReplicatedState",
+      "application_category": "domain_value",
+      "decision": "reference",
+      "destination": "Entity正式成员／顺序",
+      "reason": "EntityList的空间／碰撞／查询缓存与原版Online32帧历史不上线；正式成员与有序绘制关系承接。",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 309
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2904,
+      "field": 2905,
+      "wire_name": "room-level-catalog.json|Room.GetFXLayers| |FXLayers",
+      "id": "Room.GetFXLayers",
+      "parameters": " ",
+      "type": "FXLayers",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "reference",
+      "destination": "FXLayers actual visual records",
+      "reason": "转资源／正式成员或本地owner，禁止发送地址、STL头、完整候选与缓存",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 87
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2905,
+      "field": 2906,
+      "wire_name": "room-level-catalog.json|Room.GetFXParams| |FXParams",
+      "id": "Room.GetFXParams",
+      "parameters": " ",
+      "type": "FXParams",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "reference",
+      "destination": "FXParams用途投影",
+      "reason": "转资源／正式成员或本地owner，禁止发送地址、STL头、完整候选与缓存",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 91
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2906,
+      "field": 2907,
+      "wire_name": "room-level-catalog.json|Room.GetFloorColor| |Color",
+      "id": "Room.GetFloorColor",
+      "parameters": " ",
+      "type": "Color",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "field",
+      "destination": "Room.floor_color",
+      "reason": "保留具体显示消费者所需当前值；Getter本身不作为正式reader",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 83
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2907,
+      "field": 2908,
+      "wire_name": "room-level-catalog.json|Room.GetFrameCount| |int",
+      "id": "Room.GetFrameCount",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "field",
+      "destination": "R1.frame_baseline＋world.GameFrame",
+      "reason": "保留具体显示消费者所需当前值；Getter本身不作为正式reader",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 329
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2908,
+      "field": 2909,
+      "wire_name": "room-level-catalog.json|Room.GetGreedWaveTimer| |int",
+      "id": "Room.GetGreedWaveTimer",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "field",
+      "destination": "R1.greed_wave_timer",
+      "reason": "保留具体显示消费者所需当前值；Getter本身不作为正式reader",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 95
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2909,
+      "field": 2910,
+      "wire_name": "room-level-catalog.json|Room.GetGridCollision| int GridIndex |GridCollisionClass",
+      "id": "Room.GetGridCollision",
+      "parameters": " int GridIndex ",
+      "type": "GridCollisionClass",
+      "old_ownership": "NotReplicated",
+      "application_category": "parameter_query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "寻路／碰撞／生成／计数／伤害／价格生产留Host；实际Entity/门/HUD/音频结果由各自域承接，不为目录相等下发",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 335
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2910,
+      "field": 2911,
+      "wire_name": "room-level-catalog.json|Room.GetGridCollisionAtPos| Vector Pos |GridCollisionClass",
+      "id": "Room.GetGridCollisionAtPos",
+      "parameters": " Vector Pos ",
+      "type": "GridCollisionClass",
+      "old_ownership": "NotReplicated",
+      "application_category": "parameter_query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "寻路／碰撞／生成／计数／伤害／价格生产留Host；实际Entity/门/HUD/音频结果由各自域承接，不为目录相等下发",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 342
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2911,
+      "field": 2912,
+      "wire_name": "room-level-catalog.json|Room.GetGridEntity| int Index |GridEntity",
+      "id": "Room.GetGridEntity",
+      "parameters": " int Index ",
+      "type": "GridEntity",
+      "old_ownership": "ReplicatedState",
+      "application_category": "domain_value",
+      "decision": "reference",
+      "destination": "第6步正式Grid成员",
+      "reason": "转资源／正式成员或本地owner，禁止发送地址、STL头、完整候选与缓存",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 348
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2912,
+      "field": 2913,
+      "wire_name": "room-level-catalog.json|Room.GetGridEntityFromPos| Vector Position |GridEntity",
+      "id": "Room.GetGridEntityFromPos",
+      "parameters": " Vector Position ",
+      "type": "GridEntity",
+      "old_ownership": "ReplicatedState",
+      "application_category": "domain_value",
+      "decision": "reference",
+      "destination": "第6步Grid成员＋R0几何",
+      "reason": "转资源／正式成员或本地owner，禁止发送地址、STL头、完整候选与缓存",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 354
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2913,
+      "field": 2914,
+      "wire_name": "room-level-catalog.json|Room.GetGridHeight| |int",
+      "id": "Room.GetGridHeight",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "derived",
+      "destination": "R0 actual geometry＋本地视口",
+      "reason": "只使用已核纯几何；不调用随机tile／寻路／碰撞／玩法更新",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 360
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2914,
+      "field": 2915,
+      "wire_name": "room-level-catalog.json|Room.GetGridIndex| Vector Position |int",
+      "id": "Room.GetGridIndex",
+      "parameters": " Vector Position ",
+      "type": "int",
+      "old_ownership": "NotReplicated",
+      "application_category": "parameter_query",
+      "decision": "derived",
+      "destination": "R0 actual geometry＋本地视口",
+      "reason": "只使用已核纯几何；不调用随机tile／寻路／碰撞／玩法更新",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 365
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2915,
+      "field": 2916,
+      "wire_name": "room-level-catalog.json|Room.GetGridIndexByTile| int GridRow, int GridColumn |int",
+      "id": "Room.GetGridIndexByTile",
+      "parameters": " int GridRow, int GridColumn ",
+      "type": "int",
+      "old_ownership": "NotReplicated",
+      "application_category": "parameter_query",
+      "decision": "derived",
+      "destination": "R0 actual geometry＋本地视口",
+      "reason": "只使用已核纯几何；不调用随机tile／寻路／碰撞／玩法更新",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 99
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2916,
+      "field": 2917,
+      "wire_name": "room-level-catalog.json|Room.GetGridIndexByTile| int[2] Tile |int",
+      "id": "Room.GetGridIndexByTile",
+      "parameters": " int[2] Tile ",
+      "type": "int",
+      "old_ownership": "NotReplicated",
+      "application_category": "parameter_query",
+      "decision": "derived",
+      "destination": "R0 actual geometry＋本地视口",
+      "reason": "只使用已核纯几何；不调用随机tile／寻路／碰撞／玩法更新",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 100
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2917,
+      "field": 2918,
+      "wire_name": "room-level-catalog.json|Room.GetGridPath| int Index |int",
+      "id": "Room.GetGridPath",
+      "parameters": " int Index ",
+      "type": "int",
+      "old_ownership": "NotReplicated",
+      "application_category": "parameter_query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "原生DWORD表448项，SDK456错误；后接448个i16 NPC占用计时，两表均Host。",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 370
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2918,
+      "field": 2919,
+      "wire_name": "room-level-catalog.json|Room.GetGridPathFromPos| Vector Position |int",
+      "id": "Room.GetGridPathFromPos",
+      "parameters": " Vector Position ",
+      "type": "int",
+      "old_ownership": "NotReplicated",
+      "application_category": "parameter_query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "按几何定位到Host DWORD表；不为Client寻路查询复制表。",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 388
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2919,
+      "field": 2920,
+      "wire_name": "room-level-catalog.json|Room.GetGridPosition| int GridIndex |Vector",
+      "id": "Room.GetGridPosition",
+      "parameters": " int GridIndex ",
+      "type": "Vector",
+      "old_ownership": "NotReplicated",
+      "application_category": "parameter_query",
+      "decision": "derived",
+      "destination": "R0 actual geometry＋本地视口",
+      "reason": "只使用已核纯几何；不调用随机tile／寻路／碰撞／玩法更新",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 405
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2920,
+      "field": 2921,
+      "wire_name": "room-level-catalog.json|Room.GetGridSize| |int",
+      "id": "Room.GetGridSize",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "derived",
+      "destination": "R0 actual geometry＋本地视口",
+      "reason": "只使用已核纯几何；不调用随机tile／寻路／碰撞／玩法更新",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 410
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2921,
+      "field": 2922,
+      "wire_name": "room-level-catalog.json|Room.GetGridWidth| |int",
+      "id": "Room.GetGridWidth",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "derived",
+      "destination": "R0 actual geometry＋本地视口",
+      "reason": "只使用已核纯几何；不调用随机tile／寻路／碰撞／玩法更新",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 415
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2922,
+      "field": 2923,
+      "wire_name": "room-level-catalog.json|Room.GetItemPool| int Seed = Random(), boolean Raw = false |ItemPoolType PoolType",
+      "id": "Room.GetItemPool",
+      "parameters": " int Seed = Random(), boolean Raw = false ",
+      "type": "ItemPoolType PoolType",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "actual_call",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 104
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2923,
+      "field": 2924,
+      "wire_name": "room-level-catalog.json|Room.GetLRoomAreaDesc| |LRoomAreaDesc",
+      "id": "Room.GetLRoomAreaDesc",
+      "parameters": " ",
+      "type": "LRoomAreaDesc",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "derived",
+      "destination": "R0 actual geometry＋本地视口",
+      "reason": "只使用已核纯几何；不调用随机tile／寻路／碰撞／玩法更新",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 437
+        },
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2924,
+      "field": 2925,
+      "wire_name": "room-level-catalog.json|Room.GetLRoomTileDesc| |LRoomTileDesc",
+      "id": "Room.GetLRoomTileDesc",
+      "parameters": " ",
+      "type": "LRoomTileDesc",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "derived",
+      "destination": "R0 actual geometry＋本地视口",
+      "reason": "只使用已核纯几何；不调用随机tile／寻路／碰撞／玩法更新",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 444
+        },
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 18
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2925,
+      "field": 2926,
+      "wire_name": "room-level-catalog.json|Room.GetLaserTarget| Vector Pos, Vector Dir |Vector",
+      "id": "Room.GetLaserTarget",
+      "parameters": " Vector Pos, Vector Dir ",
+      "type": "Vector",
+      "old_ownership": "NotReplicated",
+      "application_category": "parameter_query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "寻路／碰撞／生成／计数／伤害／价格生产留Host；实际Entity/门/HUD/音频结果由各自域承接，不为目录相等下发",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 420
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2926,
+      "field": 2927,
+      "wire_name": "room-level-catalog.json|Room.GetLavaIntensity| |float",
+      "id": "Room.GetLavaIntensity",
+      "parameters": " ",
+      "type": "float",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "field",
+      "destination": "Room.lava_intensity",
+      "reason": "保留具体显示消费者所需当前值；Getter本身不作为正式reader",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 426
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2927,
+      "field": 2928,
+      "wire_name": "room-level-catalog.json|Room.GetLightingAlpha| |float",
+      "id": "Room.GetLightingAlpha",
+      "parameters": " ",
+      "type": "float",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "conversion",
+      "destination": "实际lighting_alpha",
+      "reason": "发送当前实际采用显示结果；不为原始API返回值相等复制全部生产依赖",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 432
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2928,
+      "field": 2929,
+      "wire_name": "room-level-catalog.json|Room.GetLightningIntensity| |float",
+      "id": "Room.GetLightningIntensity",
+      "parameters": " ",
+      "type": "float",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "寻路／碰撞／生成／计数／伤害／价格生产留Host；实际Entity/门/HUD/音频结果由各自域承接，不为目录相等下发",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 111
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2929,
+      "field": 2930,
+      "wire_name": "room-level-catalog.json|Room.GetNumRainSpawners| |int",
+      "id": "Room.GetNumRainSpawners",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "寻路／碰撞／生成／计数／伤害／价格生产留Host；实际Entity/门/HUD/音频结果由各自域承接，不为目录相等下发",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 118
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2930,
+      "field": 2931,
+      "wire_name": "room-level-catalog.json|Room.GetRail| int GridIndex |StbRailVariant",
+      "id": "Room.GetRail",
+      "parameters": " int GridIndex ",
+      "type": "StbRailVariant",
+      "old_ownership": "NotReplicated",
+      "application_category": "parameter_query",
+      "decision": "reference",
+      "destination": "RailManager.grid_flags[actual_extent]",
+      "reason": "转资源／正式成员或本地owner，禁止发送地址、STL头、完整候选与缓存",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 126
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2931,
+      "field": 2932,
+      "wire_name": "room-level-catalog.json|Room.GetRailManager| |RailManager",
+      "id": "Room.GetRailManager",
+      "parameters": " ",
+      "type": "RailManager",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "reference",
+      "destination": "RailManager",
+      "reason": "转资源／正式成员或本地owner，禁止发送地址、STL头、完整候选与缓存",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 130
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2932,
+      "field": 2933,
+      "wire_name": "room-level-catalog.json|Room.GetRainIntensity| |float",
+      "id": "Room.GetRainIntensity",
+      "parameters": " ",
+      "type": "float",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "寻路／碰撞／生成／计数／伤害／价格生产留Host；实际Entity/门/HUD/音频结果由各自域承接，不为目录相等下发",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 134
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2933,
+      "field": 2934,
+      "wire_name": "room-level-catalog.json|Room.GetRandomPosition| float Margin |Vector",
+      "id": "Room.GetRandomPosition",
+      "parameters": " float Margin ",
+      "type": "Vector",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "actual_call",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 451
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2934,
+      "field": 2935,
+      "wire_name": "room-level-catalog.json|Room.GetRandomTileIndex| int Seed |int",
+      "id": "Room.GetRandomTileIndex",
+      "parameters": " int Seed ",
+      "type": "int",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "actual_call",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 457
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2935,
+      "field": 2936,
+      "wire_name": "room-level-catalog.json|Room.GetRedHeartDamage| |boolean",
+      "id": "Room.GetRedHeartDamage",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "寻路／碰撞／生成／计数／伤害／价格生产留Host；实际Entity/门/HUD/音频结果由各自域承接，不为目录相等下发",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 462
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2936,
+      "field": 2937,
+      "wire_name": "room-level-catalog.json|Room.GetRenderMode| |RenderMode",
+      "id": "Room.GetRenderMode",
+      "parameters": " ",
+      "type": "RenderMode",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "conversion",
+      "destination": "本地当前受控绘制pass",
+      "reason": "发送当前实际采用显示结果；不为原始API返回值相等复制全部生产依赖",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 468
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2937,
+      "field": 2938,
+      "wire_name": "room-level-catalog.json|Room.GetRenderScrollOffset| |Vector",
+      "id": "Room.GetRenderScrollOffset",
+      "parameters": " ",
+      "type": "Vector",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "field",
+      "destination": "Room.render_scroll",
+      "reason": "保留具体显示消费者所需当前值；Getter本身不作为正式reader",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 473
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2938,
+      "field": 2939,
+      "wire_name": "room-level-catalog.json|Room.GetRenderSurfaceTopLeft| |Vector",
+      "id": "Room.GetRenderSurfaceTopLeft",
+      "parameters": " ",
+      "type": "Vector",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "derived",
+      "destination": "R0 actual geometry＋本地视口",
+      "reason": "只使用已核纯几何；不调用随机tile／寻路／碰撞／玩法更新",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 478
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2939,
+      "field": 2940,
+      "wire_name": "room-level-catalog.json|Room.GetRoomClearDelay| |int",
+      "id": "Room.GetRoomClearDelay",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "寻路／碰撞／生成／计数／伤害／价格生产留Host；实际Entity/门/HUD/音频结果由各自域承接，不为目录相等下发",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 139
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2940,
+      "field": 2941,
+      "wire_name": "room-level-catalog.json|Room.GetRoomConfigStage| |int",
+      "id": "Room.GetRoomConfigStage",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "delegated",
+      "destination": "第7步Level/RoomDescriptor或第8步具体显示owner",
+      "reason": "本轮只Room物理范围；描述flags／生成seed等不在这里重复上线，需对应域按消费者核定",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 483
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2941,
+      "field": 2942,
+      "wire_name": "room-level-catalog.json|Room.GetRoomShape| |RoomShape",
+      "id": "Room.GetRoomShape",
+      "parameters": " ",
+      "type": "RoomShape",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "derived",
+      "destination": "R0 actual geometry＋本地视口",
+      "reason": "只使用已核纯几何；不调用随机tile／寻路／碰撞／玩法更新",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 530
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2942,
+      "field": 2943,
+      "wire_name": "room-level-catalog.json|Room.GetSecondBossID| |int",
+      "id": "Room.GetSecondBossID",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "conversion",
+      "destination": "第8步实际第二BossIntro资源（原ID归Host）",
+      "reason": "发送当前实际采用显示结果；不为原始API返回值相等复制全部生产依赖",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 535
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2943,
+      "field": 2944,
+      "wire_name": "room-level-catalog.json|Room.GetSeededCollectible| int Seed, bool NoDecrease = false |CollectibleType",
+      "id": "Room.GetSeededCollectible",
+      "parameters": " int Seed, bool NoDecrease = false ",
+      "type": "CollectibleType",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "actual_call",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 545
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2944,
+      "field": 2945,
+      "wire_name": "room-level-catalog.json|Room.GetShopItemPrice| int EntityVariant, int EntitySubType, int ShopItemID |int",
+      "id": "Room.GetShopItemPrice",
+      "parameters": " int EntityVariant, int EntitySubType, int ShopItemID ",
+      "type": "int",
+      "old_ownership": "NotReplicated",
+      "application_category": "parameter_query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "寻路／碰撞／生成／计数／伤害／价格生产留Host；实际Entity/门/HUD/音频结果由各自域承接，不为目录相等下发",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 143
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2945,
+      "field": 2946,
+      "wire_name": "room-level-catalog.json|Room.GetShopLevel| |int",
+      "id": "Room.GetShopLevel",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "寻路／碰撞／生成／计数／伤害／价格生产留Host；实际Entity/门/HUD/音频结果由各自域承接，不为目录相等下发",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 551
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2946,
+      "field": 2947,
+      "wire_name": "room-level-catalog.json|Room.GetSpawnSeed| |int",
+      "id": "Room.GetSpawnSeed",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "delegated",
+      "destination": "第7步Level/RoomDescriptor或第8步具体显示owner",
+      "reason": "本轮只Room物理范围；描述flags／生成seed等不在这里重复上线，需对应域按消费者核定",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 556
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2947,
+      "field": 2948,
+      "wire_name": "room-level-catalog.json|Room.GetTintedRockIdx| |int",
+      "id": "Room.GetTintedRockIdx",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "寻路／碰撞／生成／计数／伤害／价格生产留Host；实际Entity/门/HUD/音频结果由各自域承接，不为目录相等下发",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 561
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2948,
+      "field": 2949,
+      "wire_name": "room-level-catalog.json|Room.GetTopLeftPos| |Vector",
+      "id": "Room.GetTopLeftPos",
+      "parameters": " ",
+      "type": "Vector",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "derived",
+      "destination": "R0 actual geometry＋本地视口",
+      "reason": "只使用已核纯几何；不调用随机tile／寻路／碰撞／玩法更新",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 566
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2949,
+      "field": 2950,
+      "wire_name": "room-level-catalog.json|Room.GetType| |RoomType",
+      "id": "Room.GetType",
+      "parameters": " ",
+      "type": "RoomType",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "derived",
+      "destination": "R0 actual geometry＋本地视口",
+      "reason": "只使用已核纯几何；不调用随机tile／寻路／碰撞／玩法更新",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 571
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2950,
+      "field": 2951,
+      "wire_name": "room-level-catalog.json|Room.GetWallColor| |Color",
+      "id": "Room.GetWallColor",
+      "parameters": " ",
+      "type": "Color",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "field",
+      "destination": "Room.wall_color",
+      "reason": "保留具体显示消费者所需当前值；Getter本身不作为正式reader",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 148
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2951,
+      "field": 2952,
+      "wire_name": "room-level-catalog.json|Room.GetWaterAmount| |float",
+      "id": "Room.GetWaterAmount",
+      "parameters": " ",
+      "type": "float",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "field",
+      "destination": "Room.water_amount",
+      "reason": "保留具体显示消费者所需当前值；Getter本身不作为正式reader",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 152
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2952,
+      "field": 2953,
+      "wire_name": "room-level-catalog.json|Room.GetWaterColor| |KColor",
+      "id": "Room.GetWaterColor",
+      "parameters": " ",
+      "type": "KColor",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "conversion",
+      "destination": "WaterShaderResult.final_color（原端点getter归Host）",
+      "reason": "发送当前实际采用显示结果；不为原始API返回值相等复制全部生产依赖",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 157
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2953,
+      "field": 2954,
+      "wire_name": "room-level-catalog.json|Room.GetWaterColorMultiplier| |KColor",
+      "id": "Room.GetWaterColorMultiplier",
+      "parameters": " ",
+      "type": "KColor",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "conversion",
+      "destination": "WaterShaderResult.final_multiplier_rgb（原端点getter归Host）",
+      "reason": "发送当前实际采用显示结果；不为原始API返回值相等复制全部生产依赖",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 161
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2954,
+      "field": 2955,
+      "wire_name": "room-level-catalog.json|Room.GetWaterCurrent| |Vector",
+      "id": "Room.GetWaterCurrent",
+      "parameters": " ",
+      "type": "Vector",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "field",
+      "destination": "Room.water_current",
+      "reason": "保留具体显示消费者所需当前值；Getter本身不作为正式reader",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 576
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2955,
+      "field": 2956,
+      "wire_name": "room-level-catalog.json|Room.HasCurseMist| |boolean",
+      "id": "Room.HasCurseMist",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "delegated",
+      "destination": "第7步Level/RoomDescriptor或第8步具体显示owner",
+      "reason": "本轮只Room物理范围；描述flags／生成seed等不在这里重复上线，需对应域按消费者核定",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 582
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2956,
+      "field": 2957,
+      "wire_name": "room-level-catalog.json|Room.HasLava| |boolean",
+      "id": "Room.HasLava",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "寻路／碰撞／生成／计数／伤害／价格生产留Host；实际Entity/门/HUD/音频结果由各自域承接，不为目录相等下发",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 588
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2957,
+      "field": 2958,
+      "wire_name": "room-level-catalog.json|Room.HasSlowDown| |boolean",
+      "id": "Room.HasSlowDown",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "852DA5→452540实际读Room+722C >0；SDK+7220不是它。",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 597
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2958,
+      "field": 2959,
+      "wire_name": "room-level-catalog.json|Room.HasTriggerPressurePlates| |boolean",
+      "id": "Room.HasTriggerPressurePlates",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "delegated",
+      "destination": "第7步Level/RoomDescriptor或第8步具体显示owner",
+      "reason": "本轮只Room物理范围；描述flags／生成seed等不在这里重复上线，需对应域按消费者核定",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 608
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2959,
+      "field": 2960,
+      "wire_name": "room-level-catalog.json|Room.HasWater| |boolean",
+      "id": "Room.HasWater",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "寻路／碰撞／生成／计数／伤害／价格生产留Host；实际Entity/门/HUD/音频结果由各自域承接，不为目录相等下发",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 617
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2960,
+      "field": 2961,
+      "wire_name": "room-level-catalog.json|Room.HasWaterPits| |boolean",
+      "id": "Room.HasWaterPits",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "delegated",
+      "destination": "第7步Level/RoomDescriptor或第8步具体显示owner",
+      "reason": "本轮只Room物理范围；描述flags／生成seed等不在这里重复上线，需对应域按消费者核定",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 622
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2961,
+      "field": 2962,
+      "wire_name": "room-level-catalog.json|Room.InvalidatePickupVision| |void",
+      "id": "Room.InvalidatePickupVision",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 628
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2962,
+      "field": 2963,
+      "wire_name": "room-level-catalog.json|Room.IsAmbushActive| |boolean",
+      "id": "Room.IsAmbushActive",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "寻路／碰撞／生成／计数／伤害／价格生产留Host；实际Entity/门/HUD/音频结果由各自域承接，不为目录相等下发",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 634
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2963,
+      "field": 2964,
+      "wire_name": "room-level-catalog.json|Room.IsAmbushDone| |boolean",
+      "id": "Room.IsAmbushDone",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "delegated",
+      "destination": "第7步Level/RoomDescriptor或第8步具体显示owner",
+      "reason": "本轮只Room物理范围；描述flags／生成seed等不在这里重复上线，需对应域按消费者核定",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 639
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2964,
+      "field": 2965,
+      "wire_name": "room-level-catalog.json|Room.IsChampionBossSeed| |boolean",
+      "id": "Room.IsChampionBossSeed",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "寻路／碰撞／生成／计数／伤害／价格生产留Host；实际Entity/门/HUD/音频结果由各自域承接，不为目录相等下发",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 165
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2965,
+      "field": 2966,
+      "wire_name": "room-level-catalog.json|Room.IsClear| |boolean",
+      "id": "Room.IsClear",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "delegated",
+      "destination": "第7步Level/RoomDescriptor或第8步具体显示owner",
+      "reason": "本轮只Room物理范围；描述flags／生成seed等不在这里重复上线，需对应域按消费者核定",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 644
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2966,
+      "field": 2967,
+      "wire_name": "room-level-catalog.json|Room.IsCurrentRoomLastBoss| |boolean",
+      "id": "Room.IsCurrentRoomLastBoss",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "寻路／碰撞／生成／计数／伤害／价格生产留Host；实际Entity/门/HUD/音频结果由各自域承接，不为目录相等下发",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 649
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2967,
+      "field": 2968,
+      "wire_name": "room-level-catalog.json|Room.IsDoorSlotAllowed| DoorSlot Slot |boolean",
+      "id": "Room.IsDoorSlotAllowed",
+      "parameters": " DoorSlot Slot ",
+      "type": "boolean",
+      "old_ownership": "NotReplicated",
+      "application_category": "parameter_query",
+      "decision": "derived",
+      "destination": "R0 actual geometry＋本地视口",
+      "reason": "只使用已核纯几何；不调用随机tile／寻路／碰撞／玩法更新",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 655
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2968,
+      "field": 2969,
+      "wire_name": "room-level-catalog.json|Room.IsFirstEnemyDead| |boolean",
+      "id": "Room.IsFirstEnemyDead",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "6B4380读取+72A0单byte；Host玩法资格，不是独立显示位。",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 665
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2969,
+      "field": 2970,
+      "wire_name": "room-level-catalog.json|Room.IsFirstVisit| |boolean",
+      "id": "Room.IsFirstVisit",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "delegated",
+      "destination": "第7步Level/RoomDescriptor或第8步具体显示owner",
+      "reason": "本轮只Room物理范围；描述flags／生成seed等不在这里重复上线，需对应域按消费者核定",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 670
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2970,
+      "field": 2971,
+      "wire_name": "room-level-catalog.json|Room.IsInitialized| |boolean",
+      "id": "Room.IsInitialized",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "寻路／碰撞／生成／计数／伤害／价格生产留Host；实际Entity/门/HUD/音频结果由各自域承接，不为目录相等下发",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 675
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2971,
+      "field": 2972,
+      "wire_name": "room-level-catalog.json|Room.IsLShapedRoom| |boolean",
+      "id": "Room.IsLShapedRoom",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "derived",
+      "destination": "R0 actual geometry＋本地视口",
+      "reason": "只使用已核纯几何；不调用随机tile／寻路／碰撞／玩法更新",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 680
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2972,
+      "field": 2973,
+      "wire_name": "room-level-catalog.json|Room.IsMirrorWorld| |boolean",
+      "id": "Room.IsMirrorWorld",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "delegated",
+      "destination": "第7步Level/RoomDescriptor或第8步具体显示owner",
+      "reason": "本轮只Room物理范围；描述flags／生成seed等不在这里重复上线，需对应域按消费者核定",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 685
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2973,
+      "field": 2974,
+      "wire_name": "room-level-catalog.json|Room.IsPersistentRoomEntity| EntityType Type, int Variant = 0 |boolean",
+      "id": "Room.IsPersistentRoomEntity",
+      "parameters": " EntityType Type, int Variant = 0 ",
+      "type": "boolean",
+      "old_ownership": "NotReplicated",
+      "application_category": "parameter_query",
+      "decision": "authority",
+      "destination": "Host gameplay/query",
+      "reason": "寻路／碰撞／生成／计数／伤害／价格生产留Host；实际Entity/门/HUD/音频结果由各自域承接，不为目录相等下发",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 170
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2974,
+      "field": 2975,
+      "wire_name": "room-level-catalog.json|Room.IsPositionInRoom| Vector Pos, float Margin |boolean",
+      "id": "Room.IsPositionInRoom",
+      "parameters": " Vector Pos, float Margin ",
+      "type": "boolean",
+      "old_ownership": "NotReplicated",
+      "application_category": "parameter_query",
+      "decision": "derived",
+      "destination": "R0 actual geometry＋本地视口",
+      "reason": "只使用已核纯几何；不调用随机tile／寻路／碰撞／玩法更新",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 691
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2975,
+      "field": 2976,
+      "wire_name": "room-level-catalog.json|Room.IsSacrificeDone| |boolean",
+      "id": "Room.IsSacrificeDone",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "delegated",
+      "destination": "第7步Level/RoomDescriptor或第8步具体显示owner",
+      "reason": "本轮只Room物理范围；描述flags／生成seed等不在这里重复上线，需对应域按消费者核定",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 697
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2976,
+      "field": 2977,
+      "wire_name": "room-level-catalog.json|Room.KeepDoorsClosed| |void",
+      "id": "Room.KeepDoorsClosed",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 702
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2977,
+      "field": 2978,
+      "wire_name": "room-level-catalog.json|Room.MamaMegaExplosion| Vector Position |void",
+      "id": "Room.MamaMegaExplosion",
+      "parameters": " Vector Position ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 707
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2978,
+      "field": 2979,
+      "wire_name": "room-level-catalog.json|Room.MamaMegaExplosion| Vector Position = Vector.Zero, EntityPlayer Player = nil |void",
+      "id": "Room.MamaMegaExplosion",
+      "parameters": " Vector Position = Vector.Zero, EntityPlayer Player = nil ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 709
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2979,
+      "field": 2980,
+      "wire_name": "room-level-catalog.json|Room.PickupGridEntity| int GridIndex |EntityEffect",
+      "id": "Room.PickupGridEntity",
+      "parameters": " int GridIndex ",
+      "type": "EntityEffect",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 174
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2980,
+      "field": 2981,
+      "wire_name": "room-level-catalog.json|Room.PlayMusic| |void",
+      "id": "Room.PlayMusic",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 714
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2981,
+      "field": 2982,
+      "wire_name": "room-level-catalog.json|Room.RemoveDoor| DoorSlot Slot |void",
+      "id": "Room.RemoveDoor",
+      "parameters": " DoorSlot Slot ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 720
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2982,
+      "field": 2983,
+      "wire_name": "room-level-catalog.json|Room.RemoveGridEntity| int GridIndex, int PathTrail, boolean KeepDecoration |void",
+      "id": "Room.RemoveGridEntity",
+      "parameters": " int GridIndex, int PathTrail, boolean KeepDecoration ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 725
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2983,
+      "field": 2984,
+      "wire_name": "room-level-catalog.json|Room.RemoveGridEntityImmediate| int GridIndex, int PathTrail, boolean KeepDecoration |void",
+      "id": "Room.RemoveGridEntityImmediate",
+      "parameters": " int GridIndex, int PathTrail, boolean KeepDecoration ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 179
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2984,
+      "field": 2985,
+      "wire_name": "room-level-catalog.json|Room.Render| |void",
+      "id": "Room.Render",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 738
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2985,
+      "field": 2986,
+      "wire_name": "room-level-catalog.json|Room.RespawnEnemies| |void",
+      "id": "Room.RespawnEnemies",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 743
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2986,
+      "field": 2987,
+      "wire_name": "room-level-catalog.json|Room.SaveState| |void",
+      "id": "Room.SaveState",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 184
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2987,
+      "field": 2988,
+      "wire_name": "room-level-catalog.json|Room.ScreenWrapPosition| Vector Pos, float Margin |Vector",
+      "id": "Room.ScreenWrapPosition",
+      "parameters": " Vector Pos, float Margin ",
+      "type": "Vector",
+      "old_ownership": "ReplicatedState",
+      "application_category": "derived_query",
+      "decision": "derived",
+      "destination": "R0 actual geometry＋本地视口",
+      "reason": "只使用已核纯几何；不调用随机tile／寻路／碰撞／玩法更新",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 748
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2988,
+      "field": 2989,
+      "wire_name": "room-level-catalog.json|Room.SetAmbushDone| boolean Value |void",
+      "id": "Room.SetAmbushDone",
+      "parameters": " boolean Value ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 756
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2989,
+      "field": 2990,
+      "wire_name": "room-level-catalog.json|Room.SetBackdropType| BackdropType, int Unknown |void",
+      "id": "Room.SetBackdropType",
+      "parameters": " BackdropType, int Unknown ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 189
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2990,
+      "field": 2991,
+      "wire_name": "room-level-catalog.json|Room.SetBrokenWatchState| int State |void",
+      "id": "Room.SetBrokenWatchState",
+      "parameters": " int State ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 761
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2991,
+      "field": 2992,
+      "wire_name": "room-level-catalog.json|Room.SetCardAgainstHumanity| |void",
+      "id": "Room.SetCardAgainstHumanity",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 767
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2992,
+      "field": 2993,
+      "wire_name": "room-level-catalog.json|Room.SetClear| boolean Clear |void",
+      "id": "Room.SetClear",
+      "parameters": " boolean Clear ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 772
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2993,
+      "field": 2994,
+      "wire_name": "room-level-catalog.json|Room.SetFirstEnemyDead| boolean Value |void",
+      "id": "Room.SetFirstEnemyDead",
+      "parameters": " boolean Value ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "6B4390写+72A0单byte，不安装到Client触发奖励。",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 778
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2994,
+      "field": 2995,
+      "wire_name": "room-level-catalog.json|Room.SetFloorColor| Color FloorColor |void",
+      "id": "Room.SetFloorColor",
+      "parameters": " Color FloorColor ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 783
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2995,
+      "field": 2996,
+      "wire_name": "room-level-catalog.json|Room.SetGreedWaveTimer| int Time |void",
+      "id": "Room.SetGreedWaveTimer",
+      "parameters": " int Time ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 196
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2996,
+      "field": 2997,
+      "wire_name": "room-level-catalog.json|Room.SetGridPath| int Index, int Value |boolean",
+      "id": "Room.SetGridPath",
+      "parameters": " int Index, int Value ",
+      "type": "boolean",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "只在Host处理；不得越过448项写入后接WORD占用表。",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 795
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2997,
+      "field": 2998,
+      "wire_name": "room-level-catalog.json|Room.SetItemPool| ItemPoolType PoolType |void",
+      "id": "Room.SetItemPool",
+      "parameters": " ItemPoolType PoolType ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 200
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2998,
+      "field": 2999,
+      "wire_name": "room-level-catalog.json|Room.SetLavaIntensity| float Intensity |void",
+      "id": "Room.SetLavaIntensity",
+      "parameters": " float Intensity ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 205
+        }
+      ]
+    },
+    {
+      "source_ordinal": 2999,
+      "field": 3000,
+      "wire_name": "room-level-catalog.json|Room.SetLightningIntensity| float Intensity |void",
+      "id": "Room.SetLightningIntensity",
+      "parameters": " float Intensity ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 210
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3000,
+      "field": 3001,
+      "wire_name": "room-level-catalog.json|Room.SetPauseTimer| int Duration |void",
+      "id": "Room.SetPauseTimer",
+      "parameters": " int Duration ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 217
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3001,
+      "field": 3002,
+      "wire_name": "room-level-catalog.json|Room.SetRail| int GridIndex, StbRailVariant RailVariant |void",
+      "id": "Room.SetRail",
+      "parameters": " int GridIndex, StbRailVariant RailVariant ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 221
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3002,
+      "field": 3003,
+      "wire_name": "room-level-catalog.json|Room.SetRainIntensity| float Intensity |void",
+      "id": "Room.SetRainIntensity",
+      "parameters": " float Intensity ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 225
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3003,
+      "field": 3004,
+      "wire_name": "room-level-catalog.json|Room.SetRedHeartDamage| |void",
+      "id": "Room.SetRedHeartDamage",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 813
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3004,
+      "field": 3005,
+      "wire_name": "room-level-catalog.json|Room.SetRedHeartDamage| boolean Value = true |void",
+      "id": "Room.SetRedHeartDamage",
+      "parameters": " boolean Value = true ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 23
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3005,
+      "field": 3006,
+      "wire_name": "room-level-catalog.json|Room.SetRoomClearDelay| int Delay |void",
+      "id": "Room.SetRoomClearDelay",
+      "parameters": " int Delay ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 230
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3006,
+      "field": 3007,
+      "wire_name": "room-level-catalog.json|Room.SetSacrificeDone| boolean Done |void",
+      "id": "Room.SetSacrificeDone",
+      "parameters": " boolean Done ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 818
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3007,
+      "field": 3008,
+      "wire_name": "room-level-catalog.json|Room.SetSlowDown| int Duration |void",
+      "id": "Room.SetSlowDown",
+      "parameters": " int Duration ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "852D9B→452550实际写Room+722C=max(current,arg)，不重放Client。",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 823
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3008,
+      "field": 3009,
+      "wire_name": "room-level-catalog.json|Room.SetWallColor| Color WallColor |void",
+      "id": "Room.SetWallColor",
+      "parameters": " Color WallColor ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 834
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3009,
+      "field": 3010,
+      "wire_name": "room-level-catalog.json|Room.SetWaterAmount| float Amount |void",
+      "id": "Room.SetWaterAmount",
+      "parameters": " float Amount ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 234
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3010,
+      "field": 3011,
+      "wire_name": "room-level-catalog.json|Room.SetWaterColor| KColor WaterColor |void",
+      "id": "Room.SetWaterColor",
+      "parameters": " KColor WaterColor ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 239
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3011,
+      "field": 3012,
+      "wire_name": "room-level-catalog.json|Room.SetWaterColorMultiplier| KColor WaterColor |void",
+      "id": "Room.SetWaterColorMultiplier",
+      "parameters": " KColor WaterColor ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 243
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3012,
+      "field": 3013,
+      "wire_name": "room-level-catalog.json|Room.SetWaterCurrent| Vector WaterCurrent |void",
+      "id": "Room.SetWaterCurrent",
+      "parameters": " Vector WaterCurrent ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 247
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3013,
+      "field": 3014,
+      "wire_name": "room-level-catalog.json|Room.ShopReshuffle| boolean KeepCollectibleIdx, boolean ReselectSaleItem |void",
+      "id": "Room.ShopReshuffle",
+      "parameters": " boolean KeepCollectibleIdx, boolean ReselectSaleItem ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 846
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3014,
+      "field": 3015,
+      "wire_name": "room-level-catalog.json|Room.ShopRestockFull| |void",
+      "id": "Room.ShopRestockFull",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 851
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3015,
+      "field": 3016,
+      "wire_name": "room-level-catalog.json|Room.ShopRestockPartial| |void",
+      "id": "Room.ShopRestockPartial",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 857
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3016,
+      "field": 3017,
+      "wire_name": "room-level-catalog.json|Room.SpawnClearAward| |void",
+      "id": "Room.SpawnClearAward",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 862
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3017,
+      "field": 3018,
+      "wire_name": "room-level-catalog.json|Room.SpawnGridEntity| int GridIndex, GridEntityDesc Descriptor|boolean",
+      "id": "Room.SpawnGridEntity",
+      "parameters": " int GridIndex, GridEntityDesc Descriptor",
+      "type": "boolean",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 29
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3018,
+      "field": 3019,
+      "wire_name": "room-level-catalog.json|Room.SpawnGridEntity| int GridIndex, GridEntityType Type, int Variant = 0, int Seed = nil, int VarData = 0 |boolean",
+      "id": "Room.SpawnGridEntity",
+      "parameters": " int GridIndex, GridEntityType Type, int Variant = 0, int Seed = nil, int VarData = 0 ",
+      "type": "boolean",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 28
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3019,
+      "field": 3020,
+      "wire_name": "room-level-catalog.json|Room.SpawnGridEntity| int GridIndex, GridEntityType Type, int Variant, int Seed, int VarData |boolean",
+      "id": "Room.SpawnGridEntity",
+      "parameters": " int GridIndex, GridEntityType Type, int Variant, int Seed, int VarData ",
+      "type": "boolean",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 867
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3020,
+      "field": 3021,
+      "wire_name": "room-level-catalog.json|Room.StopRain| |void",
+      "id": "Room.StopRain",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 872
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3021,
+      "field": 3022,
+      "wire_name": "room-level-catalog.json|Room.TriggerClear| boolean Silent = false |void",
+      "id": "Room.TriggerClear",
+      "parameters": " boolean Silent = false ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 878
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3022,
+      "field": 3023,
+      "wire_name": "room-level-catalog.json|Room.TriggerOutput| RoomEventOutput GroupIdx|void",
+      "id": "Room.TriggerOutput",
+      "parameters": " RoomEventOutput GroupIdx",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "818250遍历10组set并调用vector中的原生函数指针；整组／回调表绝不下发。",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 255
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3023,
+      "field": 3024,
+      "wire_name": "room-level-catalog.json|Room.TriggerRestock| int GridIndex, int ShopItemIdx|void",
+      "id": "Room.TriggerRestock",
+      "parameters": " int GridIndex, int ShopItemIdx",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 259
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3024,
+      "field": 3025,
+      "wire_name": "room-level-catalog.json|Room.TryGetShopDiscount| int ShopItemIdx, int Price |int",
+      "id": "Room.TryGetShopDiscount",
+      "parameters": " int ShopItemIdx, int Price ",
+      "type": "int",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 264
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3025,
+      "field": 3026,
+      "wire_name": "room-level-catalog.json|Room.TryMakeBridge| GridEntity pit, GridEntity rock |boolean",
+      "id": "Room.TryMakeBridge",
+      "parameters": " GridEntity pit, GridEntity rock ",
+      "type": "boolean",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 885
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3026,
+      "field": 3027,
+      "wire_name": "room-level-catalog.json|Room.TryPlaceLadder| Vector PlayerPos, Vector PlayerVelocity, Entity Ladder |void",
+      "id": "Room.TryPlaceLadder",
+      "parameters": " Vector PlayerPos, Vector PlayerVelocity, Entity Ladder ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 891
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3027,
+      "field": 3028,
+      "wire_name": "room-level-catalog.json|Room.TrySpawnBlueWombDoor| boolean FirstTime = true, boolean IgnoreTime = false, boolean Force = false |boolean",
+      "id": "Room.TrySpawnBlueWombDoor",
+      "parameters": " boolean FirstTime = true, boolean IgnoreTime = false, boolean Force = false ",
+      "type": "boolean",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 897
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3028,
+      "field": 3029,
+      "wire_name": "room-level-catalog.json|Room.TrySpawnBossRushDoor| boolean IgnoreTime = false, boolean Force = false |boolean",
+      "id": "Room.TrySpawnBossRushDoor",
+      "parameters": " boolean IgnoreTime = false, boolean Force = false ",
+      "type": "boolean",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 904
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3029,
+      "field": 3030,
+      "wire_name": "room-level-catalog.json|Room.TrySpawnDevilRoomDoor| boolean Animate = false, boolean Force = false |boolean",
+      "id": "Room.TrySpawnDevilRoomDoor",
+      "parameters": " boolean Animate = false, boolean Force = false ",
+      "type": "boolean",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 911
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3030,
+      "field": 3031,
+      "wire_name": "room-level-catalog.json|Room.TrySpawnMegaSatanRoomDoor| boolean Force = false |boolean",
+      "id": "Room.TrySpawnMegaSatanRoomDoor",
+      "parameters": " boolean Force = false ",
+      "type": "boolean",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 918
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3031,
+      "field": 3032,
+      "wire_name": "room-level-catalog.json|Room.TrySpawnSecretExit| boolean Animate = false, boolean Force = false |boolean",
+      "id": "Room.TrySpawnSecretExit",
+      "parameters": " boolean Animate = false, boolean Force = false ",
+      "type": "boolean",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 925
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3032,
+      "field": 3033,
+      "wire_name": "room-level-catalog.json|Room.TrySpawnSecretShop| boolean Force = false |boolean",
+      "id": "Room.TrySpawnSecretShop",
+      "parameters": " boolean Force = false ",
+      "type": "boolean",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 932
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3033,
+      "field": 3034,
+      "wire_name": "room-level-catalog.json|Room.TrySpawnSpecialQuestDoor| |boolean",
+      "id": "Room.TrySpawnSpecialQuestDoor",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 939
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3034,
+      "field": 3035,
+      "wire_name": "room-level-catalog.json|Room.TrySpawnSpecialQuestDoor| boolean IgnoreStageType = false |boolean",
+      "id": "Room.TrySpawnSpecialQuestDoor",
+      "parameters": " boolean IgnoreStageType = false ",
+      "type": "boolean",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 34
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3035,
+      "field": 3036,
+      "wire_name": "room-level-catalog.json|Room.TrySpawnTheVoidDoor| boolean Force = false |boolean",
+      "id": "Room.TrySpawnTheVoidDoor",
+      "parameters": " boolean Force = false ",
+      "type": "boolean",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 945
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3036,
+      "field": 3037,
+      "wire_name": "room-level-catalog.json|Room.TurnGold| |void",
+      "id": "Room.TurnGold",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 952
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3037,
+      "field": 3038,
+      "wire_name": "room-level-catalog.json|Room.Update| |void",
+      "id": "Room.Update",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 958
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3038,
+      "field": 3039,
+      "wire_name": "room-level-catalog.json|Room.UpdateColorModifier| boolean Process = true, boolean Lerp = true, float Rate = 0.015 |void",
+      "id": "Room.UpdateColorModifier",
+      "parameters": " boolean Process = true, boolean Lerp = true, float Rate = 0.015 ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md",
+          "line": 268
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3039,
+      "field": 3040,
+      "wire_name": "room-level-catalog.json|Room.WorldToScreenPosition| Vector WorldPos |Vector",
+      "id": "Room.WorldToScreenPosition",
+      "parameters": " Vector WorldPos ",
+      "type": "Vector",
+      "old_ownership": "ReplicatedState",
+      "application_category": "derived_query",
+      "decision": "derived",
+      "destination": "R0 actual geometry＋本地视口",
+      "reason": "只使用已核纯几何；不调用随机tile／寻路／碰撞／玩法更新",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Room.md",
+          "line": 974
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3040,
+      "field": 3041,
+      "wire_name": "room-level-catalog.json|RoomConfig.AddRooms| StbType Stage, int Mode, table[] Rooms |RoomConfigRoom[]",
+      "id": "RoomConfig.AddRooms",
+      "parameters": " StbType Stage, int Mode, table[] Rooms ",
+      "type": "RoomConfigRoom[]",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomConfig.md",
+          "line": 21
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3041,
+      "field": 3042,
+      "wire_name": "room-level-catalog.json|RoomConfig.GetRandomRoom| int Seed, boolean ReduceWeight, StbType Stage, RoomType Type, RoomShape Shape = RoomShape.NUM_ROOMSHAPES, int MinVariant = 0, int MaxVariant = -1, int MinDifficulty = 0, int MaxDifficulty = 10, int RequiredDoors = 0, int Subtype = -1, int Mode = -1 |RoomConfigRoom",
+      "id": "RoomConfig.GetRandomRoom",
+      "parameters": " int Seed, boolean ReduceWeight, StbType Stage, RoomType Type, RoomShape Shape = RoomShape.NUM_ROOMSHAPES, int MinVariant = 0, int MaxVariant = -1, int MinDifficulty = 0, int MaxDifficulty = 10, int RequiredDoors = 0, int Subtype = -1, int Mode = -1 ",
+      "type": "RoomConfigRoom",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "actual_call",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomConfig.md",
+          "line": 29
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3042,
+      "field": 3043,
+      "wire_name": "room-level-catalog.json|RoomConfig.GetRoomByStageTypeAndVariant| StbType Stage, RoomType Type, int Variant, int Mode = -1 |RoomConfigRoom",
+      "id": "RoomConfig.GetRoomByStageTypeAndVariant",
+      "parameters": " StbType Stage, RoomType Type, int Variant, int Mode = -1 ",
+      "type": "RoomConfigRoom",
+      "old_ownership": "ReplicatedState",
+      "application_category": "derived_query",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomConfig.md",
+          "line": 35
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3043,
+      "field": 3044,
+      "wire_name": "room-level-catalog.json|RoomConfig.GetStage| StbType Stage |RoomConfigStage",
+      "id": "RoomConfig.GetStage",
+      "parameters": " StbType Stage ",
+      "type": "RoomConfigStage",
+      "old_ownership": "ReplicatedState",
+      "application_category": "derived_query",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomConfig.md",
+          "line": 40
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3044,
+      "field": 3045,
+      "wire_name": "room-level-catalog.json|RoomConfig.LoadStb| StbType Stage, int Mode, string StbFileName |RoomConfigRoom[]",
+      "id": "RoomConfig.LoadStb",
+      "parameters": " StbType Stage, int Mode, string StbFileName ",
+      "type": "RoomConfigRoom[]",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomConfig.md",
+          "line": 44
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3045,
+      "field": 3046,
+      "wire_name": "room-level-catalog.json|RoomConfigEntry.Subtype|None|int",
+      "id": "RoomConfigEntry.Subtype",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomConfig_Entry.md",
+          "line": 26
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3046,
+      "field": 3047,
+      "wire_name": "room-level-catalog.json|RoomConfigEntry.Type|None|EntityType",
+      "id": "RoomConfigEntry.Type",
+      "parameters": null,
+      "type": "EntityType",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomConfig_Entry.md",
+          "line": 31
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3047,
+      "field": 3048,
+      "wire_name": "room-level-catalog.json|RoomConfigEntry.Variant|None|int",
+      "id": "RoomConfigEntry.Variant",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomConfig_Entry.md",
+          "line": 36
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3048,
+      "field": 3049,
+      "wire_name": "room-level-catalog.json|RoomConfigEntry.Weight|None|float",
+      "id": "RoomConfigEntry.Weight",
+      "parameters": null,
+      "type": "float",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomConfig_Entry.md",
+          "line": 41
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3049,
+      "field": 3050,
+      "wire_name": "room-level-catalog.json|RoomConfigRoom.Difficulty|None|int",
+      "id": "RoomConfigRoom.Difficulty",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomConfig_Room.md",
+          "line": 25
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3050,
+      "field": 3051,
+      "wire_name": "room-level-catalog.json|RoomConfigRoom.Doors|None|int",
+      "id": "RoomConfigRoom.Doors",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "domain_value",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomConfig_Room.md",
+          "line": 31
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3051,
+      "field": 3052,
+      "wire_name": "room-level-catalog.json|RoomConfigRoom.Height|None|int",
+      "id": "RoomConfigRoom.Height",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomConfig_Room.md",
+          "line": 49
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3052,
+      "field": 3053,
+      "wire_name": "room-level-catalog.json|RoomConfigRoom.InitialWeight|None|float",
+      "id": "RoomConfigRoom.InitialWeight",
+      "parameters": null,
+      "type": "float",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomConfig_Room.md",
+          "line": 54
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3053,
+      "field": 3055,
+      "wire_name": "room-level-catalog.json|RoomConfigRoom.Mode|None|int",
+      "id": "RoomConfigRoom.Mode",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomConfig_Room.md",
+          "line": 59
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3054,
+      "field": 3055,
+      "wire_name": "room-level-catalog.json|RoomConfigRoom.Mode|None|int",
+      "id": "RoomConfigRoom.Mode",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomConfigRoom.md",
+          "line": 10
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3055,
+      "field": 3056,
+      "wire_name": "room-level-catalog.json|RoomConfigRoom.Name|None|string",
+      "id": "RoomConfigRoom.Name",
+      "parameters": null,
+      "type": "string",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomConfig_Room.md",
+          "line": 66
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3056,
+      "field": 3057,
+      "wire_name": "room-level-catalog.json|RoomConfigRoom.OriginalVariant|None|int",
+      "id": "RoomConfigRoom.OriginalVariant",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomConfig_Room.md",
+          "line": 71
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3057,
+      "field": 3058,
+      "wire_name": "room-level-catalog.json|RoomConfigRoom.Shape|None|RoomShape",
+      "id": "RoomConfigRoom.Shape",
+      "parameters": null,
+      "type": "RoomShape",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomConfig_Room.md",
+          "line": 76
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3058,
+      "field": 3059,
+      "wire_name": "room-level-catalog.json|RoomConfigRoom.SpawnCount|None|int",
+      "id": "RoomConfigRoom.SpawnCount",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomConfig_Room.md",
+          "line": 81
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3059,
+      "field": 3060,
+      "wire_name": "room-level-catalog.json|RoomConfigRoom.Spawns|None|RoomConfigSpawns",
+      "id": "RoomConfigRoom.Spawns",
+      "parameters": null,
+      "type": "RoomConfigSpawns",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomConfig_Room.md",
+          "line": 86
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3060,
+      "field": 3061,
+      "wire_name": "room-level-catalog.json|RoomConfigRoom.StageID|None|int",
+      "id": "RoomConfigRoom.StageID",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomConfig_Room.md",
+          "line": 91
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3061,
+      "field": 3062,
+      "wire_name": "room-level-catalog.json|RoomConfigRoom.Subtype|None|int",
+      "id": "RoomConfigRoom.Subtype",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomConfig_Room.md",
+          "line": 138
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3062,
+      "field": 3063,
+      "wire_name": "room-level-catalog.json|RoomConfigRoom.Type|None|RoomType",
+      "id": "RoomConfigRoom.Type",
+      "parameters": null,
+      "type": "RoomType",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomConfig_Room.md",
+          "line": 143
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3063,
+      "field": 3064,
+      "wire_name": "room-level-catalog.json|RoomConfigRoom.Variant|None|int",
+      "id": "RoomConfigRoom.Variant",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomConfig_Room.md",
+          "line": 148
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3064,
+      "field": 3065,
+      "wire_name": "room-level-catalog.json|RoomConfigRoom.Weight|None|float",
+      "id": "RoomConfigRoom.Weight",
+      "parameters": null,
+      "type": "float",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomConfig_Room.md",
+          "line": 153
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3065,
+      "field": 3066,
+      "wire_name": "room-level-catalog.json|RoomConfigRoom.Width|None|int",
+      "id": "RoomConfigRoom.Width",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomConfig_Room.md",
+          "line": 158
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3066,
+      "field": 3067,
+      "wire_name": "room-level-catalog.json|RoomConfigSpawn.Entries|None|RoomConfigEntries",
+      "id": "RoomConfigSpawn.Entries",
+      "parameters": null,
+      "type": "RoomConfigEntries",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomConfig_Spawn.md",
+          "line": 32
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3067,
+      "field": 3068,
+      "wire_name": "room-level-catalog.json|RoomConfigSpawn.EntryCount|None|int",
+      "id": "RoomConfigSpawn.EntryCount",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomConfig_Spawn.md",
+          "line": 38
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3068,
+      "field": 3069,
+      "wire_name": "room-level-catalog.json|RoomConfigSpawn.PickEntry| float r |RoomConfig Entry",
+      "id": "RoomConfigSpawn.PickEntry",
+      "parameters": " float r ",
+      "type": "RoomConfig Entry",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomConfig_Spawn.md",
+          "line": 26
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3069,
+      "field": 3070,
+      "wire_name": "room-level-catalog.json|RoomConfigSpawn.SumWeights|None|float",
+      "id": "RoomConfigSpawn.SumWeights",
+      "parameters": null,
+      "type": "float",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomConfig_Spawn.md",
+          "line": 43
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3070,
+      "field": 3071,
+      "wire_name": "room-level-catalog.json|RoomConfigSpawn.X|None|int",
+      "id": "RoomConfigSpawn.X",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomConfig_Spawn.md",
+          "line": 48
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3071,
+      "field": 3072,
+      "wire_name": "room-level-catalog.json|RoomConfigSpawn.Y|None|int",
+      "id": "RoomConfigSpawn.Y",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "field",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomConfig_Spawn.md",
+          "line": 53
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3072,
+      "field": 3073,
+      "wire_name": "room-level-catalog.json|RoomConfigStage.GetBackdrop| |BackdropType",
+      "id": "RoomConfigStage.GetBackdrop",
+      "parameters": " ",
+      "type": "BackdropType",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomConfigStage.md",
+          "line": 20
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3073,
+      "field": 3074,
+      "wire_name": "room-level-catalog.json|RoomConfigStage.GetBossSpot| |string",
+      "id": "RoomConfigStage.GetBossSpot",
+      "parameters": " ",
+      "type": "string",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomConfigStage.md",
+          "line": 25
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3074,
+      "field": 3075,
+      "wire_name": "room-level-catalog.json|RoomConfigStage.GetDisplayName| |string",
+      "id": "RoomConfigStage.GetDisplayName",
+      "parameters": " ",
+      "type": "string",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomConfigStage.md",
+          "line": 30
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3075,
+      "field": 3076,
+      "wire_name": "room-level-catalog.json|RoomConfigStage.GetID| |int",
+      "id": "RoomConfigStage.GetID",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomConfigStage.md",
+          "line": 35
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3076,
+      "field": 3077,
+      "wire_name": "room-level-catalog.json|RoomConfigStage.GetMusic| |Music",
+      "id": "RoomConfigStage.GetMusic",
+      "parameters": " ",
+      "type": "Music",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomConfigStage.md",
+          "line": 39
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3077,
+      "field": 3078,
+      "wire_name": "room-level-catalog.json|RoomConfigStage.GetPlayerSpot| |string",
+      "id": "RoomConfigStage.GetPlayerSpot",
+      "parameters": " ",
+      "type": "string",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomConfigStage.md",
+          "line": 44
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3078,
+      "field": 3079,
+      "wire_name": "room-level-catalog.json|RoomConfigStage.GetRoomSet| int Mode |RoomConfigSet",
+      "id": "RoomConfigStage.GetRoomSet",
+      "parameters": " int Mode ",
+      "type": "RoomConfigSet",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "actual_call",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomConfigStage.md",
+          "line": 49
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3079,
+      "field": 3080,
+      "wire_name": "room-level-catalog.json|RoomConfigStage.GetSuffix| |string",
+      "id": "RoomConfigStage.GetSuffix",
+      "parameters": " ",
+      "type": "string",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomConfigStage.md",
+          "line": 55
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3080,
+      "field": 3081,
+      "wire_name": "room-level-catalog.json|RoomConfigStage.GetXMLName| |string",
+      "id": "RoomConfigStage.GetXMLName",
+      "parameters": " ",
+      "type": "string",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomConfigStage.md",
+          "line": 60
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3081,
+      "field": 3082,
+      "wire_name": "room-level-catalog.json|RoomConfigStage.IsLoaded| int mode = 0 |boolean",
+      "id": "RoomConfigStage.IsLoaded",
+      "parameters": " int mode = 0 ",
+      "type": "boolean",
+      "old_ownership": "NotReplicated",
+      "application_category": "parameter_query",
+      "decision": "delegated",
+      "destination": "第7步RoomDescriptor/RoomConfig资源核对（本轮未完成）",
+      "reason": "保留两份Data/Override区别与完整实际配置身份；不能仅stage/type/variant/subtype推断内容相同，不执行候选",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomConfigStage.md",
+          "line": 64
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3082,
+      "field": 3083,
+      "wire_name": "room-level-catalog.json|RoomConfigStage.SetBackdrop| BackdropType Backdrop |void",
+      "id": "RoomConfigStage.SetBackdrop",
+      "parameters": " BackdropType Backdrop ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomConfigStage.md",
+          "line": 68
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3083,
+      "field": 3084,
+      "wire_name": "room-level-catalog.json|RoomConfigStage.SetBossSpot| string PngFilename |void",
+      "id": "RoomConfigStage.SetBossSpot",
+      "parameters": " string PngFilename ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomConfigStage.md",
+          "line": 73
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3084,
+      "field": 3085,
+      "wire_name": "room-level-catalog.json|RoomConfigStage.SetDisplayName| string Name |void",
+      "id": "RoomConfigStage.SetDisplayName",
+      "parameters": " string Name ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomConfigStage.md",
+          "line": 78
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3085,
+      "field": 3086,
+      "wire_name": "room-level-catalog.json|RoomConfigStage.SetMusic| Music Music |void",
+      "id": "RoomConfigStage.SetMusic",
+      "parameters": " Music Music ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomConfigStage.md",
+          "line": 83
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3086,
+      "field": 3087,
+      "wire_name": "room-level-catalog.json|RoomConfigStage.SetPlayerSpot| string PngFilename |void",
+      "id": "RoomConfigStage.SetPlayerSpot",
+      "parameters": " string PngFilename ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomConfigStage.md",
+          "line": 88
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3087,
+      "field": 3088,
+      "wire_name": "room-level-catalog.json|RoomConfigStage.SetSuffix| string Suffix |void",
+      "id": "RoomConfigStage.SetSuffix",
+      "parameters": " string Suffix ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomConfigStage.md",
+          "line": 93
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3088,
+      "field": 3089,
+      "wire_name": "room-level-catalog.json|RoomConfigStage.SetXMLName| string name |void",
+      "id": "RoomConfigStage.SetXMLName",
+      "parameters": " string name ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomConfigStage.md",
+          "line": 98
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3089,
+      "field": 3090,
+      "wire_name": "room-level-catalog.json|RoomConfigStage.Unload| |void",
+      "id": "RoomConfigStage.Unload",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomConfigStage.md",
+          "line": 102
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3134,
+      "field": 3135,
+      "wire_name": "room-level-catalog.json|RoomTransition.GetPlayerExtraPortraitSprite| |Sprite",
+      "id": "RoomTransition.GetPlayerExtraPortraitSprite",
+      "parameters": " ",
+      "type": "Sprite",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "delegated",
+      "destination": "第8步RoomTransition显示pass",
+      "reason": "已有Presentation字节表承接；不以StartBossIntro重放流程",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomTransition.md",
+          "line": 22
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3135,
+      "field": 3136,
+      "wire_name": "room-level-catalog.json|RoomTransition.GetTransitionMode| |int",
+      "id": "RoomTransition.GetTransitionMode",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "delegated",
+      "destination": "第8步RoomTransition显示pass",
+      "reason": "已有Presentation字节表承接；不以StartBossIntro重放流程",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomTransition.md",
+          "line": 26
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3136,
+      "field": 3137,
+      "wire_name": "room-level-catalog.json|RoomTransition.GetVersusScreenSprite| |Sprite",
+      "id": "RoomTransition.GetVersusScreenSprite",
+      "parameters": " ",
+      "type": "Sprite",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "delegated",
+      "destination": "第8步RoomTransition显示pass",
+      "reason": "已有Presentation字节表承接；不以StartBossIntro重放流程",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomTransition.md",
+          "line": 30
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3137,
+      "field": 3138,
+      "wire_name": "room-level-catalog.json|RoomTransition.IsRenderingBossIntro| |boolean",
+      "id": "RoomTransition.IsRenderingBossIntro",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "application_category": "query",
+      "decision": "delegated",
+      "destination": "第8步RoomTransition显示pass",
+      "reason": "已有Presentation字节表承接；不以StartBossIntro重放流程",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomTransition.md",
+          "line": 34
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3138,
+      "field": 3139,
+      "wire_name": "room-level-catalog.json|RoomTransition.StartBossIntro| BossType BossID1, BossType BossID2 = 0 |void",
+      "id": "RoomTransition.StartBossIntro",
+      "parameters": " BossType BossID1, BossType BossID2 = 0 ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "application_category": "operation",
+      "decision": "authority",
+      "destination": "Host command",
+      "reason": "命令／构造／算术调用不作为状态重放；Render/Update/Save/随机选择同样不放行",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomTransition.md",
+          "line": 38
+        }
+      ]
+    }
+  ],
+  "supplementary_native": [
+    {
+      "id": "Room::GetFloorColorAt",
+      "va": "96E3C0",
+      "decision": "authority",
+      "reason": "配置pass4图像采样查询还消费FXPose+8/+C；不在Client调用此查询补算颜色，最终Entity颜色由其域承接。不是Lua正式采集例外。"
+    }
+  ]
+}

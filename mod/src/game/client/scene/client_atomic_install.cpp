@@ -2402,9 +2402,13 @@ bool ClientSceneAtomicInstaller::MorphMembers(const S::ClientStateApplyBatch &ta
       if(category==1){
         const auto world=plan.Effective(S::BodyStream::World);
         const auto record=world?world->Find(object.member.identity):std::nullopt;
-        if(record)if(const auto *value=record->Field(F::EntityNPC::champion_color_index);
-            value&&value->present&&value->bytes.size()==sizeof(champion))
-          std::memcpy(&champion,value->bytes.data(),sizeof(champion));
+        // 平铺记录没有逐字段视图，按字段名从镜像取值；块记录仍按字段号读取。
+        if(record){
+          std::span<const std::byte> bytes;
+          if(record->Flat())bytes=record->FlatValue("champion_color_index");
+          else if(const auto *value=record->Field(F::EntityNPC::champion_color_index);value&&value->present)bytes=value->bytes;
+          if(bytes.size()==sizeof(champion))std::memcpy(&champion,bytes.data(),sizeof(champion));
+        }
       }
       entry.morphed=ClientBinaryEntityMorph(entry.address,category,entity.type,entity.variant,
         entity.subtype,entity.init_seed,champion);
