@@ -29,6 +29,10 @@ private:
 };
 bool ClientNativeDisplayActive() noexcept;
 bool ClientNativeDisplayPaused(bool &) noexcept;
+// 已安装 World 的 Host 终结分支（state::DisplayBranch 数值）；未安装／失效时返回 false。
+bool ClientNativeDisplayBranch(unsigned &) noexcept;
+// 客机本地暂停菜单的原生调用作用域内为真：菜单音效可在本机播放。
+bool ClientPauseMenuSoundAllowed() noexcept;
 bool ClientNativeDisplayCallbacks() noexcept;
 void ClientBinaryRenderOverlays(const void *global) noexcept;
 void ClientDisplaySfxRefreshed(void *owner) noexcept;

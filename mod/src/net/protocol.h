@@ -112,6 +112,8 @@ struct Input {
 struct Ack {
   // 只供 ICSR 大厅状态广播，既有 ICSN 的 ACK 编码不读取此字段。
   std::uint64_t lobby_roster = 0;
+  // 与 lobby_roster 同一条 LobbyRoster 消息下发：房主存档已解锁的角色位图。
+  std::uint64_t lobby_unlocked = 0;
   // 仅ICSR roster使用的主线程输入资格；历史ICSN布局保持不变。
   bool input_enabled = false;
   bool authority_paused = false;

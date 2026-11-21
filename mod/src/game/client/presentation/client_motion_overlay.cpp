@@ -32,7 +32,12 @@ constexpr std::uint64_t kStalePrepareMicros=50'000;// 写入表超过 50ms 未�
 constexpr unsigned kArrivalWindow=64;              // 时钟与 D 统计窗口
 constexpr unsigned kHistory=4;                     // 每对象 4 份权威样本（6.1）
 constexpr unsigned kEntityCapacity=4096;           // 单次遍历上限；超出计数并截断
-constexpr std::size_t kTrackLimit=4096;            // 历史表上限（每项约 160B，合计约 640KiB 上界）
+constexpr std::size_t kTrackLimit=4096;            // 历史表上限（每项约 200B，合计约 800KiB 上界）
+// 阶段 3 本机泪弹出生融合（设计 5.6）。
+constexpr std::uint64_t kBirthMicros=150'000;      // 出生偏移约 150ms 线性衰减到 0
+constexpr float kBirthLimit=3.f*kGrid;             // 出生偏移超过 3 格视为传送等异常，不融合
+constexpr double kBirthBackCap=12.0;               // 显示时间早于出生样本时，最多沿速度向回推 12h
+constexpr unsigned kBodyHistory=32;                // 玩家身体权威样本环（约 0.3—0.5s），按泪弹出生时刻查身体位置
 
 // 外推上限（7.1）：泪弹、敌弹 200ms；敌怪、其他玩家等 100ms；拾取物与静止效果不外推。
 double ExtrapolationCap(std::uint32_t type) noexcept {
@@ -57,6 +62,40 @@ struct Track final {
   bool shown=false,extrapolating=false;   // 上一帧是否给出显示值、是否处于外推
   float shown_x=0,shown_y=0;
   float fuse_x=0,fuse_y=0;std::uint64_t fuse_us=0;
+  // 阶段 3 出生融合：newborn 表示该泪弹在本场景首次 World 安装之后才出现、尚未判定过是否融合；
+  // birth 为它的第一份权威样本（出生时刻与位置）；birth_x/y 为出生时算出的显示偏移，birth_us 为起算时刻。
+  bool newborn=false,birth_known=false;
+  Sample birth{};
+  float birth_x=0,birth_y=0;std::uint64_t birth_us=0;
+};
+// 玩家身体的权威样本环（Body 时刻），出生融合按泪弹出生时刻求身体当时的权威位置。
+struct BodyHistory final {
+  void *address=nullptr;
+  ClientMotionIdentity identity{};
+  std::array<Sample,kBodyHistory> samples{};  // 环形，head 指向下一个写入位置
+  unsigned count=0,head=0;
+  const Sample &At(unsigned i) const noexcept {return samples[(head+kBodyHistory-count+i)%kBodyHistory];} // i：旧→新
+  void Push(const Sample &s) noexcept {
+    if(count){
+      auto &newest=samples[(head+kBodyHistory-1)%kBodyHistory];
+      if(s.h<newest.h){count=head=0;}               // 时间基准倒退：重建
+      else if(s.h==newest.h){newest=s;return;}       // 同时刻覆盖
+    }
+    samples[head]=s;head=(head+1)%kBodyHistory;count=(std::min)(count+1,kBodyHistory);
+  }
+  // 在 h 处求权威位置：范围内线性插值；早于最旧或晚于最新时取端点并报告 clamped。
+  bool Position(double h,float &x,float &y,bool &clamped) const noexcept {
+    clamped=false;
+    if(!count)return false;
+    const auto &first=At(0),&last=At(count-1);
+    if(h<=first.h){x=first.x;y=first.y;clamped=h<first.h;return true;}
+    if(h>=last.h){x=last.x;y=last.y;clamped=h>last.h;return true;}
+    for(unsigned i=1;i<count;++i){
+      const auto &a=At(i-1),&b=At(i);
+      if(h<=b.h){const float k=float((h-a.h)/(b.h-a.h));x=a.x+(b.x-a.x)*k;y=a.y+(b.y-a.y)*k;return true;}
+    }
+    x=last.x;y=last.y;return true;
+  }
 };
 enum class Mode : unsigned {Before,Interp,Extrap,Capped,Hold,Count};
 constexpr double kProjectileLeadCap=30.0;          // P6：敌弹外推到 T_p 时的外推上限 500ms
@@ -105,7 +144,13 @@ struct ClientMotionOverlay::Impl final {
   void *predicted_body=nullptr;float delta_x=0,delta_y=0;double lead_h=0;
   bool predict_paused=false;
   std::uint64_t predict_written=0,follow_written=0,path_updates=0,path_missing=0,
-                body_missing=0,authority_missing=0,multi_body=0,terrain_missing=0,projectile_lead=0;
+                body_missing=0,authority_missing=0,multi_body=0,terrain_missing=0,projectile_lead=0,
+                gate_missing=0;  // Body 记录缺 predict_gate 或无效的帧数
+  // —— 阶段 3：本机泪弹出生融合（设计 5.6）——
+  std::vector<BodyHistory> bodies;          // 本场景各玩家身体的权威样本环（≤8 个）
+  std::uint64_t scene_world_installs=0;     // 本场景已采样的 World 安装次数；首次安装时已在场的泪弹不算出生
+  std::uint64_t birth_fusions=0,birth_dropped=0,birth_no_body=0,birth_clamped=0,birth_back=0;
+  Duration birth_offset;                    // 出生偏移大小（世界单位，取整）
   // —— 诊断 ——
   Duration prepare_us,apply_us,delay_us,extrapolate_us;
   std::array<std::uint64_t,unsigned(Mode::Count)> modes{};
@@ -123,6 +168,21 @@ struct ClientMotionOverlay::Impl final {
   void Clear() noexcept {
     tracks.clear();writes.clear();players.clear();ClearTimeline();have_scene=false;entered=false;++resets;
     predictor.Reset();path_valid=false;path_version=0;path_block={};predicted_body=nullptr;
+    bodies.clear();scene_world_installs=0;
+  }
+  // 记录一个玩家身体的权威样本；地址复用或换形态时重建该身体的样本环。
+  void PushBody(const ClientMotionEntity &e,double h) noexcept {
+    BodyHistory *found=nullptr;
+    for(auto &b:bodies)if(b.address==e.address){found=&b;break;}
+    if(!found){
+      if(bodies.size()>=8)return;
+      bodies.push_back(BodyHistory{});found=&bodies.back();found->address=e.address;found->identity=e.identity;
+    }else if(found->identity!=e.identity){*found=BodyHistory{};found->address=e.address;found->identity=e.identity;}
+    found->Push(Sample{h,e.x,e.y,e.vx,e.vy});
+  }
+  const BodyHistory *FindBody(const void *address) const noexcept {
+    for(const auto &b:bodies)if(b.address==address)return &b;
+    return nullptr;
   }
   // 5.3.1：从已发布 World 的 Room 记录取 grid_path_block（112 字节）存入影子表；不写原生 Room+0x76C。
   void RefreshPath(const state::ClientStateBlockTable *table) noexcept {
@@ -148,9 +208,12 @@ struct ClientMotionOverlay::Impl final {
     if(!table||!table->streams[1])return false;
     const auto r=table->streams[1]->Find(MemberOf(member));
     if(!r)return false;
-    return RecordValue(*r,F::EntityPlayer::input_tick,"input_tick",out.tick)&&
-           RecordValue(*r,F::EntityPlayer::input_sequence,"input_sequence",out.sequence)&&
-           RecordValue(*r,F::EntityPlayer::input_phase,"input_phase",out.phase);
+    if(!(RecordValue(*r,F::EntityPlayer::input_tick,"input_tick",out.tick)&&
+         RecordValue(*r,F::EntityPlayer::input_sequence,"input_sequence",out.sequence)&&
+         RecordValue(*r,F::EntityPlayer::input_phase,"input_phase",out.phase)))return false;
+    // 预测资格位缺失时 gate=0（bit7 无效），由 ClientMotionApplyGate 标记为不可预测，而不是整条对账失败。
+    if(!RecordValue(*r,F::EntityPlayer::predict_gate,"predict_gate",out.gate))out.gate=0;
+    return true;
   }
   // 本地单调时钟换成 h。
   static double LocalH(std::uint64_t us) noexcept {return double(us)*kHalfFramesPerMicro;}
@@ -193,7 +256,10 @@ struct ClientMotionOverlay::Impl final {
       else{
         const float per=VelocityPerHalfFrame(e.identity.type);
         const float expected=std::hypot(newest.vx,newest.vy)*per*float(h-newest.h);
-        if(std::hypot(e.x-newest.x,e.y-newest.y)>kGrid+1.5f*expected){++cuts;t.count=0;t.cut=true;t.fuse_x=t.fuse_y=0;}
+        if(std::hypot(e.x-newest.x,e.y-newest.y)>kGrid+1.5f*expected){
+          // 不连续：出生融合一并作废（传送后的泪弹不再从身体处滑出）。
+          ++cuts;t.count=0;t.cut=true;t.fuse_x=t.fuse_y=0;t.newborn=false;t.birth_x=t.birth_y=0;
+        }
       }
     }
     if(t.count==kHistory){std::move(t.samples.begin()+1,t.samples.end(),t.samples.begin());--t.count;}
@@ -266,7 +332,7 @@ void ClientMotionOverlay::Installed(void *room,std::uint8_t streams,std::uint64_
         s.latest_world_h=world_h;
       }
       s.EstimateRate();s.EstimateDelay();
-      ++s.installs_world;
+      ++s.installs_world;++s.scene_world_installs;
     }
     if(streams&2){
       body_h=2.0*body_frame;
@@ -290,21 +356,25 @@ void ClientMotionOverlay::Installed(void *room,std::uint8_t streams,std::uint64_
     for(unsigned i=0;i<n;++i){
       const auto &e=s.entities[i];
       if(e.laser)continue;
+      // 泪弹在本场景第二次及以后的 World 安装中才出现，才算“出生”；进房时已在场的不融合。
+      const bool born=e.identity.type==2&&(streams&1)&&s.scene_world_installs>1;
       auto at=s.tracks.find(e.address);
       if(at==s.tracks.end()){
         if(s.tracks.size()>=kTrackLimit){++s.track_overflow;continue;}
-        at=s.tracks.emplace(e.address,Track{}).first;at->second.identity=e.identity;
+        at=s.tracks.emplace(e.address,Track{}).first;at->second.identity=e.identity;at->second.newborn=born;
       }else if(at->second.identity!=e.identity){
         // 地址复用或原地换形态：视为出生，不从旧对象位置插值。
-        at->second=Track{};at->second.identity=e.identity;++s.identity_resets;
+        at->second=Track{};at->second.identity=e.identity;at->second.newborn=born;++s.identity_resets;
       }
       auto &track=at->second;
       if(streams&1)track.seen=s.pass;
       // 玩家运动组随 Body 流，其他实体随 World 流；World 安装不改玩家位置，不能给旧位置盖新时间。
       if(e.identity.type==1){
-        if(body_h>=0)s.Push(track,body_h,e);
+        if(body_h>=0){s.Push(track,body_h,e);s.PushBody(e,body_h);}
         else if(!track.count)s.Push(track,world_h,e);
       }else if(world_h>=0)s.Push(track,world_h,e);
+      // 出生样本只取第一份：之后的样本不改写，供 Prepare 按出生时刻求身体位置。
+      if(track.newborn&&!track.birth_known&&track.count){track.birth=track.samples[0];track.birth_known=true;}
     }
     // World 遍历覆盖整个渲染列表：未出现的对象已离场，清掉历史。
     if(streams&1)for(auto it=s.tracks.begin();it!=s.tracks.end();)
@@ -343,6 +413,8 @@ void ClientMotionOverlay::Prepare(void *room,unsigned local_ordinal,bool paused,
       else if(!ClientMotionReadBody(room,mine[0]->address,s.body))++s.body_missing;
       else if(!s.Authority(table,mine[0]->member,authority))++s.authority_missing;
       else{
+        // 客机原生不同步的资格成员改用 Host 同窗资格位（2026-11-20 脚滑根因：ControlsEnabled 客机恒 0）。
+        if(!ClientMotionApplyGate(s.body,authority.gate))++s.gate_missing;
         if(!ClientMotionReadTerrain(room,s.terrain))++s.terrain_missing;
         s.terrain.path_block=s.path_block;s.terrain.path_valid=s.path_valid;
         if(s.predictor.Predict(s.body,s.terrain,authority,start,jump,predicted,reason)){
@@ -354,7 +426,10 @@ void ClientMotionOverlay::Prepare(void *room,unsigned local_ordinal,bool paused,
     // P9：插值开关关闭时远端对象不覆盖，显示即权威值；本机预测仍按自己的开关进行。
     if(!interpolate){
       if(!Settings.motion.interpolation)++s.disabled_frames;
-      for(auto &[address,track]:s.tracks){track.shown=track.extrapolating=false;track.fuse_x=track.fuse_y=0;}
+      for(auto &[address,track]:s.tracks){
+        track.shown=track.extrapolating=false;track.fuse_x=track.fuse_y=0;
+        track.newborn=false;track.birth_x=track.birth_y=0;  // 不覆盖时泪弹即权威值，出生融合无从谈起
+      }
     }
     // Host 暂停：T_w 停在原处；恢复后清空到达窗口重新建立时钟，避免把暂停时长当成网络延迟。
     if(paused){++s.paused_frames;s.was_paused=true;}
@@ -383,6 +458,16 @@ void ClientMotionOverlay::Prepare(void *room,unsigned local_ordinal,bool paused,
     if(overflow)++s.collect_overflow;
     s.excluded_local=s.excluded_attached=s.excluded_laser=0;
     const bool extrapolate=Settings.motion.extrapolation;
+    // 阶段 3：本机身体本帧的显示位置（预测中为权威＋Δ，否则即权威值），供出生融合对齐。
+    struct LocalShown final {void *address=nullptr;float x=0,y=0;};
+    std::array<LocalShown,8> shown_locals{};unsigned shown_count=0;
+    const bool birth_enabled=Settings.motion.tear_birth;
+    if(birth_enabled)for(unsigned i=0;i<n&&shown_count<shown_locals.size();++i){
+      const auto &e=s.entities[i];
+      if(!e.local)continue;
+      const bool moved=e.address==s.predicted_body;
+      shown_locals[shown_count++]={e.address,e.x+(moved?s.delta_x:0.f),e.y+(moved?s.delta_y:0.f)};
+    }
     for(unsigned i=0;i<n;++i){
       const auto &e=s.entities[i];
       auto at=s.tracks.find(e.address);
@@ -411,6 +496,38 @@ void ClientMotionOverlay::Prepare(void *room,unsigned local_ordinal,bool paused,
       const auto mode=lead?s.EvaluateLead(t,s.tw+s.delay+s.lead_h,extrapolate,x,y):s.Evaluate(t,s.tw,e.identity.type,extrapolate,x,y);
       if(lead)++s.projectile_lead;
       ++s.modes[unsigned(mode)];
+      // —— 阶段 3：本机泪弹出生融合（设计 5.6）——
+      // 首次显示时判定一次：Spawner 是本机身体，则偏移 = 身体当前显示位置 − 身体在泪弹出生时刻的权威位置。
+      // 这样泪弹整条轨迹先平移到“相对当前显示身体”的位置（出生点与身体的相对关系保持不变），再在 150ms 内回到权威轨迹。
+      if(t.newborn){
+        t.newborn=false;
+        const LocalShown *owner=nullptr;
+        if(birth_enabled&&t.birth_known&&!t.cut&&e.spawner)
+          for(unsigned k=0;k<shown_count;++k)if(shown_locals[k].address==e.spawner){owner=&shown_locals[k];break;}
+        if(owner){
+          float bx=0,by=0;bool clamped=false;
+          const auto *history=s.FindBody(owner->address);
+          if(!history||!history->Position(t.birth.h,bx,by,clamped))++s.birth_no_body;
+          else{
+            if(clamped)++s.birth_clamped;
+            const float ox=owner->x-bx,oy=owner->y-by,len=std::hypot(ox,oy);
+            if(len>kBirthLimit)++s.birth_dropped;
+            else{t.birth_x=ox;t.birth_y=oy;t.birth_us=start;++s.birth_fusions;s.birth_offset.Observe(std::uint64_t(len+0.5f));}
+          }
+        }
+      }
+      const bool birth_active=(t.birth_x!=0||t.birth_y!=0)&&start-t.birth_us<kBirthMicros;
+      if(!birth_active)t.birth_x=t.birth_y=0;
+      // 融合期内显示时间早于第一份样本（Before）时，沿第一份样本的速度向回推，
+      // 让泪弹从身体处连续飞出，而不是在出生点停住、再被偏移衰减拖着倒退。
+      if(birth_active&&mode==Mode::Before){
+        const auto &first=t.samples[0];
+        const double back=(std::min)(first.h-s.tw,kBirthBackCap);
+        if(back>0){
+          const float scale=VelocityPerHalfFrame(e.identity.type)*float(back);
+          x=first.x-first.vx*scale;y=first.y-first.vy*scale;++s.birth_back;
+        }
+      }
       // 7.2：外推中途到了新样本，把旧显示位置与新求值之差作为偏移，约 100ms 衰减到 0。
       if(t.fresh&&t.shown&&t.extrapolating&&!t.cut&&!jumped){
         const float fx=t.shown_x-x,fy=t.shown_y-y;
@@ -424,7 +541,12 @@ void ClientMotionOverlay::Prepare(void *room,unsigned local_ordinal,bool paused,
         if(age>=kFuseMicros)t.fuse_x=t.fuse_y=0;
         else{const float k=1.f-float(age)/float(kFuseMicros);x+=t.fuse_x*k;y+=t.fuse_y*k;}
       }
+      // shown 记不含出生偏移的值：7.2 的外推融合只衡量求值本身的跳变，出生偏移另行连续衰减。
       t.shown=true;t.shown_x=x;t.shown_y=y;t.extrapolating=mode==Mode::Extrap||mode==Mode::Capped;
+      if(birth_active){
+        const float k=1.f-float(start-t.birth_us)/float(kBirthMicros);
+        x+=t.birth_x*k;y+=t.birth_y*k;
+      }
       // 与当前权威值逐位相同就不写，静止对象不产生写入。
       if(x==e.x&&y==e.y)continue;
       ClientMotionWrite w;w.address=e.address;w.identity=e.identity;w.slot=e.slot;w.display_x=x;w.display_y=y;
@@ -488,7 +610,10 @@ std::string ClientMotionOverlay::Fields() const {
   add("predict_written",s.predict_written);add("follow_written",s.follow_written);
   add("path_valid",s.path_valid);add("path_updates",s.path_updates);add("path_missing",s.path_missing);
   add("body_missing",s.body_missing);add("authority_missing",s.authority_missing);add("multi_body",s.multi_body);
-  add("terrain_missing",s.terrain_missing);add("projectile_lead_evals",s.projectile_lead);
+  add("terrain_missing",s.terrain_missing);add("gate_missing",s.gate_missing);add("projectile_lead_evals",s.projectile_lead);
+  add("tear_birth",Settings.motion.tear_birth);add("birth_fusions",s.birth_fusions);add("birth_dropped",s.birth_dropped);
+  add("birth_no_body",s.birth_no_body);add("birth_clamped",s.birth_clamped);add("birth_back",s.birth_back);
+  hist("birth_offset_units",s.birth_offset);
   out+=s.predictor.Fields();
   return out;
 }

@@ -715,6 +715,12 @@ level 271—280、room 241／243／250—269 中无 wire 的类型只作字节�
 - 6.4 表现状态：音乐请求、循环音效集合、各控制器 ItemOverlay 状态。
 - 6.3 注入值：天使／恶魔几率、药丸效果与识别、TMTRAINER 定义、水流、进度查询结果；挑战 32 的 Host 选定（300 MapFocusResult）。
 
+**版本 88（2026-11-20，仅编译，未实机验收）**：客机右侧道具列表（HistoryHUD，本机选项 ShowRecentItems `OptionsConfig+0x48`）一直为空，切换该选项也无效。原因是 `HUD::PostUpdate 0x97AE90` 的重算 `0x82FF40` 只读 `Player+0x1DD8` 的 `vector<HistoryItem>`（stride 0x1C，读 +4 饰品位、+8 道具 ID），而版本 87 及以前该 vector 按 P8 结论留 Host，客机为空。显示委托后 HistoryHUD 由客机原生重算，不再另建“最终图像缓存”，因此改为：
+
+- `EntityPlayer._history` 拆为 `_history_items`（容器，P3 库存块 13，上限 4096 条）和 `_history_local`（+0xC 禁改位、+0x10 owner 自指，留本地）；`HistoryItem` 的 time／trinket／history_values 改为状态复制，3 字节填充不上线。
+- 客机 30Hz 批次在 `HUD::PostUpdate` 前比较两个 HistoryHUD 槽（`HUD+0x5C64`，stride 0x14，+4 脏位）的身体与条目原值，变化时置槽脏位，由原生 `0x82FF40` 重算；不调用 Add／Remove，也不在客机重放获得事件。
+- 这取代 [5-player-p6-p8](5-player-p6-p8.md) 中“原始 History 留 Host、第 8 步同步最终图像列表”的旧结论；16 个库存历史索引与 form 计数仍留 Host。
+
 ### 8.5 版本 72 的工作量
 
 - `demand.json`：A／B 两表。

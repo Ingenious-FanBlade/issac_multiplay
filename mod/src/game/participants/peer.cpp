@@ -3,6 +3,7 @@
 #include "game/participants/remote_life.h"
 #include "game/authority/state.h"
 #include "game/authority/tick.h"
+#include "net/timing_clock.h"
 #include "game/observation/world_bridge.h"
 #include "game/observation/binary_entities.h"
 #include "net/live.h"
@@ -245,9 +246,10 @@ void PublishPeer(SessionRuntime &r) noexcept {
     const auto progress = r.players[ordinal].Progress(r.clock.Completed());
     net::protocol::Ack ack;
     ack.lobby_roster = r.lobby.roster.Pack();
+    ack.lobby_unlocked = r.lobby.unlocked;
     ack.roster_mask = roster;
     ack.server_tick = r.clock.Completed();
-    ack.server_sample_ms = r.committed_sample_ms?r.committed_sample_ms:GetTickCount64();
+    ack.server_sample_ms = r.committed_sample_ms?r.committed_sample_ms:cs::net::TimingClockMs();
     ack.authority_kind = r.committed_kind;
     ack.authority_paused = (r.blocks & Pause)!=0;
     ack.client_id = progress.client;

@@ -153,6 +153,7 @@ Config ReadConfig() {
         else if(key=="extrapolation")c.motion.extrapolation=i->value.GetBool();
         else if(key=="prediction")c.motion.prediction=i->value.GetBool();
         else if(key=="projectile_lead")c.motion.projectile_lead=i->value.GetBool();
+        else if(key=="tear_birth")c.motion.tear_birth=i->value.GetBool();
         else throw std::runtime_error("motion.unknown_field");
       }
     }

@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstdio>
 
 namespace cs::game {
 namespace {
@@ -116,7 +117,20 @@ std::int32_t ClientMotionCollisionAt(const ClientMotionBody &body,const ClientMo
   return n;
 }
 
+bool ClientMotionApplyGate(ClientMotionBody &b,std::uint8_t gate) noexcept {
+  if(!(gate&0x80u)){b.gate_missing=true;return false;}
+  b.gate_missing=false;
+  b.controls=(gate&1u)!=0;
+  b.cooldown=(gate&2u)?1:0;
+  b.input_lock=(gate&4u)!=0;
+  b.airborne=b.airborne||(gate&8u);
+  b.pony=(gate&16u)?1:0;
+  b.frozen=b.frozen||(gate&32u);
+  return true;
+}
+
 const char *ClientMotionIneligible(const ClientMotionBody &b) noexcept {
+  if(b.gate_missing)return "gate_missing";
   if(b.too_many_points)return "points";
   if(b.player_type==19||b.player_type==20)return "jacob_esau";       // 设计 5.5：首版不预测
   if(b.player_type==35||b.player_type==40)return "tainted_forgotten";
@@ -275,6 +289,63 @@ struct ClientMotionPredictor::Impl final {
                 authority_new=0,pending_overflow=0,inputs=0,input_conflicts=0,generation_resets=0,
                 neutral_ticks=0,replay_ticks=0,replay_max=0,phase_unknown=0;
   const char *last_reason="";
+  // —— 对账诊断（2026-11-20 脚滑排查）——
+  // 新权威样本到达时，取上一条预测链中同一 tick 的预测值与权威值直接比较（单步误差，不含显示平滑）。
+  // 同时与相邻 tick（−1／+1）的预测值比较，判断权威样本是否与其 tick 标号错开一拍。
+  struct DiagSample final {
+    std::uint64_t tick=0;std::uint32_t dtick=0;std::uint8_t phase=0;std::int8_t best=0;
+    float pos=0,vel=0,along=0,speed=0,pvx=0,pvy=0,bvx=0,bvy=0;
+  };
+  static constexpr unsigned kDiagRing=16;   // 最近的走动样本环
+  std::array<DiagSample,kDiagRing> diag_ring{};unsigned diag_head=0,diag_count=0;
+  std::uint64_t diag_uncovered=0,diag_still=0,diag_moving=0,
+                diag_best[3]{},                // 位置最接近的预测 tick 偏移：−1、0、+1
+                diag_dtick[3]{},               // 新旧权威 tick 差：1、2、其他
+                diag_parity_moving[2]{},       // 走动样本按样本相位 bit0（偶／奇半帧）
+                diag_parity_best0[2]{},        // 其中最接近 tick 偏移为 0 的个数
+                diag_ahead=0,diag_behind=0,    // 权威沿运动方向领先／落后预测
+                diag_vel_match=0;              // 速度差 <0.01 的走动样本
+  replica::stream::Duration diag_pos_milli,diag_vel_milli,diag_ahead_step_milli,diag_behind_step_milli;
+  // 最近一帧读到的本机参数快照（毫单位），用于核对复刻输入。
+  ClientMotionBody last_params{};std::int32_t last_slide=0;unsigned last_halves=0;
+
+  // 在当前链（上一份权威起算）里找 tick 的预测值；找不到返回 nullptr。
+  const Link *ChainAt(std::uint64_t tick) const noexcept {
+    for(unsigned i=0;i<chain_count;++i)if(chain[i].tick==tick)return &chain[i];
+    return nullptr;
+  }
+  // 在上一条链被替换前调用：比较新权威（body，标号 tick）与旧链预测。
+  void Diagnose(const ClientMotionBody &b,std::uint64_t tick,std::uint8_t phase) noexcept {
+    if(!chain_count)return;
+    const Link *at=ChainAt(tick);
+    if(!at){++diag_uncovered;return;}
+    const auto &p=at->state;
+    const float dx=b.x-p.x,dy=b.y-p.y,dvx=b.vx-p.vx,dvy=b.vy-p.vy;
+    const float speed=std::hypot(p.vx,p.vy),bspeed=std::hypot(b.vx,b.vy);
+    if(speed<0.1f&&bspeed<0.1f){++diag_still;return;}
+    ++diag_moving;
+    const float pos=std::hypot(dx,dy),vel=std::hypot(dvx,dvy);
+    // 沿预测运动方向的有符号误差：正值表示权威领先预测。
+    const float along=speed>0.1f?(dx*p.vx+dy*p.vy)/speed:0.f;
+    // 与相邻 tick 的预测位置比较，取最接近者。
+    std::int8_t best=0;float best_d=pos;
+    if(const auto *l=ChainAt(tick-1)){const float d=std::hypot(b.x-l->state.x,b.y-l->state.y);if(d<best_d){best_d=d;best=-1;}}
+    if(const auto *l=ChainAt(tick+1)){const float d=std::hypot(b.x-l->state.x,b.y-l->state.y);if(d<best_d){best_d=d;best=1;}}
+    ++diag_best[unsigned(best+1)];
+    const std::uint64_t dt=tick-chain[0].tick;
+    ++diag_dtick[dt==1?0:dt==2?1:2];
+    ++diag_parity_moving[phase&1u];if(best==0)++diag_parity_best0[phase&1u];
+    if(vel<0.01f)++diag_vel_match;
+    diag_pos_milli.Observe(std::uint64_t(pos*1000.f));diag_vel_milli.Observe(std::uint64_t(vel*1000.f));
+    // 误差折算成“几个半步”：沿向误差 ÷ 每半步位移（玩家速度单位即每半步）。
+    if(speed>0.1f){
+      const auto steps=std::uint64_t(std::fabs(along)/speed*1000.f);
+      if(along>=0.f){++diag_ahead;diag_ahead_step_milli.Observe(steps);}
+      else{++diag_behind;diag_behind_step_milli.Observe(steps);}
+    }
+    auto &r=diag_ring[diag_head];diag_head=(diag_head+1)%kDiagRing;diag_count=(std::min)(diag_count+1,kDiagRing);
+    r={tick,std::uint32_t(dt),phase,best,pos,vel,along,speed,p.vx,p.vy,b.vx,b.vy};
+  }
 
   void ClearMotion() noexcept {
     chain_count=previous_count=0;have_shown=false;ex=ey=0;have_authority=false;last_body=nullptr;display_valid=false;
@@ -354,6 +425,9 @@ bool ClientMotionPredictor::Predict(const ClientMotionBody &body,const ClientMot
   const auto start=replica::stream::MetricMicros();
   const bool fresh=!s.have_authority||authority.tick!=s.last_authority_tick;
   if(fresh){++s.authority_new;s.last_authority_tick=authority.tick;s.have_authority=true;}
+  // 对账诊断：必须在旧链被下面的重放替换之前比较。
+  if(fresh&&!jump)s.Diagnose(body,tick,authority.phase);
+  s.last_params=body;s.last_halves=halves;
   // 起点：权威位置与速度；滑行计数沿用上次重放中同一 tick 的本地值（不同步，RE-P3 第 4 节）。
   ClientMotionKinematic k{body.x,body.y,body.vx,body.vy,0};
   if(const auto *p=s.Previous(tick))k.slide=p->state.slide;
@@ -367,6 +441,7 @@ bool ClientMotionPredictor::Predict(const ClientMotionBody &body,const ClientMot
     for(unsigned h=0;h<halves;++h)ClientMotionHalfStep(body,terrain,float(x),float(y),k);
     s.chain[s.chain_count++]={t,k};last=t;
   }
+  s.last_slide=s.chain[0].state.slide;
   s.replay_ticks+=s.chain_count-1;s.replay_max=(std::max)(s.replay_max,std::uint64_t(s.chain_count-1));
   // 显示时钟：按 Host 速率连续推进小数 tick（每 tick halves 个半帧，每秒 60 个半帧），再追赶“最新目标−滞后”。
   const double goal=double(last)-kDisplayLagTicks;
@@ -421,6 +496,33 @@ std::string ClientMotionPredictor::Fields() const {
   add("inputs",s.inputs);add("input_conflicts",s.input_conflicts);add("generation_resets",s.generation_resets);
   add("neutral_ticks",s.neutral_ticks);add("replay_ticks",s.replay_ticks);add("replay_max",s.replay_max);
   hist("replay_us",s.replay_us);hist("error_milli",s.error_milli);
+  // —— 对账诊断（前缀 stream.motion.predict_diag_）——
+  add("diag_uncovered",s.diag_uncovered);add("diag_still",s.diag_still);add("diag_moving",s.diag_moving);
+  add("diag_best_minus1",s.diag_best[0]);add("diag_best_0",s.diag_best[1]);add("diag_best_plus1",s.diag_best[2]);
+  add("diag_dtick_1",s.diag_dtick[0]);add("diag_dtick_2",s.diag_dtick[1]);add("diag_dtick_other",s.diag_dtick[2]);
+  add("diag_even_moving",s.diag_parity_moving[0]);add("diag_even_best0",s.diag_parity_best0[0]);
+  add("diag_odd_moving",s.diag_parity_moving[1]);add("diag_odd_best0",s.diag_parity_best0[1]);
+  add("diag_ahead",s.diag_ahead);add("diag_behind",s.diag_behind);add("diag_vel_match",s.diag_vel_match);
+  hist("diag_pos_milli",s.diag_pos_milli);hist("diag_vel_milli",s.diag_vel_milli);
+  hist("diag_ahead_step_milli",s.diag_ahead_step_milli);hist("diag_behind_step_milli",s.diag_behind_step_milli);
+  // 参数快照：浮点按 ×1000 取整（负值按补码显示，诊断用）。
+  const auto milli=[](float v){return std::uint64_t(std::int64_t(std::llround(double(v)*1000.0)));};
+  const auto &b=s.last_params;
+  add("diag_param_move_speed_milli",milli(b.move_speed));add("diag_param_friction_milli",milli(b.friction));
+  add("diag_param_time_scale_milli",milli(b.time_scale));add("diag_param_size_milli",milli(b.size));
+  add("diag_param_flags",b.flags);add("diag_param_grid_class",std::uint64_t(b.grid_class));
+  add("diag_param_points",b.point_count);add("diag_param_player_type",std::uint64_t(b.player_type));
+  add("diag_param_slide",std::uint64_t(s.last_slide));add("diag_param_halves",s.last_halves);
+  add("diag_param_controls",b.controls);add("diag_param_cooldown",std::uint64_t(std::int64_t(b.cooldown)));
+  add("diag_param_input_lock",b.input_lock);
+  // 最近走动样本（旧→新）：tick 相位 tick差 最近偏移 位置误差 速度误差 沿向误差 预测速率 预测速度 权威速度。
+  for(unsigned i=0;i<s.diag_count;++i){
+    const auto &r=s.diag_ring[(s.diag_head+Impl::kDiagRing-s.diag_count+i)%Impl::kDiagRing];
+    char line[256];
+    std::snprintf(line,sizeof(line),"stream.motion.predict_diag_sample_%02u=tick=%llu phase=%u dtick=%u best=%d pos=%.3f vel=%.3f along=%.3f speed=%.3f pv=(%.3f,%.3f) bv=(%.3f,%.3f)\n",
+      i,static_cast<unsigned long long>(r.tick),unsigned(r.phase),r.dtick,int(r.best),r.pos,r.vel,r.along,r.speed,r.pvx,r.pvy,r.bvx,r.bvy);
+    out+=line;
+  }
   return out;
 }
 } // namespace cs::game

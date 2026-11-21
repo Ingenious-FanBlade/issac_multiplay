@@ -140,6 +140,16 @@ bool EntitySource::Impl::Leaf(const CaptureFieldAccess &a,EntityLeafSink writer,
     case EntityRead::InputSequence:result=facts.input_sequence;break;
     case EntityRead::InputTick:result=facts.input_tick;break;
     case EntityRead::InputPhase:result=facts.input_phase;break; // 0 表示 Host 运行时不可用，客机视为未知、不对账
+    case EntityRead::PredictGate:{
+      // 本机预测资格位：这些成员不在同步范围，客机原生值不可信（ControlsEnabled 恒 0 曾使预测丢弃全部输入）。
+      // 偏移见 RE-P1 第 2 节、RE-P3：+0x410 ControlsEnabled(u8)、+0x414 ControlsCooldown(i32)、+0x1FE0 输入锁(u8)、
+      // +0x1E54 跳跃高度(f32，<0 为空中)、+0x1874 小马冲刺(i32)、+0x218 冻结倒计时(i32)。
+      const std::uint64_t root=a.root.address;
+      std::uint8_t controls=0,lock=0;std::int32_t cooldown=0,pony=0,freeze=0;float jump=0;
+      if(!Value(root+0x410,controls,d)||!Value(root+0x414,cooldown,d)||!Value(root+0x1FE0,lock,d)||
+         !Value(root+0x1E54,jump,d)||!Value(root+0x1874,pony,d)||!Value(root+0x218,freeze,d))return false;
+      result=(controls?1u:0u)|(cooldown>0?2u:0u)|(lock?4u:0u)|(jump<0.f?8u:0u)|(pony>0?16u:0u)|(freeze>0?32u:0u)|0x80u;
+      break;}
     case EntityRead::Role:if(!facts.group_known)return Reject(a,d,CaptureFailure::MissingQualification);result=facts.role;break;
     case EntityRead::Control:if(!facts.group_known || facts.control_flags>3 || ((facts.control_flags&2) && !(facts.control_flags&1)))return Reject(a,d,CaptureFailure::MissingQualification);result=facts.control_flags;break;
     case EntityRead::DrawPresent:{std::array<std::uint32_t,3> list{};if(!Value(a.root.address,list,d) || !list[0] || !list[2] || list[1]>16384)return Reject(a,d,CaptureFailure::InvalidValue);

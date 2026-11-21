@@ -53,4 +53,4 @@
 | [PlayerWeaponWhip](PlayerWeaponWhip.md) | 194 | 72 | 16 | 是 |
 | [PlayerParticipant](PlayerParticipant.md) | 195 | 0 | 0 | 是 |
 | [PlayerControlGroup](PlayerControlGroup.md) | 196 | 0 | 0 | 是 |
-| [EntityPlayer](EntityPlayer.md) | 197 | 11936 | 3707 | 是 |
+| [EntityPlayer](EntityPlayer.md) | 197 | 11936 | 3704 | 是 |

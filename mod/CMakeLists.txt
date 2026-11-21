@@ -169,7 +169,7 @@ add_custom_command(OUTPUT "${GENERATED}/hooks_generated.cpp" "${GENERATED}/bindi
 add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions.cpp
   src/binding/world_layout.cpp src/hooks/registry.cpp src/hooks/context.cpp
   src/hooks/pointer_patch.cpp src/hooks/odd_patch.cpp src/hooks/host_patch.cpp src/hooks/exit_patch.cpp
-  src/game/common/context.cpp src/game/common/player_api.cpp
+  src/game/common/context.cpp src/game/common/player_api.cpp src/game/common/display_settings.cpp
   src/game/authority/lobby.cpp
   src/game/observation/sources/loot.cpp
   src/game/observation/sources/observation.cpp src/game/participants/topology.cpp
@@ -187,6 +187,7 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
   src/game/client/presentation/client_motion_overlay.cpp src/game/client/presentation/client_motion_overlay_native.cpp
   src/game/client/presentation/client_motion_predict.cpp
   src/game/client/display/client_display_native.cpp
+  src/game/client/display/client_pause_menu_native.cpp
   src/game/client/display/client_display_memory.cpp
   src/game/client/scene/client_preparation_native.cpp
   src/game/client/scene/client_preparation.cpp
@@ -244,6 +245,7 @@ set_source_files_properties(src/game/observation/sources/loot.cpp
   src/game/client/entity/client_entity_adapters_native.cpp src/game/client/entity/client_entity_pool_native.cpp
   src/game/client/entity/client_entity_npc_native.cpp
   src/game/client/display/client_display_native.cpp
+  src/game/client/display/client_pause_menu_native.cpp
   src/game/client/presentation/client_motion_overlay_native.cpp
   src/game/tests/client_e2e_native.cpp
   src/game/observation/sources/lua_entity.cpp src/game/observation/sources/display_observation.cpp

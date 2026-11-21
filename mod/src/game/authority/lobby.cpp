@@ -24,6 +24,12 @@ void RefreshHostLobby(SessionRuntime &r) noexcept {
   auto &lobby = r.lobby;
   auto &roster = lobby.roster;
   if (roster.phase == LobbyPhase::Off || r.retiring) return;
+  // 选角只在 Waiting 期间可改；此时按房主当前存档刷新解锁位图。
+  // 房主当前角色若因换存档变为未解锁，退回以撒，避免以未解锁角色开局。
+  if (roster.phase == LobbyPhase::Waiting) {
+    lobby.unlocked = LobbyUnlockedCharacters();
+    if (!core::LobbyCharacterUnlocked(lobby.unlocked, roster.characters[0])) roster.characters[0] = 0;
+  }
   roster.present = 1;
   roster.ready = 0;
   for (unsigned i = 1; i < core::kMaximumParticipants; ++i) {
@@ -33,7 +39,10 @@ void RefreshHostLobby(SessionRuntime &r) noexcept {
     if (roster.phase == LobbyPhase::Waiting) {
       const auto selection = remote.peer.observed.lobby_selection;
       roster.characters[i] = selection & 63;
-      if (selection & core::kLobbyReady) roster.ready |= 1u << i;
+      // 客机选了房主未解锁的角色时不算准备，房主因此无法开始。
+      if ((selection & core::kLobbyReady) &&
+          core::LobbyCharacterUnlocked(lobby.unlocked, roster.characters[i]))
+        roster.ready |= 1u << i;
     } else roster.ready |= 1u << i;
   }
   if (roster.phase == LobbyPhase::Waiting && RunActive()) {
@@ -51,6 +60,9 @@ const char *SelectLobbyCharacter(unsigned character) noexcept {
   if (ClientBusy()) return UpdateClientLobby(int(character), false);
   auto *r = Runtime();
   if (!r || r->retiring || r->lobby.roster.phase != LobbyPhase::Waiting) return "lobby_not_open";
+  // 房主只能选自己当前存档已解锁的角色。
+  r->lobby.unlocked = LobbyUnlockedCharacters();
+  if (!core::LobbyCharacterUnlocked(r->lobby.unlocked, character)) return "lobby_character_locked";
   r->lobby.roster.characters[0] = character;
   return "";
 }
@@ -65,6 +77,12 @@ const char *StartLobbyGame() noexcept {
   auto &lobby = r->lobby;
   if (!lobby.roster.CanStart()) return "lobby_wait_for_ready";
   if (!LobbyMenuReady()) return "lobby_requires_save_menu";
+  // 开局前按最新存档复核全体角色；任一角色未解锁都拒绝开局。
+  lobby.unlocked = LobbyUnlockedCharacters();
+  for (unsigned i = 0; i < core::kMaximumParticipants; ++i)
+    if ((lobby.roster.present & (1u << i)) &&
+        !core::LobbyCharacterUnlocked(lobby.unlocked, lobby.roster.characters[i]))
+      return "lobby_character_locked";
 
   // 先冻结名单与角色，再请求原生加载。加载期间的迟到握手不加入本局。
   lobby.locked_members = lobby.roster.present;
@@ -101,15 +119,18 @@ void PumpLobbyStart() noexcept {
 std::string LobbyFields() {
   core::LobbyRoster roster;
   unsigned ordinal = 0, desired = 0;
+  std::uint64_t unlocked = 0;
   std::string role = "Off", details;
   const auto *r = Runtime();
   if (ClientBusy()) {
     role = "Client";
     roster = ClientLobbyRoster(ordinal, desired, details);
+    unlocked = ClientLobbyUnlocked();
   } else if (r && !r->finished && r->lobby.roster.phase != LobbyPhase::Off) {
     role = "Host";
     roster = r->lobby.roster;
     desired = roster.characters[0];
+    unlocked = r->lobby.unlocked;
     const auto *close_error = !r->cleanup_failed ? "" :
         r->peer.stop_failed ? "host_network_stop_failed" : "host_native_cleanup_failed";
     details = "addresses=" + r->lobby.addresses + "\nport=" + std::to_string(r->lobby.port) +
@@ -124,7 +145,9 @@ std::string LobbyFields() {
   std::string fields = "ok=1\nlobby_version=1\nrole=" + role + "\nphase=" + PhaseName(roster.phase) +
       "\nordinal=" + std::to_string(ordinal) + "\ncount=" + std::to_string(std::popcount(roster.present)) +
       "\ncan_start=" + std::to_string(roster.CanStart()) + "\ndesired_character=" +
-      std::to_string(desired & 63) + "\ndesired_ready=" + std::to_string(bool(desired & core::kLobbyReady)) + "\n";
+      std::to_string(desired & 63) + "\ndesired_ready=" + std::to_string(bool(desired & core::kLobbyReady)) +
+      // 房主存档解锁位图（十进制）；界面据此只列出可选角色。客机未收到名单前为 0。
+      "\nunlocked=" + std::to_string(unlocked) + "\n";
   for (unsigned i = 0; i < roster.characters.size(); ++i) {
     if (!(roster.present & (1u << i))) continue;
     const auto prefix = "member." + std::to_string(i) + ".";

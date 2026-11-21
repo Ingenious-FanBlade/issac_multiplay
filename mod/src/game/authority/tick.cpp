@@ -11,6 +11,7 @@
 #include "game/authority/state.h"
 #include "game/observation/world_bridge.h"
 #include "runtime.h"
+#include "net/timing_clock.h"
 #include <algorithm>
 #include <bcrypt.h>
 #include <psapi.h>
@@ -190,6 +191,15 @@ std::uint64_t LiveCaptureSession() noexcept {
 bool HostOwnsFoundHudPlayer(const void *player) noexcept {
   const auto *r=Runtime();
   return r&&r->topology[0].Contains(const_cast<void *>(player),false);
+}
+// 身体属于哪个参与者（0 为房主，含多身体与非名册副身体）；不属于任何已知控制组时返回 false。
+// 只读当前拓扑，供绘制时区分本端与他人身体（描边／透明度），不参与输入或同步判定。
+bool HostPlayerParticipant(const void *player,unsigned &ordinal) noexcept {
+  const auto *r=Runtime();
+  if(!r||!player||r->mode!=core::SessionMode::Host||r->finished)return false;
+  for(unsigned i=0;i<r->topology.size();++i)
+    if(r->topology[i].Contains(const_cast<void *>(player),false)){ordinal=i;return true;}
+  return false;
 }
 // 相机只使用当前房间内已确认属于房主的身体，绑定撤销时回到原生跟随。
 bool HostOwnsCameraPlayer(const void *room,const void *player) noexcept {
@@ -402,7 +412,7 @@ void EndManager(bool normal) noexcept {
     if (result == core::TickDecision::Committed &&
         r->pipeline.PublishCompleted(!Settings.diagnostics ||
                                      TraceDropped() == 0)) {
-      r->committed_sample_ms=GetTickCount64();
+      r->committed_sample_ms=cs::net::TimingClockMs();  // 输入时序链用高精度钟（net/timing_clock.h）
       r->committed_kind=r->boundary.kind==core::TickKind::OddPlayer?1u:0u;
       if (r->boundary.kind == core::TickKind::StandardRoom)
         ++r->ticks_standard;

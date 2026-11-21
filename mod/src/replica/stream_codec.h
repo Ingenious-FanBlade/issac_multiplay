@@ -13,7 +13,8 @@ enum class Codec : unsigned { None, Zstd };
 inline constexpr const char *kWorldBodyZstdCapability="world-body-zstd-v1";
 // 同布局的旧接收端要等 Resources 才会回报；只有双方声明后才可省略该消息。
 inline constexpr const char *kStateTableDeltaCapability="state-table-delta-v1";
-inline constexpr const char *kLobbyCapability="lobby-v1";
+// v2：LobbyRoster 增加 unlocked（房主解锁位图）；与 v1 不兼容，混用时按 live_lobby_required 拒绝。
+inline constexpr const char *kLobbyCapability="lobby-v2";
 // 封套按连接/路由持有；范围正文中的WorldScope仍然可在全部Peer间共享。
 struct Message final {
   memory::Lease memory;

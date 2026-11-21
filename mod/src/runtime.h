@@ -69,6 +69,8 @@ struct Config {
     bool interpolation = true, extrapolation = true;
     // 阶段 2：本机身体预测（P9，缺省开）；敌弹外推到 T_p（P6，缺省关）。
     bool prediction = true, projectile_lead = false;
+    // 阶段 3：本机泪弹出生融合（设计 5.6，缺省开）；关闭时本机泪弹与远端泪弹同样只做插值。
+    bool tear_birth = true;
   } motion;
 #ifdef ISAACCS_E2E
   bool e2e_ui_enabled=false;

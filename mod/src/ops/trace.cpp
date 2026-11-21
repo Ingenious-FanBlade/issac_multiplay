@@ -170,8 +170,9 @@ void Trace(const char *ev, const char *format, ...) noexcept {
     // E39 调用点已有授权诊断开关。无需打开全量跟踪也能保留原生转场见证。
     important |= std::strncmp(ev, "e39-", 4) == 0;
 #endif
+    // client_pause 只在本机按下暂停相关按键时写一行，用于定位客机暂停菜单的拒绝原因。
     for (const auto *name : {"boot", "config", "shutdown", "session", "peer",
-                             "net", "tick_reject"})
+                             "net", "tick_reject", "client_pause"})
       important |= std::strcmp(ev, name) == 0;
     if (!important)
       return;

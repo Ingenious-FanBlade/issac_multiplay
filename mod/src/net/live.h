@@ -119,6 +119,13 @@ private:
   stream::Message Message(stream::Kind, std::uint64_t);
   Packets Pack(const stream::Message &);
 };
+// 客机连接质量（只作显示）：网络线程发布，主线程按值读取，不参与输入目标或同步判定。
+// rtt_ms 为 Roster／TickProgress 往返估计（已扣 Host 持有时间）的 1/8 指数平滑值；
+// loss_permille 为最近 loss_window 个 Host→Client TickProgress 序号中未到达的千分比。
+struct LinkQuality final {
+  bool rtt_valid = false, loss_valid = false;
+  std::uint32_t rtt_ms = 0, loss_permille = 0, loss_window = 0;
+};
 // 每连接独立线程；输入、可靠控制、世界依赖与可合并动态各有容量，终态不可丢。
 class Client final {
 public:
@@ -131,12 +138,16 @@ public:
       std::shared_ptr<state::ClientStateMemory> binary_memory={}, bool lobby=false) noexcept;
   bool SetLobbySelection(unsigned selection) noexcept;
   std::uint64_t LobbyRoster() const noexcept;
+  // 房主解锁位图，与名单同一消息到达；尚未收到时为 0。
+  std::uint64_t LobbyUnlocked() const noexcept;
   bool Send(const Intent &) noexcept;
   void RevokeInput() noexcept;
   // 停止旧世界接纳并撤输入；恢复请求须等主线程真实安全退休后另外排入。
   stream::Metrics Metrics() const noexcept;
   stream::Metrics TransmitMetrics() const noexcept;
   stream::TransferStatistics TransferStatus() const noexcept;
+  // 任意线程可读；尚无样本时对应 valid 为 false。
+  LinkQuality Quality() const noexcept;
   replica::Limits EffectiveLimits() const noexcept;
   replica::Limits EffectiveFastLimits() const noexcept;
   bool Poll(Event &) noexcept;

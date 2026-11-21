@@ -29,7 +29,10 @@ template <unsigned I> void Count() noexcept {
 template <unsigned I> bool __fastcall Query(void *self, void *, int action) {
   Count<I>();
   // Client 的玩法查询在调用官方/原生回调前中性返回；物理采样另走保存的原函数。
-  if(game::ClientBusy())return false;
+  // 例外：客机本地暂停菜单（原生 PauseScreen／选项输入）只读本机设备，直接返回原函数结果，不做 Host 覆写。
+  if(game::ClientBusy())
+    return game::ClientPauseMenuQueryAllowed()&&
+           reinterpret_cast<bool(__thiscall *)(void *, int)>(slots[I].original)(self, action);
   const bool original = reinterpret_cast<bool(__thiscall *)(void *, int)>(
       slots[I].original)(self, action);
   float result = original ? 1.0F : 0.0F;
@@ -42,7 +45,10 @@ template <unsigned I> bool __fastcall Query(void *self, void *, int action) {
 }
 template <unsigned I> float __fastcall Value(void *self, void *, int action) {
   Count<I>();
-  if(game::ClientBusy())return 0.0F;
+  if(game::ClientBusy())
+    return game::ClientPauseMenuQueryAllowed()
+               ? reinterpret_cast<float(__thiscall *)(void *, int)>(slots[I].original)(self, action)
+               : 0.0F;
   const float original = reinterpret_cast<float(__thiscall *)(void *, int)>(
       slots[I].original)(self, action);
   float result = original;

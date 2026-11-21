@@ -1686,8 +1686,21 @@ struct ClientSceneAtomicInstaller::Impl {
         }
         // 已相等的引用无需重复更新原生反向树。
         if(reference&&ClientAtomicWriteCheck(op.write)){op.done=true;continue;}
+        const bool was_written=written,was_done=op.done;
         if(!op.write.retained_attachment){written=true;op.done=true;}
-        if(!ClientAtomicWriteApply(op.write)){
+        bool attempted=false;
+        if(!ClientAtomicWriteApply(op.write,&attempted)){
+          // 失败现场：字段身份、写入类别，以及作用域／原生图像队列是否仍成立，供定位真实原因。
+          {const auto &field=S::Fields()[scene->State().Field(op.field).definition];
+            Trace("client_error","event=binary_atomic_write_failed layout=%u field=%u kind=%u attempted=%u scope=%u queues_empty=%u order=%u",
+              unsigned(field.layout),unsigned(field.index),unsigned(op.write.kind),unsigned(attempted),
+              unsigned(ClientAtomicScopeActive()),unsigned(ClientAtomicQueuesEmpty()),op.priority);}
+          if(!attempted){
+            // 未进入原生写入：对象未改动，恢复登记，按安装期生命周期变化干净失败，
+            // 不把引用标成“不确定”——否则批次永远无法排空，旧场景退休卡死（operation_execution_no_progress）。
+            written=was_written;op.done=was_done;
+            return Fail("binary_atomic_lifecycle_during_install");
+          }
           if(attachment&&!ClientStagedFieldAttached(op.write.field,op.write.destination))op.done=false;
           if(RejectField(op,"binary_atomic_native_write_failed")){read_region.Clear();continue;}
           if(reference)uncertain=true;

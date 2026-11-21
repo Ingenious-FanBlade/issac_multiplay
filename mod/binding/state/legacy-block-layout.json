@@ -2050,7 +2050,18 @@
       "blocks": []
     },
     "HistoryItem": {
-      "blocks": []
+      "blocks": [
+        {
+          "id": 0,
+          "name": "展示值",
+          "sequence": "world",
+          "fields": [
+            "time",
+            "trinket",
+            "history_values"
+          ]
+        }
+      ]
     },
     "BagOfCraftingOutput": {
       "blocks": []
@@ -2510,6 +2521,7 @@
             "_modelingClayEffect",
             "_collectibleCounts",
             "_smeltedTrinkets",
+            "_history_items",
             "_itemWispsList",
             "extra_collectible_counts",
             "extra_trinket_counts",
@@ -2619,12 +2631,13 @@
         },
         {
           "id": 25,
-          "name": "P9本机预测对账：已处理输入序号、tick与半帧相位",
+          "name": "P9本机预测对账：已处理输入序号、tick、半帧相位与预测资格位",
           "sequence": "body",
           "fields": [
             "input_sequence",
             "input_tick",
-            "input_phase"
+            "input_phase",
+            "predict_gate"
           ]
         }
       ],

@@ -37,6 +37,8 @@ constexpr RecipeBinding recipes[]={
   {"read_native_vector",EntityRead::Vector},{"read_player_temporary_effect_entries",EntityRead::Vector},
   {"playertemporaryeffects_entries_read",EntityRead::Vector},{"entityplayer__costumeSpriteDescs_read",EntityRead::Vector},
   {"entityplayer__collectibleCounts_read",EntityRead::Vector},{"entityplayer__smeltedTrinkets_read",EntityRead::Vector},
+  // History 条目：客机原生 HistoryHUD（右侧道具列表）的唯一输入，按已核 vector 头复制。
+  {"entityplayer__history_read",EntityRead::Vector},
   {"entityplayer_extra_collectible_counts_read",EntityRead::Vector},{"player_extra_trinket_presence_read",EntityRead::TrinketPresence},
   {"read_anm2_default_name",EntityRead::String},{"entityplayer__headAnim_read",EntityRead::String},{"read_text_bytes",EntityRead::String},
   {"entityplayer_inline_sprites_read",EntityRead::Fixed},{"entityplayer__playerCostumeMap_read",EntityRead::Fixed},
@@ -58,7 +60,7 @@ constexpr RecipeBinding recipes[]={
   {"player_weapon_slots_read",EntityRead::Weapon},{"player_current_record_node",EntityRead::DrawNode},
   {"player_current_record_sprite",EntityRead::DrawSprite},
   {"entityplayer_input_sequence_read",EntityRead::InputSequence},{"entityplayer_input_tick_read",EntityRead::InputTick},
-  {"entityplayer_input_phase_read",EntityRead::InputPhase}
+  {"entityplayer_input_phase_read",EntityRead::InputPhase},{"entityplayer_predict_gate_read",EntityRead::PredictGate}
 };
 std::uint32_t Word(std::span<const std::byte> bytes,std::size_t at) noexcept {
   std::uint32_t v=0;std::memcpy(&v,bytes.data()+at,4);return v;

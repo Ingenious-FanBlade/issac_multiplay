@@ -1,8 +1,8 @@
 # 需求清单覆盖
 
-布局版本 87；唯一输入为 `mod/binding/state/demand.json`。
+布局版本 89；唯一输入为 `mod/binding/state/demand.json`。
 
-域源参照含 3009 个展开字段；需求计划保留 2659 个。未列入的 wire 仅在生成内存中剥离，原生字节与成员映射保留全量参照。
+域源参照含 3014 个展开字段；需求计划保留 2664 个。未列入的 wire 仅在生成内存中剥离，原生字节与成员映射保留全量参照。
 
 整类型选择包含该展开类型的继承字段；按字段选择使用投影前名称。空块保留原编号并视为 reserved；空子块投影省略。resource_protocol 保留正式资源的编解码表；旧 presentation_envelope、hud_local 专用表已退役。
 
@@ -1645,6 +1645,9 @@
 | [SmeltedTrinketDesc (155)](05-player/SmeltedTrinketDesc.md) | normal | 0（块0） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [AfterImageFrame (156)](05-player/AfterImageFrame.md) | duration | 0（块0） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [AfterImageFrame (156)](05-player/AfterImageFrame.md) | position | 1（块0） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
+| [HistoryItem (158)](05-player/HistoryItem.md) | history_values | 2（块0） | 客机原生HistoryHUD（右侧道具列表、ShowRecentItems选项）按本身体History条目重算；布局88 |
+| [HistoryItem (158)](05-player/HistoryItem.md) | time | 0（块0） | 客机原生HistoryHUD（右侧道具列表、ShowRecentItems选项）按本身体History条目重算；布局88 |
+| [HistoryItem (158)](05-player/HistoryItem.md) | trinket | 1（块0） | 客机原生HistoryHUD（右侧道具列表、ShowRecentItems选项）按本身体History条目重算；布局88 |
 | [OptionalDrawSequence (164)](05-player/OptionalDrawSequence.md) | current_node | 1（块0） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [OptionalDrawSequence (164)](05-player/OptionalDrawSequence.md) | has_draw_record | 0（块0） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [OptionalDrawSequence (164)](05-player/OptionalDrawSequence.md) | sprite | 2（块0） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
@@ -1718,16 +1721,16 @@
 | [PlayerControlGroup (196)](05-player/PlayerControlGroup.md) | control_session | 2（块0） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [PlayerControlGroup (196)](05-player/PlayerControlGroup.md) | ordinal | 1（块0） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [PlayerControlGroup (196)](05-player/PlayerControlGroup.md) | participant | 0（块0） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
-| [EntityPlayer (197)](05-player/EntityPlayer.md) | _activeDesc | 99（块14） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
-| [EntityPlayer (197)](05-player/EntityPlayer.md) | _afterImageFrames | 115（块18） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
-| [EntityPlayer (197)](05-player/EntityPlayer.md) | _backupPlayer | 107（块17） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
+| [EntityPlayer (197)](05-player/EntityPlayer.md) | _activeDesc | 100（块14） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
+| [EntityPlayer (197)](05-player/EntityPlayer.md) | _afterImageFrames | 116（块18） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
+| [EntityPlayer (197)](05-player/EntityPlayer.md) | _backupPlayer | 108（块17） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | _bagOfCraftingContent | 87（块13） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | _blackHearts | 65（块12） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | _boneHearts | 75（块12） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | _brokenHearts | 76（块12） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | _canFly | 61（块11） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | _collectibleCounts | 93（块13） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
-| [EntityPlayer (197)](05-player/EntityPlayer.md) | _costumeSpriteDescs | 102（块16）, 120（块22）, 121（块23）, 122（块24） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
+| [EntityPlayer (197)](05-player/EntityPlayer.md) | _costumeSpriteDescs | 103（块16）, 121（块22）, 122（块23）, 123（块24） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | _damage | 57（块11） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | _damageCooldown | 43（块10） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | _eveSumptoriumCharge | 50（块10） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
@@ -1735,9 +1738,10 @@
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | _hasGoldenBomb | 70（块12） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | _hasGoldenKey | 69（块12） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | _headAnim | 54（块10） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
-| [EntityPlayer (197)](05-player/EntityPlayer.md) | _heldEntity | 108（块17） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
+| [EntityPlayer (197)](05-player/EntityPlayer.md) | _heldEntity | 109（块17） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
+| [EntityPlayer (197)](05-player/EntityPlayer.md) | _history_items | 95（块13） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | _isCoopGhost | 83（块12） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
-| [EntityPlayer (197)](05-player/EntityPlayer.md) | _itemWispsList | 95（块13） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
+| [EntityPlayer (197)](05-player/EntityPlayer.md) | _itemWispsList | 96（块13） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | _luck | 60（块11） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | _mawOfTheVoidChargeTimer | 51（块10） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | _maxHearts | 62（块12） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
@@ -1750,9 +1754,9 @@
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | _numCoins | 72（块12） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | _numGigaBombs | 81（块12） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | _numKeys | 68（块12） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
-| [EntityPlayer (197)](05-player/EntityPlayer.md) | _playerCostumeMap | 103（块16） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
-| [EntityPlayer (197)](05-player/EntityPlayer.md) | _playerIndex | 105（块17） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
-| [EntityPlayer (197)](05-player/EntityPlayer.md) | _playerType | 104（块17） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
+| [EntityPlayer (197)](05-player/EntityPlayer.md) | _playerCostumeMap | 104（块16） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
+| [EntityPlayer (197)](05-player/EntityPlayer.md) | _playerIndex | 106（块17） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
+| [EntityPlayer (197)](05-player/EntityPlayer.md) | _playerType | 105（块17） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | _poopMana | 82（块12） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | _poopSpellQueue | 88（块13） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | _redHearts | 63（块12） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
@@ -1763,30 +1767,30 @@
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | _soulHearts | 64（块12） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | _suplexState | 48（块10） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | _tearrange | 58（块11） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
-| [EntityPlayer (197)](05-player/EntityPlayer.md) | _temporaryeffects | 114（块18） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
+| [EntityPlayer (197)](05-player/EntityPlayer.md) | _temporaryeffects | 115（块18） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | _trinketsID | 84（块13） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
-| [EntityPlayer (197)](05-player/EntityPlayer.md) | _twinPlayer | 106（块17） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
+| [EntityPlayer (197)](05-player/EntityPlayer.md) | _twinPlayer | 107（块17） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | _urnSouls | 80（块12） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
-| [EntityPlayer (197)](05-player/EntityPlayer.md) | _weapon | 100（块15） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
+| [EntityPlayer (197)](05-player/EntityPlayer.md) | _weapon | 101（块15） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | authority_order | 0（块0） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | blood_charge | 79（块12） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
-| [EntityPlayer (197)](05-player/EntityPlayer.md) | body_role | 112（块17） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
+| [EntityPlayer (197)](05-player/EntityPlayer.md) | body_role | 113（块17） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | child | 37（块8） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | color | 28（块4） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
-| [EntityPlayer (197)](05-player/EntityPlayer.md) | control_flags | 113（块17） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
-| [EntityPlayer (197)](05-player/EntityPlayer.md) | control_group | 111（块17） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
-| [EntityPlayer (197)](05-player/EntityPlayer.md) | costume_topology_revision | 101（块16） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
+| [EntityPlayer (197)](05-player/EntityPlayer.md) | control_flags | 114（块17） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
+| [EntityPlayer (197)](05-player/EntityPlayer.md) | control_group | 112（块17） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
+| [EntityPlayer (197)](05-player/EntityPlayer.md) | costume_topology_revision | 102（块16） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | crafting_use_charge | 49（块10） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
-| [EntityPlayer (197)](05-player/EntityPlayer.md) | current_draw_sequence | 116（块18） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
+| [EntityPlayer (197)](05-player/EntityPlayer.md) | current_draw_sequence | 117（块18） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | current_effect_191_id | 91（块13） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | dead | 18（块2） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | depth_offset | 31（块4） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | entity_collision_class | 20（块2） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | entity_plus | 41（块9） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | exists | 17（块2） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
-| [EntityPlayer (197)](05-player/EntityPlayer.md) | extra_collectible_counts | 96（块13） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
+| [EntityPlayer (197)](05-player/EntityPlayer.md) | extra_collectible_counts | 97（块13） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | extra_lives_adjustment | 73（块12） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
-| [EntityPlayer (197)](05-player/EntityPlayer.md) | extra_trinket_counts | 97（块13） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
+| [EntityPlayer (197)](05-player/EntityPlayer.md) | extra_trinket_counts | 98（块13） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | flags | 15（块2） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | frame_base | 21（块2） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | full_sprite_a | 44（块10） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
@@ -1794,27 +1798,28 @@
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | grid_collision_class | 19（块2） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | hit_points | 23（块2） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | init_seed | 8（块0） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
-| [EntityPlayer (197)](05-player/EntityPlayer.md) | inline_sprites | 117（块19）, 118（块20）, 119（块21） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
-| [EntityPlayer (197)](05-player/EntityPlayer.md) | input_phase | 125（块25） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
-| [EntityPlayer (197)](05-player/EntityPlayer.md) | input_sequence | 123（块25） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
-| [EntityPlayer (197)](05-player/EntityPlayer.md) | input_tick | 124（块25） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
+| [EntityPlayer (197)](05-player/EntityPlayer.md) | inline_sprites | 118（块19）, 119（块20）, 120（块21） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
+| [EntityPlayer (197)](05-player/EntityPlayer.md) | input_phase | 126（块25） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
+| [EntityPlayer (197)](05-player/EntityPlayer.md) | input_sequence | 124（块25） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
+| [EntityPlayer (197)](05-player/EntityPlayer.md) | input_tick | 125（块25） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | inventory_suppressed | 89（块13） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | item_state | 47（块10） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | jar_flies | 67（块12） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | jar_hearts | 66（块12） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | max_hit_points | 24（块2） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | minecart | 40（块8） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
-| [EntityPlayer (197)](05-player/EntityPlayer.md) | native_membership | 109（块17） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
+| [EntityPlayer (197)](05-player/EntityPlayer.md) | native_membership | 110（块17） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | parent | 36（块8） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
-| [EntityPlayer (197)](05-player/EntityPlayer.md) | player_item_spoofs | 98（块13） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
+| [EntityPlayer (197)](05-player/EntityPlayer.md) | player_item_spoofs | 99（块13） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | pocket_items | 85（块13） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | position | 10（块1） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | position_offset | 11（块1） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
+| [EntityPlayer (197)](05-player/EntityPlayer.md) | predict_gate | 127（块25） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | queued_item | 86（块13） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | render_scales | 46（块10） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | render_topology_revision | 42（块10） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | render_z_offset | 30（块4） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
-| [EntityPlayer (197)](05-player/EntityPlayer.md) | roster_rank | 110（块17） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
+| [EntityPlayer (197)](05-player/EntityPlayer.md) | roster_rank | 111（块17） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | selected_config | 7（块0） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | shadow_size | 27（块4） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |
 | [EntityPlayer (197)](05-player/EntityPlayer.md) | shrink_status_1 | 25（块3） | Q14保留版本28—53已收窄的原生绘制、Player／Grid结构与库存输入 |

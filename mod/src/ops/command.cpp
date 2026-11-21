@@ -1,5 +1,6 @@
 #include "binding/offsets.h"
 #include "game/common/bridge.h"
+#include "game/common/display_settings.h"
 #include "game/client/session/client.h"
 #include "game/client/scene/client_scene.h"
 #include "game/client/isolation/client_isolation.h"
@@ -295,6 +296,19 @@ std::string Execute(std::string_view text, const char *source) {
                    ? "ok=1\nqueued=" + std::to_string(mutation.id) + "\n"
                    : "ok=0\nerror=queue_full\n";
     }
+  } else if (verb == "display_outline" || verb == "display_opacity") {
+    // 本机显示偏好（描边颜色序号 0—9，0 为关闭；他人透明度档位 0—10）。主线程直接生效并写
+    // isaac-cs/display.json，不进入会话、网络或 Manager 命令队列。
+    in >> arg >> extra;
+    unsigned value = 0;
+    const auto parsed = std::from_chars(arg.data(), arg.data()+arg.size(), value);
+    bool saved = false;
+    const bool number = !arg.empty() && extra.empty() && parsed.ec == std::errc{} &&
+                        parsed.ptr == arg.data()+arg.size();
+    const bool applied = number && (verb == "display_outline" ? game::SetOutlineColor(value, saved)
+                                                              : game::SetRemoteOpacity(value, saved));
+    if (!applied) result = "ok=0\nerror=arguments\n";
+    else result = "ok=1\nsaved=" + std::to_string(unsigned(saved)) + "\n";
   } else if (verb == "lobby_role" || verb == "lobby_ready" || verb == "lobby_start") {
     in >> arg >> extra;
     unsigned value = 0;
@@ -410,6 +424,10 @@ std::string Execute(std::string_view text, const char *source) {
         result="ok=1\nrole=Host\nepoch="+std::to_string(host)+"\ncapture_n="+
                std::to_string(capture_timing.count)+"\ncapture_us="+std::to_string(capture_timing.total_us)+"\n";
       }else result="ok=1\nrole=Off\n";
+    } else if (verb == "display_settings") {
+      const auto preferences = game::CurrentDisplayPreferences();
+      result = "ok=1\ndisplay_version=1\noutline=" + std::to_string(preferences.outline_color) +
+               "\nopacity=" + std::to_string(preferences.remote_opacity) + "\n";
     } else if (verb == "lobby_status") {
       game::ClientUiHeartbeat();
       result = game::LobbyFields()+"default_port="+std::to_string(Settings.host_port)+
@@ -518,6 +536,7 @@ void PublishStatus() noexcept {
         "\nmotion_extrapolation=" + (Settings.motion.extrapolation ? "1" : "0") +
         "\nmotion_prediction=" + (Settings.motion.prediction ? "1" : "0") +
         "\nmotion_projectile_lead=" + (Settings.motion.projectile_lead ? "1" : "0") +
+        "\nmotion_tear_birth=" + (Settings.motion.tear_birth ? "1" : "0") +
         "\nmanager_starting=" + (starting ? "1" : "0") +
         "\nregistered=" + std::to_string(registered) +
         "\npointers=" + std::to_string(PointerCount()) +

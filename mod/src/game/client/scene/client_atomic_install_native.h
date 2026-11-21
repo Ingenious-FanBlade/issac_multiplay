@@ -40,7 +40,12 @@ bool ClientAtomicWriteCapture(const ClientAtomicWrite &,std::byte *original,Clie
 bool ClientAtomicCopyWindow() noexcept;
 bool ClientAtomicClearRetiringReference(void *slot,const void *target,bool entity_ptr) noexcept;
 // CapturedFailure表示原值完整而写入可能不完整，调用者必须登记done并撤销。
-bool ClientAtomicWriteApply(const ClientAtomicWrite &) noexcept;
+// attempted 非空时回报是否已进入原生写入：false 表示形状／作用域检查未通过，原生对象未改动，
+// 调用者不得把这类失败当作“写了一半”的不确定状态。
+bool ClientAtomicWriteApply(const ClientAtomicWrite &,bool *attempted=nullptr) noexcept;
+// 只读诊断：当前是否处于有效主线程安装作用域、原生图像提交队列是否为空。
+bool ClientAtomicScopeActive() noexcept;
+bool ClientAtomicQueuesEmpty() noexcept;
 bool ClientAtomicWriteCheck(const ClientAtomicWrite &) noexcept;
 bool ClientAtomicDetachField(const ClientAtomicWrite &) noexcept;
 // 快速路径纯值写入（设计 10.6 节）。调用者已在写段入口核主线程安装作用域（ClientAtomicCopyWindow）、

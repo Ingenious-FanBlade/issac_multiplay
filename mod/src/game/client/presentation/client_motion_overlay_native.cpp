@@ -78,7 +78,10 @@ unsigned ClientMotionCollect(void *room,void *const *locals,unsigned local_count
     // 只比较地址，不经由这些引用读取其他对象。阶段 2 另记所附着的身体与是否平移 Δ。
     void *parent=e->_parent._ref;
     v.owner=nullptr;v.follow=false;
-    if(Contains(live_locals.data(),live_count,parent)){v.owner=parent;v.follow=!v.laser;}
+    v.spawner=e->_spawnerEntity._ref;
+    // 泪弹（类型 2）不按 Parent 附着：它的位置由 Host 权威推进，按远端插值显示，
+    // 本机发出的泪弹另由出生融合（设计 5.6）对齐身体；若按附着处理会跳过插值并每帧随当前 Δ 平移。
+    if(e->_type!=2&&Contains(live_locals.data(),live_count,parent)){v.owner=parent;v.follow=!v.laser;}
     if(!v.owner)for(unsigned h=0;h<held_count;++h)if(held[h]==e){v.owner=held_owner[h];v.follow=true;break;}
     if(!v.owner&&e->_type==3){
       void *player=static_cast<Entity_Familiar *>(e)->_player;
@@ -145,19 +148,19 @@ bool ClientMotionReadBody(void *room,void *address,ClientMotionBody &out) noexce
       for(std::size_t i=0;i<count;++i){out.point_x[i]=begin[i*2];out.point_y[i]=begin[i*2+1];}
     }
   }
-  out.controls=Raw<std::uint8_t>(e,0x410)!=0;out.cooldown=Raw<std::int32_t>(e,0x414);
+  // ControlsEnabled +0x410、Cooldown +0x414、输入锁 +0x1FE0、跳跃 +0x1E54、小马冲刺 +0x1874、冻结 +0x218
+  // 在客机原生不同步（客机上 ControlsEnabled 恒 0，曾使预测丢弃全部输入），这里不读，由 ClientMotionApplyGate 填写。
   out.can_fly=Raw<std::uint8_t>(e,0x1564)!=0;out.coop_ghost=Raw<std::uint8_t>(e,0x207D)!=0;
-  out.input_lock=Raw<std::uint8_t>(e,0x1FE0)!=0;
-  out.airborne=Raw<float>(e,0x1E54)<0.f||Raw<float>(e,0x350)<0.f;
+  out.airborne=Raw<float>(e,0x350)<0.f;
   out.has_target=Raw<void *>(e,0x3C4)!=nullptr;out.in_minecart=Raw<void *>(e,0x3D4)!=nullptr;
   out.has_parent=Raw<void *>(e,0x3BC)!=nullptr;
   // 父体不在渲染列表时无法核对类型，按不可预测处理。
   if(Entity *parent=Referenced(*list,e,0x3BC))out.parent_player=parent->_type==1;
   else out.parent_player=out.has_parent;
-  out.suplex=Raw<std::int32_t>(e,0x1F08);out.pony=Raw<std::int32_t>(e,0x1874);
+  out.suplex=Raw<std::int32_t>(e,0x1F08);
   auto &effects=p->_temporaryeffects;
-  // 控制块整体跳过（RE-P3）：冻结倒计时 +0x218 或 PAUSE（478）临时效果。
-  out.frozen=Raw<std::int32_t>(e,0x218)>0||effects.HasCollectibleEffect(478);
+  // 控制块整体跳过（RE-P3）：PAUSE（478）临时效果；冻结倒计时 +0x218 由 Host 资格位补充。
+  out.frozen=effects.HasCollectibleEffect(478);
   out.chariot=effects.HasNullEffect(63);out.spin=effects.HasNullEffect(50);
   out.mars=effects.HasCollectibleEffect(593);out.mega_mush=effects.HasCollectibleEffect(625);
   // GetMovementInput 的全局变换（0x771D70）：Game+0x25B8C≥2 时混乱取反；种子效果 12／76；镜像世界。

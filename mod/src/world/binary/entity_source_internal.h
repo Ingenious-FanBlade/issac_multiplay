@@ -34,7 +34,9 @@ enum class EntityRead : std::uint8_t {
   GridWater,Glitch,RockPose,RockPosition,RockRubble,RockAnimation,FireEmbers,DoorAlpha,DoorLight,Inline,
   Scene,RoomConfig,Run,Presentation,Display,
   // 预测插值 5.7：每身体已处理输入序号、Authority tick、半帧相位（EntityFacts 同窗取值）。
-  InputSequence,InputTick,InputPhase
+  InputSequence,InputTick,InputPhase,
+  // 预测资格位（2026-11-20）：同窗读原生 ControlsEnabled／Cooldown／输入锁／跳跃／小马冲刺／冻结，合成 1 字节。
+  PredictGate
 };
 enum class NativeSequence : std::uint32_t { Contiguous, Owned, Addresses, Weapon };
 EntityRead GridRecipe(std::string_view) noexcept;

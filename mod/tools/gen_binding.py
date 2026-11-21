@@ -532,6 +532,8 @@ struct CsMinimapConfig {};
 struct CsAnimationCacheEntry {};
 struct CsImageCache {};
 struct CsStatHUD {};
+// J273 HUD 的玩家槽布局选择 97E4A0、单槽绘制 97EB40（ECX=HUD，两个栈 word，retn 8）。
+struct CsHUD {};
 struct CsAudioStream {};
 struct CsMusic {};
 struct CsRoomTransition {};
@@ -626,6 +628,38 @@ def legacy_body(row):
     if ident == 'display_found_hud_slot':
         return ['    if(!cs::game::FoundHudSlotAllowed(this,player)) return -1;',
                 '    cs::CallScope scope(record);', '    return super(player);']
+    if ident == 'display_history_hud_slot':
+        return ['    // 原版 Online：HistoryHUD 只登记本机控制器的身体；C/S 以本端控制组代替。',
+                '    if(!cs::game::HistoryHudSlotAllowed(this,player)) return -1;',
+                '    cs::CallScope scope(record);', '    return super(player);']
+    if ident == 'display_player_hud_layout':
+        return ['    // C/S 会话中按原版 Online 分支选布局（OptionsConfig._onlineHud），不触及 NetInputDevice。',
+                '    int layout=0;',
+                '    if(cs::game::LocalPlayerHudLayout(this,player,layout)) return layout;',
+                '    cs::CallScope scope(record);', '    return super(slot, player);']
+    if ident == 'display_player_hud_render':
+        return ['    // OnlineHUD=3 时与原版 Online 相同，只绘制本端身体的 HUD 槽。',
+                '    if(cs::game::LocalPlayerHudHidden(this,slot)) return;',
+                '    {cs::CallScope scope(record);', '    super(slot, layout);}',
+                '    // 客机：本端首个 HUD 槽上方画 RTT 与丢包率（原版 Online 名牌位置）。',
+                '    cs::game::RenderClientLinkQuality(this,slot,layout);']
+    if ident == 'display_player_fade':
+        return ['    // 他人身体按本机透明度设置绘制；返回时恢复各精灵 alpha（RAII，不跨帧）。',
+                '    cs::game::RemotePlayerFadeScope fade(this);',
+                '    cs::CallScope scope(record);', '    super(offset);']
+    if ident == 'display_player_outline':
+        return ['    // 本端身体主绘制前，按原版 Online 描边方式先画四个 1 像素偏移的纯色剪影（main=false）。',
+                '    cs::game::LocalPlayerOutline outline(this,main);',
+                '    if(outline.Active()){',
+                '        for(unsigned i=0;i<4;++i){',
+                '            Vector shifted;',
+                '            outline.Shift(position,i,&shifted);',
+                '            outline.Push();',
+                '            {cs::CallScope scope(record); super(&shifted,false);}',
+                '            outline.Pop();',
+                '        }',
+                '    }',
+                '    cs::CallScope scope(record);', '    super(position, main);']
     if ident == 'display_found_hud_render':
         return ['    cs::game::FoundHudScope local(this,true);',
                 '    cs::CallScope scope(record);', '    return super(position);']
@@ -673,7 +707,8 @@ def legacy_body(row):
         'binary_display_camera_drag':'DisplayCamera','binary_display_camera_smooth':'DisplayCamera',
         'binary_display_fx':'DisplayFxUpdate','binary_display_overlay_update':'GameUpdate'}
     if ident in display_paths:
-        found_hud = ['    cs::game::FoundHudScope local(&this->_statHUD,false);'] if ident == 'binary_display_hud_post' else []
+        found_hud = ['    cs::game::RefreshLocalHistoryHud(this);',
+                     '    cs::game::FoundHudScope local(&this->_statHUD,false);'] if ident == 'binary_display_hud_post' else []
         camera = ['    cs::game::LocalCameraScope local(this);'] if display_paths[ident] == 'DisplayCamera' else []
         return ['    cs::game::BinaryDisplayPathScope display{unsigned(cs::game::ClientEntry::%s)};' % display_paths[ident]] + found_hud + camera + [
                 '    cs::CallScope scope(record);','    super(%s);' % call] + (['    local.Returned();'] if found_hud else [])
@@ -825,9 +860,16 @@ def legacy_body(row):
                 '    auto *result=super(type,force);',
                 '    record.completed.fetch_add(1, std::memory_order_relaxed);',
                 '    return result;']
+    if ident == 'client_pause_pickup_cycle':
+        return ['    // 客机本地暂停菜单运行原生 PauseScreen::Update 时，Glitched Crown 轮换会 Morph 同步拾取物；客机一律不执行。',
+                '    if(cs::game::ClientBusy()) return;',
+                '    record.calls.fetch_add(1, std::memory_order_relaxed);',
+                '    super();',
+                '    record.completed.fetch_add(1, std::memory_order_relaxed);']
     if ident == 'client_entity_local_sound':
         return ['    // 访客准备至安全退休期间不执行本地SFX/声音RNG；Authority瞬时音画由27具名消费。',
-                '    if(cs::game::ClientBusy()) return;',
+                '    // 例外：客机本地暂停菜单（打开／关闭／选项）作用域内的菜单音效照常在本机播放。',
+                '    if(cs::game::ClientBusy()&&!cs::game::ClientPauseMenuSoundAllowed()) return;',
                 '    record.calls.fetch_add(1, std::memory_order_relaxed);',
                 '    super(id, volume, delay, loop, pitch, pan);',
                 '    record.completed.fetch_add(1, std::memory_order_relaxed);']

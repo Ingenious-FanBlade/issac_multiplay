@@ -243,7 +243,7 @@ fn run() -> Result<()> {
     host_game.detach();
     client_game.detach();
     if launch_only {
-        println!("Both games started. Use Isaac CS > Session panel to connect manually.");
+        println!("两个游戏已启动。请在顶栏“以撒联机”面板中手动联机。");
     }
     Ok(())
 }

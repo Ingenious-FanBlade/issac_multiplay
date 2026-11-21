@@ -1,6 +1,6 @@
 # 完整消息静态预算
 
-布局版本 87；普通构建生成，仅整数公式，不运行编解码样例或测试。
+布局版本 89；普通构建生成，仅整数公式，不运行编解码样例或测试。
 
 | 合同 | 数值 |
 |---|---|
@@ -85,8 +85,8 @@
 | 八身体另带13Sprite动画投影下界 | 3352 | 3728 | 60 | 223680 | 671040 |
 | 64颗Tear运动块 | 3688 | 4176 | 30 | 125280 | 375840 |
 | 稠密运动设计负载 | 6376 | 7088 | 30 | 212640 | 637920 |
-| 八身体全部body成员投影下界 | 18480 | 20424 | 0 | 0 | 0 |
-| 四参与者八身体及稠密房间成员Baseline下界 | 124617 | 136977 | 0 | 0 | 0 |
+| 八身体全部body成员投影下界 | 18488 | 20432 | 0 | 0 | 0 |
+| 四参与者八身体及稠密房间成员Baseline下界 | 124641 | 137001 | 0 | 0 | 0 |
 | 上述成员表258项（另计） | 8574 | 9510 | 0 | 0 | 0 |
 | 648项本地资源声明设计样例 | 41604 | 45788 | 0 | 0 | 0 |
 | 单个100Quad纯值recipe资源 | 105 | 257 | 0 | 0 | 0 |
@@ -195,7 +195,7 @@
 | SmeltedTrinketDesc | 155 | 4 | 4 |
 | AfterImageFrame | 156 | 12 | 12 |
 | History | 157 | 0 | 0 |
-| HistoryItem | 158 | 0 | 0 |
+| HistoryItem | 158 | 25 | 25 |
 | BagOfCraftingOutput | 159 | 0 | 0 |
 | EntityDescHost | 160 | 0 | 0 |
 | ConsumableData | 161 | 0 | 0 |
@@ -234,7 +234,7 @@
 | PlayerWeaponWhip | 194 | 6 | 6 |
 | PlayerParticipant | 195 | 0 | 0 |
 | PlayerControlGroup | 196 | 21 | 149 |
-| EntityPlayer | 197 | 2806 | 33554432 |
+| EntityPlayer | 197 | 2809 | 33554432 |
 | GridEntityDesc | 198 | 16 | 16 |
 | GridEntity | 199 | 142 | 8716297 |
 | GridLayerState | 200 | 117 | 117 |
@@ -1054,6 +1054,7 @@
 | QueueItemData | 154/0 | world | 3 | 3 |
 | SmeltedTrinketDesc | 155/0 | world | 4 | 4 |
 | AfterImageFrame | 156/0 | world | 12 | 12 |
+| HistoryItem | 158/0 | world | 25 | 25 |
 | OptionalDrawSequence | 164/0 | world | 1 | 8912932 |
 | DrawRecordNode | 165/0 | world | 24 | 24 |
 | ItemSpoof | 170/0 | world | 4 | 196612 |
@@ -1092,7 +1093,7 @@
 | EntityPlayer | 197/10 | body | 64 | 2112 |
 | EntityPlayer | 197/11 | world | 25 | 25 |
 | EntityPlayer | 197/12 | world | 77 | 77 |
-| EntityPlayer | 197/13 | world | 88 | 688216 |
+| EntityPlayer | 197/13 | world | 90 | 790618 |
 | EntityPlayer | 197/14 | world | 96 | 96 |
 | EntityPlayer | 197/15 | world | 1 | 91 |
 | EntityPlayer | 197/16 | world | 111 | 65647 |
@@ -1104,7 +1105,7 @@
 | EntityPlayer | 197/22 | body | 2 | 33554432 |
 | EntityPlayer | 197/23 | body | 2 | 33554432 |
 | EntityPlayer | 197/24 | body | 2 | 33554432 |
-| EntityPlayer | 197/25 | body | 9 | 9 |
+| EntityPlayer | 197/25 | body | 10 | 10 |
 | GridEntityDesc | 198/0 | world | 16 | 16 |
 | GridEntity | 199/0 | world | 24 | 24 |
 | GridEntity | 199/1 | world | 94 | 94 |

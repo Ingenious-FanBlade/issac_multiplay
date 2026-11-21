@@ -90,11 +90,20 @@ struct PhysicalActions {
 // 真实Client在完整Manager原链之前泵消息并独立更新输入后端，不启动本地模拟。
 bool ClientManagerBoundary() noexcept;
 bool ClientBusy() noexcept;
+// 客机本地暂停菜单读取本机设备的作用域内为真：设备虚表包装放行原函数（其余客机玩法查询仍中性返回）。
+bool ClientPauseMenuQueryAllowed() noexcept;
 void ClientPollInput();
 // 原生插值选项：0=关，1=开，2=非主线程或Manager未就绪；只读诊断。
 unsigned NativeInterpolationState() noexcept;
 bool ClientUiBlocked() noexcept;
 bool ClientLocalOrdinal(unsigned &ordinal) noexcept;
+// 客机连接质量的纯值副本（只作 HUD 显示）：来自网络线程发布的平滑 RTT 与 TickProgress 缺号比例。
+struct ClientLinkStats final {
+  bool rtt_valid=false,loss_valid=false;
+  unsigned rtt_ms=0,loss_permille=0,loss_window=0;
+};
+// 仅主线程、客机会话进行中返回 true；Host 与无会话时返回 false。
+bool ClientLinkQuality(ClientLinkStats &stats) noexcept;
 // 仅在当前相机原生更新栈内投影本端控制组，并在返回时恢复全局名册及中心缓存。
 class LocalCameraScope final {
 public:
@@ -135,7 +144,55 @@ private:
 };
 bool FoundHudSlotAllowed(const void *hud,const void *player) noexcept;
 bool HostOwnsFoundHudPlayer(const void *player) noexcept;
+bool HostPlayerParticipant(const void *player,unsigned &ordinal) noexcept;
+// ---- 角色绘制：本端身体高亮描边、他人身体透明度（本机显示偏好，见 display_settings.h）----
+// Entity_Player::Render（784A60）期间把他人身体的各精灵 alpha 乘以透明度系数，返回时原样恢复。
+// 只改绘制期间的显示值，不跨帧、不进入同步；Host 与 Client 各按本机设置。
+class RemotePlayerFadeScope final {
+public:
+  explicit RemotePlayerFadeScope(void *player) noexcept;
+  ~RemotePlayerFadeScope() noexcept;
+  RemotePlayerFadeScope(const RemotePlayerFadeScope &)=delete;
+  RemotePlayerFadeScope &operator=(const RemotePlayerFadeScope &)=delete;
+private:
+  static constexpr unsigned kMaximumSprites=96;
+  float *alpha_[kMaximumSprites]{};
+  float saved_[kMaximumSprites]{};
+  unsigned count_=0;
+};
+// 身体绘制（783680，main=true 为本帧主绘制）前调用：本端身体且描边开启时返回 true，
+// 调用方随后对 0—3 号偏移各调用一次原函数（main=false），每次前后用 Push/Pop 包住描边颜色。
+// 与原版 Online 描边相同：J273 783680 内以玩家色压入全局覆盖色栈，四向各偏移 1 像素绘制剪影。
+class LocalPlayerOutline final {
+public:
+  LocalPlayerOutline(void *player,bool main) noexcept;
+  bool Active() const noexcept {return active_;}
+  // 第 i 个（0—3）偏移后的位置；position 为原函数的位置参数。
+  void Shift(const void *position,unsigned i,void *out) const noexcept;
+  void Push() const noexcept;
+  void Pop() const noexcept;
+private:
+  bool active_=false;
+  float color_[11]{};
+};
 void ClearClientFoundHudSlots(void *hud) noexcept;
+// ---- 玩家 HUD 与右侧道具历史栏：按原版 Online 规则只认本端控制组 ----
+// 依据 J273：HistoryHUD::GetPlayerIdx 830810 在 Online 下拒绝非本机控制器的身体；
+// AssignPlayerHUDs 980130／9911C0 把本机身体排在 HUD 槽 0；布局选择 97E4A0、
+// 单槽绘制 97EB40 与 HUD::Render 97C300 按 OptionsConfig._onlineHud 选紧凑／完整布局。
+// C/S 不使用原版 NetInputDevice，这里用本端控制组代替“本机控制器”，未激活时原样透传。
+// HistoryHUD 槽准入：非本端身体返回 false（Hook 直接返回 -1，与原生 Online 一致）。
+bool HistoryHudSlotAllowed(const void *history,const void *player) noexcept;
+// HUD::PostUpdate 前调用：槽里有外端身体、或本端合格身体缺席且有空槽时，
+// 清掉 HistoryHUD 初始化位，让原生 PostUpdate 自己调 RecomputeAll 清理并重排。
+void RefreshLocalHistoryHud(void *hud) noexcept;
+// 玩家 HUD 布局号（0 完整、1/3 雅各与以扫、2 紧凑）；返回 false 时走原生离线规则。
+bool LocalPlayerHudLayout(const void *hud,const void *player,int &layout) noexcept;
+// OnlineHUD=3 时只绘制本端身体的 HUD 槽；返回 true 表示该槽本帧不绘制。
+bool LocalPlayerHudHidden(const void *hud,int slot) noexcept;
+// 原生单槽绘制（97EB40）正常返回后调用：客机在本端首个 HUD 槽、原版 Online 名牌的位置
+// 绘制一行“RTT xxms  LOSS x.x%”。只读 HUD 与网络纯值，不改 HUD 状态；Host 与无会话时什么也不做。
+void RenderClientLinkQuality(const void *hud,int slot,int layout) noexcept;
 // 仅当前原生HUD draw作用域供应服务器最终显示条件，不放行成就或任何持久写入。
 bool ClientMenuAvailable() noexcept;
 void ClientInputUnavailable() noexcept;
@@ -179,7 +236,7 @@ enum class ClientEntry : unsigned {
   BackdropEffects,
   DisplayHudUpdate, DisplayHudPostUpdate, DisplayMinimapUpdate, DisplayMinimapRefresh,
   DisplaySort, DisplayFxUpdate, DisplayBackground, DisplayTransition,
-  DisplayCamera, DisplaySfxRefresh, DisplayMusic, DisplaySfxReplay, DisplayCursor, TransitionChangeRoom, NativePreparation, NativeAtomicInstall,
+  DisplayCamera, DisplaySfxRefresh, DisplayMusic, DisplaySfxReplay, DisplayPause, DisplayCursor, TransitionChangeRoom, NativePreparation, NativeAtomicInstall,
   Count
 };
 enum class ClientEntryDecision : unsigned { CallOriginal, ExpectedSkip, FaultSkip };

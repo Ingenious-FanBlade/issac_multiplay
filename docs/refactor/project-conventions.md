@@ -157,6 +157,10 @@
 
 ## 17. 原生二进制状态同步重构
 
+- **2026-11-20 用户决定直接降低输入提前量**。见[预测插值设计 11.4](../design/binary-state/prediction-interpolation.md#114-降低输入提前量时序链换高精度钟2026-11-20仅编译未运行)。输入时序链的各时刻改用高精度单调毫秒钟，量化余量从 64ms 降到 4ms，线格式与布局版本不变；`input_lead_ticks` 保持 2。Host 与客机须同时更新。
+
+- **2026-11-20 用户决定实现本机泪弹出生融合（阶段 3 的一项），不做独立精灵预测**。见[预测插值设计 5.6 与 11.3](../design/binary-state/prediction-interpolation.md#113-阶段-3本机泪弹出生融合实施记录2026-11-20仅编译未运行)。起因是客机移动射击时弹道漂移。融合只产生显示偏移，泪弹仍由 Host 生成，射击、命中都不在客机执行，“不做射击预测”的边界不变。设计勘误：偏移改按“身体当前显示位置 − 身体在泪弹出生时刻的权威位置”计算，不用 Δ；泪弹不再按 Parent 判定附着。新增本机开关 `motion.tear_birth`（缺省开），不改线格式与布局版本。
+
 - **2026-11-19 用户决定 P2=M-a，并开始阶段 2**。见[预测插值设计 11.2](../design/binary-state/prediction-interpolation.md#112-阶段-2-实施记录2026-11-19仅编译未运行)。
   1. 本机身体的速度模型与格子碰撞响应按 J273 逆向结果用 C++ 复刻；原生只读参数与地形（格子实体表、房间边界），不调用 ControlMovement、PlayerCollideWithGrid 或 GetGridCollision（它读客机本地寻路表）。复刻计算只产生显示值，不写原生对象。
   2. 布局版本 86→87：EntityPlayer 新增 Body 块 25（`input_sequence`、`input_tick`、`input_phase`，合成、不写原生）；Room 新增块 14（`grid_path_block` 112 字节，合成、不写原生）。新块追加在尾部，已有字段号不变。

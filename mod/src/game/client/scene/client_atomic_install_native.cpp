@@ -131,6 +131,8 @@ bool ClientAtomicWriteCapture(const ClientAtomicWrite &w,std::byte *original,Cli
     (!original||CopyBytes(original,w.destination,w.size));
 }
 bool ClientAtomicCopyWindow() noexcept {return Scope(false);}
+bool ClientAtomicScopeActive() noexcept {return ClientBinaryInstallationScopeActive(false);}
+bool ClientAtomicQueuesEmpty() noexcept {return ClientNativeCpuQueuesEmpty();}
 // 只拆仍指向该实例的边；较新的流可能已经更新了这个共享字段。
 bool ClientAtomicClearRetiringReference(void *slot,const void *target,bool entity_ptr) noexcept {
   if(!Scope(true)||!slot)return false;
@@ -145,8 +147,11 @@ bool ClientAtomicClearRetiringReference(void *slot,const void *target,bool entit
     return true;
   }__except(EXCEPTION_EXECUTE_HANDLER){return false;}
 }
-bool ClientAtomicWriteApply(const ClientAtomicWrite &w) noexcept {
+bool ClientAtomicWriteApply(const ClientAtomicWrite &w,bool *attempted) noexcept {
+  if(attempted)*attempted=false;
+  // 形状或安装作用域不成立（票据被后台撤销、原生图像提交队列非空等）时直接返回，原生对象未被改动。
   if(!Shape(w)||!Scope(false))return false;
+  if(attempted)*attempted=true;
   try {
     switch(w.kind){
       case ClientAtomicWriteKind::Bytes:case ClientAtomicWriteKind::Masked32:

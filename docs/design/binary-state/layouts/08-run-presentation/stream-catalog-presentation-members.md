@@ -1,6 +1,6 @@
 # stream-catalog：逐行公开成员回映射
 
-布局版本 87；来源 `docs/design/tx-04-21/stream-catalog.json`，共 141 行。由正式布局源生成；行号从1开始，重复ID不去重。
+布局版本 89；来源 `docs/design/tx-04-21/stream-catalog.json`，共 141 行。由正式布局源生成；行号从1开始，重复ID不去重。
 
 本表只完成原目录的 `presentation` 域，其它域不在本次完整声明中。
 

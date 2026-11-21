@@ -337,7 +337,7 @@ Hourglass 的具名原生换房作用域现保留本局会话，并照常撤销�
 
 - **P2 准备和启动（2026-11-14 用户调整）**：在仓库根目录执行 [`tools/isaac-dual/launch.ps1`](../../../tools/isaac-dual/launch.ps1) `-P2`。工具构建并部署二进制 E2E 包到同一台 Windows 物理机的 `F:\projects_isaac\Isaac-for-test\host\The Binding of Isaac Rebirth` 和 `F:\projects_isaac\Isaac-for-test\client1\The Binding of Isaac Rebirth`，启用两端 C/S，隔离第三方 Lua 和 Isaac Sync。两端从各自的 `Repentogon` 子目录启动。Steam 保持登录，测试子进程拦截 `SteamAPI_RestartAppIfNecessary`，各用独立 `isaac-dual-profile`，关闭云存档和失焦暂停，并保留 `SkipIntro=1`。本条取代旧 tx-04-21 的 P2 启动拓扑。
 - **复用已有构建**：`pwsh -NoProfile -File .\tools\isaac-dual\launch.ps1 -P2 -SkipBuild` 直接复用现有双开启动器和 `out/repentogon/e2e` 的产物，并继续打包、部署、自动连接和开局。改过源码需要使用新构建时，运行常规的 `-P2`。`-SkipBuild` 与 `-BuildOnly` 互斥。
-- **手动联机**：`pwsh -NoProfile -File .\tools\isaac-dual\launch.ps1 -LaunchOnly` 沿用 P2 打包和部署，两个窗口就绪后直接交接。到主菜单后，在 **Isaac CS → Session panel** 里先启动 Host（`27090`），再让 Client1 连接 `127.0.0.1:27090`，最后由 Host 选档开局。可同时使用 `-SkipBuild` 复用已有构建。
+- **手动联机**：`pwsh -NoProfile -File .\tools\isaac-dual\launch.ps1 -LaunchOnly` 沿用 P2 打包和部署，两个窗口就绪后直接交接。到主菜单后，在顶栏 **以撒联机** 面板里先启动 Host（`27090`），再让 Client1 连接 `127.0.0.1:27090`，最后由 Host 选档开局。可同时使用 `-SkipBuild` 复用已有构建。
 - **P2 自动连接和开局**：两端到菜单后经各自的控制口启动 C/S，Client1 通过 `127.0.0.1` 连接 Host。确认 Client1 在菜单且为 `AwaitingWorld`、Host 二进制采集器已就绪后，工具只向 Host 窗口发送原生菜单按键，选择第二存档、New Run 并开局。Client1 等待网络世界，工具观察 `client_world_applied=1` 后交接两端 PID 和窗口。二进制同帧对照、故障注入和后续用例接在此准备流程之后。
 - **人数顺序**：先两人（P2）跑全套，再四人（P4）扩展，与原方案一致。
 - **启动前沟通**：每次实机启动前，告知用户需要配合的操作和何时停止手动操作；需要手动配合时，先确认用户已准备好。

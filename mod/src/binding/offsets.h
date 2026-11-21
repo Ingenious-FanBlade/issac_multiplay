@@ -13,6 +13,17 @@ inline constexpr uintptr_t GameStateFlags = 0x25AC0, RunActive = 0x25B02;
 inline constexpr uintptr_t PlayerManager = 0x1BAA8, Starting = 0x4AD10;
 // J273 0x995B30：玩家中心缓存按本机 Manager 帧号复用，其他原生调用也共享此缓存。
 inline constexpr uintptr_t PlayerCenterFrame = 0x7D01E8, PlayerCenterPosition = 0x80136C;
+// J273 0x97E070：PlayerHUD 槽锚点（thiscall HUD*, Vector* out, slot, layout → out）。
+// 只读 HUD 槽偏移、屏幕尺寸与 Online 标志并写出参，无其他副作用；97EB40 与 Online 名牌 97F4E0 共用此锚点。
+inline constexpr uintptr_t PlayerHudAnchor = 0x57E070;
+// J273 全局覆盖色栈（ANM2 层绘制 404570 在栈非空时用栈顶 ColorMod 代替精灵自身颜色）：
+// 0x402A70 thiscall(ColorMod*) 压栈；弹栈无独立函数，原生调用点（783680/784A60）直接把计数
+// BE6F40 减一，减到 0 时把环形起点 BE6F3C 置 0。这里登记三者，弹栈照搬同一写法。
+inline constexpr uintptr_t ColorOverridePush = 0x2A70, ColorOverrideCount = 0x7E6F40,
+                           ColorOverrideStart = 0x7E6F3C;
+// J273 0x7D1C90：只读判定（+370 标志且类型 29/38 的关联身体关系）；为真时 783680 自己压入半透明覆盖色，
+// 原版 Online 此时不画描边（覆盖色会把描边色顶掉）。
+inline constexpr uintptr_t PlayerOverlayGhost = 0x3D1C90;
 // tx-04-09：703 helper RVA3A3A40，+1590是各主动槽的1-based Esau Jr备份关联，不是PlayerIndex。
 inline constexpr uintptr_t ActiveItemSlotBase = 0x1574, ActiveItemSlotStride = 0x20,
                            EsauJrAssociation = 0x1590, EsauJrStates = 0x80;

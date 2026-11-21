@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <bcrypt.h>
 #include "net/live.h"
+#include "net/timing_clock.h"
 #include "core/lobby.h"
 #include "replica/stream_e2e.h"
 #include "net/queue.h"
@@ -138,21 +139,22 @@ s::Message Roster(const protocol::Ack &p, unsigned ordinal, std::uint64_t sequen
   N(v, "rejection_mask", p.rejection_mask, a);
   r::Put(v, "input_enabled", r::Value(p.input_enabled), a);
   N(v, "server_sample_ms", p.server_sample_ms, a);
-  N(v, "server_send_ms", GetTickCount64(), a);
+  N(v, "server_send_ms", TimingClockMs(), a);  // 输入时序链：与 server_sample_ms 同钟
   N(v, "echo_client_ms", echo, a);
   N(v, "echo_server_ms", received, a);
   return m;
 }
 void Timing(Event &e, const r::Value &v, const char *sample, const char *sent) {
-  // GetTickCount64在受支持Windows环境通常以10—16ms量化。两台机器各自
-  // 的区间差可相差两次量化，不能把正常15ms负RTT误认成时钟倒退。
-  // 仍拒绝各机内部顺序错误与超出32ms的矛盾，不比较异机绝对时钟。
-  constexpr std::uint64_t quantum_ms = 16;
+  // 2026-11-20 起本链各时刻改用 TimingClockMs（net/timing_clock.h，毫秒截断误差 <1ms），
+  // 原 GetTickCount64 以 10—16ms 量化。矛盾拒绝阈值仍保留原 32ms（只做健全性检查，
+  // 收紧它没有收益，反而可能因两机时钟速率差误判）；不比较异机绝对时钟。
+  constexpr std::uint64_t reject_tolerance_ms = 32;
+  constexpr std::uint64_t quantum_ms = kTimingQuantumMs;
   const auto now = e.received_ms, send = N(v, sent), echo = N(v, "echo_client_ms"),
              received = N(v, "echo_server_ms");
   e.progress.server_sample_ms = N(v, sample);
   if (!echo || echo > now || e.progress.server_sample_ms > send || received > send ||
-      ((send - received) > (now - echo) && (send - received) - (now - echo) > 2 * quantum_ms)) {
+      ((send - received) > (now - echo) && (send - received) - (now - echo) > reject_tolerance_ms)) {
 #ifdef ISAACCS_E2E
     s::E2EClockRejected(echo,now,received,send,e.progress.server_sample_ms);
 #endif
@@ -160,10 +162,83 @@ void Timing(Event &e, const r::Value &v, const char *sample, const char *sent) {
   }
   e.round_trip_ms = now - echo >= send - received ? (now - echo) - (send - received) : 0;
   e.publication_age_ms = send - e.progress.server_sample_ms;
-  // RTT差的两次量化、发布区间及接收后区间各一次，合计保守误差64ms。
-  // 不把负差夹零后当作无误差，也不伪增实测RTT用于N0网络判定。
+  // RTT差的两次截断、发布区间及接收后区间各一次，合计误差上界 4×1ms=4ms（原 GetTickCount64 下为 64ms，
+  // 约占输入提前量 4 tick）。不把负差夹零后当作无误差，也不伪增实测RTT用于N0网络判定。
   e.timing_uncertainty_ms = 4 * quantum_ms;
 }
+// Host→Client 丢包估计（只作显示）：Host 的 TickProgress 序号（HostPeer::timing_）每发一条加一、
+// 跨路由不归零，按 Authority tick 约 30—60Hz 发送，暂停时按心跳发送。客机按“虚拟序号”记录最近
+// kWindow 条的到达位，缺号即计为丢失；迟到的乱序包补回到达位。路由切换期间被路由过滤的包不是
+// 网络丢包，Rebase 让下一条到达的序号紧接上一条虚拟序号，不把切换空档算进丢包。
+// Host 侧发送背压导致的未发出也会表现为缺号，因此这是“未收到”比例，不区分链路或发送端原因。
+class TickLossWindow final {
+public:
+  static constexpr std::uint64_t kWindow = 256;
+  void Rebase() noexcept { rebase_ = true; }
+  void Observe(std::uint64_t sequence) noexcept {
+    if (!sequence) return;
+    if (!span_ || rebase_) {
+      // 首条或切换后首条：建立“真实序号→虚拟序号”的偏移，旧窗口的到达位原样保留。
+      if (sequence <= floor_ && span_) return;
+      const auto next = span_ ? highest_ + 1 : 1;
+      offset_ = sequence - next;  // 无符号回绕相减，Virtual() 用同一偏移还原
+      floor_ = sequence;
+      rebase_ = false;
+      Advance(next);
+      return;
+    }
+    if (sequence < floor_) return;  // 切换前的迟到包，已不属于当前虚拟序号段
+    const auto v = sequence - offset_;
+    if (v > highest_) {
+      Advance(v);
+      return;
+    }
+    // 迟到或重复：仍在窗口内且原先未到达时补回。
+    if (highest_ - v < span_ && !Got(v)) {
+      Set(v, true);
+      ++received_;
+    }
+  }
+  std::uint64_t Span() const noexcept { return span_; }
+  // 千分比，向上取整，避免少量丢失被显示成 0.0%。
+  std::uint32_t LossPermille() const noexcept {
+    if (!span_) return 0;
+    const auto lost = span_ - received_;
+    return std::uint32_t((lost * 1000 + span_ - 1) / span_);
+  }
+
+private:
+  std::array<std::uint64_t, kWindow / 64> bits_{};
+  std::uint64_t highest_ = 0, span_ = 0, received_ = 0, offset_ = 0, floor_ = 0;
+  bool rebase_ = false;
+  bool Got(std::uint64_t v) const noexcept { return (bits_[(v % kWindow) / 64] >> (v % 64)) & 1u; }
+  void Set(std::uint64_t v, bool on) noexcept {
+    auto &word = bits_[(v % kWindow) / 64];
+    const auto mask = std::uint64_t(1) << (v % 64);
+    word = on ? (word | mask) : (word & ~mask);
+  }
+  // 窗口前移到虚拟序号 v（v 本身已到达），中间的序号记为未到达；被挤出窗口的旧位同步扣除。
+  void Advance(std::uint64_t v) noexcept {
+    const auto from = span_ ? highest_ + 1 : v;
+    if (v - from >= kWindow) {
+      bits_ = {};
+      span_ = kWindow;
+      received_ = 0;
+    } else {
+      for (auto i = from; i < v; ++i) Push(i, false);
+    }
+    Push(v, true);
+    highest_ = v;
+  }
+  void Push(std::uint64_t v, bool on) noexcept {
+    if (span_ == kWindow) {
+      if (Got(v)) --received_;  // 同一槽位原先存的是 v-kWindow
+    } else
+      ++span_;
+    Set(v, on);
+    if (on) ++received_;
+  }
+};
 } // namespace
 r::Limits Limits() noexcept { return s::HandshakeLimits(); }
 #ifdef ISAACCS_E2E
@@ -464,7 +539,7 @@ bool HostPeer::Receive(std::span<const std::uint8_t> bytes, std::uint64_t now, R
     if (m.sequence > client_control_) {
       client_control_ = m.sequence;
       echo_client_ms_ = N(m.body, "sent_ms");
-      echo_server_ms_ = now;
+      echo_server_ms_ = TimingClockMs();  // 输入时序链：与 server_send_ms 同钟，不用调用方的 GetTickCount64
       if(lobby_)lobby_selection_=unsigned(N(m.body,"selection"));
       established_ = true;
     }
@@ -595,7 +670,7 @@ Packets HostPeer::Progress(const protocol::Ack &p) {
   const bool changed = p.authority_paused!=sent_.authority_paused || p.generation != sent_.generation || enabled != sent_.input_enabled ||
                        p.session_state != sent_.session_state || p.roster_mask != sent_.roster_mask;
   const bool tick = p.server_tick != sent_.server_tick;
-  const bool lobby_changed = p.lobby_roster != sent_.lobby_roster;
+  const bool lobby_changed = p.lobby_roster != sent_.lobby_roster || p.lobby_unlocked != sent_.lobby_unlocked;
   sent_ = p;
   sent_.input_enabled=enabled;
   if (changed || !eligibility_revision_)
@@ -610,6 +685,7 @@ Packets HostPeer::Progress(const protocol::Ack &p) {
     if (lobby_ && p.lobby_roster) {
       auto lobby = Message(s::Kind::LobbyRoster, roster_);
       N(lobby.body, "roster", p.lobby_roster, lobby.body.GetAllocator());
+      N(lobby.body, "unlocked", p.lobby_unlocked, lobby.body.GetAllocator());
       append(Pack(lobby));
     }
     roster_at_ = now;
@@ -625,7 +701,7 @@ Packets HostPeer::Progress(const protocol::Ack &p) {
     N(m.body, "generation", p.generation, a);
     r::Put(m.body, "input_enabled", r::Value(enabled), a);
     N(m.body, "sample_ms", p.server_sample_ms, a);
-    N(m.body, "send_ms", now, a);
+    N(m.body, "send_ms", TimingClockMs(), a);  // 输入时序链：与 sample_ms 同钟；now 仍只管发送节奏
     N(m.body, "echo_client_ms", echo_client_ms_, a);
     N(m.body, "echo_server_ms", echo_server_ms_, a);
     append(Pack(m));
@@ -732,10 +808,28 @@ struct Client::State {
   unsigned sent_lobby_selection=0;
   std::uint64_t lobby_sequence=0;
   std::atomic<std::uint64_t> lobby_roster{0};
+  std::atomic<std::uint64_t> lobby_unlocked{0};
   SpscQueue<Intent, 256> intents;
   OwnedQueue<Event, 32> events, world_controls;
   OwnedQueue<Event, 4> urgent_controls;
   Latest<Event> timing_event, roster_event, input_ack_event;
+  // 连接质量显示：tick_loss／srtt_x8 只有网络线程读写；quality_* 打包发布给主线程。
+  // quality_rtt：bit32 有效，低 32 位毫秒；quality_loss：bit32 有效，bit16—31 窗口长度，低 16 位千分比。
+  TickLossWindow tick_loss;
+  std::uint64_t srtt_x8 = 0;
+  std::atomic<std::uint64_t> quality_rtt{0}, quality_loss{0};
+  void ObserveRtt(std::uint64_t sample) noexcept {
+    // 与 TCP SRTT 相同的 1/8 平滑；以 8 倍定点保存，首个样本直接作初值。
+    const auto x8 = (std::min)(sample, std::uint64_t(0xFFFFFF)) * 8;
+    srtt_x8 = srtt_x8 ? srtt_x8 - srtt_x8 / 8 + x8 / 8 : x8;
+    quality_rtt.store((std::uint64_t(1) << 32) | ((srtt_x8 + 4) / 8), std::memory_order_relaxed);
+  }
+  void ObserveTickSequence(std::uint64_t sequence) noexcept {
+    tick_loss.Observe(sequence);
+    if (!tick_loss.Span()) return;
+    quality_loss.store((std::uint64_t(1) << 32) | (tick_loss.Span() << 16) | tick_loss.LossPermille(),
+                       std::memory_order_relaxed);
+  }
   Event terminal_event;
   std::atomic<bool> terminal_ready{false};
   bool terminal_delivered = false;
@@ -901,7 +995,7 @@ struct Client::State {
     auto &a = m.body.GetAllocator();
     N(m.body, "client_nonce", nonce, a);
     N(m.body, "server_nonce", server_nonce, a);
-    N(m.body, "sent_ms", GetTickCount64(), a);
+    N(m.body, "sent_ms", TimingClockMs(), a);  // 输入时序链：Host 原样回显为 echo_client_ms
     if(lobby) {
       sent_lobby_selection=lobby_selection.load(std::memory_order_acquire);
       N(m.body,"selection",sent_lobby_selection,a);
@@ -961,6 +1055,8 @@ struct Client::State {
       if(!(core::LobbyRoster::Unpack(value).present&(1u<<ordinal)))Fail("live_lobby_roster_identity");
       if(m.sequence>lobby_sequence) {
         lobby_sequence=m.sequence;
+        // 先存解锁位图再存名单，读者看到新名单时位图不会更旧。
+        lobby_unlocked.store(N(m.body,"unlocked"),std::memory_order_release);
         lobby_roster.store(value,std::memory_order_release);
       }
       return;
@@ -973,7 +1069,7 @@ struct Client::State {
       if(!pending_prepare||!prepared_response||m.sequence!=prepared_response->sequence||m.body!=prepared_response->body)Fail("live_prepare_confirmation");
       Revoke();Intent old;while(intents.TryPop(old)){};
       route.epoch=N(pending_prepare->body,"next_route");route.world=true;route.scope=ReadWorld(pending_prepare->body["world"]);scope=s::Connected(route.scope,route.connection);
-      accept_world=true;metrics.Bind(route.scope,route.epoch);
+      accept_world=true;metrics.Bind(route.scope,route.epoch);tick_loss.Rebase();
       assembler.Authorize(route);operations.Bind(route.connection,route.epoch);have_progress=false;progress={};roster_sequence=tick_sequence=0;input_ack_generation=input_ack_sequence=input_ack_tick=0;
       // 主线程是值队列唯一consumer；旧路由由Poll/PollWorld过滤并释放。
       published_route.store(route.epoch,std::memory_order_release);Event activated;activated.type=Event::Type::Prepared;activated.scope=scope;activated.route=route.epoch;activated.ordinal=ordinal;activated.world=pending_prepare;
@@ -991,7 +1087,7 @@ struct Client::State {
     e.scope = scope;
     e.route = route.epoch;
     e.ordinal = ordinal;
-    e.received_ms = now;
+    e.received_ms = TimingClockMs();  // 输入时序链：与 sent_ms 及客机计算目标时的“现在”同钟
     if(m.state_body) {
       if(!accept_world||!binary||!binary->active)return;
       if(m.kind!=s::Kind::StateFrame&&m.kind!=s::Kind::StateResources)Fail("binary_client_receive_kind");
@@ -1035,11 +1131,14 @@ struct Client::State {
       e.progress = progress;
       e.type = Event::Type::Progress;
       Timing(e, v, "server_sample_ms", "server_send_ms");
+      ObserveRtt(e.round_trip_ms);
       roster_sequence = m.sequence;
       roster_event.Put(std::make_shared<const Event>(std::move(e)));
       return;
     }
     if (m.kind == s::Kind::TickProgress) {
+      // 丢包统计看全部到达的序号（含随后因旧/重复被丢弃的），先于下方过滤。
+      ObserveTickSequence(m.sequence);
       if (m.sequence <= tick_sequence ||
           N(m.body, "eligibility_revision") < progress.eligibility_revision)
         return;
@@ -1060,6 +1159,7 @@ struct Client::State {
       e.type = Event::Type::TickProgress;
       e.progress = progress;
       Timing(e, m.body, "sample_ms", "send_ms");
+      ObserveRtt(e.round_trip_ms);
       timing_event.Put(std::make_shared<const Event>(std::move(e)));
       return;
     }
@@ -1371,9 +1471,24 @@ bool Client::SetLobbySelection(unsigned selection) noexcept {
 std::uint64_t Client::LobbyRoster() const noexcept {
   return state_?state_->lobby_roster.load(std::memory_order_acquire):0;
 }
+std::uint64_t Client::LobbyUnlocked() const noexcept {
+  return state_?state_->lobby_unlocked.load(std::memory_order_acquire):0;
+}
 r::Limits Client::EffectiveFastLimits() const noexcept {if(!state_)return {};std::lock_guard lock(state_->transfer_mutex);return state_->effective_fast_limits;}
 s::Metrics Client::TransmitMetrics() const noexcept {return state_?state_->transmit_mailbox.Read():s::Metrics{};}
 s::Metrics Client::Metrics() const noexcept {return state_?state_->metrics_mailbox.Read():s::Metrics{};}
+LinkQuality Client::Quality() const noexcept {
+  LinkQuality q;
+  if (!state_) return q;
+  const auto rtt = state_->quality_rtt.load(std::memory_order_relaxed),
+             loss = state_->quality_loss.load(std::memory_order_relaxed);
+  q.rtt_valid = (rtt >> 32) & 1;
+  q.rtt_ms = std::uint32_t(rtt);
+  q.loss_valid = (loss >> 32) & 1;
+  q.loss_window = std::uint32_t((loss >> 16) & 0xFFFF);
+  q.loss_permille = std::uint32_t(loss & 0xFFFF);
+  return q;
+}
 s::TransferStatistics Client::TransferStatus() const noexcept {if(!state_)return {};std::lock_guard lock(state_->transfer_mutex);return state_->transfer_status;}
 bool Client::Send(const Intent &value) noexcept {
   if (!state_ || state_->stop.load(std::memory_order_acquire) || Finished() ||

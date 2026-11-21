@@ -80,6 +80,44 @@ StatHUD的`delta`／`countdown`、合并概率显示方式、恶魔／天使／�
 
 NO_HUD、有效诅咒、Host world显示资格和必要资源仍施加于本地布局；个人偏好不删除其他人的必要源。`ControlGroupHudSelection`并非整条默认删除，哪些元素可由结构推出须在第9步明确。不得为“本地玩家”改PlayerIndex、ControllerIndex、roster或调用原版Online本地性判断。
 
+#### 5.2.1 按原版 Online 规则排 HUD 槽与道具历史栏（2026-11-20，用户要求）
+
+起因：实测中右侧道具历史栏显示了另一名玩家的道具；卡牌、饰品画进了别人的 HUD 槽，位置也不对。用户要求两端都按原版 Online 联机显示。J273 IDA 静态核对如下（未运行）：
+
+- **槽序**：`HUD::AssignPlayerHUDs` 980130 用 `PlayerManager::GetPlayerSlotFromController` 9911C0 取槽。Online 下本机控制器的身体插到最前，所以本机身体在 PlayerHUD 槽 0（双子在槽 4），远端依次往后排。离线时按加入顺序，客机原来按组序号排，房主占槽 0。
+- **道具历史栏**：`HistoryHUD::GetPlayerIdx` 830810 在 Online 下对非本机控制器的身体返回 -1，`RecomputeAll` 8304B0 会先清掉这类槽。离线时前两个合格身体各占一列，所以会显示别人的道具。
+- **布局**：`HUD::Render` 97C300 调用布局选择 97E4A0 与单槽绘制 97EB40。布局 0 是完整布局：口袋画在屏幕右下，饰品画在左下。布局 2 是紧凑布局：口袋和饰品画在该槽所在的角落。1／3 是雅各与以扫的变体。离线时槽 0 在 HUD 数 ≤2 时用布局 0，所以客机会在右下看到房主的卡牌。Online 下（`Game+0x25B8C<2`）：`OptionsConfig._onlineHud`（Manager+0x2A214，ini 缺省 0）为 3 时用完整布局，且只画槽 0／4；其他值一律用紧凑布局。
+- **实现**：本机规则只在 C/S 会话中生效：Host 用 `HostBusy`，客机用 `ClientNativeDisplayCallbacks`。“本机”沿用属性栏的判定：Host 为 Authority 控制组 0，客机为本机组序号。不调用 NetInputDevice，不改 PlayerIndex／ControllerIndex／roster；没有会话时原样透传。
+  1. 新 Hook `display_history_hud_slot` 挂在 `HistoryHUD::GetPlayerIdx` 上，非本端身体返回 -1。`HUD::PostUpdate` 包装发现槽里有外端身体，或本端合格身体缺席且有空槽时，清掉 HistoryHUD 初始化位（HUD+0x5C8C）。原生 PostUpdate 随后自己调 RecomputeAll，清理并重排。
+  2. 新 Hook `display_player_hud_layout`（97E4A0）在会话中按上述 Online 公式返回布局号。HUD 绘制和“REVIVE PLAYER”选择框（8CD0B0）共用这个布局号。
+  3. 新 Hook `display_player_hud_render`（97EB40）：OnlineHUD=3 时跳过非本端身体的槽。按身体归属判断，因为 Host 本端身体不一定在槽 0。
+  4. 客机 `DescribePlayerHud` 改为本机组排在槽 0（双子在槽 4），其余组按组序号依次压缩排列。
+- **未复刻的 Online 细节**：OnlineHUD=2 时他人槽只画心；OnlineHUD=1 时奇数槽 x+24、口袋 y−9；Online 的玩家名牌 97F4E0。这几处是函数内联的 NetInputDevice 判断，要复刻得再挂绘制子函数，本轮没做，如实保留差异。
+- 只编译了产品 DLL，没有运行。运行验证归入第 15 步整体验收。
+
+#### 5.2.2 客机本端 HUD 槽显示 RTT 与丢包率（2026-11-21，用户要求）
+
+- **显示**：客机在本端首个 PlayerHUD 槽上方画一行 `RTT 23ms  LOSS 0.4%`（雅各／以扫等多身体只画一次）。位置照搬原版 Online 名牌 97F4E0 的本机分支：锚点取自 97E070，x−6（非槽 0 再 +8）、y−16。字体用 `Manager._font1_TeamMeatEx10`，缩放 0.5，白色。C/S 不建 NetInputDevice，原版名牌不会画，这个位置是空的。入口是 `display_player_hud_render` 在原生绘制正常返回之后调 `RenderClientLinkQuality`；Host 和无会话时不画。97E070 只读 HUD 并写出参。文字用 ASCII，避免字体缺 CJK 字形。
+- **RTT**：复用现有 Roster／TickProgress 往返估计（已扣除 Host 持有时间），网络线程按 1/8 指数平滑后发布。没有样本时显示 `RTT --`。
+- **丢包率**：看 Host→Client TickProgress 的序号（Host `timing_` 每发一条加一，跨路由不归零），统计最近 256 条里没收到的比例；迟到的乱序包会补回。切房激活新路由时 Rebase，路由过滤造成的空档不算丢包。窗口不足 32 条时显示 `LOSS --`。Host 发送端背压造成的缺号也会算进去，所以这个数是“没收到”的比例，不区分是链路丢的还是发送端没发。只统计下行，不含 Client→Host 上行。
+- 这些数值只用于显示，不参与输入目标、ACK 或同步判定。只编译了产品 DLL，没有运行；运行验证归入第 15 步整体验收。
+
+#### 5.2.3 本端角色高亮描边与他人角色透明度（2026-11-21，用户要求）
+
+- **原版做法（J273 静态核对）**：
+  - 描边在 `783680`（身体绘制，`Entity_Player::Render` 784A60 以 main=1 调用）里。对本机控制器的身体，用 `PlayerManager::GetPlayerColorValue` 98FB10 取玩家色：配色套由 `OptionsConfig._onlineColorSet` 选，色号是控制器在 PlayerManager+0x60 表中的位置。玩家色经 429440 拼成 ColorMod，用 402A70 压进全局覆盖色栈，按 67C8A0 的四个 1 像素偏移各画一次剪影，然后弹栈画本体。
+  - 透明度：各绘制点对非本机身体把精灵 alpha 乘以 `0.1+0.09×_onlinePlayerOpacity`（getter 为 8FFDE0）。
+  - 以上全都以 NetplayManager 设备表非空为前提，C/S 下永远不会触发。
+  - 原版选项菜单（列表构建 98BC70）只在非局内暂停模式里加入 PlayerOpacity（25）和 PlayerColors（26）。PlayerColors 的取值是配色套名称贴图，不能直接用来选颜色。
+- **用户决定**：描边颜色改为直接选颜色（本机设置，与玩家序号无关）；Host 与 Client 都生效。
+- **实现**：
+  - 设置保存在 `isaac-cs/display.json`（`game/common/display_settings`）。命令为 `cs display_settings`、`cs display_outline 0—9`（0 为关闭，默认 4 黄色）和 `cs display_opacity 0—10`（刻度同原版，默认 10 即不透明）。界面在 isaac-cs-ui 面板底部的“显示设置”。
+  - 新 Hook `display_player_outline`（783680，自有定义）：本端身体在 main=1 时，先以纯色剪影 ColorMod（tint RGB 为 0，alpha 跟随身体精灵；offset 为描边色）压栈，四向偏移各调用一次原函数（main=0，与原生残影同一用法），再画本体。弹栈照搬原生写法（BE6F40 减一，归零时 BE6F3C 置 0）。7D1C90 为真时原函数会自己压覆盖色，原版此时也不画描边，这里同样跳过。
+  - 新 Hook `display_player_fade`（Entity_Player::Render）：他人身体在绘制期间把主精灵、身体、血喷、举物和各服装精灵的 alpha 乘以系数，返回时原样恢复。只改绘制期间的显示值，采集、安装与同步都在绘制之外，因此看到的仍是原值。
+  - 身体归属：Host 用控制组拓扑（`HostPlayerParticipant`），客机用已安装身体的归属；两者都含多身体与非名册副身体，归属未知时不处理。
+- **不做的部分**：原版还经泪弹参数 7B67F0 等让他人泪弹、使魔变淡。在 Host 上这会写进同步实体状态，因此不复刻。描边额外调用原函数四次（main=0），这是显示路径，不属于观测 wrapper 的“original exactly-once”约束。
+- 只编译了产品 DLL，没有运行；运行验证归入第 15 步整体验收。
+
 ## 6. 依赖、准备与提交
 
 本地生成仍有输入、资源与生命周期依赖。第12步候选须明确每用途是“本地派生”还是“保留Host结果”，并校验同身体／组、use/shape、来源修订、拓扑和精确资源；不能既要求已撤销缓存必到，又把真实缺输入当成无需等待。

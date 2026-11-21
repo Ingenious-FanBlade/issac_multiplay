@@ -1,6 +1,7 @@
 #include "IsaacRepentance.h"
 #include "binding/offsets.h"
 #include "game/client/display/client_display_native.h"
+#include "game/client/display/client_pause_menu.h"
 #include "game/client/room/client_backdrop_native.h"
 #include "game/client/scene/client_lifetime.h"
 #include "game/common/bridge.h"
@@ -17,6 +18,7 @@
 #include <new>
 #include <tuple>
 #include <utility>
+#include <vector>
 #include <windows.h>
 #include <GL/gl.h>
 
@@ -124,6 +126,13 @@ struct ClientDisplayNative final {
   std::uint64_t door_arrival_event_scene=0;
   DoorFadeFrame render_door_fade;
   int borrowed_transition_mode=0;
+  // HistoryHUD 两个原生槽上次见到的身体与 History 条目原值（Player+0x1DD8 vector<HistoryItem>）。
+  // History 由安装事务直接改写，不经原生 Add/Remove 置脏；按此快照判断变化后再置槽脏位。
+  struct HistoryWatch final {
+    const void *player=nullptr;
+    std::vector<std::byte> items;
+  };
+  std::array<HistoryWatch,2> history_watch{};
   ClientDisplayMemoryRef memory;
   void Save(void *root,unsigned offset,unsigned size){
     for(unsigned i=0;i<saved_count;++i)if(saved[i].root==root&&saved[i].offset==offset)return;
@@ -147,6 +156,32 @@ ClientDisplayNative *DisplaySource() noexcept{return capture_owner?capture_owner
 template<class F> void Named(ClientEntry entry,F &&call) {
   if(ClientDispatchBefore(entry)!=ClientEntryDecision::CallOriginal)throw std::runtime_error("display_named_dispatch");
   call();ClientDispatchReturned(entry);
+}
+// ---- HistoryHUD（右侧道具列表）J273 布局 ----
+// HUD::PostUpdate 97AE90：ShowRecentItems>0 时对 HUD+0x5C64 的两个槽按脏位调 82FF40 重算；
+// 槽 stride 0x14：+0 Player*（8304B0／830810 分配），+4 脏位，+8 已生成的图像列表。
+// 82FF40 只读 Player+0x1DD8 的 vector<HistoryItem>（stride 0x1C，+4 饰品位、+8 道具 ID）。
+constexpr std::size_t kHudHistory=0x5C64,kHistorySlotStride=0x14,kHistorySlotDirty=0x4;
+constexpr std::size_t kPlayerHistoryItems=0x1DD8;
+// Host 侧 History 经原生 Add/Remove 置脏；客机的 History 由安装事务直接改写，
+// 这里在 PostUpdate 前比较每个槽身体的条目原值，变化（含换身体）时置该槽脏位，交原生重算。
+void MarkHistoryHudDirty(ClientDisplayNative &o,HUD &hud) noexcept {
+  auto *history=reinterpret_cast<std::byte *>(&hud)+kHudHistory;
+  for(std::size_t i=0;i<o.history_watch.size();++i){
+    auto *slot=history+i*kHistorySlotStride;
+    auto &watch=o.history_watch[i];
+    const void *player=nullptr;std::memcpy(&player,slot,sizeof(player));
+    if(!player){watch.player=nullptr;watch.items.clear();continue;}
+    const std::byte *first=nullptr,*last=nullptr;
+    std::memcpy(&first,static_cast<const std::byte *>(player)+kPlayerHistoryItems,sizeof(first));
+    std::memcpy(&last,static_cast<const std::byte *>(player)+kPlayerHistoryItems+4,sizeof(last));
+    const std::size_t bytes=first&&last>first?std::size_t(last-first):0;
+    if(watch.player==player&&watch.items.size()==bytes&&(!bytes||!std::memcmp(watch.items.data(),first,bytes)))continue;
+    slot[kHistorySlotDirty]=std::byte{1};
+    watch.player=player;
+    try{watch.items.assign(first,first+bytes);}
+    catch(...){watch.player=nullptr;watch.items.clear();} // 快照失败时下一拍再次置脏，不影响原生重算。
+  }
 }
 bool Roots(const ClientDisplayNative &o,const ClientNativeRoots &r) noexcept {
   return o.game&&o.manager&&g_Game==o.game&&g_Manager==o.manager&&r.game==o.game&&r.room==o.room&&
@@ -687,22 +722,35 @@ void Reapply(ClientDisplayNative &o) {
 }
 // J273 0x980130 的纯显示绑定：保留原生主身体／双子选择，只用 C/S 组槽替代设备查找。
 // 不调用整段 AssignPlayerHUDs：该函数还会重写合作选择表，并查询原版 NetInputDevice。
+// 槽序照搬原版 Online 的 GetPlayerSlotFromController 9911C0：本机身体排在槽 0（双子在槽 4），
+// 其余参与者按 C/S 组序号依次排在后面的槽，各自的卡牌、饰品随自己的 HUD 槽绘制。
 bool DescribePlayerHud(const Game &game,std::array<Entity_Player *,8> &players) {
   const auto primary=[](const Entity_Player &p){
     const auto *t=static_cast<const Entity_Player *>(p._twinPlayer._ref);
     return !t||t==&p||t->_playerIndex==-1||t->_playerIndex>=p._playerIndex;
   };
+  // 先按组序号收集主身体与双子身体，再按“本机优先”压缩成 HUD 槽。
+  std::array<Entity_Player *,8> by_ordinal{};
   for(auto *p:game._playerManager._playerList){
     if(!p||!p->_exists||p->_parent._ref||!primary(*p))continue;
-    unsigned slot=0;
-    if(!ClientBinaryPlayerOrdinal(p,slot))return false;
-    players[slot]=p;
+    unsigned ordinal=0;
+    if(!ClientBinaryPlayerOrdinal(p,ordinal)||ordinal>=4)return false;
+    by_ordinal[ordinal]=p;
     auto *t=static_cast<Entity_Player *>(p->_twinPlayer._ref);
     if(t&&t->_exists&&t->_playerType!=40&&
        ((t->_playerType!=29&&t->_playerType!=38)||primary(*t))){
-      players[slot+4]=t;
+      by_ordinal[ordinal+4]=t;
     }
   }
+  unsigned local=4;
+  if(!ClientLocalOrdinal(local)||local>=4)local=4; // 取不到本机组序号时保持组序号顺序。
+  unsigned slot=0;
+  const auto place=[&](unsigned ordinal){
+    if(!by_ordinal[ordinal])return;
+    players[slot]=by_ordinal[ordinal];players[slot+4]=by_ordinal[ordinal+4];++slot;
+  };
+  if(local<4)place(local);
+  for(unsigned ordinal=0;ordinal<4;++ordinal)if(ordinal!=local)place(ordinal);
   return true;
 }
 bool BindPlayerHud(ClientDisplayNative &o) {
@@ -1232,6 +1280,12 @@ ClientProjectileRenderScope::~ClientProjectileRenderScope() noexcept {
   std::memcpy(static_cast<std::byte *>(projectile_)+0x350,&bits_,sizeof(bits_));
 }
 bool ClientNativeDisplayPaused(bool &v) noexcept{return ClientDisplayPaused(DisplaySource(),v);}
+// 本地暂停菜单只在 Host 正常游玩或 Host 自己暂停时允许打开；分支取已安装 World，不在本机重算。
+bool ClientNativeDisplayBranch(unsigned &v) noexcept{
+  const auto *o=DisplaySource();
+  if(!o||o->failed||!o->installed||!IsMain())return false;
+  v=unsigned(ClientDisplayMeta(o->installed).branch);return true;
+}
 bool ClientNativeDisplayCallbacks() noexcept{return IsMain()&&ClientBusy()&&display_depth!=0;}
 bool ClientDisplayBossAudioSuppressed(const void *site) noexcept {
   const auto caller=reinterpret_cast<std::uintptr_t>(site);
@@ -1260,6 +1314,8 @@ bool ClientDisplayProgressBlocked(const void *site,bool &value) noexcept {
 }
 void ClientDisplaySfxRefreshed(void *owner) noexcept {
   if(!ClientNativeDisplayActive()||!g_Manager||owner!=reinterpret_cast<std::byte *>(g_Manager)+0x2a160)return;
+  // 暂停菜单选项改音量时原生只做 Clear，不会归还循环音的逻辑音量；不在此消费，交给显示推进按选项变化完整刷新。
+  if(ClientPauseMenuSoundAllowed())return;
   auto *source=DisplaySource();source->last_sfx_option=g_Manager->_optionsConfig._sfxVolume;source->mixing_dirty=false;
 }
 bool ClientDisplayAdvance(ClientDisplayNative *o,const ClientNativeRoots &r,bool local_blocked,
@@ -1273,11 +1329,15 @@ bool ClientDisplayAdvance(ClientDisplayNative *o,const ClientNativeRoots &r,bool
     DisplayScope scope;auto &g=*o->game;auto &room=*o->room;
     if(o->hud_dirty&&Read<int>(&g,0x22e94)!=2){Write(&g,0x22e94,1);Write(&g,0x22e9c,2);o->hud_dirty=false;}
     if(!(frame&1)&&!local_blocked){
+      // 客机本地暂停菜单：与原生 Game::Update 暂停分支同为 30Hz，推进 PauseScreen 动画并在 Dissapear 完成后关闭。
+      // Host 世界不因本地菜单暂停，下面的 HUD／地图／相机照常推进；关闭时补一次原生 HUD 刷新请求。
+      if(ClientPauseMenuOpen())Named(ClientEntry::DisplayPause,[&]{if(ClientPauseMenuUpdate())o->hud_dirty=true;});
       const auto branch=ClientDisplayMeta(o->installed).branch;
       using Branch=ClientDisplayBranch;
       const auto post_hud=[&]{
         Named(ClientEntry::DisplayHudPostUpdate,[&]{
           HudPostScope input_scope;
+          MarkHistoryHudDirty(*o,g._hud);
           g._hud.PostUpdate();
         });
       };

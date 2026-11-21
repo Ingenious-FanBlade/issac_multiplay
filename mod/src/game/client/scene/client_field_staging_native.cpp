@@ -621,6 +621,7 @@ bool ClientLiveVectorLayout(std::uint16_t layout,std::uint32_t stride) noexcept 
     case 1:return stride==8; // Vector
     case 14:case 180:return stride==16; // TemporaryEffect / PlayerTemporaryEffect
     case 155:return stride==4; // SmeltedTrinketDesc
+    case 158:return stride==28; // HistoryItem：纯值，无资源引用
     case 205:return stride==24; // GridFireEmber
     case 244:return stride==20; // FXPose
     default:return false;

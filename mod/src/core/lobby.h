@@ -10,6 +10,24 @@ constexpr bool LobbyCharacter(unsigned character) noexcept {
          character != 17 && character != 20;
 }
 
+// 全部大厅角色的位图（第 n 位＝角色 n）。
+constexpr std::uint64_t LobbyCharacterMask() noexcept {
+  std::uint64_t mask = 0;
+  for (unsigned id = 0; id <= 37; ++id)
+    if (LobbyCharacter(id)) mask |= std::uint64_t(1) << id;
+  return mask;
+}
+inline constexpr std::uint64_t kLobbyCharacterMask = LobbyCharacterMask();
+
+// 房主解锁位图：必须含以撒（第 0 位），且只能含大厅角色。由房主随名单广播给客机。
+constexpr bool ValidLobbyUnlocked(std::uint64_t unlocked) noexcept {
+  return (unlocked & 1) && !(unlocked & ~kLobbyCharacterMask);
+}
+// 角色是否在房主解锁位图中；房主和客机的选角都以此为准。
+constexpr bool LobbyCharacterUnlocked(std::uint64_t unlocked, unsigned character) noexcept {
+  return LobbyCharacter(character) && ((unlocked >> character) & 1);
+}
+
 enum class LobbyPhase : unsigned { Off, Waiting, Starting, Playing };
 
 // 名单使用稳定的参与者编号。异步线程通过一个整数传递整份快照。

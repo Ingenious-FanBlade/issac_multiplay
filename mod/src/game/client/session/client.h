@@ -9,6 +9,8 @@ const char *ClientStateName() noexcept;
 const char *StartClient(const std::string &ipv4, unsigned port, int device_key, bool lobby=false) noexcept;
 const char *UpdateClientLobby(int character, bool ready) noexcept;
 core::LobbyRoster ClientLobbyRoster(unsigned &ordinal, unsigned &desired, std::string &details);
+// 最近一次房主名单携带的解锁位图；尚未收到名单时为 0。
+std::uint64_t ClientLobbyUnlocked() noexcept;
 std::string ClientLobbyFailure();
 #ifdef ISAACCS_E2E
 std::string ClientTestExerciseOwnership(const std::string &token) noexcept;

@@ -5,6 +5,8 @@
 #include "game/client/player/client_player_control.h"
 #include "state/client_memory.h"
 #include "game/client/display/client_display_bridge.h"
+#include "game/client/display/client_pause_menu.h"
+#include "state/display_contract.h"
 #include "game/client/isolation/client_player_isolation.h"
 #include "game/client/isolation/client_isolation.h"
 #include "replica/stream_e2e.h"
@@ -17,6 +19,7 @@
 #include "game/authority/tick.h"
 #include "game/participants/topology.h"
 #include "net/live.h"
+#include "net/timing_clock.h"
 #include "ops/world_commands.h"
 #include "runtime.h"
 #include <algorithm>
@@ -187,6 +190,8 @@ struct ClientRuntime final {
   bool physical_neutral=false;
   bool map_pressed=false;
   bool focused=false,ui_blocked=false,input_ready=false;
+  // 本地暂停菜单选择了“退出”：本轮显示推进完成后再离开会话，不在显示推进前撤场景。
+  bool pause_exit=false;
   InputTiming timing;
   InputLatencyProbe latency; // 阶段0纯诊断计时，不参与任何输入或显示判定
   ClientPlayerControlView control;
@@ -242,7 +247,7 @@ constexpr const char *kClientEntryNames[]={
   "room_init","game_render","room_prerender","room_render","render_sort","game_start",
   "native_build","native_apply","native_teardown","presentation_maintenance","presentation_draw","menu_render","backdrop_effects",
   "display_hud_update","display_hud_post","display_minimap_update","display_minimap_refresh","display_sort","display_fx",
-  "display_background","display_transition","display_camera","display_sfx_refresh","display_music","display_sfx_replay","display_cursor","transition_change_room","binary_native_preparation","binary_native_atomic_install"};
+  "display_background","display_transition","display_camera","display_sfx_refresh","display_music","display_sfx_replay","display_pause","display_cursor","transition_change_room","binary_native_preparation","binary_native_atomic_install"};
 static_assert(std::size(kClientEntryNames)==unsigned(ClientEntry::Count));
 void CountDispatch(ClientRuntime &c,ClientEntry entry,ClientEntryDecision decision) noexcept {
   const auto index=unsigned(entry);
@@ -303,7 +308,9 @@ void Failure(ClientRuntime &c,const char *reason) noexcept {
   if(c.terminal_frozen)return;
   ClientIsolationObserve(ClientIsolationKind::Fault,reason);
   RememberFailure(c);
-  c.terminal_frozen=true;
+  c.terminal_frozen=true;c.pause_exit=false;
+  // 本地暂停菜单属于当前会话；失败退休时立即关闭，不把打开的菜单留给本机菜单或下一局。
+  ClientPauseMenuReset();
   Neutral(c,true);c.network.RevokeInput();c.input_ready=false;c.timing={};c.progress={};
   c.prepare.reset();c.retire_control.reset();c.state=State::Retiring;c.neutral_loops=0;
   try {if(c.error.empty())c.error=reason;c.stop_reason=reason;}catch(...){}
@@ -353,6 +360,12 @@ bool ClientBusy() noexcept {return client_active.load(std::memory_order_acquire)
 bool ClientLocalOrdinal(unsigned &ordinal) noexcept {
   if(!IsMain()||!ClientBusy()||!client||!client->scope.session)return false;
   ordinal=client->ordinal;
+  return true;
+}
+bool ClientLinkQuality(ClientLinkStats &stats) noexcept {
+  if(!IsMain()||!ClientBusy()||!client||!client->scope.session)return false;
+  const auto q=client->network.Quality();
+  stats={q.rtt_valid,q.loss_valid,q.rtt_ms,q.loss_permille,q.loss_window};
   return true;
 }
 ClientMinimapInputScope::ClientMinimapInputScope() noexcept {++minimap_input_depth;}
@@ -579,6 +592,8 @@ const char *UpdateClientLobby(int character, bool ready) noexcept {
   auto &c=*client;
   const auto selected=character<0 ? c.lobby_selection&63 : unsigned(character);
   if (!core::LobbyCharacter(selected)) return "lobby_character";
+  // 客机只能选房主存档已解锁的角色；位图随房主名单下发。
+  if (!core::LobbyCharacterUnlocked(c.network.LobbyUnlocked(), selected)) return "lobby_character_locked";
   const auto selection=selected | (ready ? core::kLobbyReady : 0);
   if (!c.network.SetLobbySelection(selection)) return "lobby_connection_closed";
   c.lobby_selection=selection;
@@ -594,6 +609,11 @@ core::LobbyRoster ClientLobbyRoster(unsigned &ordinal, unsigned &desired, std::s
           "\nretiring="+std::to_string(c.state==State::Retiring || c.state==State::Failed)+
           "\nsession_error="+c.error+"\n";
   return core::LobbyRoster::Unpack(c.network.LobbyRoster());
+}
+
+std::uint64_t ClientLobbyUnlocked() noexcept {
+  if (!client || !client->lobby_mode) return 0;
+  return client->network.LobbyUnlocked();
 }
 
 std::string ClientLobbyFailure() {
@@ -644,7 +664,8 @@ void StopClient() noexcept {
   if(client->terminal_frozen||client->state==State::Retiring)return;
   if(client->binary)client->binary->Close();
   ClientIsolationObserve(ClientIsolationKind::Stop,"client_stop");
-  client->terminal_frozen=true;client->stop_reason="client_stop";
+  client->terminal_frozen=true;client->stop_reason="client_stop";client->pause_exit=false;
+  ClientPauseMenuReset(); // 正常离开同样立即关闭本地暂停菜单
   Neutral(*client,true);client->network.RevokeInput();client->input_ready=false;client->timing={};client->progress={};client->prepare.reset();client->retire_control.reset();client->state=State::Retiring;client->scene.Retire("client_stop");client->neutral_loops=0;client->network.Stop();
   Trace("client","event=retiring connection=%llu",client->connection);
 }
@@ -771,6 +792,8 @@ bool ClientManagerBoundary() noexcept {
         Neutral(c,true);c.network.RevokeInput();c.binary->Recover(state::StateResyncReason::Base);
       }
     }
+    // 换层准备、退休或失败时场景不再显示，本地暂停菜单随之关闭；同局换房仍保持 AwaitingWorld，不受影响。
+    if(c.state!=State::AwaitingWorld&&c.state!=State::Connecting)ClientPauseMenuReset();
     if(c.state==State::Retiring||c.state==State::Failed){net::live::Event discarded;for(unsigned n=0;n<80&&c.network.PollWorld(discarded);++n){}}
     if(c.state==State::Retiring) {
       // 原生菜单可能在Input更新之前消费缓存；交还前刷新两轮真实松键，不能重放Client按键。
@@ -783,7 +806,9 @@ bool ClientManagerBoundary() noexcept {
         Trace("client","event=off connection=%llu input_closed=1 worker_finished=1 local_run=0",c.connection);
       }
     } else if(c.state==State::Connecting||c.state==State::AwaitingWorld) {
-      const bool was_blocked=c.blocked;c.sampled_this_loop=false;c.focused=Focused();c.ui_blocked=ClientUiBlocked();c.blocked=!c.focused||c.ui_blocked;
+      const bool was_blocked=c.blocked;c.sampled_this_loop=false;c.focused=Focused();c.ui_blocked=ClientUiBlocked();
+      // 本地暂停菜单打开期间与控制台一样封住本机玩法输入；Host 不随之暂停。
+      c.blocked=!c.focused||c.ui_blocked||ClientPauseMenuOpen();
       if(c.blocked&&!was_blocked){c.network.RevokeInput();c.timing={};}
       std::uint64_t target=0;
       // 16 的等待场景仍能向 Authority 发输入；已有目标的构建/替换窗口则清边沿并保持中性。
@@ -798,8 +823,40 @@ bool ClientManagerBoundary() noexcept {
       const bool group_ready=control.present&&control.consumers&&control.binding_revision==c.generation;
       c.input_ready=input_scene&&!c.blocked&&c.progress.input_enabled&&c.state==State::AwaitingWorld&&
                     group_ready&&c.progress.session_state==core::SessionState::Active&&c.generation&&
-                    c.timing.Target(c.progress.server_tick,GetTickCount64(),target);
+                    c.timing.Target(c.progress.server_tick,net::TimingClockMs(),target);
       ClientPollInput();
+      // 本地暂停菜单（原版 PauseScreen）：与原生 Game::ProcessInput 一样在输入泵之后读取菜单动作。
+      // 只有 Host 正常游玩或 Host 自己暂停时允许打开；已打开的菜单在转场等分支中仍可操作和关闭。
+      const bool pause_native=c.state==State::AwaitingWorld&&c.scene.NativeDisplay();
+      {
+        // 诊断：物理 ESC 按下沿（不依赖原生动作映射）记录菜单判定的全部输入，定位“按 ESC 无反应”。
+        static bool esc_was_down=false;
+        const bool esc_down=(GetAsyncKeyState(VK_ESCAPE)&0x8000)!=0;
+        if(esc_down&&!esc_was_down&&c.state==State::AwaitingWorld){
+          unsigned branch=0xFFFFFFFFu;const bool known=ClientNativeDisplayBranch(branch);
+          ClientPauseDiagnose(c.focused,c.ui_blocked,pause_native,known,branch);
+        }
+        esc_was_down=esc_down;
+      }
+      if(c.state==State::AwaitingWorld&&!(c.focused&&!c.ui_blocked&&pause_native)&&!ClientPauseMenuOpen()&&ClientPauseKeyPressed()){
+        // 诊断：按下暂停键但外层条件不满足，记录是哪一项挡住。
+        Trace("client_pause","event=open_refused reason=gate focused=%u console=%u native=%u ready=%u",
+              unsigned(c.focused),unsigned(c.ui_blocked),unsigned(pause_native),unsigned(c.scene.DisplayReady()));
+      }
+      if(c.state==State::AwaitingWorld&&c.focused&&!c.ui_blocked&&pause_native){
+        unsigned branch=0xFFFFFFFFu;
+        const bool may_open=ClientNativeDisplayBranch(branch)&&
+            (branch==unsigned(state::DisplayBranch::Normal)||branch==unsigned(state::DisplayBranch::PauseScreen));
+        const auto pause=ClientPauseMenuInput(c.ordinal,may_open,branch);
+        if(pause==ClientPauseAction::Exit){
+          // 原生“退出”会保存并结束本局；客机改为离开会话，待本轮显示推进后再退休。
+          c.pause_exit=true;c.input_ready=false;Neutral(c);
+          Trace("client","event=pause_menu_exit connection=%llu",c.connection);
+        }else if(pause==ClientPauseAction::Opened&&!c.blocked){
+          // 本帧刚打开：本帧采样不再发送，并像进入阻断一样撤销输入资格。
+          c.blocked=true;c.input_ready=false;Neutral(c);c.network.RevokeInput();c.timing={};
+        }
+      }
       if(!c.sampled_this_loop){++c.device_missing;Neutral(c,true);}
       if(!c.input_ready)
         Neutral(c);
@@ -874,6 +931,8 @@ bool ClientManagerBoundary() noexcept {
     // 覆盖层按本机控制组序号排除本机身体；Host 暂停时世界显示时间停住。
     c.scene.SetMotionContext(c.ordinal,c.progress.authority_paused);
     if(!recover_graphics()&&!c.scene.AdvanceDisplay(c.ui_blocked))Failure(c,"client_display_schedule");
+    // 暂停菜单“退出”：与面板“离开会话”走同一正常停止路径，回到主菜单。
+    if(c.pause_exit){c.pause_exit=false;StopClient();}
     // 本轮Body已经进入原生，随后Render会显示；只读计数，不影响调度。
     c.latency.BodyObserved(c.scene.AppliedBodyCount());
   } catch(const std::exception &error){Failure(c,error.what());}

@@ -45,6 +45,9 @@ struct ClientMotionEntity final {
   // follow 只给环绕跟班（OrbitLayer≥0）、举起物与 Parent 指向本机身体的非激光对象；跟随队列跟班不平移。
   void *owner=nullptr;
   bool follow=false;
+  // 阶段 3（设计 5.6）：SpawnerEntity（Entity+0x3C8）引用的对象地址，只用于与本机身体地址比较，不解引用。
+  // 本机泪弹出生融合据此识别“本机身体发出的泪弹”。
+  void *spawner=nullptr;
 };
 // 覆盖层的一次写入：进入作用域时写显示值并暂存原值，退出时写回原值。
 struct ClientMotionWrite final {

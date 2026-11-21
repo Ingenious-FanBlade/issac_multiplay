@@ -26,20 +26,22 @@ struct ClientMotionBody final {
   unsigned point_count=0;                  // 碰撞采样点个数（超过上限时视为不可预测）
   std::array<float,kClientMotionGridPoints> point_x{},point_y{};
   // —— 输入相关 ——
-  bool controls=true;                      // ControlsEnabled +0x410
-  std::int32_t cooldown=0;                 // ControlsCooldown +0x414
+  // 以下标“Host 资格位”的成员客机原生不同步，ClientMotionReadBody 不读，由 ClientMotionApplyGate 按 Body predict_gate 填写。
+  bool controls=true;                      // ControlsEnabled +0x410（Host 资格位 bit0）
+  std::int32_t cooldown=0;                 // ControlsCooldown +0x414（Host 资格位 bit1，只表达 >0）
   bool can_fly=false,coop_ghost=false;     // CanFly +0x1564、联机幽灵 +0x207D
-  bool input_lock=false;                   // +0x1FE0 非零时输入清零（含义未知，RE-P3）
+  bool input_lock=false;                   // +0x1FE0 非零时输入清零（含义未知，RE-P3；Host 资格位 bit2）
   bool has_parent=false;                   // parent +0x3BC 非空（GetCollisionAt 的门规则）
   // GetMovementInput（0x771D70）的变换：混乱、反转种子 12、轴对齐种子 76、镜像世界取反 x。
   bool confused=false,reversed=false,axis_aligned=false,mirrored=false;
   // —— 资格事实（任一成立即不预测，见 ClientMotionIneligible）——
-  bool airborne=false;                     // +0x1E54<0 或 posOffset.y +0x350<0
+  bool airborne=false;                     // posOffset.y +0x350<0（已同步）或 +0x1E54<0（Host 资格位 bit3）
   bool has_target=false,in_minecart=false,parent_player=false;
-  bool frozen=false;                       // freezeCountdown +0x218>0 或 PAUSE 临时效果 478
-  std::int32_t suplex=0,pony=0;            // +0x1F08、+0x1874
+  bool frozen=false;                       // PAUSE 临时效果 478（已同步）或 freezeCountdown +0x218>0（Host 资格位 bit5）
+  std::int32_t suplex=0,pony=0;            // +0x1F08（已同步）、+0x1874（Host 资格位 bit4，只表达 >0）
   bool chariot=false,spin=false,mars=false,mega_mush=false; // NullItem 63／50，道具效果 593／625
   bool too_many_points=false;
+  bool gate_missing=false;                 // Host 资格位缺失或无效：资格不可判，不预测
 };
 
 // 当前房间的地形快照：每格 GridEntity 的碰撞类别（无则 -1）与少量类型信息。
@@ -84,7 +86,12 @@ struct ClientMotionAuthority final {
   std::uint32_t tick=0;      // Host Authority tick 低 32 位
   std::uint32_t sequence=0;  // 已处理的最高输入序号低 32 位
   std::uint8_t phase=0;      // bit0 奇半帧结束；bit1—2 本 tick 半步数（1 或 2）；0 表示未知
+  // 预测资格位（Body predict_gate，2026-11-20）：bit0 ControlsEnabled、bit1 Cooldown>0、bit2 输入锁、bit3 跳跃、
+  // bit4 小马冲刺、bit5 冻结、bit7 有效。这些原生成员不同步，客机本地值不可信，只能用 Host 同窗值。
+  std::uint8_t gate=0;
 };
+// 用 Host 资格位覆盖身体中“客机本地不可信”的成员；gate 无效（bit7=0）时返回 false，调用方不预测。
+bool ClientMotionApplyGate(ClientMotionBody &body,std::uint8_t gate) noexcept;
 // 预测的显示结果：位置为预测值加平滑偏移 e，速度为预测速度（供相机前视），delta 为显示位置减权威位置。
 struct ClientMotionDisplay final {
   float x=0,y=0,vx=0,vy=0,delta_x=0,delta_y=0;

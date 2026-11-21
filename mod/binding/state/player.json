@@ -656,20 +656,30 @@
           "size": "0x4",
           "name": "time",
           "type": "i32",
-          "category": "权威",
+          "category": "状态",
           "semantics": "原始获得时点，不能替代HUD图像顺序",
           "status": "已核",
-          "evidence": "5-player-p6-p8.md"
+          "evidence": "5-player-p6-p8.md；J273 82FF40／8304B0（HistoryHUD按History条目+4类别、+8道具ID重算图像）；client-display-delegation RE-1 update-order 2.2",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x4",
           "size": "0x1",
           "name": "trinket",
           "type": "bool",
-          "category": "权威",
+          "category": "状态",
           "semantics": "原始历史类别",
           "status": "已核",
-          "evidence": "5-player-p6-p8.md"
+          "evidence": "5-player-p6-p8.md；J273 82FF40／8304B0（HistoryHUD按History条目+4类别、+8道具ID重算图像）；client-display-delegation RE-1 update-order 2.2",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "sequence": "world"
         },
         {
           "offset": "0x5",
@@ -686,17 +696,27 @@
           "size": "0x14",
           "name": "history_values",
           "type": "i32[5]",
-          "category": "权威",
+          "category": "状态",
           "semantics": "item_id／stage／stage_type／room_type／pool",
           "status": "已核",
-          "evidence": "5-player-p6-p8.md"
+          "evidence": "5-player-p6-p8.md；J273 82FF40／8304B0（HistoryHUD按History条目+4类别、+8道具ID重算图像）；client-display-delegation RE-1 update-order 2.2",
+          "wire": {
+            "kind": "copy",
+            "type": "i32[5]"
+          },
+          "sequence": "world"
         }
       ],
       "conversions": {},
-      "validators": {},
+      "validators": {
+        "trinket": {
+          "kind": "boolean",
+          "scalar": "u8"
+        }
+      },
       "members": [],
       "public_owners": [],
-      "notes": ""
+      "notes": "客机原生 HistoryHUD 由显示委托在本机重算，条目按原值复制；3字节未知填充不上线，客机构造时清零。"
     },
     {
       "type": "BagOfCraftingOutput",
@@ -7580,16 +7600,35 @@
         },
         {
           "offset": "0x1DD8",
-          "size": "0x14",
-          "name": "_history",
-          "type": "History",
-          "category": "本地",
-          "semantics": "_history：原始获得史留Host；第8步最终图像缓存",
+          "size": "0xC",
+          "name": "_history_items",
+          "type": "vector_HistoryItem",
+          "category": "容器",
+          "semantics": "_history.items：本身体有序获得史；客机原生HistoryHUD（82FF40）据此重算右侧道具列表，显示委托后不再另建最终图像缓存",
           "status": "已核",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/EntityPlayer.zhl；5-player-p0-p2.md；5-player-p3-p5.md；5-player-p6-p8.md",
-          "native_type": "History",
-          "native_count": 1,
-          "read_requires": "current_body_field_witness_same_use_and_binding"
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/EntityPlayer.zhl；5-player-p0-p2.md；5-player-p3-p5.md；5-player-p6-p8.md；5-player-p6-p8.md；J273 82FF40／8304B0（HistoryHUD按History条目+4类别、+8道具ID重算图像）；client-display-delegation RE-1 update-order 2.2",
+          "read_requires": "current_body_field_witness_same_use_and_binding",
+          "wire": {
+            "kind": "container",
+            "element": "HistoryItem",
+            "stride": 28,
+            "storage": "vector",
+            "limit": 4096,
+            "host": "entityplayer__history_read",
+            "client": "entityplayer__history_install",
+            "max_bytes": 131072
+          },
+          "sequence": "world"
+        },
+        {
+          "offset": "0x1DE4",
+          "size": "0x8",
+          "name": "_history_local",
+          "type": "bytes[8]",
+          "category": "本地",
+          "semantics": "History+0xC禁改位、+0xD未知3字节、+0x10 owner Player*：Add／Remove门控与本地自指，留各端原值",
+          "status": "已核",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/EntityPlayer.zhl；5-player-p0-p2.md；5-player-p3-p5.md；5-player-p6-p8.md"
         },
         {
           "offset": "0x1DEC",
@@ -8490,7 +8529,11 @@
         "entityplayer_input_tick_read": "本次Body采集所在Authority tick（clock.Current）低32位；客机按自身意图目标tick换算重放起点，不写原生",
         "entityplayer_input_tick_install": "本次Body采集所在Authority tick（clock.Current）低32位；客机按自身意图目标tick换算重放起点，不写原生",
         "entityplayer_input_phase_read": "bit0：本样本结束于奇半帧（OddPlayer tick或Host关插值时整帧两半步）；bit1—2：本tick该身体走的半步数（1或2）；其余0；不写原生",
-        "entityplayer_input_phase_install": "bit0：本样本结束于奇半帧（OddPlayer tick或Host关插值时整帧两半步）；bit1—2：本tick该身体走的半步数（1或2）；其余0；不写原生"
+        "entityplayer_input_phase_install": "bit0：本样本结束于奇半帧（OddPlayer tick或Host关插值时整帧两半步）；bit1—2：本tick该身体走的半步数（1或2）；其余0；不写原生",
+        "entityplayer_predict_gate_read": "Host同窗读原生预测资格：bit0 ControlsEnabled(+0x410≠0)，bit1 ControlsCooldown(+0x414)>0，bit2 输入锁(+0x1FE0≠0)，bit3 跳跃(+0x1E54<0)，bit4 小马冲刺(+0x1874>0)，bit5 冻结(+0x218>0)，bit7 恒1表示有效；其余0",
+        "entityplayer_predict_gate_install": "客机只供本机预测资格判断读取影子值，不写原生（客机原生这些成员不同步，值不可信）",
+        "entityplayer__history_read": "Host读取本身体History条目vector；只复制已生产条目，不调用Add/Remove或Lua",
+        "entityplayer__history_install": "客机按条目数重建原生vector并逐项写值；之后由本机HistoryHUD按变化置脏重算"
       },
       "validators": {
         "_hasGoldenKey": {
@@ -12358,6 +12401,15 @@
           "evidence": "docs/design/binary-state/prediction-interpolation.md 5.7、RE-P6",
           "host": "entityplayer_input_phase_read",
           "client": "entityplayer_input_phase_install",
+          "sequence": "body"
+        },
+        {
+          "name": "predict_gate",
+          "type": "u8",
+          "semantics": "本机预测资格位：bit0 ControlsEnabled，bit1 ControlsCooldown>0，bit2 输入锁+0x1FE0，bit3 跳跃+0x1E54<0，bit4 小马冲刺+0x1874>0，bit5 冻结+0x218>0，bit7 有效；这些原生成员不在同步范围，客机本地值不可信（2026-11-20 脚滑根因）；只供客机预测读取，不写原生",
+          "evidence": "docs/design/binary-state/prediction-interpolation.md 5.5、RE-P1 第2节、RE-P3",
+          "host": "entityplayer_predict_gate_read",
+          "client": "entityplayer_predict_gate_install",
           "sequence": "body"
         }
       ],
