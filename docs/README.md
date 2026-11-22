@@ -9,6 +9,7 @@ isaac-cs 是基于官方 REPENTOGON 1.1.3 的以撒（Repentance+ v1.9.7.12.J273
 3. [同步](synchronization.md)：两条状态流、线格式、增量与确认、资源与事件、预算
 4. [Host 端设计](host.md)：会话与大厅、权威 tick、统一输入、远端玩家、发布线程
 5. [Client 端设计](client.md)：输入上行、接收与校验、原生安装、显示委托、插值与预测、副作用隔离
+6. [Mod 联机接口方案](mod-api.md)：声明式 Mod API、握手协商、Mod 状态同步、客机回调放行与意图（草案，待审阅，未实施）
 
 ## 其他资料
 
