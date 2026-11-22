@@ -1,6 +1,6 @@
 # Mod 联机接口方案（IsaacCS Mod API）
 
-日期：2026-11-22。状态：草案，待用户审阅；没有实现、构建或测试。本文取代[第三方 Mod 适配：后续方案](archive/design/mod-adaptation.md)里"仅保留具名 adapter 还是提供公开注册接口"这一未决项，其余迁入内容和历史事实仍以原文为准。
+日期：2026-11-22。状态：草案，待用户审阅；没有实现、构建或测试。同日补充客机安装的接入方案（5.6 节、6.2 节回调时机、7.1 节 Sprite 要求），用户已定 mod-adaptation M3、M4、M6、M7、M8，M5 于 2026-11-23 按推荐定。2026-11-23 对照 REPENTOGON 接口补充：6.2 节新增玩家属性查询、显示查询、音效和音乐三类回调；新增 6.4 节"运行时配置表与本机数据"；第 9 节补对应失败方式，第 10 节补音频验收，第 12 节新增 D12；需要原生同步补上的项记在 mod-adaptation"具名适配交接"。本文取代[第三方 Mod 适配：后续方案](archive/design/mod-adaptation.md)里"仅保留具名 adapter 还是提供公开注册接口"这一未决项，其余迁入内容和历史事实仍以原文为准。
 
 ## 1. 结论与取舍
 
@@ -268,12 +268,15 @@ IsaacCS.State(mod, "beden_panel", {
 
 结构校验、影子状态和字节到 Lua 值的构建规则，见[第三方 Mod 适配](archive/design/mod-adaptation.md#7-客机校验影子状态与安装)"声明类型的采集与编码"第 7 节。
 
-- **时机**：同一次 Manager 边界调用中，World 原生安装之后、显示推进和 Render 之前（对应 C3）。这样绘制回调读到的 Mod 状态与实体属于同一帧。
-- **写入**：global 和 player 作用域调用 `set`，没写 `set` 时按 5.3 节"默认写回"规则写 `mod[key]`；EntityData 按同一规则写进本地实体的 `GetData()[key]`；EntityState 调用 `set(ent, v)`。每条记录单独 `pcall`。
+如何接进客机现有流程（快照绑定、安装集、回调顺序、实体生灭、场景生命周期、Lua 调用框架），见[第三方 Mod 适配](archive/design/mod-adaptation.md#77-接入客机管线)第 7.7 节"接入客机管线"；客机已定事项 M3—M8 见该文第 8 节。
+
+- **时机**：同一次 Manager 边界调用中，World 原生安装之后、显示推进和 Render 之前（对应 C3）。这样绘制回调读到的 Mod 状态与实体属于同一帧。Mod 状态随 World 封存为同一份快照，主线程装哪份 World 就装哪份 Mod 状态。
+- **写入**：global 和 player 作用域调用 `set`，没写 `set` 时按 5.3 节"默认写回"规则写 `mod[key]`；EntityData 按同一规则写进本地实体的 `GetData()[key]`；EntityState 调用 `set(ent, v)`。每条记录单独 `pcall`。字节与上次成功写入的相同时不写。
+- **完整基线**（M8，2026-11-22 已定）：World 完整基线到来时，全部记录重写一遍，与原生的做法一致，用来纠正客机上被改动过的已声明键；内容没变的记录不派发 `CLIENT_STATE_CHANGED`。因此 `set` 可能以相同的值被多次调用，必须保证同值重写没有副作用。
 - **失败**：单条记录失败只记日志和计数，不影响 ACK（对应 C2），也不请求 Resync，因为 Lua 报错不会因为重发基线而消失。
 - **实体重建**：客机重建实体后，从本地影子状态里取该实体最近一次的 Mod 值重新写入，不需要 Host 重发。
 - **只读约定**：在客机上，已声明的键归 Host 所有，Mod 的客机代码不应修改它们（D6）。如果修改了，要等到 Host 下一次变化才会被纠正。诊断模式下，每个显示批次前重写全部已声明的键，并统计被改动的键。
-- **清理**：客机离开场景、换局或会话结束时，逐个调用 `reset`；EntityData 随实体一起消失。
+- **清理**：客机离开场景、换局或会话结束时，先派发 `CLIENT_SCENE_ENDED`，再逐个调用 `reset`，此时实体和 Lua 都还在；EntityData 随实体一起消失。参与者离开时，它的 player 作用域记录不调用 `set`，只删已安装条目；身体作为实体离开时照常派发 `CLIENT_ENTITY_REMOVED`，Mod 在这个回调里自己清理（M5，2026-11-23 已定）。
 
 ## 6. Lua 逻辑与回调
 
@@ -293,15 +296,26 @@ IsaacCS.State(mod, "beden_panel", {
 | 绘制和 HUD（`MC_POST_RENDER`、`MC_POST_*_RENDER`、`MC_PRE_*_RENDER`、HUD 系列、`MC_GET_SHADER_PARAMS`） | 触发（D3） | 不触发 |
 | 菜单和本地界面（ImGui、`MC_MAIN_MENU_RENDER`、暂停菜单等） | 触发 | 不触发 |
 | Init 类（`MC_POST_*_INIT` 等） | 不触发，改用 `IsaacCS.CLIENT_ENTITY_INSTALLED` | 不触发 |
-| 更新、伤害、碰撞、生成、Cache、拾取、房间与楼层等玩法回调 | 不触发 | 不触发 |
+| 更新、伤害、碰撞、生成、Cache（含 `MC_EVALUATE_CUSTOM_CACHE`）、拾取、房间与楼层等玩法回调 | 不触发 | 不触发 |
+| 玩家属性查询（`MC_PLAYER_GET_HEALTH_TYPE`、`MC_PLAYER_GET_HEART_LIMIT`、`MC_PLAYER_GET_ACTIVE_MAX_CHARGE`、`MC_PLAYER_GET_ACTIVE_MIN_USABLE_CHARGE`） | 不触发。客机原生 HUD 调用这些查询时，应当取 Host 同步来的有效结果（原生待补项，见下文"查询类回调"） | 不触发 |
+| 显示查询（`MC_PRE_GET_LIGHTING_ALPHA`） | 触发，与绘制类相同（D3） | 不触发 |
+| 音效和音乐（`MC_PRE_SFX_PLAY`、`MC_POST_SFX_PLAY`、`MC_PRE_MUSIC_PLAY`、`MC_PRE_MUSIC_PLAY_JINGLE`、`MC_PRE_MUSIC_LAYER_TOGGLE`） | 回放 Host 的音效、音乐事件时不触发；客机本地发出的声音（例如 Mod 在绘制回调里调用 `SFXManager():Play`）照常触发。见下文"音频类回调" | 不触发 |
+
+**查询类回调**（2026-11-23 对照 REPENTOGON 补充）：REPENTOGON 在 `GetHealthType`、`GetHeartLimit`、`GetActiveMaxCharge`、`GetActiveMinUsableCharge` 这些原生查询里触发对应回调，客机的原生 HUD 和绘制代码同样会调用这些查询。这些回调的返回值取决于 Host 的玩法状态，客机上不触发；客机要显示正确的心格类型、心上限和充能条，需要原生同步传来 Host 上的有效结果，客机查询时直接返回该结果。目录里已把 `GetHealthType`、`GetHeartLimit` 标为"最终显示缓存"，具体实现归原生同步，见[第三方 Mod 适配](archive/design/mod-adaptation.md#具名适配交接)"具名适配交接"。补上之前，客机按原版值显示，记为已知差异（第 9 节）。`Room:GetLightingAlpha` 只影响显示，Mod 可以用已声明的状态算出同样的结果，所以按绘制类放行。
+
+**音频类回调**（2026-11-23 补充）：Host 上 Mod 可以在 `MC_PRE_SFX_PLAY`、`MC_PRE_MUSIC_PLAY` 里换掉声音 id、改参数或取消播放。客机回放 Host 的音效事件时同样调用原生 `Play`，REPENTOGON 会在客机上再触发一次这些回调；如果放行，同一个声音会被改写或取消两次。规则：
+
+- 客机回放 Host 事件期间，联机层设一个"回放中"标记，分派过滤器看到标记就跳过这五个回调。过滤器怎么拿到这个标记，与本节开头的两项核对一起在实施时确定。
+- 客机本地发出的声音不带标记，回调照常触发，由 Mod 自己处理。
+- Host 端：音频采集点必须记下 REPENTOGON 回调处理之后的最终参数（换过的 id、改过的音量音高），被取消的声音不记录。采集点位于 REPENTOGON hook 之内还是之外，实施时核对（见 mod-adaptation"具名适配交接"）。
 
 这些规则在 Host 上不生效。客机上另外提供几个联机层回调，用 `IsaacCS.AddCallback(mod, id, fn)` 注册：
 
 | 回调 | 时机 |
 | --- | --- |
-| `CLIENT_SCENE_STARTED`、`CLIENT_SCENE_ENDED` | 客机场景开始、退休；代替 `MC_POST_GAME_STARTED`、`MC_PRE_GAME_EXIT` |
-| `CLIENT_ENTITY_INSTALLED(ent)`、`CLIENT_ENTITY_REMOVED(ent)` | 实体首次安装后、移除前，用于纯显示的初始化，比如创建 Sprite |
-| `CLIENT_STATE_CHANGED(key, target)` | 某条记录本帧被写入后（可选） |
+| `CLIENT_SCENE_STARTED`、`CLIENT_SCENE_ENDED` | 客机场景开始、退休；代替 `MC_POST_GAME_STARTED`、`MC_PRE_GAME_EXIT`。STARTED 在第一份 World 及其 Mod 状态装好之后、首次显示推进之前；ENDED 在原生拆卸之前、`reset` 之前 |
+| `CLIENT_ENTITY_INSTALLED(ent)`、`CLIENT_ENTITY_REMOVED(ent)` | 实体首次安装（含重建）后、移除前，用于纯显示的初始化，比如创建 Sprite。INSTALLED 在该实体的 entity 记录写完之后，回调里能读到已同步的数据；REMOVED 在本批原生安装开始之前、对计划内离开或重建的实体派发，此时实体还在；原生安装失败造成的计划外释放不派发，只计数；同一实例只派发一次，与 INSTALLED 成对（mod-adaptation M3）。场景退休时不逐个实体派发 REMOVED |
+| `CLIENT_STATE_CHANGED(key, target)` | 本批全部记录写完后统一派发，只为内容确实变化的记录派发（可选） |
 | `CLIENT_INTENT_RESULT(name, seq, ok, result)` | 意图结果到达时（第 7.2 节） |
 
 ### 6.3 客机副作用防护
@@ -320,12 +334,34 @@ IsaacCS.State(mod, "beden_panel", {
 
 完整的拦截清单在实施时按 REPENTOGON 文档逐项列出。
 
+### 6.4 运行时配置表与本机数据（2026-11-23 补充）
+
+**配置表只在加载期修改。** 下面这些接口改的是进程内的全局配置表，不属于任何同步对象：
+
+| 接口 | 改的是 |
+| --- | --- |
+| `ItemConfig_Item:AddCustomTag`、`RemoveCustomTag`、`AddCustomCacheTag`、`RemoveCustomCacheTag` | 道具配置的自定义标签 |
+| `ItemConfig_Card:SetAvailabilityCondition`、`ClearAvailabilityCondition`，`Weight` 字段 | 卡牌是否可出现的判定函数和权重 |
+| `RoomConfigStage` 的各个 `Set*` | 楼层配置（`RoomConfig._stages[]`） |
+
+在 `main.lua` 顶层或 `MC_POST_MODS_LOADED` 里调用时，两端执行同一份代码，结果一致。在玩法回调里调用时，只有 Host 改了，客机上 Mod 的绘制代码读到的是旧值；握手比对的是声明，查不出这种差异。SDK 规则：这类接口只在加载期调用；运行时修改记为已知风险（第 9 节），联机层不同步、不检测。
+
+例外：`Level:SetName` 和 `Isaac.SetCurrentFloorName`、`SetCurrentFloorMusic`、`SetCurrentFloorBackdrop` 本来就是在局内调用的，改的是当前楼层的显示名、音乐和背景，归原生同步处理（见 mod-adaptation"具名适配交接"），不受上面的规则限制。
+
+**本机数据。** 客机上下列查询返回的是客机自己的数据，不是 Host 的：
+
+| 接口 | 结论 |
+| --- | --- |
+| `Options` | 用本机的值，正确。和本机音量一样，属于本地设置 |
+| `PersistentGameData` 的解锁、完成标记、统计 | 返回客机自己存档的结果。Mod 按解锁状态决定显示（例如未解锁时画锁图标）时，两端会不一样。首版记为已知差异（D12） |
+
 ## 7. 自定义 UI
 
 ### 7.1 渲染
 
 - Mod 在客机本地用自己的 Sprite 和 Font 绘制，读取第 5 节同步来的状态。
 - UI 自己的状态（菜单是否打开、光标、选中项、动画帧）放在 Mod 未声明的变量里，留在本地，不同步。
+- **Mod 自己用 `Sprite()` 创建的 Sprite**（M7，2026-11-22 已定）：`Update`、`Play`、`SetFrame` 等推进动画的调用必须写在绘制回调里，由已声明的状态决定播哪个动画。写在玩法回调（`MC_POST_UPDATE`、`MC_NPC_UPDATE` 等）里的，客机上不会执行，Sprite 会停住或播错。联机层不提供同步动画名和帧的辅助手段。实体自带的 Sprite（`ent:GetSprite()`）是原生对象，由原生同步覆盖，不受此限。
 - `IsaacCS.GetLocalPlayer()` 返回本机参与者的身体，`IsaacCS.IsLocalPlayer(player)` 判断某个身体是否属于本机。客机上 `Isaac.GetPlayer(0)` 是房主的角色，"画当前玩家"的 UI 要改用这两个接口。
 - 没有联机时，`GetLocalPlayer()` 返回 `Isaac.GetPlayer(0)`。
 
@@ -392,7 +428,12 @@ local seq = IsaacCS.SendIntent(mod, "buy", { slot = 3 })
 | 值里引用的实体已离开，或不在成员目录里 | 编码为 Null，并计数 |
 | 客机 `set` 抛错 | 跳过该记录并计数，ACK 照发，下一次变化时再写 |
 | 客机实体重建 | 从影子状态重新写入 |
-| 客机绘制回调修改了已声明的键 | 只读约定；诊断模式下检测并纠正 |
+| 客机绘制回调修改了已声明的键（例如在绘制回调里推进计时器、消费一次性标志） | 只读约定；Host 下一次变化或完整基线时纠正（M8）；诊断模式下检测 |
+| Mod 在玩法回调里推进自己用 `Sprite()` 创建的 Sprite | 客机不触发玩法回调，Sprite 停住或播错。由 Mod 按 7.1 节改到绘制回调里推进，联机层不兜底（mod-adaptation M7） |
+| 客机原生 HUD 查询心格类型、心上限、充能，玩家属性查询回调不触发 | 原生同步补上 Host 有效结果之前，客机按原版值显示，记为已知差异（6.2 节"查询类回调"） |
+| 客机回放 Host 音效时再次触发 Mod 的音频回调，同一声音被改写或取消两次 | 回放期间不触发（6.2 节"音频类回调"）；Host 采集点须记录回调处理后的最终参数 |
+| Mod 在玩法回调里修改 ItemConfig、RoomConfigStage 等配置表 | 只有 Host 生效，客机读到旧值。SDK 规则要求只在加载期修改（6.4 节），运行时修改记为已知风险，不检测 |
+| Mod 按解锁、完成标记决定显示 | 客机读的是本机存档，两端可能不一样；首版记为已知差异（6.4 节、D12） |
 | 客机绘制回调夹带玩法副作用 | 现阶段不拦截，记为已知风险，由 Mod 用 `IsClient()` 自行隔开；后续按第 6.3 节拦截并计数 |
 | 意图过大、过多，或发起者没有身体 | 本地拒绝，或由 Host 拒绝并返回失败结果 |
 | 意图到达时状态已变 | handler 自行校验并返回失败 |
@@ -415,7 +456,8 @@ local seq = IsaacCS.SendIntent(mod, "buy", { slot = 3 })
   - 实体重建后实体状态恢复；
   - 意图从客机发出、在 Host 生效、结果回到客机；
   - 超预算时有具名报告；
-  - 换房、换层、换局时状态正确清理。
+  - 换房、换层、换局时状态正确清理；
+  - 夹具 Mod 在 `MC_PRE_SFX_PLAY` 里换掉某个声音、取消另一个声音：客机听到的与 Host 一致，客机回放时该回调没有被触发；夹具 Mod 在绘制回调里本地发出的声音，客机上的音频回调照常触发。
 
 ## 11. 实施顺序
 
@@ -446,3 +488,4 @@ StageAPI、自定义角色等具名适配，在这套 API 跑通之后，作为�
 | D9 | 我们是否维护一组官方兼容 Mod | 先不维护。等 API 跑通后，挑一两个热门 Mod 作为示范 |
 | D10 | `get` 整体返回 `nil`（顶层空值）怎么编码 | 已定（2026-11-22）：记录字节数为 0 表示 `nil`，客机调用 `set(nil)`；`struct` 至少一个字段。见 5.3 节 |
 | D11 | 没写 `set` 时怎样写回 `mod[key]` | 已定（2026-11-22）：递归原地合并（方案 C），EntityData 同规则。见 5.3 节"默认写回"。未采用：整表替换（丢元表和引用）、只合并顶层（内层同样丢失）、容器类型强制写 `set`、加 `merge` 选项 |
+| D12 | 客机上 `PersistentGameData` 的解锁、完成标记查询以谁为准（6.4 节） | 首版用客机本机存档，记为已知差异。改为以 Host 为准需要同步 Host 的解锁表并替换客机查询，等确有 Mod 依赖时再定 |
