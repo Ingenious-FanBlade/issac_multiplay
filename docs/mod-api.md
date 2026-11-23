@@ -57,10 +57,11 @@ IsaacCS.Declare(mod, { version = "1.0.0" })
 
 | 项 | 规则 |
 | --- | --- |
-| 选择实现 | 联机层在 REPENTOGON 的 `main_ex.lua` 加载时注入真实的 `IsaacCS`，早于任何 Mod 的 `main.lua`。SDK 发现真实实现时直接返回它；没有安装联机层时，安装不联机实现（4.6 节），赋给全局 `IsaacCS` 并返回 |
-| 多份共存 | 多个 Mod 可能各带一份不同版本的 SDK。不联机实现只会被更高版本的不联机实现替换，替换时沿用已登记的声明；任何版本都不替换真实实现 |
-| 版本不足 | Mod 带的 SDK 比已安装的联机层新时，真实实现上缺少的函数由 SDK 补上不联机版本，单机照常可玩；该 Mod 的 `Declare` 记为"api 版本不受支持"，联机时按未声明处理，大厅提示更新联机层 |
-| 稳定性 | `IsaacCS.api` 只增不减。已发布函数的签名和不联机语义不再改动，新功能只以新增函数的形式加入 |
+| 薄壳 | SDK 只是一层薄壳。联机层在 REPENTOGON 的 `main_ex.lua` 加载时，把自己的 `IsaacCS` 实现放进全局，早于任何 Mod 的 `main.lua`；SDK 发现它就直接返回，装了联机层时所有 Mod 用的都是联机层的实现。没有安装联机层时，SDK 安装自带的单机实现（4.6 节），赋给全局 `IsaacCS` 并返回 |
+| 声明检查 | 只由联机层做：声明写错时，装了联机层（不论是否开启会话）在加载期报错。SDK 的单机实现不检查声明，所以 Mod 作者测试时应安装联机层 |
+| 多份共存 | 多个 Mod 可能各带一份不同版本的 SDK。单机实现只会被更高版本的单机实现替换，替换时沿用已登记的意图和回调；任何版本都不替换联机层的实现 |
+| 版本不足 | Mod 带的 SDK 比已安装的联机层新时，联机层实现上缺少的函数由 SDK 补上单机版本，单机照常可玩；该 Mod 的 `Declare` 记为"api 版本不受支持"，联机时按未声明处理，大厅提示更新联机层 |
+| 稳定性 | `IsaacCS.api` 只增不减。SDK 会被复制进各个 Mod 并长期留在那里，所以只放最少的逻辑；已发布函数的签名和单机语义不再改动，新功能只以新增函数的形式加入 |
 | 注解 | 每个函数带中文注释和 LuaCATS 注解，供 lua-language-server 补全和检查 |
 
 ### 4.2 总表
@@ -283,11 +284,11 @@ end)
 
 ### 4.6 不联机时的行为
 
-"不联机"包括没有安装联机层（SDK 的不联机实现）和安装了但没有开启会话（真实实现），两者行为一致：
+"不联机"包括没有安装联机层（SDK 的单机实现）和安装了但没有开启联机会话（联机层的实现，`cs solo` 单人会话也算）。两者运行时的行为一致，唯一的区别是只有联机层会在加载期检查声明：
 
 | 接口 | 不联机时 |
 | --- | --- |
-| `Declare`、`State`、`EntityData`、`EntityState`、`Intent`、`Keys` | 照常登记并检查参数，不调用 `get`、`set`、`reset`，没有运行开销 |
+| `Declare`、`State`、`EntityData`、`EntityState`、`Intent`、`Keys` | 不调用 `get`、`set`、`reset`，没有运行开销。`Intent` 记下 handler 供 `SendIntent` 调用。装了联机层时照常登记并检查参数，加载期之后调用会报错；SDK 的单机实现不检查 |
 | `MarkDirty` | 空操作 |
 | `IsClient()` | `false` |
 | `GetParticipant(player)` | `0`。本机的所有身体（包括本地同屏多人）都属于参与者 0 |
@@ -545,8 +546,10 @@ end)
 
 | 内容 | 位置 |
 | --- | --- |
-| SDK（不联机实现，同时是真实实现的 Lua 部分） | `mod/sdk/isaaccs_sdk.lua` |
-| 真实 `IsaacCS` 注入、声明编译、回调分派、Host 读取、客机安装、意图执行 | `mod/src/game/mods/mod_api.cpp` |
+| 对外分发的 SDK 薄壳（单机实现、版本补齐） | `mod/sdk/isaaccs_sdk.lua` |
+| 联机层的 `IsaacCS` 实现（声明登记、检查与类型编译，运行时查询），编进 DLL | `mod/src/game/mods/lua/isaaccs_api.lua` |
+| 回调放行、加载与卸载通知、`Input.*` 路由、内容 ID 表读取，编进 DLL | `mod/src/game/mods/lua/isaaccs_dispatch.lua` |
+| 注入上面两段 Lua、原生函数表、清单生成、Host 读取、客机安装、意图执行 | `mod/src/game/mods/mod_api.cpp` |
 | 原生显示保留段（Player 查询结果、楼层显示、进度镜像） | `mod/src/game/mods/mod_native.cpp` |
 | Mod 记录的规范化、比较与客机校验 | `mod/src/state/mod_codec.cpp` |
 | 握手清单 | `mod/src/net/mod_manifest.*` |
