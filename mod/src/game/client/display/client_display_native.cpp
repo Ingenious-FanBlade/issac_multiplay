@@ -1,6 +1,8 @@
 #include "IsaacRepentance.h"
+#include "game/mods/mod_api.h"
 #include "binding/offsets.h"
 #include "game/client/display/client_display_native.h"
+#include "game/client/display/client_display_bridge.h"
 #include "game/client/display/client_pause_menu.h"
 #include "game/client/room/client_backdrop_native.h"
 #include "game/client/scene/client_lifetime.h"
@@ -97,6 +99,9 @@ struct ClientDisplayNative final {
   std::array<Voice,512> voices{};
   std::size_t voice_count=0;
   ClientDisplayMusicRequest music;
+  // 队列曲目及安装时的本地 Queue 代次。相同 ID 被重新入队时也能识别来源变化。
+  unsigned host_queued_music=0;
+  std::uint64_t host_queue_local_revision=0;
   struct MusicPrevious final {
     unsigned id=0,queued=0;
     float pitch=1,target_pitch=1;
@@ -145,13 +150,18 @@ namespace {
 ClientDisplayNative *active=nullptr;
 thread_local ClientDisplayNative *capture_owner=nullptr;
 thread_local unsigned display_depth=0;
+thread_local unsigned hud_update_depth=0;
 thread_local unsigned hud_post_depth=0;
+thread_local std::uint64_t local_music_queue_revision=0;
 thread_local unsigned fx_build_seed=0;
 thread_local bool boss_replay=false;
 struct DisplayScope final {DisplayScope(){++display_depth;}~DisplayScope(){--display_depth;}};
-// 只在已安装 World 的 HUD::PostUpdate 内提供 StatHUD 所需的 Host 资格值。
-// ZHL 的中转层会改变 Hook 可见的返回地址，不能用该地址判断原生调用点。
-struct HudPostScope final {HudPostScope(){++hud_post_depth;}~HudPostScope(){--hud_post_depth;}};
+// HUD 的两个维护入口分别授予回调资格；PostUpdate 还使用 Host 的 StatHUD 资格值。
+struct HudScope final {
+  unsigned &depth;
+  explicit HudScope(unsigned &counter):depth(counter){++depth;}
+  ~HudScope(){--depth;}
+};
 ClientDisplayNative *DisplaySource() noexcept{return capture_owner?capture_owner:active;}
 template<class F> void Named(ClientEntry entry,F &&call) {
   if(ClientDispatchBefore(entry)!=ClientEntryDecision::CallOriginal)throw std::runtime_error("display_named_dispatch");
@@ -871,9 +881,8 @@ bool DrawOldRoom(const ClientDisplayNative &o) {
   reinterpret_cast<DrawQuad>(Read<void *const *>(image,0)[7])(image,&quad,&white);
   return FlushDisplay();
 }
-bool DrawDoorFade(const ClientDisplayNative &o,const DoorFadeFrame &frame,int native_mode=0) {
-  if(frame.draw_old_room&&!DrawOldRoom(o))return false;
-  if(frame.opacity>0){
+bool DrawScreenBlack(float opacity) {
+  if(opacity>0){
     if(!FlushDisplay())return false;
     TransitionBlend blend;
     // J273 RoomTransition::Render 的纯色四边形入口（0x827BA4），覆盖当前原生绘制目标。
@@ -882,12 +891,17 @@ bool DrawDoorFade(const ClientDisplayNative &o,const DoorFadeFrame &frame,int na
     blend.set(&blend.graphics,BlendMode(0,Read<bool>(&blend.graphics,0x23)?1:6,7,1,7));
     blend.graphics._shader=reinterpret_cast<KAGE_Graphics_Shader *>(Base+0x7ae1d8);
     const auto quad=ScreenQuad();
-    const KColor black(0,0,0,frame.opacity);
+    const KColor black(0,0,0,opacity);
     using DrawSolid=void (__thiscall *)(KAGE_Graphics_ImageBase *,const DestinationQuad *,
       const KColor *,const KColor *,const KColor *,const KColor *);
     reinterpret_cast<DrawSolid>(Read<void *const *>(shape,0)[6])(shape,&quad,&black,&black,&black,&black);
     if(!FlushDisplay())return false;
   }
+  return true;
+}
+bool DrawDoorFade(const ClientDisplayNative &o,const DoorFadeFrame &frame,int native_mode=0) {
+  if(frame.draw_old_room&&!DrawOldRoom(o))return false;
+  if(!DrawScreenBlack(frame.opacity))return false;
 #ifdef ISAACCS_E2E
   if(frame.phase&&replica::stream::E2ETraceEnabled())
     Trace("e39-door-fade","phase=%s opacity=%u source=%llu destination=%llu grid=%d old_image=%u mode=%d",
@@ -898,6 +912,182 @@ bool DrawDoorFade(const ClientDisplayNative &o,const DoorFadeFrame &frame,int na
 #endif
   return true;
 }
+
+// 原生背景、气泡和路线共用同一个图层提交入口。只记录该次提交的资源和绘制值。
+struct NightmareCapture final {
+  std::shared_ptr<replica::NightmareFrame> frame;
+  replica::NightmareFrameRef latest;
+  std::uint64_t session=0,sampled_at=0;
+};
+NightmareCapture nightmare_capture;
+thread_local replica::NightmareFrame *nightmare_drawing=nullptr;
+// 过场精灵缓存槽。加载失败的条目不持有精灵，只记下冷却截止时刻；冷却后在原槽重试，
+// 缓存满时可被新路径回收，不会永久占位。
+struct NightmareSprite final {
+  std::string path;
+  std::unique_ptr<ANM2> sprite;
+  std::uint64_t retry_at=0;
+};
+constexpr std::uint64_t kNightmareSpriteRetryMs=500;
+std::array<NightmareSprite,32> nightmare_sprites;
+
+std::array<float,2> NightmareVector(const Vector &v) noexcept {return {v.x,v.y};}
+Vector NightmareVector(const std::array<float,2> &v) noexcept {return Vector(v[0],v[1]);}
+void NightmareColor(const ColorMod &color,std::array<float,11> &out) noexcept {
+  std::copy_n(color._tint,4,out.begin());
+  std::copy_n(color._colorize,4,out.begin()+4);
+  std::copy_n(color._offset,3,out.begin()+8);
+}
+void NightmareColor(const std::array<float,11> &in,ColorMod &color) noexcept {
+  std::copy_n(in.begin(),4,color._tint);
+  std::copy_n(in.begin()+4,4,color._colorize);
+  std::copy_n(in.begin()+8,3,color._offset);
+}
+std::string NightmarePath(const std::string &value) {
+  auto path=value;
+  std::replace(path.begin(),path.end(),'\\','/');
+  return path;
+}
+// 按路径取过场精灵。失败的路径在冷却期内直接跳过，避免每个渲染帧重复读盘；冷却后重试，
+// 资源稍后就绪时仍能补上。缓存满时只回收失败条目，已加载的精灵保留到过场结束统一释放。
+ANM2 *NightmareSpriteFor(const std::string &path) {
+  const auto now=GetTickCount64();
+  auto slot=std::find_if(nightmare_sprites.begin(),nightmare_sprites.end(),
+    [&](const auto &entry){return entry.path==path;});
+  if(slot!=nightmare_sprites.end()){
+    if(slot->sprite)return slot->sprite.get();
+    if(now<slot->retry_at)return nullptr;
+  }else{
+    slot=std::find_if(nightmare_sprites.begin(),nightmare_sprites.end(),
+      [](const auto &entry){return entry.path.empty();});
+    if(slot==nightmare_sprites.end())
+      slot=std::find_if(nightmare_sprites.begin(),nightmare_sprites.end(),
+        [](const auto &entry){return !entry.sprite;});
+    if(slot==nightmare_sprites.end())return nullptr;
+  }
+  auto sprite=std::make_unique<ANM2>();
+  auto filename=path;
+  sprite->Load(filename,true);
+  slot->path=path;
+  if(sprite->_loaded){slot->sprite=std::move(sprite);slot->retry_at=0;}
+  else {slot->sprite.reset();slot->retry_at=now+kNightmareSpriteRetryMs;}
+  return slot->sprite.get();
+}
+}
+NightmareCaptureScope::NightmareCaptureScope(void *scene) noexcept {
+  if(!IsMain()||TopOwner()!=Owner::Render||!g_Manager||g_Manager->_state!=5||
+     scene!=g_Manager->GetNightmareScene()||nightmare_drawing)return;
+  const auto session=HostNightmareSession();
+  if(!session)return;
+  const auto now=GetTickCount64();
+  auto &capture=nightmare_capture;
+  if(capture.session==session&&now-capture.sampled_at<30)return;
+  try{
+    capture.frame=std::make_shared<replica::NightmareFrame>();
+    capture.frame->layers.reserve(replica::kNightmareLayerLimit);
+    capture.frame->width=float(g_WIDTH);capture.frame->height=float(g_HEIGHT);
+    capture.frame->fade=std::clamp(Read<float>(scene,0x35c),0.0f,1.0f);
+    capture.session=session;capture.sampled_at=now;
+    nightmare_drawing=capture.frame.get();
+    active_=true;
+  }catch(...){capture.frame.reset();}
+}
+NightmareCaptureScope::~NightmareCaptureScope() noexcept {
+  if(!active_)return;
+  auto &capture=nightmare_capture;
+  nightmare_drawing=nullptr;
+  if(returned_)capture.latest=std::move(capture.frame);
+  else capture.frame.reset();
+}
+bool HostNightmareActive() noexcept {return IsMain()&&g_Manager&&g_Manager->_state==5;}
+replica::NightmareFrameRef HostNightmareFrame() noexcept {
+  auto &capture=nightmare_capture;
+  if(!HostNightmareActive()||capture.session!=HostNightmareSession()||
+     GetTickCount64()-capture.sampled_at>500){
+    capture.latest.reset();capture.sampled_at=0;
+  }
+  return capture.latest;
+}
+void CaptureNightmareLayer(void *layer,int frame,void *sprite,const void *position,
+                           const void *top_left,const void *bottom_right) noexcept {
+  if(!nightmare_drawing)return;
+  auto &layers=nightmare_drawing->layers;
+  if(layers.size()==replica::kNightmareLayerLimit||!layer||!sprite||frame<0||frame>32767)return;
+  auto &source=*static_cast<AnimationLayer *>(layer);
+  auto &owner=*static_cast<ANM2 *>(sprite);
+  if(!owner._loaded||!source.IsVisible()||!source.GetFrame(frame))return;
+  const int id=source.GetLayerID();
+  if(id<0||id>=64)return;
+  const auto *state=owner.GetLayer(id);
+  if(!state||!state->_visible)return;
+  auto *animation=owner._animState._animData;
+  if(!animation||animation->GetLayerById(id)!=&source)animation=owner._overlayAnimState._animData;
+  if(!animation||animation->GetLayerById(id)!=&source)return;
+  try{
+    replica::NightmareLayer draw;
+    draw.sprite=NightmarePath(owner._filename);
+    if(!replica::NightmareAssetPath(draw.sprite,".anm2"))return;
+    draw.sheet=NightmarePath(state->_spriteSheetPath);
+    if(!draw.sheet.empty()&&!replica::NightmareAssetPath(draw.sheet,".png"))draw.sheet.clear();
+    draw.animation=animation->_name;
+    if(draw.animation.empty()||draw.animation.size()>96)return;
+    draw.layer=unsigned(id);draw.frame=unsigned(frame);
+    draw.flips=unsigned(owner._flipX)|(unsigned(owner._flipY)<<1)|
+      (unsigned(state->_flipX)<<2)|(unsigned(state->_flipY)<<3);
+    draw.position=NightmareVector(*static_cast<const Vector *>(position));
+    draw.top_left=NightmareVector(*static_cast<const Vector *>(top_left));
+    draw.bottom_right=NightmareVector(*static_cast<const Vector *>(bottom_right));
+    draw.offset=NightmareVector(owner._offset);draw.scale=NightmareVector(owner._scale);
+    draw.layer_position=NightmareVector(state->_pos);draw.layer_scale=NightmareVector(state->_size);
+    draw.crop=NightmareVector(state->_cropOffset);
+    draw.rotation=owner._rotation;draw.layer_rotation=state->_rotation;
+    NightmareColor(owner._color,draw.color);NightmareColor(owner._championColor,draw.champion_color);
+    NightmareColor(state->_color,draw.layer_color);
+    layers.push_back(std::move(draw));
+  }catch(...){/* 单个图层资源失败时保留同帧其他绘制。 */}
+}
+bool RenderNightmareFrame(const replica::NightmareFrame &frame) noexcept {
+  if(!MainWindow()||TopOwner()!=Owner::Render||!Graphics())return false;
+  try{
+    // Manager 已准备交换用的画面。按过场顺序绘制本地资源，并在最后叠加原生黑幕。
+    if(!DrawScreenBlack(1.0f))return false;
+    for(const auto &draw:frame.layers){
+      auto *sprite=NightmareSpriteFor(draw.sprite);
+      if(!sprite)continue;
+      auto *animation=sprite->GetAnimationData(draw.animation);
+      auto *layer=animation?animation->GetLayerById(int(draw.layer)):nullptr;
+      if(!layer||!layer->GetFrame(int(draw.frame)))continue;
+      auto *state=sprite->GetLayer(int(draw.layer));
+      if(!state||!state->_layerData)continue;
+      const auto &sheet=draw.sheet.empty()?state->_layerData->defaultSpriteSheetPath:draw.sheet;
+      if(!sheet.empty()&&NightmarePath(state->_spriteSheetPath)!=sheet){
+        auto filename=sheet;
+        if(!sprite->ReplaceSpritesheet(int(draw.layer),filename))continue;
+        sprite->LoadGraphics(false);
+        state=sprite->GetLayer(int(draw.layer));
+        if(!state)continue;
+      }
+      sprite->_offset=NightmareVector(draw.offset);sprite->_scale=NightmareVector(draw.scale);
+      sprite->_rotation=draw.rotation;sprite->_flipX=(draw.flips&1)!=0;sprite->_flipY=(draw.flips&2)!=0;
+      state->_size=NightmareVector(draw.layer_scale);state->_pos=NightmareVector(draw.layer_position);
+      state->_cropOffset=NightmareVector(draw.crop);state->_rotation=draw.layer_rotation;
+      state->_flipX=(draw.flips&4)!=0;state->_flipY=(draw.flips&8)!=0;state->_visible=true;
+      NightmareColor(draw.color,sprite->_color);NightmareColor(draw.champion_color,sprite->_championColor);
+      NightmareColor(draw.layer_color,state->_color);
+      // 过场位置以屏幕中心对齐，精灵尺寸由客机原生渲染缩放处理。
+      auto position=NightmareVector(draw.position);
+      if(position.x!=0||position.y!=0){
+        position.x+=(float(g_WIDTH)-frame.width)*0.5f;
+        position.y+=(float(g_HEIGHT)-frame.height)*0.5f;
+      }
+      layer->RenderFrame(position,int(draw.frame),NightmareVector(draw.top_left),NightmareVector(draw.bottom_right),sprite);
+    }
+    return DrawScreenBlack(frame.fade)&&FlushDisplay();
+  }catch(...){return false;}
+}
+void ReleaseNightmareSprites() noexcept {
+  if(!IsMain()||!Graphics())return;
+  for(auto &entry:nightmare_sprites)entry={};
 }
 // 等待同局新房时沿用旧图，普通门淡出后保持黑屏，仍由原生 Manager 提交。
 bool ClientDisplayRenderHistory(ClientDisplayNative *o) noexcept {
@@ -1287,6 +1477,11 @@ bool ClientNativeDisplayBranch(unsigned &v) noexcept{
   v=unsigned(ClientDisplayMeta(o->installed).branch);return true;
 }
 bool ClientNativeDisplayCallbacks() noexcept{return IsMain()&&ClientBusy()&&display_depth!=0;}
+bool ClientHudUpdateCallbacks() noexcept{return ClientNativeDisplayCallbacks()&&hud_update_depth!=0;}
+bool ClientHudPostUpdateCallbacks() noexcept{return ClientNativeDisplayCallbacks()&&hud_post_depth!=0;}
+bool ClientPauseRenderCallbacks() noexcept {
+  return ClientNativeDisplayCallbacks()&&active&&active->rendering&&ClientPauseMenuOpen();
+}
 bool ClientDisplayBossAudioSuppressed(const void *site) noexcept {
   const auto caller=reinterpret_cast<std::uintptr_t>(site);
   return boss_replay&&(caller==Base+0x423d91||caller==Base+0x423da2);
@@ -1303,7 +1498,7 @@ bool ClientDisplayAngelShare(float &value) noexcept {
 }
 bool ClientDisplayDealQualified(const void *game,bool &value) noexcept {
   const auto *o=DisplaySource();
-  if(!hud_post_depth||!ClientNativeDisplayCallbacks()||!o||!o->installed||o->game!=game)return false;
+  if(!ClientHudPostUpdateCallbacks()||!o||!o->installed||o->game!=game)return false;
   value=ClientDisplayInputs(o->installed).deal_qualified;return true;
 }
 bool ClientDisplayProgressBlocked(const void *site,bool &value) noexcept {
@@ -1317,6 +1512,11 @@ void ClientDisplaySfxRefreshed(void *owner) noexcept {
   // 暂停菜单选项改音量时原生只做 Clear，不会归还循环音的逻辑音量；不在此消费，交给显示推进按选项变化完整刷新。
   if(ClientPauseMenuSoundAllowed())return;
   auto *source=DisplaySource();source->last_sfx_option=g_Manager->_optionsConfig._sfxVolume;source->mixing_dirty=false;
+}
+// J273 Music::Queue 只在 ID 位于音乐条目表内时写槽，合法的同 ID 写入也会替换来源。
+void ClientDisplayMusicQueued(const void *owner,int id) noexcept {
+  if(!IsMain()||!ClientBusy()||!g_Manager||owner!=&g_Manager->_musicmanager)return;
+  if(id>=0&&unsigned(id)<g_Manager->_musicmanager._entries.size())++local_music_queue_revision;
 }
 bool ClientDisplayAdvance(ClientDisplayNative *o,const ClientNativeRoots &r,bool local_blocked,
                           const ClientDisplayCameraHook &camera_hook) noexcept {
@@ -1336,12 +1536,13 @@ bool ClientDisplayAdvance(ClientDisplayNative *o,const ClientNativeRoots &r,bool
       using Branch=ClientDisplayBranch;
       const auto post_hud=[&]{
         Named(ClientEntry::DisplayHudPostUpdate,[&]{
-          HudPostScope input_scope;
+          HudScope input_scope(hud_post_depth);
           MarkHistoryHudDirty(*o,g._hud);
           g._hud.PostUpdate();
         });
       };
-      if(branch!=Branch::ConsoleHold){Named(ClientEntry::DisplayHudUpdate,[&]{g._hud.Update();});
+      if(branch!=Branch::ConsoleHold){
+        Named(ClientEntry::DisplayHudUpdate,[&]{HudScope input_scope(hud_update_depth);g._hud.Update();});
         if(Read<float>(&g,0x25b28)>0)post_hud();
         if(branch==Branch::Normal||branch==Branch::RoomTransition){
           if(branch==Branch::RoomTransition)Named(ClientEntry::DisplayTransition,[&]{auto &t=g._roomTransition;if(t._unkStartRoomTransitionCond){t._versusScreenANM2.Update();
@@ -1386,7 +1587,15 @@ bool ClientDisplayAdvance(ClientDisplayNative *o,const ClientNativeRoots &r,bool
       m._sfxManager.ClearVolumeModifier();
       RefreshLoopMix(*o); // 原生 Clear 按 sound 混音，随后归还各样本自己的逻辑音量。
     });o->mixing_dirty=false;}
-    Named(ClientEntry::DisplayMusic,[&]{reinterpret_cast<void (__thiscall *)(Music *)>(Base+0x3d7da0)(&m._musicmanager);});
+    Named(ClientEntry::DisplayMusic,[&]{
+      auto &music=m._musicmanager;
+      // J273 7D8303 在 tick 内把队列交给 Music::Play，再清空槽。先确认仍是 Host 写入的曲目。
+      if(music._queuedId!=o->host_queued_music||
+         o->host_queue_local_revision!=local_music_queue_revision)o->host_queued_music=0;
+      ModApiReplayAudio replay_audio(o->host_queued_music!=0);
+      reinterpret_cast<void (__thiscall *)(Music *)>(Base+0x3d7da0)(&music);
+      if(music._queuedId!=o->host_queued_music)o->host_queued_music=0;
+    });
     Named(ClientEntry::DisplayCursor,[&]{Cursor(m);});++m._framecount;return true;
   }catch(...){o->failed=true;if(active==o)active=nullptr;return false;}
 }
@@ -1528,6 +1737,7 @@ bool StopAudio(ClientDisplayNative &o){
   for(std::size_t i=0;i<o.voice_count;++i)StopVoice(o.voices[i]);
   o.voice_count=0;
   if(o.previous_music.captured){auto &m=o.manager->_musicmanager;
+    o.host_queued_music=0;
     m._queuedId=0;m.StopJingle();m.Fadeout(1.f);
     const auto &old=o.previous_music;m._enabled=old.enabled;
     if(old.enabled&&old.id&&old.id<m._entries.size())m.Play(old.id,LocalMusicVolume(*o.manager));
@@ -1584,6 +1794,7 @@ ClientDisplayStep ClientDisplayAudio(ClientDisplayNative *o,const ClientDisplayM
   bool ok=false;
   try{
     DisplayScope scope;
+    ModApiReplayAudio replay_audio;
     Named(ClientEntry::DisplayMusic,[&]{
       auto &m=o->manager->_musicmanager;const auto old=o->music;
       if(!o->previous_music.captured)o->previous_music={m._currentId,m._queuedId,m._pitch,m._targetPitch,m._enabled,true};
@@ -1602,6 +1813,8 @@ ClientDisplayStep ClientDisplayAudio(ClientDisplayNative *o,const ClientDisplayM
           }
         }
         m._queuedId=v.queued;
+        o->host_queued_music=m._queuedId;
+        o->host_queue_local_revision=local_music_queue_revision;
         for(unsigned i=0;i<7;++i)if(!old.revision||((old.layers^v.layers)&(1u<<i))){
           if(v.layers&(1u<<i))m.EnableLayer(i,true);else if(m.IsLayerEnabled(i))m.DisableLayer(i);
         }
@@ -1717,6 +1930,7 @@ ClientDisplayStep ClientDisplayEventReplay(ClientDisplayNative *o,const ClientDi
     DisplayScope scope;
     switch(event.kind){
       case 1:{
+        ModApiReplayAudio replay_audio;
         auto *slot=SoundSlot(event.sound);
         if(slot){written=true;Named(ClientEntry::DisplaySfxReplay,[&]{ok=PlaySelected(event.sound,false,slot);});}
         break;

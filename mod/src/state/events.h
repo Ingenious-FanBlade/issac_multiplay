@@ -5,7 +5,7 @@
 
 namespace cs::state {
 // 版本73起只传瞬时播放／显示请求；音乐、循环声和ItemOverlay是普通world状态。
-enum class StateEventKind : std::uint8_t { Sfx=1,ItemBanner=2,Fortune=3,BossIntro=4,RoomTransition=5 };
+enum class StateEventKind : std::uint8_t { Sfx=1,ItemBanner=2,Fortune=3,BossIntro=4,RoomTransition=5,Cutscene=6 };
 using StateEventView=PresentationAudioEvent;
 struct StateEventSegment {
   std::uint64_t first_sequence=1,watermark=0;

@@ -1,6 +1,7 @@
 #include "IsaacRepentance.h"
 #include "LuaCore.h"
 #include "game/common/bridge.h"
+#include "game/mods/mod_api.h"
 #include "game/common/context.h"
 #include "game/client/scene/client_lifetime.h"
 #include "game/client/display/client_display_bridge.h"
@@ -27,6 +28,8 @@ lua_State *guard_sealed_state=nullptr;
 char persistence_registry_key;
 lua_State *callback_ready_state=nullptr;
 thread_local bool menu_callback_running=false;
+// 仅在已放行的客机显示分派调用 Lua 期间标记本地音效来源。
+thread_local bool display_callback_running=false;
 // VM 私有强引用只保存在本地 C++ owner，VM 换代后绝不跨 state 使用。
 struct LuaRegistryOwner final {lua_State *state=nullptr;int reference=LUA_NOREF;};
 // 捕获 thunk 在 pcall 内写入引用编号，异常时由外层已登记 owner 承担退休。
@@ -279,7 +282,7 @@ bool OwnMenuCallback(lua_State *L,int mod_index) {
 // 回调列表由 main_ex.lua 官方闭包返回；先找唯一函数，再调用，避免多候选时执行部分回调。
 int RunOwnMenuCallback(lua_State *L) {
   lua_pushvalue(L,1);
-  lua_pushinteger(L,1023);lua_pushboolean(L,0);
+  lua_pushinteger(L,kModMainMenuRender);lua_pushboolean(L,0);
   if(lua_pcall(L,2,1,0)!=LUA_OK||!lua_istable(L,-1)){
     ClientCallbackFault("client_ui_callback_list");return 0;
   }
@@ -312,15 +315,20 @@ int RunOwnMenuCallback(lua_State *L) {
   ClientCallbackOwnExecuted();
   return 0;
 }
-// 官方 Lua 内部结构调用保持原链；Client ModCallback 仅菜单提示有精确白名单。
+// 原生分派先按回调 ID 与当前阶段过滤，逐条过滤器再核对注册者。
 int GuardedClientCallback(lua_State *L) {
-  // Q6：具名显示推进、原生Render和surface捕获中的callback保留官方分派。
-  // 本项目Client Lua不注册玩法callback；持久入口仍由独立保护覆盖。
-  if(ClientBusy()&&!ClientNativeDisplayCallbacks()){
+  bool own_menu=false;
+  const bool client=ClientBusy();
+  if(client){
     if(!IsMain()||!g_LuaEngine||L!=g_LuaEngine->_state){
       ClientCallbackFault("client_callback_foreign_or_vm");return 0;
     }
-    if(lua_type(L,1)==LUA_TNUMBER&&lua_tointeger(L,1)==1023&&ClientCallbackMenuAllowed()){
+    const int id=ModApiCallbackId(L);
+    if(!ModApiCallbackAllowedInPhase(id)){
+      ClientCallbackSkipped();
+      return 0;
+    }
+    if(id==kModMainMenuRender){
       if(menu_callback_running){
         ClientCallbackFault("client_ui_callback_phase");return 0;
       }
@@ -330,16 +338,19 @@ int GuardedClientCallback(lua_State *L) {
       lua_pushcfunction(L,RunOwnMenuCallback);
       lua_pushvalue(L,lua_upvalueindex(2));
       if(lua_pcall(L,1,0,0)!=LUA_OK)ClientCallbackFault("client_ui_callback_lua_error");
-      menu_callback_running=false;
-      return 0;
+      own_menu=true;
+      // 本方菜单回调已经执行；原分派中的本方条目由过滤器跳过。
     }
-    // 世界绘制中的同编号回调也属于一般 Mod 逻辑；只有安全菜单窗口允许本方唯一函数。
-    ClientCallbackSkipped();
-    return 0;
   }
   const int arguments=lua_gettop(L);
   lua_pushvalue(L,lua_upvalueindex(1));lua_insert(L,1);
-  if(lua_pcall(L,arguments,LUA_MULTRET,0)!=LUA_OK)return lua_error(L);
+  const bool previous_display=display_callback_running;
+  display_callback_running=client&&ClientNativeDisplayCallbacks();
+  const auto result=lua_pcall(L,arguments,LUA_MULTRET,0);
+  // Lua 错误在保护调用返回后向上抛出，先恢复外层作用域。
+  display_callback_running=previous_display;
+  if(own_menu)menu_callback_running=false;
+  if(result!=LUA_OK)return lua_error(L);
   return lua_gettop(L);
 }
 bool GuardCallbackField(lua_State *L,int table,const char *field,int getter) {
@@ -369,7 +380,8 @@ int InstallCallbackGuardThunk(lua_State *L) {
   if(!lua_isfunction(L,-1)){lua_pushboolean(L,0);return 1;}
   const int getter=lua_absindex(L,-1);
   bool ready=true;
-  for(const char *name:{"RunCallback","RunCallbackWithParam",
+  // RunCallback 的官方别名内部转调 RunCallbackWithParam，由后者执行一次外层保护。
+  for(const char *name:{"RunCallbackWithParam",
                          "RunCallbackWithTwoParams","RunCallbackOverIterator"})
     ready=GuardCallbackField(L,isaac,name,getter)&&ready;
   ready=GuardCallbackGlobal(L,"_RunCallback",getter)&&ready;
@@ -377,6 +389,8 @@ int InstallCallbackGuardThunk(lua_State *L) {
   lua_pushboolean(L,ready);return 1;
 }
 }
+bool ClientDisplayLuaSoundAllowed() noexcept {return display_callback_running;}
+
 // RegisterClasses 外层返回后、所有 bundled script 执行前再次接线；onlinestub
 // 复制 UnsafeFuncs 旧闭包时取得的已是保护闭包，无法靠后续替换 global 绕过。
 void ClientGuardLuaBindings(bool classes_registered) noexcept {
@@ -412,13 +426,14 @@ bool ClientLuaGuardReady() noexcept {
          guard_ready_state==ClientLuaStateIdentity();
 }
 void ClientLuaGuardClosed() noexcept {
-  if(IsMain()){guard_ready_state=nullptr;guard_base_state=nullptr;guard_essm_state=nullptr;guard_sealed_state=nullptr;callback_ready_state=nullptr;}
+  if(IsMain()){CloseModApi();guard_ready_state=nullptr;guard_base_state=nullptr;guard_essm_state=nullptr;guard_sealed_state=nullptr;callback_ready_state=nullptr;}
 }
 void ClientGuardCallbackBindings(const char *path) noexcept {
   if(!IsMain()||!path||std::strcmp(path,"resources/scripts/main_ex.lua")!=0||
      !g_LuaEngine||!g_LuaEngine->_state)return;
   auto *L=g_LuaEngine->_state;
   callback_ready_state=nullptr;
+  const bool mod_api_ready=InstallModApi(L);
   // 官方bind_lua_internals稍后会清空_LuaBindings；原生remove必须持有其原闭包。
   if(!ClientObjectSealEssmDeleteBinding(L)){guard_ready_state=nullptr;return;}
   const int top=lua_gettop(L);
@@ -434,7 +449,7 @@ void ClientGuardCallbackBindings(const char *path) noexcept {
   if(!sealed){guard_ready_state=nullptr;return;}
   guard_sealed_state=L;
   lua_pushcfunction(L,InstallCallbackGuardThunk);
-  if(lua_pcall(L,0,1,0)==LUA_OK&&lua_toboolean(L,-1))callback_ready_state=L;
+  if(lua_pcall(L,0,1,0)==LUA_OK&&lua_toboolean(L,-1)&&mod_api_ready)callback_ready_state=L;
   lua_settop(L,top);
 }
 bool ClientCallbackGuardReady() noexcept {

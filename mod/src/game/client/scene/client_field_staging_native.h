@@ -37,7 +37,8 @@ bool ClientLiveVectorLayout(std::uint16_t layout,std::uint32_t stride) noexcept;
 bool ClientStagedFieldAttach(ClientStagedField *,void *,std::size_t) noexcept;
 bool ClientStagedFieldBorrowAttachment(ClientStagedField *,void *,std::size_t) noexcept;
 bool ClientStagedFieldAttached(const ClientStagedField *,const void *) noexcept;
-// 紧接同批最终 header 检查和纯保管交接调用；只核登记链并折叠前一租约。
-bool ClientStagedFieldCommitCheckedAttachment(ClientStagedField *,const void *destination) noexcept;
+// 作用域失效时本次未改动附件链。保管链不一致需要继续保留原生租约。
+enum class ClientAttachmentCommit { Committed, ScopeLost, InvalidChain };
+ClientAttachmentCommit ClientStagedFieldCommitCheckedAttachment(ClientStagedField *,const void *destination) noexcept;
 bool ClientStagedFieldDetach(ClientStagedField *) noexcept;
 } // namespace cs::game

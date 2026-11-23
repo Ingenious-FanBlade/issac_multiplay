@@ -21,6 +21,7 @@ struct Event final {
     Prepared,
     Progress,
     TickProgress,
+    Nightmare,
     InputAck,
     Control,
     Stopped,
@@ -34,7 +35,8 @@ struct Event final {
   // 单调钟量化误差独立于测得RTT；输入投影与年龄见证必须计入该上界。
   std::uint64_t timing_uncertainty_ms = 0;
   std::shared_ptr<const stream::Message> world;
-  char reason[128]{};
+  replica::NightmareFrameRef nightmare;
+  char reason[1024]{};
 };
 // 生成时冻结路由；worker绝不把旧命令套上当前世界标签。
 struct Intent final {
@@ -50,12 +52,24 @@ struct Publication final {
   // 同一键下暂缺新候选不等于撤销已交付网络的历史目标；全零表示明确退休。
   std::array<std::uint64_t,4> source{};
   std::shared_ptr<const state::HostStatePublication> binary;
+  // Manager 的独立过场没有玩法 tick，帧随当前 Peer 路由单独发布。
+  replica::NightmareFrameRef nightmare;
+  bool nightmare_active=false;
+  // 原生楼层淡出／淡入仍在绘制，采集源可能正处于交接间隙。
+  bool stage_display_active=false;
+  // 采集撤下时仍由 Host 主线程声明当前 run/floor，用于区分普通换房和场景退休。
+  std::uint64_t mod_run=0,mod_floor=0;
+  // clear 过场可能让旧 World 在采到事件之前退休，同一序号随可靠 Retire 交付。
+  std::uint64_t cutscene_serial=0,cutscene_run=0;
+  unsigned cutscene_id=0;
 };
 class HostPeer final {
 public:
-  HostPeer(std::uint64_t session, unsigned ordinal, stream::RuntimeConfig config={}, bool lobby=false);
+  HostPeer(std::uint64_t session, unsigned ordinal, stream::RuntimeConfig config={}, bool lobby=false,
+           ModManifestRef mods={});
   ~HostPeer();
-  bool Receive(std::span<const std::uint8_t>, std::uint64_t, ReceivedInput &, const HostIdentity &);
+  bool Receive(std::span<const std::uint8_t>, std::uint64_t, ReceivedInput &, const HostIdentity &,ModIntentInbox *mods=nullptr);
+  bool QueueModResult(const ModIntentResult &) noexcept;
   Packets Reply();
   Packets Progress(const protocol::Ack &);
   Packets Bye(const char *);
@@ -86,6 +100,8 @@ public:
   }
   const std::string &FirstFailure() const noexcept {return operations_.Failure();}
   bool Established() const noexcept { return established_; }
+  // 协商阶段沿用可靠缺片重传，直到双方内容比较完成。
+  void PumpManifest(std::uint64_t now, const stream::ReliableSender::Send &);
   bool Stopped() const noexcept { return stopped_; }
   std::uint64_t LastReceive() const noexcept { return last_receive_; }
   std::uint64_t Nonce() const noexcept { return nonce_; }
@@ -106,10 +122,20 @@ private:
   bool lobby_ = false;
   unsigned lobby_selection_ = 0;
   bool established_ = false, stopped_ = false, reply_ = false, ending_ = false;
+  bool manifest_matches_ = false;
+  ModIntentRate mod_intent_rate_;
+  std::uint64_t last_mod_intent_=0,mod_intent_run_=0,mod_intent_floor_=0;
+  ModManifestRef mods_;
+  stream::ReliableSender manifest_sender_;
   std::uint64_t nonce_ = 0, server_nonce_ = 0, transfer_ = 0, control_ = 0, roster_ = 0,
                 timing_ = 0, last_receive_ = 0, client_control_ = 0, roster_at_ = 0, timing_at_ = 0,
                 echo_client_ms_ = 0, echo_server_ms_ = 0, prepare_sequence_ = 0,prepare_generation_=0;
   protocol::Ack sent_{};
+  replica::NightmareFrameRef nightmare_,nightmare_sent_;
+  Packets nightmare_packets_;
+  std::size_t nightmare_fragment_=0;
+  std::uint64_t nightmare_at_=0,nightmare_sequence_=0,nightmare_route_=0,nightmare_deadline_=0;
+  unsigned nightmare_end_repeats_=0;
   std::uint64_t eligibility_revision_ = 0;
   std::shared_ptr<const stream::Message> welcome_;
   // 旧路由只保留最后一次小准备确认，丢确认不会重新执行或接纳旧世界分片。
@@ -135,12 +161,16 @@ public:
   Client &operator=(const Client &) = delete;
   const char *Start(const std::string &, std::uint16_t, std::uint32_t, stream::RuntimeConfig config={},
       std::shared_ptr<const state::ClientStatePreparation> binary={},
-      std::shared_ptr<state::ClientStateMemory> binary_memory={}, bool lobby=false) noexcept;
+      std::shared_ptr<state::ClientStateMemory> binary_memory={}, bool lobby=false, ModManifestRef mods={},
+      state::ModSchemaRef mod_schema={}) noexcept;
   bool SetLobbySelection(unsigned selection) noexcept;
   std::uint64_t LobbyRoster() const noexcept;
   // 房主解锁位图，与名单同一消息到达；尚未收到时为 0。
   std::uint64_t LobbyUnlocked() const noexcept;
   bool Send(const Intent &) noexcept;
+  bool SendModIntent(const ModIntent &) noexcept;
+  bool PollModResult(ModIntentResult &) noexcept;
+  void FinishModIntent(std::uint64_t) noexcept;
   void RevokeInput() noexcept;
   // 停止旧世界接纳并撤输入；恢复请求须等主线程真实安全退休后另外排入。
   stream::Metrics Metrics() const noexcept;

@@ -9412,17 +9412,17 @@
           "id": "EntityPlayer.GetActiveMaxCharge",
           "disposition": "derived",
           "fields": [
-            "@local_api_context"
+            "@presentation_results"
           ],
-          "reason": "固定配置上限由本地同版本资源提供；不复制道具池或生产冷却。 原设计目标：P4＋本地匹配ItemConfig；有玩法分支的实际显示改最终缓存；字段为受限投影依赖，不承诺原API全签名可执行。"
+          "reason": "按身体和原生参数捕获 Host 正常查询结果，经模组 World 原生保留段下行；客机原生查询优先返回已安装值。"
         },
         {
           "id": "EntityPlayer.GetActiveMinUsableCharge",
           "disposition": "derived",
           "fields": [
-            "@local_api_context"
+            "@presentation_results"
           ],
-          "reason": "固定配置上限由本地同版本资源提供；不复制道具池或生产冷却。 原设计目标：P4＋本地匹配ItemConfig；有玩法分支的实际显示改最终缓存；字段为受限投影依赖，不承诺原API全签名可执行。"
+          "reason": "按身体和原生参数捕获 Host 正常查询结果，经模组 World 原生保留段下行；客机原生查询优先返回已安装值。"
         },
         {
           "id": "EntityPlayer.GetActiveSubCharge",

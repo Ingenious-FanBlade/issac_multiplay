@@ -41,7 +41,7 @@ public:
     WriteTicket &operator=(const WriteTicket &)=delete;
     CaptureValueWriter *Values() noexcept;
     // 只在真实外层提交后调用；window.current在此再次核对完整来源，未提交候选不得入队。
-    bool Publish(const CaptureWindow &,const CaptureRoot &anchor,std::uint32_t expected_roots) noexcept;
+    bool Publish(const CaptureWindow &,const CaptureRoot &anchor,std::uint32_t expected_roots,ModRawRef mods={}) noexcept;
     void Reset() noexcept;
   private:
     friend class CaptureExchange;

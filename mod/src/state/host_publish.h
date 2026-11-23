@@ -2,6 +2,7 @@
 #include "state/acceptance.h"
 #include "state/events.h"
 #include "state/flat_encode.h"
+#include "net/mod_intent.h"
 #include <atomic>
 #include <memory>
 #include <mutex>
@@ -58,6 +59,8 @@ struct HostStateSnapshot {
   std::vector<std::shared_ptr<const HostStateRecord>> records;
   std::uint64_t event_first=0,event_watermark=0;
   std::vector<HostStateEvent> events;
+  ModShadowRef mods;
+  std::uint64_t mod_missing_references=0,mod_encode_failures=0;
   // 发送账本与 ACK 只借用目录、旧域值及平铺根元数据，不持有平铺镜像版本。
   std::shared_ptr<const HostStateSnapshot> flat_receipt;
   // 网络owner向全部当前Peer交接成功后置位；仅表示接管，不代表安装／播放／ACK。
@@ -113,6 +116,8 @@ struct HostStateMessage {
   StateTarget target;
   // Body 的值可以比实际使用的目录更新，两份见证都保留到真实 ACK。
   HostStateSnapshotRef source,tables;
+  ModShadowRef mods;
+  std::uint64_t mod_result_through=0;
 };
 // 普通 World 的每 Peer 聚合读数，峰值包含暂时越过窗口的重试。
 struct HostWorldProgress {
@@ -124,9 +129,11 @@ enum class HostWorldDeferral : std::uint8_t {None, WindowFull, EventBudget};
 class HostStatePublisher final {
 public:
   HostStatePublisher();~HostStatePublisher();
-  void Open(const StateRoute &);
+  void Open(const StateRoute &,unsigned ordinal=kModPublic);
   void Stop() noexcept;
   bool Offer(HostStateSnapshotRef);
+  bool QueueModResult(const net::ModIntentResult &) noexcept;
+  std::uint64_t ModResultReceipt() const noexcept;
   // 两条普通流独立组帧；可靠资源目录和 base=0 不受普通流时钟阻断。
   std::shared_ptr<const HostStateMessage> Next(std::uint64_t now_ms,std::uint64_t now_us,
       std::uint8_t dynamic_streams,HostWorldDeferral &);

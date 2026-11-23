@@ -1,4 +1,5 @@
 #include "game/input/input_a.h"
+#include "game/mods/mod_api.h"
 #include "game/client/session/client.h"
 #include "game/common/context.h"
 #include "game/authority/lifecycle.h"
@@ -14,7 +15,7 @@ namespace cs::game {
 namespace {
 // 物理轮次可多于Authority tick；只保存尚未入统一队列的边沿，不保存旧世界状态。
 // 每个新鲜Authority-pre最多提交一个上升沿样本，重复同键不会被位或合并丢失。
-struct PendingEdge final { uint32_t mask = 0; uint64_t sample = 0; };
+struct PendingEdge final { uint32_t mask = 0; uint64_t sample = 0, keys = 0; };
 // 只保存当前已知物理源；设备消失/身份不明后首次重见只建立 held 基线。
 struct Source {
   core::Binding pair{};
@@ -115,6 +116,7 @@ void ForgetInputDevice() noexcept {
 }
 void DiscardInputEdges() noexcept {
   source.sample.edge_flags = 0;
+  source.sample.mod_edge = 0;
   source.edge_head = source.edge_count = 0;
   source.edge_session = source.edge_generation = 0;
 }
@@ -139,7 +141,7 @@ void CaptureInput(void *device, uint64_t loop, const PhysicalActions &actions) {
       held |= 1u << i;
   raw.move_x = actions.values[1] - actions.values[0];
   raw.move_y = actions.values[3] - actions.values[2];
-  raw.held_flags = ((held >> 1) & 7u) << 1;
+  raw.held_flags = (held & 14u) | ((held & 1u) ? core::kHeldBomb : 0u);
   raw.edge_flags = same ? held & ~source.held : 0;
   core::InputStateDraftV2 state;
   const std::array<float, 4> aim{actions.values[4], actions.values[5],
@@ -153,6 +155,8 @@ void CaptureInput(void *device, uint64_t loop, const PhysicalActions &actions) {
     FailRuntime("sample_sequence_exhausted");
     return;
   }
+  SampleModKeys(state.mod_held,state.mod_edge);
+  if(!same)state.mod_edge=0;
   source.known = true;
   source.fresh = true;
   source.pair = topology.pair;
@@ -175,15 +179,16 @@ void CaptureInput(void *device, uint64_t loop, const PhysicalActions &actions) {
       DiscardInputEdges();
       source.edge_session = session; source.edge_generation = generation;
     }
-    if (state.edge_flags) {
+    if (state.edge_flags||state.mod_edge) {
       if (source.edge_count == source.edges.size()) {
         FailRuntime("physical_edge_queue_full"); return;
       }
       source.edges[(source.edge_head + source.edge_count) % source.edges.size()] =
-          {state.edge_flags, source.serial};
+          {state.edge_flags, source.serial, state.mod_edge};
       ++source.edge_count;
     }
     source.sample.edge_flags = state.edge_flags;
+    source.sample.mod_edge = state.mod_edge;
   }
   if (Armed() && (!source.logged_valid ||
                   std::memcmp(&source.logged, &source.sample, sizeof(state)))) {
@@ -219,6 +224,7 @@ bool SubmitInput(SessionRuntime &r) noexcept {
     DiscardInputEdges();
   const auto edge = source.edge_count ? source.edges[source.edge_head] : PendingEdge{};
   state.edge_flags = edge.mask;
+  state.mod_edge = edge.keys;
   const bool startup = player.StartupPending();
   uint64_t target = 0;
   if (!(startup
@@ -253,6 +259,7 @@ bool SubmitInput(SessionRuntime &r) noexcept {
   }
   if (startup) {
     state.edge_flags = 0;
+    state.mod_edge = 0;
     if (!core::NextInputTarget(completed, player.RuntimeConfig(), target) ||
         !submit(state, target))
       return false;

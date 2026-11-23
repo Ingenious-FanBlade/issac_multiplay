@@ -30,6 +30,9 @@ inline constexpr uintptr_t ActiveItemSlotBase = 0x1574, ActiveItemSlotStride = 0
 inline constexpr uintptr_t ControllerIndex = 0x160C, PlayerIndex = 0x1610,
                            MoveDirection = 0x1618;
 inline constexpr uintptr_t KeyboardVtable = 0x73B490, GamepadVtable = 0x73B3F0;
+// J273 原始键位 vtable 槽 5/6 直接读取当前和上一轮键盘缓存，不获取输入后端锁。
+inline constexpr uintptr_t KeyboardButtonPressed = 0x633CA0,
+                           KeyboardButtonTriggered = 0x633CD0;
 // tx-04-05：官方 .zhl 字段与 T1–T7 静态指令；所有版本布局集中在 binding。
 inline constexpr uintptr_t CurrentRoom = 0x18300, RoomIndex = 0x18304,
                            Dimension = 0x1830C;

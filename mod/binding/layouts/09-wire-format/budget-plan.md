@@ -1,6 +1,6 @@
 # 完整消息静态预算
 
-布局版本 90；普通构建生成，仅整数公式，不运行编解码样例或测试。
+布局版本 94；普通构建生成，仅整数公式，不运行编解码样例或测试。
 
 | 合同 | 数值 |
 |---|---|
@@ -78,19 +78,19 @@
 
 | 负载 | 正文B | 一端发出B | Hz | 一端B/s | 三端B/s |
 |---|---|---|---|---|---|
-| 空world | 104 | 256 | 30 | 7680 | 23040 |
-| 空body | 104 | 256 | 60 | 15360 | 46080 |
-| 四身体E1与P0标量下界 | 584 | 736 | 60 | 44160 | 132480 |
-| 八身体E1与P0标量下界 | 1064 | 1216 | 60 | 72960 | 218880 |
-| 八身体另带13Sprite动画投影下界 | 3352 | 3728 | 60 | 223680 | 671040 |
-| 64颗Tear运动块 | 3688 | 4176 | 30 | 125280 | 375840 |
-| 稠密运动设计负载 | 6376 | 7088 | 30 | 212640 | 637920 |
-| 八身体全部body成员投影下界 | 18488 | 20432 | 0 | 0 | 0 |
-| 四参与者八身体及稠密房间成员Baseline下界 | 124641 | 137001 | 0 | 0 | 0 |
+| 空world | 110 | 262 | 30 | 7860 | 23580 |
+| 空body | 110 | 262 | 60 | 15720 | 47160 |
+| 四身体E1与P0标量下界 | 590 | 742 | 60 | 44520 | 133560 |
+| 八身体E1与P0标量下界 | 1070 | 1222 | 60 | 73320 | 219960 |
+| 八身体另带13Sprite动画投影下界 | 3358 | 3734 | 60 | 224040 | 672120 |
+| 64颗Tear运动块 | 3694 | 4182 | 30 | 125460 | 376380 |
+| 稠密运动设计负载 | 6382 | 7094 | 30 | 212820 | 638460 |
+| 八身体全部body成员投影下界 | 18494 | 20438 | 0 | 0 | 0 |
+| 四参与者八身体及稠密房间成员Baseline下界 | 124647 | 137007 | 0 | 0 | 0 |
 | 上述成员表258项（另计） | 8574 | 9510 | 0 | 0 | 0 |
 | 648项本地资源声明设计样例 | 41604 | 45788 | 0 | 0 | 0 |
 | 单个100Quad纯值recipe资源 | 105 | 257 | 0 | 0 | 0 |
-| 八身体独立HUD时钟完整消息设计下界 | 1464 | 1728 | 60 | 103680 | 311040 |
+| 八身体独立HUD时钟完整消息设计下界 | 1470 | 1734 | 60 | 104040 | 312120 |
 
 | 负载 | 组成 |
 |---|---|
@@ -274,7 +274,7 @@
 | RunScoreSheet | 234 | 0 | 0 |
 | RunColorModState | 235 | 24 | 24 |
 | RunGameStateFlags | 236 | 1 | 1 |
-| GameRun | 237 | 422 | 675853 |
+| GameRun | 237 | 438 | 675869 |
 | RunSeedEffectNode | 238 | 4 | 4 |
 | Room | 239 | 613 | 33554432 |
 | Backdrop | 240 | 21 | 35651649 |
@@ -446,7 +446,7 @@
 | SFXSampleSelectionRNG | 406 | 0 | 0 |
 | SFXSeedSoundReplacementRNG | 407 | 0 | 0 |
 | StateCommonHeader | 408 | 50 | 50 |
-| StateFrameHeader | 409 | 2 | 2 |
+| StateFrameHeader | 409 | 8 | 8 |
 | StateSectionHeader | 410 | 52 | 52 |
 | StateRecordHeader | 411 | 12 | 12 |
 | StateTableHeader | 412 | 10 | 10 |
@@ -492,6 +492,7 @@
 | RoomTransitionEvent | 453 | 43 | 43 |
 | BossDisplayState | 454 | 26 | 323 |
 | BossDisplayPose | 455 | 9 | 9 |
+| ModCutsceneEvent | 456 | 13 | 13 |
 
 ## 容量边界单价
 
@@ -1230,7 +1231,7 @@
 | GameRun | 237/1 | world | 40 | 40 |
 | GameRun | 237/2 | world | 0 | 0 |
 | GameRun | 237/3 | world | 41 | 41 |
-| GameRun | 237/4 | world | 37 | 37 |
+| GameRun | 237/4 | world | 53 | 53 |
 | GameRun | 237/5 | world | 6 | 6 |
 | GameRun | 237/6 | world | 176 | 176 |
 | GameRun | 237/7 | world | 57 | 57 |
@@ -1351,7 +1352,7 @@
 | AudioVoiceState | 382/0 | world | 0 | 0 |
 | AudioWorldEvent | 383/0 | world | 0 | 0 |
 | StateCommonHeader | 408/0 | world | 50 | 50 |
-| StateFrameHeader | 409/0 | world | 2 | 2 |
+| StateFrameHeader | 409/0 | world | 8 | 8 |
 | StateSectionHeader | 410/0 | world | 52 | 52 |
 | StateRecordHeader | 411/0 | world | 12 | 12 |
 | StateTableHeader | 412/0 | world | 10 | 10 |
@@ -1399,3 +1400,4 @@
 | RoomTransitionEvent | 453/0 | world | 43 | 43 |
 | BossDisplayState | 454/0 | world | 26 | 323 |
 | BossDisplayPose | 455/0 | world | 9 | 9 |
+| ModCutsceneEvent | 456/0 | world | 13 | 13 |

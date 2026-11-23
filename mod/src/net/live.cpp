@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <bcrypt.h>
 #include "net/live.h"
+#include "net/mod_manifest_wire.h"
 #include "net/timing_clock.h"
 #include "core/lobby.h"
 #include "replica/stream_e2e.h"
@@ -61,6 +62,7 @@ r::Json Capabilities(const s::RuntimeConfig &config,bool binary_host=false,bool 
   auto caps = s::Capabilities();
   // 真实DLL声明已接线的具名owner能力；纯模型Capabilities仍不冒充原生Client。
   auto &a=caps.GetAllocator();
+  caps["required"].PushBack(r::Value(kModManifestCapability,a),a);
   if(!lobby) {
     auto &supported=caps["supported"];
     const auto it=std::find_if(supported.Begin(),supported.End(),[](const auto &item){return item==s::kLobbyCapability;});
@@ -459,8 +461,8 @@ HostPeer::BinaryProgress HostPeer::StateProgress() const noexcept {
   result.body_dependency_blocks=binary_->publisher.BodyDependencyBlocks();
   result.world_window=binary_->publisher.WorldProgress();return result;
 }
-HostPeer::HostPeer(std::uint64_t session, unsigned ordinal, s::RuntimeConfig config, bool lobby)
-    : ordinal_(ordinal), config_(config), lobby_(lobby) {
+HostPeer::HostPeer(std::uint64_t session, unsigned ordinal, s::RuntimeConfig config, bool lobby,ModManifestRef mods)
+    : ordinal_(ordinal), config_(config), lobby_(lobby), mods_(std::move(mods)) {
   if(*config.Validate())Fail(config.Validate());
   operations_.Configure(config_);
   scope_ = {session, Random(), 1, 1, 1, 1, 1};
@@ -476,14 +478,14 @@ s::Message HostPeer::Message(s::Kind kind, std::uint64_t sequence) {
 }
 Packets HostPeer::Pack(const s::Message &m) { return s::Fragment(m, Next(transfer_), Limits()); }
 bool HostPeer::Receive(std::span<const std::uint8_t> bytes, std::uint64_t now, ReceivedInput &out,
-                       const HostIdentity &identity) {
+                       const HostIdentity &identity,ModIntentInbox *intents) {
   const auto header = s::ReadHeader(bytes, s::WorldLimits());
   if(prepared_echo_&&header.kind==s::Kind::ScenePrepared&&header.connection==route_.connection&&header.route==prepared_echo_->route){
     s::Message replay;if(prepare_replay_.Receive(bytes,now,replay)){
       if(replay.sequence!=prepared_echo_->sequence||replay.body!=prepared_echo_->body)Fail("live_prepare_replay_conflict");echo_pending_=true;last_receive_=now;
     }return false;
   }
-  if (header.kind == s::Kind::Hello && route_.world)
+  if ((header.kind == s::Kind::Hello || header.kind == s::Kind::ModManifest) && route_.world)
     return false;
   if (header.kind != s::Kind::Hello &&
       (header.connection != route_.connection || header.route != route_.epoch))
@@ -524,6 +526,11 @@ bool HostPeer::Receive(std::span<const std::uint8_t> bytes, std::uint64_t now, R
     N(welcome.body, "participant", ordinal_, a);
     r::Put(welcome.body, "role", std::string("Authority"), a);
     welcome_ = std::make_shared<const s::Message>(std::move(welcome));
+    auto manifest=Message(s::Kind::ModManifest,1);
+    WriteModManifest(manifest,mods_);
+    manifest_sender_.Authorize(route_);
+    manifest_sender_.GrantRate(config_.control_bytes_per_second);
+    manifest_sender_.Start(s::EncodeBlob(manifest,false,Limits()),Next(transfer_),now);
     reply_ = true;
     last_receive_ = now;
     return false;
@@ -531,6 +538,36 @@ bool HostPeer::Receive(std::span<const std::uint8_t> bytes, std::uint64_t now, R
   if (!nonce_ || m.connection != route_.connection || m.route != route_.epoch)
     Fail("live_stale_connection");
   last_receive_ = now;
+  if (m.kind==s::Kind::ModManifest) {
+    const auto difference=CompareModManifest(mods_,m.body["chunks"]);
+    if(!difference.empty())Fail(difference.c_str());
+    manifest_matches_=true;
+    return false;
+  }
+  if (!route_.world && m.kind==s::Kind::ReceiveAck) {
+    manifest_sender_.Acknowledge(m,now);
+    return false;
+  }
+  // 只有收到对端清单并逐项通过比较，才能处理 Ready、选择角色或后续报文。
+  if(!manifest_matches_)return false;
+  if(m.kind==s::Kind::ModIntent){
+    if(!intents||!established_||!route_.world||ending_||stopped_||!binary_->opened||
+       !binary_->publisher.Active()||m.sequence<=last_mod_intent_||!mod_intent_rate_.Ready(now))return false;
+    if(mod_intent_run_==route_.scope.run&&mod_intent_floor_==route_.scope.floor&&
+       last_mod_intent_>binary_->publisher.ModResultReceipt())return false;
+    ModIntent value;
+    value.id=m.sequence;value.connection=route_.connection;value.ordinal=ordinal_;
+    value.run=route_.scope.run;value.floor=route_.scope.floor;value.room=route_.scope.room;
+    value.mod=std::uint16_t(N(m.body,"mod"));value.declaration=std::uint16_t(N(m.body,"declaration"));
+    value.member_epoch=std::uint32_t(N(m.body,"member_epoch"));
+    const auto &args=m.body["args"];
+    value.size=std::uint16_t(args.GetStringLength());std::memcpy(value.bytes.data(),args.GetString(),value.size);
+    if(intents->Push(value)){
+      last_mod_intent_=value.id;mod_intent_run_=value.run;mod_intent_floor_=value.floor;
+      mod_intent_rate_.Accept(now);
+    }
+    return false;
+  }
   if(binary_->episode.Status(now)==state::StateEpisodeStatus::Active&&!binary_->episode.Charge(state::MeasureStateDatagram(bytes.size()),now))Fail("binary_prepare_receive_budget");
   if (m.kind == s::Kind::Ready || m.kind == s::Kind::LobbySelection) {
     if (lobby_ != (m.kind == s::Kind::LobbySelection)) Fail("live_lobby_mode");
@@ -592,6 +629,7 @@ bool HostPeer::Receive(std::span<const std::uint8_t> bytes, std::uint64_t now, R
     return false;
   }
   if (m.kind == s::Kind::ScenePrepared) {
+    if(ending_||stopped_)return false;
     const auto prepared=binary_->prepared;
     if(!prepared||!binary_->preparing||ReadWorld(m.body["world"])!=s::WorldScope{binary_->route.scope.session,binary_->route.scope.run,binary_->route.scope.floor,binary_->route.scope.dimension,binary_->route.scope.room,binary_->route.scope.scene}||
        N(m.body,"manifest")!=prepared->ordinary.revision||N(m.body,"generation")!=prepare_generation_||String(m.body["contract"])!="binary-state-v1"||m.sequence!=prepare_sequence_)
@@ -599,6 +637,7 @@ bool HostPeer::Receive(std::span<const std::uint8_t> bytes, std::uint64_t now, R
     prepare_replay_.Authorize(route_);prepared_echo_=std::make_shared<const s::Message>(std::move(m));echo_pending_=true;
     route_.epoch=Next(route_.epoch);route_.world=true;route_.scope=ReadWorld(prepared_echo_->body["world"]);
     scope_=s::Connected(route_.scope,route_.connection);assembler_.Authorize(route_);operations_.Bind(route_.connection,route_.epoch);
+    manifest_sender_.Authorize(route_);
     auto outbound=route_;outbound.direction=s::Direction::ToClient;binary_->reliable.Authorize(outbound);binary_->opened=true;binary_->preparing=false;
     return false;
   }
@@ -638,6 +677,8 @@ bool HostPeer::Receive(std::span<const std::uint8_t> bytes, std::uint64_t now, R
   cmd.state.aim_y = std::int16_t(m.body["aim"][1].GetInt());
   cmd.state.held_flags = unsigned(N(m.body, "held"));
   cmd.state.edge_flags = unsigned(N(m.body, "edge"));
+  cmd.state.mod_held = N(m.body, "mod_held");
+  cmd.state.mod_edge = N(m.body, "mod_edge");
   value.packet_sequence = m.sequence;
   value.received_ms = now;
   value.acknowledged_generation = N(m.body, "generation");
@@ -662,6 +703,17 @@ Packets HostPeer::Reply() {
     return {};
   reply_ = false;
   return Pack(*welcome_);
+}
+void HostPeer::PumpManifest(std::uint64_t now,const s::ReliableSender::Send &send) {
+  if (!nonce_ || route_.world) return;
+  for (const auto &ack:assembler_.Acks(now)) {
+    const auto packets=Pack(s::AckMessage(ack,Next(control_),route_));
+    if(send(packets.front())==s::SendResult::Failed)Fail("live_manifest_send");
+  }
+  manifest_sender_.Pump(now,16,send);
+  s::ReliableSender::Result result;
+  while(manifest_sender_.Poll(result))
+    if(!result.complete&&!established_)Fail("mod_manifest_timeout");
 }
 Packets HostPeer::Progress(const protocol::Ack &p) {
   const auto now = GetTickCount64();
@@ -719,6 +771,9 @@ Packets HostPeer::Progress(const protocol::Ack &p) {
   }
   return s::Bundle(packets);
 }
+bool HostPeer::QueueModResult(const ModIntentResult &result) noexcept {
+  return binary_->publisher.QueueModResult(result);
+}
 Packets HostPeer::Bye(const char *reason) {
   if (!nonce_ || ending_)
     return {};
@@ -733,25 +788,45 @@ Packets HostPeer::Bye(const char *reason) {
 Packets HostPeer::Reject(const char *reason) {
   auto m = Message(s::Kind::Error, Next(control_));
   auto &a = m.body.GetAllocator();
-  r::Put(m.body, "code", std::string(reason), a);
+  const std::string_view text(reason);
+  const bool manifest=text.rfind("mod_manifest: ",0)==0;
+  r::Put(m.body, "code", manifest?std::string("mod_manifest_mismatch"):std::string(text.substr(0,128)), a);
   r::Put(m.body, "recoverable", r::Value(false), a);
-  r::Put(m.body, "detail", std::string("Client negotiation or connection rejected"), a);
+  r::Put(m.body, "detail", manifest?std::string(text):std::string("Client negotiation or connection rejected"), a);
   return Pack(m);
 }
 bool HostPeer::Offer(const Publication &p,const state::HostStatePublication::View &sources,std::uint64_t now){
   if(ending_||stopped_)return true;
+  nightmare_=p.nightmare;
+  // 保留上一个已授权路由直至原生演出结束，后续楼层的完整基线再接管显示。
+  if(p.nightmare_active)return false;
   const auto &ordinary=sources.ordinary;
+  // 已发出的 Prepare 在客机回显之前独占本次路由迁移。网络线程会重新读取最新来源。
+  // 单独发出的 Retire 也必须等客机完成，避免迟到的退休包撤销同一路由的新 Prepare。
+  if(binary_->preparing||operations_.Pending())return false;
   if(!ordinary){
-    if(!p.source[0]&&binary_->ordinary){binary_->Clear();auto m=Message(s::Kind::Retire,Next(control_));r::Put(m.body,"reason",std::string("binary_host_source_retired"),m.body.GetAllocator());operations_.Queue(std::make_shared<const s::Message>(std::move(m)),now);}
+    if(p.stage_display_active)return false; // 原生换层短暂撤下采集源时保留客机画面。
+    if(!p.source[0]&&binary_->ordinary){
+      const auto old=binary_->ordinary->witness.scope;
+      const bool same_mod_scene=p.mod_run&&p.mod_run==old.run&&p.mod_floor==old.floor;
+      binary_->Clear();
+      auto m=Message(s::Kind::Retire,Next(control_));
+      auto &body=m.body.GetAllocator();
+      r::Put(m.body,"reason",std::string(same_mod_scene?"binary_host_room_source_retired":"binary_host_source_retired"),body);
+      const auto cutscene=!same_mod_scene&&p.cutscene_run==old.run?p.cutscene_serial:0;
+      r::Put(m.body,"cutscene_serial",r::Decimal(cutscene,body),body);
+      r::Put(m.body,"cutscene_id",r::Value(cutscene?p.cutscene_id:0u),body);
+      operations_.Queue(std::make_shared<const s::Message>(std::move(m)),now);
+    }
     return !p.source[0];
   }
   auto scope=ordinary->witness.scope;scope.session=scope_.session;
   if(!binary_->ordinary||binary_->route.scope!=scope||binary_->ordinary->witness.generation!=ordinary->witness.generation){
     // 切房前先让旧route上未确认事件走完；新候选及主线程副本继续保留，不丢必要事件。
     if(binary_->ordinary&&binary_->publisher.EventWatermark()<binary_->ordinary->event_watermark)return false;
-    const bool had=bool(binary_->ordinary);binary_->Clear();
-    if(had){operations_.CancelPending(now);auto m=Message(s::Kind::Retire,Next(control_));r::Put(m.body,"reason",std::string("binary_scope_changed"),m.body.GetAllocator());operations_.Queue(std::make_shared<const s::Message>(std::move(m)),now);}
-    binary_->route={route_.connection,route_.epoch+1,scope};binary_->publisher.Open(binary_->route);binary_->episode.Begin(now);
+    // 新来源已就绪时，由 ScenePrepare 在客机侧退休旧场景，再回显新身份。
+    binary_->Clear();
+    binary_->route={route_.connection,route_.epoch+1,scope};binary_->publisher.Open(binary_->route,ordinal_);binary_->episode.Begin(now);
   }
   if(!binary_->publisher.Offer(ordinary))return false;binary_->ordinary=ordinary;
   if(sources.latest&&sources.latest!=ordinary&&sources.latest->witness.scope==ordinary->witness.scope&&!binary_->publisher.Offer(sources.latest))return false;
@@ -783,8 +858,44 @@ unsigned HostPeer::Pump(std::uint64_t now, EncodingCache &cache,
   operations_.Pump(now, transmit);
   if (!operations_.Failure().empty())
     Fail(operations_.Failure().c_str());
+  unsigned nightmare_packets=0;
+  if(route_.world&&!ending_){
+    if(nightmare_route_!=route_.epoch){
+      nightmare_route_=route_.epoch;
+      nightmare_sent_.reset();nightmare_end_repeats_=0;
+      nightmare_packets_.clear();
+    }
+    if(now>=nightmare_deadline_)nightmare_packets_.clear();
+    if(nightmare_sent_&&!nightmare_){
+      nightmare_sent_.reset();
+      nightmare_end_repeats_=3;
+    }
+    if(nightmare_packets_.empty()&&now>=nightmare_at_&&
+       ((nightmare_&&nightmare_!=nightmare_sent_)||nightmare_end_repeats_)){
+      nightmare_at_=now+33;
+      nightmare_sent_=nightmare_;
+      if(nightmare_)nightmare_end_repeats_=0;
+      else --nightmare_end_repeats_;
+      try {
+        auto message=Message(s::Kind::Nightmare,Next(nightmare_sequence_));
+        s::WriteNightmare(message,nightmare_.get());
+        if(s::MeasurePayload(message,Limits())+40<=r::kNightmareWireLimit){
+          nightmare_packets_=Pack(message);
+          nightmare_fragment_=0;
+          nightmare_deadline_=now+150;
+        }
+      }catch(const r::ContractError &){/* 单帧超过显示预算时可由下一帧恢复。 */}
+    }
+    // 一帧可跨越多次令牌补充。只保留当前发送帧，超期后从最新画面重建。
+    while(nightmare_fragment_<nightmare_packets_.size()&&
+          send(nightmare_packets_[nightmare_fragment_])==s::SendResult::Sent){
+      ++nightmare_fragment_;
+      ++nightmare_packets;
+    }
+    if(nightmare_fragment_==nightmare_packets_.size())nightmare_packets_.clear();
+  }
   auto outbound=route_;outbound.direction=s::Direction::ToClient;
-  return binary_->Pump(now,transfer_,outbound,cache,send);
+  return nightmare_packets+binary_->Pump(now,transfer_,outbound,cache,send);
 }
 std::uint64_t HostPeer::NextWake(std::uint64_t now) const noexcept {
   return (std::min)(operations_.NextWake(now),binary_->opened?(std::min)(binary_->reliable.NextWake(now),now+2):now+2);
@@ -812,7 +923,7 @@ struct Client::State {
   SpscQueue<Intent, 256> intents;
   OwnedQueue<Event, 32> events, world_controls;
   OwnedQueue<Event, 4> urgent_controls;
-  Latest<Event> timing_event, roster_event, input_ack_event;
+  Latest<Event> timing_event, roster_event, input_ack_event, nightmare_event;
   // 连接质量显示：tick_loss／srtt_x8 只有网络线程读写；quality_* 打包发布给主线程。
   // quality_rtt：bit32 有效，低 32 位毫秒；quality_loss：bit32 有效，bit16—31 窗口长度，低 16 位千分比。
   TickLossWindow tick_loss;
@@ -860,6 +971,11 @@ struct Client::State {
   OwnedQueue<ResourceCompletion,state::kClientResourceJobsInFlight> binary_resource_completions;
   struct BinaryRecovery {state::StateRoute route;state::StateResyncReason reason=state::StateResyncReason::Apply;};
   OwnedQueue<BinaryRecovery,1> binary_recovery;
+  OwnedQueue<ModIntent,kModIntentInFlight> mod_requests;
+  OwnedQueue<ModIntentResult,kModIntentInFlight> mod_results;
+  std::optional<ModIntent> mod_inflight;
+  std::atomic<std::uint64_t> mod_finished{0};
+  std::uint64_t mod_sent_at=0,mod_result_received=0;
   memory::Lease binary_mailbox_memory=memory::Reserve(memory::Pool::Values,
       sizeof(binary_apply)+sizeof(binary_resources)+sizeof(binary_completions)+sizeof(binary_resource_completions)+sizeof(binary_recovery),"client_binary_mailboxes");
   struct Binary final:state::ClientStateReceiveDelivery {
@@ -875,6 +991,16 @@ struct Client::State {
       return owner.binary_apply[channel].TryPush(std::move(batch));
     }
     bool Resource(const state::ClientStateResourceJob &job)override{return owner.binary_resources.TryPush(job);}
+    void ModResult(const ModIntentResult &value) override {
+      // 私有事件在接收 ACK 前交给连接邮箱，切房不会使已确认结果丢失。
+      const auto &inflight=owner.mod_inflight;
+      if(!inflight||value.id!=inflight->id||value.id<=owner.mod_result_received)return;
+      auto result=value;
+      if(value.mod!=inflight->mod||value.declaration!=inflight->declaration){
+        result.mod=inflight->mod;result.declaration=inflight->declaration;result.ok=false;result.size=0;
+      }
+      if(owner.mod_results.TryPush(result))owner.mod_result_received=result.id;
+    }
     bool Control(state::StateMessageKind kind,std::span<const std::byte> bytes)override {
       auto m=Make(s::Kind(unsigned(kind)),Next(owner.control),owner.route.connection,owner.route.epoch);
       // Make 为旧控制消息创建对象正文；二进制确认只能保留 state_body，不能混入旧壳。
@@ -907,8 +1033,13 @@ struct Client::State {
   std::uint64_t nonce = 0, server_nonce = 0, transfer = 0, control = 0, last_receive = 0,
                 last_send = 0, roster_sequence = 0, tick_sequence = 0;
   std::uint64_t input_ack_generation = 0, input_ack_sequence = 0, input_ack_tick = 0;
+  std::uint64_t nightmare_sequence=0;
   std::uint32_t timeout = 3000;
   bool welcomed = false, have_progress = false;
+  bool manifest_received=false,manifest_matches=false;
+  ModManifestRef mods;
+  state::ModSchemaRef mod_schema;
+  s::ReliableSender manifest_sender;
   protocol::Ack progress{};
   std::shared_ptr<const s::Message> pending_prepare,prepared_response;
   std::uint64_t prepare_due=0,prepare_started=0;
@@ -990,6 +1121,25 @@ struct Client::State {
     }
     Flush();
   }
+  void PumpModIntent(std::uint64_t now,bool ending) {
+    const auto finished=mod_finished.load(std::memory_order_acquire);
+    if(mod_inflight&&mod_inflight->id<=finished)mod_inflight.reset();
+    if(!mod_inflight){
+      ModIntent next;
+      while(mod_requests.TryPop(next))if(next.id>finished){mod_inflight=next;mod_sent_at=0;break;}
+    }
+    // 队首重传直至收到私有结果，后续请求不能越过它。
+    if(!mod_inflight||mod_result_received>=mod_inflight->id||ending||!route.world||
+       mod_inflight->run!=route.scope.run||mod_inflight->floor!=route.scope.floor||
+       (mod_sent_at&&now-mod_sent_at<120)||!pending_send.empty())return;
+    const auto &intent=*mod_inflight;
+    auto message=Make(s::Kind::ModIntent,intent.id,route.connection,route.epoch);
+    auto &a=message.body.GetAllocator();
+    N(message.body,"mod",intent.mod,a);N(message.body,"declaration",intent.declaration,a);
+    N(message.body,"member_epoch",intent.member_epoch,a);
+    r::Put(message.body,"args",r::Value(reinterpret_cast<const char *>(intent.bytes.data()),intent.size,a),a);
+    SendMessage(message);mod_sent_at=now;
+  }
   void Ready() {
     auto m = Make(lobby?s::Kind::LobbySelection:s::Kind::Ready, Next(control), route.connection, route.epoch);
     auto &a = m.body.GetAllocator();
@@ -1004,8 +1154,10 @@ struct Client::State {
   }
   void Receive(s::Message m) {
     const auto now = GetTickCount64();
-    if (m.kind == s::Kind::Error)
-      Fail(String(m.body["code"]).c_str());
+    if (m.kind == s::Kind::Error) {
+      const auto code=String(m.body["code"]);
+      Fail(code=="mod_manifest_mismatch"?ModManifestDetail(String(m.body["detail"])).c_str():code.c_str());
+    }
     if (m.kind == s::Kind::Welcome) {
       if (N(m.body, "client_nonce") != nonce)
         Fail("live_welcome_nonce");
@@ -1032,23 +1184,55 @@ struct Client::State {
         assembler.Authorize(route);
         operations.Bind(route.connection, route.epoch);
         published_connection.store(route.connection, std::memory_order_release);
-        Event e;
-        e.type = Event::Type::Welcome;
-        e.scope = scope;
-        e.route = route.epoch;
-        e.ordinal = ordinal;
-        Emit(e);
       }
       last_receive = now;
-      Ready();
       return;
     }
     if (!welcomed || m.connection != route.connection || m.route != route.epoch)
       Fail("live_server_scope");
+    if (m.kind==s::Kind::ModManifest) {
+      const auto difference=CompareModManifest(mods,m.body["chunks"]);
+      if(!difference.empty())Fail(difference.c_str());
+      last_receive=now;
+      if(manifest_received)return;
+      auto response=Make(s::Kind::ModManifest,1,route.connection,route.epoch);
+      WriteModManifest(response,mods);
+      manifest_sender.Authorize(route);
+      manifest_sender.Start(s::EncodeBlob(response,false,Limits()),Next(transfer),now);
+      manifest_received=true;
+      return;
+    }
+    if (m.kind==s::Kind::ReceiveAck) {
+      if(!route.world&&manifest_received) {
+        last_receive=now;
+        manifest_sender.Acknowledge(m,now);
+        s::ReliableSender::Result result;
+        while(manifest_sender.Poll(result)) {
+          if(!result.complete)Fail("mod_manifest_timeout");
+          if(manifest_matches)continue;
+          manifest_matches=true;
+          Event e;
+          e.type=Event::Type::Welcome;e.scope=scope;e.route=route.epoch;e.ordinal=ordinal;
+          Emit(e);
+          Ready();
+        }
+      }
+      return;
+    }
+    if(!manifest_matches)return;
     if (terminal_ready.load(std::memory_order_acquire) && m.kind != s::Kind::OperationAck &&
         m.kind != s::Kind::Stop && m.kind != s::Kind::Disconnect && m.kind != s::Kind::Cancel)
       return;
     last_receive = now;
+    if(m.kind==s::Kind::Nightmare){
+      if(m.sequence<=nightmare_sequence)return;
+      Event event;
+      event.type=Event::Type::Nightmare;event.scope=scope;event.route=m.route;
+      event.nightmare=s::ReadNightmare(m);event.received_ms=now;
+      nightmare_sequence=m.sequence;
+      nightmare_event.Put(std::make_shared<const Event>(std::move(event)));
+      return;
+    }
     if(m.kind==s::Kind::LobbyRoster) {
       if(!lobby)Fail("live_lobby_mode");
       const auto value=N(m.body,"roster");
@@ -1070,14 +1254,14 @@ struct Client::State {
       Revoke();Intent old;while(intents.TryPop(old)){};
       route.epoch=N(pending_prepare->body,"next_route");route.world=true;route.scope=ReadWorld(pending_prepare->body["world"]);scope=s::Connected(route.scope,route.connection);
       accept_world=true;metrics.Bind(route.scope,route.epoch);tick_loss.Rebase();
-      assembler.Authorize(route);operations.Bind(route.connection,route.epoch);have_progress=false;progress={};roster_sequence=tick_sequence=0;input_ack_generation=input_ack_sequence=input_ack_tick=0;
+      assembler.Authorize(route);operations.Bind(route.connection,route.epoch);manifest_sender.Authorize(route);have_progress=false;progress={};roster_sequence=tick_sequence=0;input_ack_generation=input_ack_sequence=input_ack_tick=0;
       // 主线程是值队列唯一consumer；旧路由由Poll/PollWorld过滤并释放。
       published_route.store(route.epoch,std::memory_order_release);Event activated;activated.type=Event::Type::Prepared;activated.scope=scope;activated.route=route.epoch;activated.ordinal=ordinal;activated.world=pending_prepare;
       if(String(pending_prepare->body["contract"])=="binary-state-v1") {
         if(!binary_preparation||!binary_preparation->Available())Fail("binary_client_native_contract_unavailable");
         if(!binary)binary=std::make_unique<Binary>(*this);
         if(!binary->receiver->Drained())Fail("binary_client_previous_route_not_drained");
-        binary->receiver->Open({route.connection,route.epoch,{route.scope.session,route.scope.run,route.scope.floor,route.scope.dimension,route.scope.room,route.scope.scene}},state::LocalStateAgreement(),route.epoch,now);binary->active=true;
+        binary->receiver->Open({route.connection,route.epoch,{route.scope.session,route.scope.run,route.scope.floor,route.scope.dimension,route.scope.room,route.scope.scene}},state::LocalStateAgreement(),route.epoch,now,mod_schema,ordinal);binary->active=true;
       }
       // 路由激活与退休共用有序控制队列，先于后续原生世界接纳；不能跨两个队列竞速。
       if(!urgent_controls.TryPush(std::move(activated)))Fail("live_prepare_activation_capacity");
@@ -1220,11 +1404,13 @@ struct Client::State {
   }
   void ReceivePacket(std::span<const std::uint8_t> packet) {
     const auto h = s::ReadHeader(packet, s::WorldLimits());
+    if (h.kind==s::Kind::ModManifest&&(!welcomed||route.world))return;
     if (welcomed && (h.connection != route.connection || h.route != route.epoch))
       return;
+    if(h.kind==s::Kind::ModManifest)last_receive=GetTickCount64();
     if (welcomed && h.kind == s::Kind::Welcome) {
       last_receive = GetTickCount64();
-      Ready();
+      if(manifest_matches)Ready();
       return;
     }
     s::Message m;
@@ -1264,7 +1450,7 @@ struct Client::State {
         const auto now = GetTickCount64();
         s::Measure network_measure(metrics,s::CpuStage::Network);
         if (stop.load(std::memory_order_acquire) && !ending) {
-          if (!welcomed)
+          if (!manifest_matches)
             break;
           operations.CancelPending(now);
           auto bye = Make(s::Kind::Disconnect, Next(control), route.connection, route.epoch);
@@ -1295,13 +1481,19 @@ struct Client::State {
             break;
         } else if (now - last_receive >= timeout)
           Fail("live_peer_timeout");
-        const bool selection_changed=lobby&&welcomed&&sent_lobby_selection!=lobby_selection.load(std::memory_order_acquire);
+        const bool selection_changed=lobby&&manifest_matches&&sent_lobby_selection!=lobby_selection.load(std::memory_order_acquire);
         if (!ending && (selection_changed || now - last_send >= config.heartbeat_ms)) {
-          if (welcomed)
+          if (manifest_matches)
             Ready();
           else
             SendMessage(hello);
           last_send = now;
+        }
+        if(!ending&&manifest_received&&!manifest_matches) {
+          manifest_sender.Pump(now,16,[&](auto bytes){return SocketSend(bytes);});
+          s::ReliableSender::Result result;
+          while(manifest_sender.Poll(result))
+            if(!result.complete)Fail("mod_manifest_timeout");
         }
         operations.Pump(now, [&](const s::Message &m) {
           const auto packets = s::Fragment(m, Next(transfer), Limits());
@@ -1316,6 +1508,7 @@ struct Client::State {
           Fail(operations.Failure().c_str());
         for (const auto &ack : assembler.Acks(now))
           SendMessage(s::AckMessage(ack, Next(control), route));
+        PumpModIntent(now,ending);
         Intent intent;
         for (unsigned n = 0; n < 32 && intents.TryPop(intent); ++n) {
           if (intent.input_epoch != consumed_input_epoch || ending || !welcomed || !have_progress ||
@@ -1418,7 +1611,7 @@ Client::~Client() {
 }
 const char *Client::Start(const std::string &ipv4, std::uint16_t port,
                           std::uint32_t timeout_ms,s::RuntimeConfig config,std::shared_ptr<const state::ClientStatePreparation> binary,
-                          std::shared_ptr<state::ClientStateMemory> binary_memory,bool lobby) noexcept {
+                          std::shared_ptr<state::ClientStateMemory> binary_memory,bool lobby,ModManifestRef mods,state::ModSchemaRef mod_schema) noexcept {
   if (*config.Validate())return config.Validate();
   if(config.peer_timeout_ms!=timeout_ms)return "live_timeout_configuration_conflict";
   if (state_ || !port || timeout_ms < 500 || timeout_ms > 60000)
@@ -1426,6 +1619,8 @@ const char *Client::Start(const std::string &ipv4, std::uint16_t port,
   try {
     auto state = std::make_shared<State>();
     state->lobby=lobby;
+    state->mods=std::move(mods);
+    state->mod_schema=std::move(mod_schema);
     state->binary_preparation=std::move(binary);
     state->binary_memory=binary_memory?std::move(binary_memory):
       state->binary_preparation?state::ClientStateMemory::Create():nullptr;
@@ -1463,6 +1658,15 @@ const char *Client::Start(const std::string &ipv4, std::uint16_t port,
   }
 }
 r::Limits Client::EffectiveLimits() const noexcept {if(!state_)return {};std::lock_guard lock(state_->transfer_mutex);return state_->effective_limits;}
+bool Client::SendModIntent(const ModIntent &value) noexcept {
+  return state_&&!Finished()&&!state_->stop.load()&&state_->mod_requests.TryPush(value);
+}
+bool Client::PollModResult(ModIntentResult &value) noexcept {
+  return state_&&state_->mod_results.TryPop(value);
+}
+void Client::FinishModIntent(std::uint64_t id) noexcept {
+  if(state_)state_->mod_finished.store((std::max)(id,state_->mod_finished.load(std::memory_order_relaxed)),std::memory_order_release);
+}
 bool Client::SetLobbySelection(unsigned selection) noexcept {
   if(!state_||!state_->lobby||!core::ValidLobbySelection(selection)||Finished()||state_->stop.load())return false;
   state_->lobby_selection.store(selection,std::memory_order_release);
@@ -1524,6 +1728,10 @@ bool Client::Poll(Event &e) noexcept {
   }
   if (state_->events.TryPop(e))
     return true;
+  if(auto nightmare=state_->nightmare_event.Take()){
+    e=*nightmare;
+    return true;
+  }
   if (auto roster = state_->roster_event.Take()) {
     e = *roster;
     return true;

@@ -1,4 +1,5 @@
 #include "game/observation/binary_display_capture.h"
+#include "game/mods/mod_native.h"
 #include <algorithm>
 #include <bit>
 #include <cmath>
@@ -130,6 +131,7 @@ struct BinaryDisplayCapture::Impl {
   bool OverlaySnapshot(std::uint32_t) noexcept;
   bool ProceduralSnapshot(std::uint32_t,EntitySource &) noexcept;
   bool BossSnapshot(std::uint32_t) noexcept;
+  std::uint64_t cutscene_serial=0;
   bool EventStore(std::uint16_t,bool,EntitySource &,std::span<const CaptureReferenceEntry>) noexcept;
   bool SfxIntent(const BinarySfxIntent &,CaptureLink,EntitySource &,std::span<const CaptureReferenceEntry>) noexcept;
   void Drop(unsigned,bool discarded=true) noexcept;
@@ -468,6 +470,16 @@ bool BinaryDisplayCapture::Prepare(const CaptureWitness &w,EntityFacts &facts,En
     if(!mode){std::array<std::uint32_t,8> args{};
       if(!Observe(BinaryProductionKind::TransitionFinish,facts.address+0x1b83c,args,w,facts,source,read,{},d))return false;
       s.Begin(w,facts,read,d);}}
+  const auto cutscene=HostModCutscene();
+  if(cutscene.run==w.scope.run&&cutscene.serial>s.cutscene_serial){
+    const auto event=s.Node(F::ModCutsceneEvent::kLayout,3);
+    if(event==UINT32_MAX||!s.Scalar(event,F::ModCutsceneEvent::serial,ScalarKind::U64,cutscene.serial)||
+       !s.Scalar(event,F::ModCutsceneEvent::id,ScalarKind::U32,cutscene.id)||
+       !s.Scalar(event,F::ModCutsceneEvent::clear,ScalarKind::U8,std::uint8_t(cutscene.clear))||
+       !s.EventStore(F::ModCutsceneEvent::kLayout,false,source,{}))return false;
+    s.cutscene_serial=cutscene.serial;
+    s.Begin(w,facts,read,d);
+  }
   const auto root=s.Node(237,6),injection=s.Node(438,19),music=s.Node(439,15),loops=s.Node(441,2),overlays=s.Node(443,1),procedural=s.Node(445,3),boss=s.Node(454,6);
   if(boss==UINT32_MAX||!s.Children(root,F::GameRun::display_injections,injection,1)||!s.Children(root,F::GameRun::music_request,music,1)||
      !s.Children(root,F::GameRun::loop_sounds,loops,1)||!s.Children(root,F::GameRun::item_overlays,overlays,1)||!s.Children(root,F::GameRun::procedural_display,procedural,1)||

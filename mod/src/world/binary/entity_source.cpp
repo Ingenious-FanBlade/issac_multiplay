@@ -133,6 +133,7 @@ EntitySource::Impl::Impl(MemoryReader m,std::thread::id t,EntityServices s,Entit
   stats.resource_cache_capacity[4]=std::uint32_t(resource_memos.size());
   std::vector<std::uint8_t> supported(65536);
   for(unsigned id=437;id<=453;++id)supported[id]=1;
+  supported[456]=1;
   for(const auto &layout:Layouts())if((layout.id>=310 && layout.id<=383) || (layout.id>=422 && layout.id<=424) || layout.id==435 || layout.id==436)supported[layout.id]=1;
   for(const auto &layout:Layouts()){auto parent=&layout;while(parent && parent->id!=100 && parent->id!=199 && parent->id!=239 && parent->id!=270 && parent->id!=276 && parent->id!=237)parent=FindLayout(parent->parent);
     if(parent)supported[layout.id]=1;}

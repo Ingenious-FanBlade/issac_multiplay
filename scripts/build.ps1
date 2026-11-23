@@ -46,6 +46,10 @@ Copy-Item -LiteralPath (Join-Path $repoRoot 'mod/third_party/zstd/LICENSE') -Des
 if($E2E){
     $fixtureOutput=Join-Path $buildOutput 'isaac-cs-test'
     Copy-BuildTree (Join-Path $repoRoot 'tests/e2e-mods/isaac-cs-test') $fixtureOutput
+    # 模组适配夹具单独部署，随附产品包里的 SDK 薄壳，方便对照没装联机层时的单机模式。
+    $modFixtureOutput=Join-Path $buildOutput 'isaac-cs-mod-fixture'
+    Copy-BuildTree (Join-Path $repoRoot 'tests/e2e-mods/isaac-cs-mod-fixture') $modFixtureOutput
+    Copy-Item -LiteralPath (Join-Path $repoRoot 'mod/sdk/isaaccs_sdk.lua') -Destination $modFixtureOutput
     # 只在 E2E 包加载原版内容的 Lua 对照。
     Copy-BuildTree (Join-Path $repoRoot 'mod/observation/isaac-cs-observation') (Join-Path $buildOutput 'isaac-cs-observation')
 }

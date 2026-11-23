@@ -97,6 +97,11 @@ ClientDisplayWorldRef ClientDescribeDisplayWorld(state::ClientShadowStateRef wor
     std::make_shared<ClientDisplayStorage>(std::move(world),selection,std::move(rooms),peer);s->charge=std::move(charge);
   const auto game=Record(*s->world,selection.game),room=Record(*s->world,selection.room),
     level=Record(*s->world,selection.level),descriptor=Record(*s->world,selection.descriptor),sfx=Record(*s->world,selection.sfx);
+  // 原生遮罩在模式 2、3 直接用持续时间做除法，先验证组合再交给 Render。
+  const auto stage_mode=Exact<std::uint32_t>(Field(game,F::GameRun::stage_fade_mode));
+  const auto stage_duration=Exact<std::uint32_t>(Field(game,F::GameRun::stage_fade_duration));
+  if(stage_mode>4||((stage_mode==2||stage_mode==3)&&!stage_duration)||
+     (stage_mode&&Exact<std::uint32_t>(Field(game,F::GameRun::stage_fade_kind))>6))Fail("display_stage_fade");
   for(const auto &p:kDisplayCopies){const auto &source=p.layout==game.Identity().layout?game:
       p.layout==room.Identity().layout?room:p.layout==level.Identity().layout?level:descriptor;
     const auto bytes=Field(source,p.field);if(bytes.size()!=p.size)Fail("display_copy_size");s->Copy(p.root,p.offset,bytes);}

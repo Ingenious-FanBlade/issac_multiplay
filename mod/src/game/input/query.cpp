@@ -55,6 +55,30 @@ bool OverrideQuery(void *device, int action, QueryKind kind,
   RecordQuery(unsigned(ordinal), context->kind, kind, action, result);
   return true;
 }
+// Lua 的 ControllerIndex 查询没有原生 consumer 作用域，直接读取当前 Authority 快照。
+bool ReadModAction(int controller,int action,unsigned kind,float &value) noexcept {
+  auto *r=Runtime();
+  if(!IsMain()||!Armed()||!r||controller<0||action<0||action>=12)return false;
+  for(unsigned i=0;i<r->session.ParticipantLimit();++i){
+    auto &p=r->players[i];
+    if(!p.BoundValid()||p.Bound().key!=controller)continue;
+    const auto tick=r->pipeline.SimulationTick();
+    value=tick&&!r->blocks&&!r->failure&&!r->console_blocked&&ContextHealthy()&&!InBlockedContext()
+      ?p.Read(unsigned(action),static_cast<core::Query>(kind),core::Consumer::Lua,p.Bound(),tick):0.0f;
+    return true;
+  }
+  // 原生清理尚未结束的 K 不回退到本机控制器。
+  if(!IsDeviceKId(controller))return false;
+  value=0;
+  return true;
+}
+bool ReadModKey(unsigned ordinal,std::uint64_t key,bool edge) noexcept {
+  auto *r=Runtime();
+  if(!IsMain()||!Armed()||!r||ordinal>=r->session.ParticipantLimit()||r->blocks||
+     r->failure||r->console_blocked||!ContextHealthy()||InBlockedContext()||!r->pipeline.SimulationTick())return false;
+  const auto view=r->players[ordinal].Progress(r->clock.Completed());
+  return view.current_valid&&((edge?view.current_state.mod_edge:view.current_state.mod_held)&key)!=0;
+}
 // 会话累计按 ordinal/consumer 分行输出，零值也保留。每行最多 36 个键，
 // 三项 uint64 计数的最坏文本长度小于 2800，连同元数据不超过 trace 上限。
 void PublishQueryCoverage(SessionRuntime &r, const char *checkpoint) noexcept {

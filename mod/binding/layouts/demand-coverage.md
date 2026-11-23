@@ -1,8 +1,8 @@
 # 需求清单覆盖
 
-布局版本 90；唯一输入为 `mod/binding/state/demand.json`。
+布局版本 94；唯一输入为 `mod/binding/state/demand.json`。
 
-域源参照含 3014 个展开字段；需求计划保留 2664 个。未列入的 wire 仅在生成内存中剥离，原生字节与成员映射保留全量参照。
+域源参照含 3023 个展开字段；需求计划保留 2673 个。未列入的 wire 仅在生成内存中剥离，原生字节与成员映射保留全量参照。
 
 整类型选择包含该展开类型的继承字段；按字段选择使用投影前名称。空块保留原编号并视为 reserved；空子块投影省略。resource_protocol 保留正式资源的编解码表；旧 presentation_envelope、hud_local 专用表已退役。
 
@@ -2063,6 +2063,10 @@
 | [GameRun (237)](08-run-presentation/GameRun.md) | transition_dimension | 29（块4） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
 | [GameRun (237)](08-run-presentation/GameRun.md) | transition_animation | 30（块4） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
 | [GameRun (237)](08-run-presentation/GameRun.md) | transition_boss_marker | 31（块4） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
+| [GameRun (237)](08-run-presentation/GameRun.md) | stage_fade_mode | 32（块4） | 原生楼层遮罩绘制模式 |
+| [GameRun (237)](08-run-presentation/GameRun.md) | stage_fade_counter | 33（块4） | 原生楼层遮罩当前进度 |
+| [GameRun (237)](08-run-presentation/GameRun.md) | stage_fade_duration | 34（块4） | 原生楼层遮罩持续时间 |
+| [GameRun (237)](08-run-presentation/GameRun.md) | stage_fade_kind | 35（块4） | 原生楼层遮罩颜色选择 |
 | [GameRun (237)](08-run-presentation/GameRun.md) | seeds | 0（块0） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
 | [GameRun (237)](08-run-presentation/GameRun.md) | hud_visible | 22（块4） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
 | [GameRun (237)](08-run-presentation/GameRun.md) | time_counter_base | 1（块0） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
@@ -2075,7 +2079,7 @@
 | [GameRun (237)](08-run-presentation/GameRun.md) | hallucination_countdown | 15（块3） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
 | [GameRun (237)](08-run-presentation/GameRun.md) | hallucination_duration | 16（块3） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
 | [GameRun (237)](08-run-presentation/GameRun.md) | game_flags | 2（块0） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
-| [GameRun (237)](08-run-presentation/GameRun.md) | temporary_curses | 34（块5） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
+| [GameRun (237)](08-run-presentation/GameRun.md) | temporary_curses | 38（块5） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
 | [GameRun (237)](08-run-presentation/GameRun.md) | challenge | 3（块0） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
 | [GameRun (237)](08-run-presentation/GameRun.md) | secondary_fade_alpha | 19（块3） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
 | [GameRun (237)](08-run-presentation/GameRun.md) | primary_fade_alpha | 20（块3） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
@@ -2087,14 +2091,14 @@
 | [GameRun (237)](08-run-presentation/GameRun.md) | current_color | 8（块1） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
 | [GameRun (237)](08-run-presentation/GameRun.md) | lightning | 9（块1） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
 | [GameRun (237)](08-run-presentation/GameRun.md) | dizzy | 10（块1） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
-| [GameRun (237)](08-run-presentation/GameRun.md) | host_paused | 32（块5） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
-| [GameRun (237)](08-run-presentation/GameRun.md) | display_branch | 33（块5） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
-| [GameRun (237)](08-run-presentation/GameRun.md) | display_injections | 35（块6） | 第二批6.3／6.4显示需求；同world事务，不恢复显示结果批次 |
-| [GameRun (237)](08-run-presentation/GameRun.md) | music_request | 36（块7） | 第二批6.3／6.4显示需求；同world事务，不恢复显示结果批次 |
-| [GameRun (237)](08-run-presentation/GameRun.md) | loop_sounds | 37（块8） | 第二批6.3／6.4显示需求；同world事务，不恢复显示结果批次 |
-| [GameRun (237)](08-run-presentation/GameRun.md) | item_overlays | 38（块9） | 第二批6.3／6.4显示需求；同world事务，不恢复显示结果批次 |
-| [GameRun (237)](08-run-presentation/GameRun.md) | procedural_display | 39（块10） | 第二批6.3／6.4显示需求；同world事务，不恢复显示结果批次 |
-| [GameRun (237)](08-run-presentation/GameRun.md) | boss_display | 40（块11） | 正在演出的本地资源恢复与同world姿态 |
+| [GameRun (237)](08-run-presentation/GameRun.md) | host_paused | 36（块5） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
+| [GameRun (237)](08-run-presentation/GameRun.md) | display_branch | 37（块5） | Q8当前显示标量／D2 HUD可见性／D3 raw诅咒／Q11转场／Q12暂停和终结分支；相机偏移与进度注入留各自owner |
+| [GameRun (237)](08-run-presentation/GameRun.md) | display_injections | 39（块6） | 第二批6.3／6.4显示需求；同world事务，不恢复显示结果批次 |
+| [GameRun (237)](08-run-presentation/GameRun.md) | music_request | 40（块7） | 第二批6.3／6.4显示需求；同world事务，不恢复显示结果批次 |
+| [GameRun (237)](08-run-presentation/GameRun.md) | loop_sounds | 41（块8） | 第二批6.3／6.4显示需求；同world事务，不恢复显示结果批次 |
+| [GameRun (237)](08-run-presentation/GameRun.md) | item_overlays | 42（块9） | 第二批6.3／6.4显示需求；同world事务，不恢复显示结果批次 |
+| [GameRun (237)](08-run-presentation/GameRun.md) | procedural_display | 43（块10） | 第二批6.3／6.4显示需求；同world事务，不恢复显示结果批次 |
+| [GameRun (237)](08-run-presentation/GameRun.md) | boss_display | 44（块11） | 正在演出的本地资源恢复与同world姿态 |
 | [RunSeedEffectNode (238)](08-run-presentation/RunSeedEffectNode.md) | key | 0（块0） | Q14既有Run显示输入；D5完整种子效果供诅咒F/P和音乐41—44的原生内联树读取 |
 | [Room (239)](07-room-level/Room.md) | descriptor | 0（块0） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
 | [Room (239)](07-room-level/Room.md) | room_type | 2（块0） | Q14保留Room原生显示子结构和资格，D1增加水色端点／计时及两组冲击波；旧最终结果companion不发送 |
@@ -2254,6 +2258,8 @@
 | [StateCommonHeader (408)](09-wire-format/StateCommonHeader.md) | scene | 6（块0） | Q14过渡期保留公共报文与资源引用结构；414—417及425—433随第二批接线收窄，当前不改变固定头 |
 | [StateCommonHeader (408)](09-wire-format/StateCommonHeader.md) | session | 1（块0） | Q14过渡期保留公共报文与资源引用结构；414—417及425—433随第二批接线收窄，当前不改变固定头 |
 | [StateFrameHeader (409)](09-wire-format/StateFrameHeader.md) | flags | 1（块0） | Q14过渡期保留公共报文与资源引用结构；414—417及425—433随第二批接线收窄，当前不改变固定头 |
+| [StateFrameHeader (409)](09-wire-format/StateFrameHeader.md) | mod_bytes | 2（块0） | Q14过渡期保留公共报文与资源引用结构；414—417及425—433随第二批接线收窄，当前不改变固定头 |
+| [StateFrameHeader (409)](09-wire-format/StateFrameHeader.md) | mod_result_bytes | 3（块0） | Q14过渡期保留公共报文与资源引用结构；414—417及425—433随第二批接线收窄，当前不改变固定头 |
 | [StateFrameHeader (409)](09-wire-format/StateFrameHeader.md) | section_count | 0（块0） | Q14过渡期保留公共报文与资源引用结构；414—417及425—433随第二批接线收窄，当前不改变固定头 |
 | [StateSectionHeader (410)](09-wire-format/StateSectionHeader.md) | base_version | 4（块0） | Q14过渡期保留公共报文与资源引用结构；414—417及425—433随第二批接线收窄，当前不改变固定头 |
 | [StateSectionHeader (410)](09-wire-format/StateSectionHeader.md) | event_count | 11（块0） | Q14过渡期保留公共报文与资源引用结构；414—417及425—433随第二批接线收窄，当前不改变固定头 |
@@ -2487,5 +2493,8 @@
 | [BossDisplayPose (455)](08-run-presentation/BossDisplayPose.md) | frame | 1（块0） | 第13步Boss演出当前versus及肖像帧位 |
 | [BossDisplayPose (455)](08-run-presentation/BossDisplayPose.md) | key | 0（块0） | 第13步Boss演出当前versus及肖像帧位 |
 | [BossDisplayPose (455)](08-run-presentation/BossDisplayPose.md) | playing | 2（块0） | 第13步Boss演出当前versus及肖像帧位 |
+| [ModCutsceneEvent (456)](08-run-presentation/ModCutsceneEvent.md) | clear | 2（块0） | Isaac.PlayCutscene 的正常请求、序号与场景退休标记 |
+| [ModCutsceneEvent (456)](08-run-presentation/ModCutsceneEvent.md) | id | 1（块0） | Isaac.PlayCutscene 的正常请求、序号与场景退休标记 |
+| [ModCutsceneEvent (456)](08-run-presentation/ModCutsceneEvent.md) | serial | 0（块0） | Isaac.PlayCutscene 的正常请求、序号与场景退休标记 |
 
 本表只报告构建期需求覆盖；运行采集、原生安装、显示与性能统一留到第15步验收。

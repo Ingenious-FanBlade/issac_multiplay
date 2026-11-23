@@ -91,7 +91,8 @@ ClientSceneInstallPlan::ClientSceneInstallPlan(std::shared_ptr<const S::ClientSt
     sounds_(S::ClientStateAllocator<ClientDisplaySound>(state_->Memory())),
     sound_links_(S::ClientStateAllocator<ClientSceneDisplayLinks>(state_->Memory())),
     event_links_(S::ClientStateAllocator<ClientSceneDisplayLinks>(state_->Memory())),
-    events_(S::ClientStateAllocator<ClientDisplayEvent>(state_->Memory())) {}
+    events_(S::ClientStateAllocator<ClientDisplayEvent>(state_->Memory())),
+    mod_leaving_(S::ClientStateAllocator<S::StateMemberEntry>(state_->Memory())) {}
 bool ClientSceneInstallPlan::Releasable()const noexcept {
   // batch.target.install与本描述各持一份数字计划；Room描述另由Display内部共享一次。
   if(state_.use_count()>2||display_.use_count()>1)return false;
@@ -126,6 +127,22 @@ struct ClientSceneDescribeWork final:S::ClientStateNativePlanWork {
     grids(S::ClientStateAllocator<ClientRoomGridMember>(account,memory::Pool::Workspace)) {
     out->events_.resize(plan.Events().size());out->event_links_.resize(plan.Events().size());
     out->grids_.reserve(plan.Grids().size());grids.reserve(plan.Grids().size());descriptors.reserve(plan.Descriptors().size());
+    if(t.mod_lifecycle&&t.previous[0]&&t.previous[0]->Members()!=world->Members()){
+      const auto next=plan.Objects();
+      const bool same_room=t.previous[0]->Context().scope.room==c.scope.room&&
+        t.previous[0]->Context().scope.dimension==c.scope.dimension;
+      for(const auto &old:t.previous[0]->Members()->Directory().entries){
+        const auto &id=old.identity;
+        if(id.space!=1)continue;
+        const auto at=std::lower_bound(next.begin(),next.end(),id,[](const auto &o,const auto &key){return o.member.identity<key;});
+        if(at!=next.end()&&at->member.identity==id)continue;
+        if(same_room&&(id.layout==F::EntityNPC::kLayout||id.layout==F::EntityPickup::kLayout)&&at!=next.end()){
+          auto before=at->member.identity;before.shape=id.shape;
+          if(before==id&&at->description<plan.Entities().size())continue;
+        }
+        out->mod_leaving_.push_back(old);
+      }
+    }
   }
   void Present(const S::ClientInstallValue &v){
     const auto &record=plan.Records()[v.record];
@@ -163,6 +180,10 @@ struct ClientSceneDescribeWork final:S::ClientStateNativePlanWork {
         case F::ItemBannerEvent::kLayout:
           links.player=f.Player(v,F::ItemBannerEvent::player);links.resource=f.Resource(v,F::ItemBannerEvent::configuration);
           event.title=f.Text(v,F::ItemBannerEvent::title);event.subtitle=f.Text(v,F::ItemBannerEvent::subtitle);break;
+        case F::ModCutsceneEvent::kLayout:
+          event.cutscene_serial=f.Number<std::uint64_t>(v,F::ModCutsceneEvent::serial);
+          event.cutscene_id=f.Number<std::uint32_t>(v,F::ModCutsceneEvent::id);
+          event.cutscene_clear=f.Number<std::uint8_t>(v,F::ModCutsceneEvent::clear)!=0;break;
         case F::FortuneEvent::kLayout:
           event.category=f.Text(v,F::FortuneEvent::category);event.index=f.Number<int>(v,F::FortuneEvent::index);break;
         case F::FortuneLine::kLayout:{

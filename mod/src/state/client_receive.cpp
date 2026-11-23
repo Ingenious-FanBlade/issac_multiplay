@@ -1,6 +1,8 @@
 #include "state/client_receive.h"
 #include "state/client_validation.h"
 #include "state/client_plan.h"
+#include "state/mod_codec.h"
+#include "state_host_fields.inc"
 #include <algorithm>
 #include <chrono>
 #include <cstring>
@@ -25,6 +27,10 @@ struct ClientStateReceiver::Impl {
   const ClientStatePreparation &preparation;
   ClientStateReceiveDelivery &delivery;
   StateRoute route{};
+  ModSchemaRef mod_schema;
+  ModShadowRef mod_shadow;
+  unsigned mod_ordinal=kModPublic;
+  std::uint64_t mod_rejected=0;
   bool active=false,recovery_requested=false;
   bool uncertain_event=false;
   bool slice_pending=false;
@@ -43,6 +49,7 @@ struct ClientStateReceiver::Impl {
     ClientStateVector<std::byte> bytes;
     StateLane lane=StateLane::World;
     ClientStateCandidateRef candidate;
+    ModShadowRef mods;
     std::shared_ptr<ClientShadowBuildWork> decoding;
     StateTarget target;
     std::optional<PrepareWork> preparing;
@@ -150,8 +157,9 @@ struct ClientStateReceiver::Impl {
       return owner.preparation.Inspect(target,owner.tables);
     }
   };
-  ClientStatePreparedTarget Target(const ClientStateCandidateRef &candidate) {
-    ClientStatePreparedTarget out(memory);out.candidate=candidate;
+  ClientStatePreparedTarget Target(const ClientStateCandidateRef &candidate, ModShadowRef mods={}) {
+    ClientStatePreparedTarget out(memory);out.candidate=candidate;out.mods=std::move(mods);
+    out.mod_lifecycle=mod_schema&&mod_schema->declared;
     for(unsigned i=0;i<2;++i){out.previous[i]=shadow.Installed(BodyStream(i));out.effective[i]=candidate->State(BodyStream(i))?candidate->State(BodyStream(i)):out.previous[i];}
     const auto world=candidate->State(BodyStream::World);
     if(world)out.events=events.Prepare(*candidate,world->Context().game_frame);
@@ -171,7 +179,40 @@ struct ClientStateReceiver::Impl {
   void ReceiveCandidate(const ClientStateCandidateRef &candidate,std::uint64_t received_us) {
     // 事件先接管进本地有界队列，才能随接收快照一起推进水位。
     events.Receive(candidate);
+    if(!candidate->Frame().mod_results.empty()){
+      net::ModIntentResults results;
+      if(ReadModResults(candidate->Frame().mod_results,results)){
+        for(unsigned i=0;i<results.count;++i){
+          auto &result=results.values[i];
+          result.connection=route.connection;result.run=route.scope.run;result.floor=route.scope.floor;
+          delivery.ModResult(result);
+        }
+      }else memory->ApplyMetrics().FirstIssue(1,{},"mod_decode","mod_result_rejected");
+    }
     const auto ack=shadow.RetainReceived(candidate);
+    // 字段验证及影子分配失败只影响 Mod。ACK 和理由仍归原生接收管线。
+    if(const auto world=candidate->State(BodyStream::World);world&&mod_schema){
+      const auto rejected=mod_rejected;
+      try {
+        unsigned players=0;
+        if(!candidate->Frame().mod_values.empty()||mod_shadow)
+          for(std::size_t i=0;i<world->RecordCount();++i){
+            const auto record=world->Record(i);
+            if(record.Identity().layout!=host_field::PlayerControlGroup::kLayout)continue;
+            const auto *ordinal=record.Field(host_field::PlayerControlGroup::ordinal);
+            if(ordinal&&ordinal->present&&ordinal->bytes.size()==1){
+              const auto slot=std::to_integer<unsigned>(ordinal->bytes.front());
+              if(slot<4)players|=1u<<slot;
+            }
+          }
+        mod_shadow=MergeModShadow(mod_shadow,*mod_schema,candidate->Frame().mod_values,mod_ordinal,players,world->Members()->Directory().entries,
+          !world->Context().base_version,mod_rejected);
+      }catch(...){++mod_rejected;}
+      if(rejected!=mod_rejected){
+        memory->ApplyMetrics().Volume(1,ClientApplyVolume::ModRecordsRejected,mod_rejected-rejected);
+        memory->ApplyMetrics().FirstIssue(1,{},"mod_decode","mod_record_rejected");
+      }
+    }
     const auto streams=StateTargetStreams(candidate->Target());
     for(unsigned i=0;i<2;++i)if(streams&(1u<<i))bad_frames[i]={};
     for(unsigned i=0;i<2;++i)if(const auto state=candidate->State(BodyStream(i))){
@@ -243,7 +284,7 @@ struct ClientStateReceiver::Impl {
 #ifdef ISAACCS_E2E
     ResumeSlice(queued);
 #endif
-    if(!queued.preparing)try{queued.preparing.emplace(Target(shadow.ForWorldApplication(queued.candidate)));}
+    if(!queued.preparing)try{queued.preparing.emplace(Target(shadow.ForWorldApplication(queued.candidate),queued.mods));}
       catch(const ClientShadowError &e){PreparationFailed(StateTargetStreams(queued.target),e.Readiness());return;}
     if(!AdvancePreparation(*queued.preparing,stop))return;
     if(!Dispatch(queued.preparing->target,queued.deadline,queued.received_us))return;
@@ -342,7 +383,7 @@ struct ClientStateReceiver::Impl {
         if(!work.filtered_resources){
           work.filtered_resources=true;
           if(auto applied=shadow.DeferUnreadyObjects(target.candidate,tables)){
-            target=Target(applied);slice_pending=true;return false;
+            target=Target(applied,target.mods);slice_pending=true;return false;
           }
         }
         metrics.LastWait(streams,{},"resources","resource_materialization_pending");
@@ -523,9 +564,11 @@ struct ClientStateReceiver::Impl {
 ClientStateReceiver::ClientStateReceiver(std::shared_ptr<ClientStateMemory> memory,std::span<const ClientShadowLayoutBinding> registry,
     const ClientStatePreparation &p,ClientStateReceiveDelivery &d):impl_(std::allocate_shared<Impl>(ClientStateAllocator<Impl>(memory),memory,registry,p,d)) {}
 ClientStateReceiver::~ClientStateReceiver()=default;
-void ClientStateReceiver::Open(const StateRoute &route,StateAgreement agreement,std::uint64_t generation,std::uint64_t) {
+void ClientStateReceiver::Open(const StateRoute &route,StateAgreement agreement,std::uint64_t generation,std::uint64_t,
+    ModSchemaRef mods,unsigned ordinal) {
   auto &s=*impl_;s.Thread();s.Collect();if(s.active||s.Occupied(3)||s.ResourcesInFlight()||!s.retired.empty()||!s.preparation.Available()||!s.shadow.Drained()||!s.tables.Drained()||!CompatibleStateAgreement(agreement))Fail(StateReadiness::Lifecycle,"client_receive_open_busy_or_native_unavailable");
   s.tables.Open(route,agreement,generation);s.shadow.Open(route,agreement);s.events.Open(route);s.route=route;s.active=true;
+  s.mod_schema=std::move(mods);s.mod_ordinal=ordinal;s.mod_shadow.reset();s.mod_rejected=0;
   s.last_table_sequence=0;
   s.bad_frames={};s.flat_recovery=0;s.ack_due=s.resync_due=0;
   s.recovery_requested=s.uncertain_event=s.slice_pending=false;
@@ -545,6 +588,7 @@ void ClientStateReceiver::Close() {
     s.tables.CompleteResourcePreparation(work->job.ticket,ClientResourceState::Unprepared);work.reset();
   }
   s.active=false;
+  s.mod_schema.reset();s.mod_shadow.reset();
   s.pending.Clear();s.waiting={};s.next_world.reset();s.body_waiting.reset();s.accepted_plans={};
   s.preload.clear();s.preload_cursor=0;s.shadow.Close();s.tables.Close();
   // 在途回放凭据在Complete／Drain前还要消费；不能用Close提前清掉账本。
@@ -606,7 +650,10 @@ void ClientStateReceiver::Pump(std::uint64_t now,bool allow_waiting) {
     std::optional<ClientShadowBuildResult> decoded;
     try {
       decoded=s.Decode(slot.lane,slot.bytes,streams,slot.decoding,slice);
-      if(decoded&&decoded->candidate)s.ReceiveCandidate(decoded->candidate,slot.received_us);
+      if(decoded&&decoded->candidate){
+        s.ReceiveCandidate(decoded->candidate,slot.received_us);
+        slot.mods=s.mod_shadow;
+      }
     }catch(const ClientShadowError &e){
       if(e.Readiness()==StateReadiness::EventGap){
         s.Recover(streams,StateResyncReason::Event);continue;

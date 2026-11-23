@@ -151,7 +151,7 @@ Error Validate(const Message &m) noexcept {
 } // namespace
 
 bool ValidHello(const Hello &h, bool agreement) noexcept {
-  if (!ValidText(h.build) || !Nonzero(h.local_nonce) || h.input_schema != 2 ||
+  if (!ValidText(h.build) || !Nonzero(h.local_nonce) || h.input_schema != 3 ||
       h.protocol != kVersion || h.capabilities != kCapabilities ||
       h.maximum_packet != kMaximumPacket || h.clients != kClients)
     return false;
@@ -257,7 +257,7 @@ Error Encode(const Message &m, Packet &output) noexcept {
       : m.header.kind == Kind::Ack ? kAckSize
       : m.header.kind == Kind::Bye
           ? kByeSize
-          : kInputPrefixSize + 64 * (1 + m.input.redundancy_count);
+          : kInputPrefixSize + sizeof(core::EncodedInputCmdV2) * (1 + m.input.redundancy_count);
   Packet packet{};
   packet.size = kHeaderSize + size;
   auto *p = packet.bytes.data();
@@ -282,7 +282,7 @@ Error Encode(const Message &m, Packet &output) noexcept {
                                                       : m.input.redundant[i],
                         command))
         return Error::Payload;
-      Store(p + kInputPrefixSize + 64 * i, command);
+      Store(p + kInputPrefixSize + sizeof(command) * i, command);
     }
   } else if (m.header.kind == Kind::Ack) {
     const auto &a = m.ack;
@@ -345,7 +345,7 @@ Error Decode(std::span<const std::uint8_t> bytes, Message &output) noexcept {
       return Error::Length;
     const auto count = Get(p, 2);
     if (!count || count > kMaximumInputRecords ||
-        size != kInputPrefixSize + 64 * count)
+        size != kInputPrefixSize + sizeof(core::EncodedInputCmdV2) * count)
       return Error::Length;
     if (Get(p + 2, 2) || Get(p + 4, 4))
       return Error::Reserved;
@@ -353,7 +353,7 @@ Error Decode(std::span<const std::uint8_t> bytes, Message &output) noexcept {
     m.input.last_ack = Get(p + 8, 8);
     for (std::size_t i = 0; i < count; ++i) {
       core::EncodedInputCmdV2 command{};
-      Read(p + kInputPrefixSize + 64 * i, command);
+      Read(p + kInputPrefixSize + sizeof(command) * i, command);
       auto &target = i == count - 1 ? m.input.command : m.input.redundant[i];
       if (!core::Decode(command, target))
         return Error::Payload;

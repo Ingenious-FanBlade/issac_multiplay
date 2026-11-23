@@ -124,7 +124,9 @@
           "sequence": "world",
           "fields": [
             "section_count",
-            "flags"
+            "flags",
+            "mod_bytes",
+            "mod_result_bytes"
           ]
         }
       ],
@@ -132,7 +134,11 @@
         "stateframeheader_section_count_encode": "从已封存自有纯值编码：1单序列，2为world随后body的共同提交；不读取原生对象或调用Lua。",
         "stateframeheader_section_count_decode": "按公共合同有界解码：1单序列，2为world随后body的共同提交；这里只登记处理器名，不安装世界或提前ACK。",
         "stateframeheader_flags_encode": "从已封存自有纯值编码：bit0共同提交；单分段为0、双分段为1；不读取原生对象或调用Lua。",
-        "stateframeheader_flags_decode": "按公共合同有界解码：bit0共同提交；单分段为0、双分段为1；这里只登记处理器名，不安装世界或提前ACK。"
+        "stateframeheader_flags_decode": "按公共合同有界解码：bit0共同提交；单分段为0、双分段为1；这里只登记处理器名，不安装世界或提前ACK。",
+        "stateframeheader_mod_bytes_encode": "写入 World 分段之后的 Mod 正文长度。",
+        "stateframeheader_mod_bytes_decode": "先定界 Mod 正文，剩余字节交成员目录解码。",
+        "stateframeheader_mod_result_bytes_encode": "写入发起者的私有意图结果段长度。",
+        "stateframeheader_mod_result_bytes_decode": "单独定界私有意图结果，保持原生事件水位。"
       },
       "validators": {
         "section_count": {
@@ -150,6 +156,18 @@
             0,
             1
           ]
+        },
+        "mod_bytes": {
+          "kind": "range",
+          "scalar": "u32",
+          "min": 0,
+          "max": 33554432
+        },
+        "mod_result_bytes": {
+          "kind": "range",
+          "scalar": "u16",
+          "min": 0,
+          "max": 2168
         }
       },
       "members": [],
@@ -170,9 +188,25 @@
           "evidence": "docs/archive/design/binary-state/9-public-wire-contract.md；2026-11-11用户定稿",
           "host": "stateframeheader_flags_encode",
           "client": "stateframeheader_flags_decode"
+        },
+        {
+          "name": "mod_bytes",
+          "type": "u32",
+          "semantics": "分段之后且成员目录之前的 Mod 字节数，Body 为零",
+          "evidence": "docs/mod-api.md §6.3",
+          "host": "stateframeheader_mod_bytes_encode",
+          "client": "stateframeheader_mod_bytes_decode"
+        },
+        {
+          "name": "mod_result_bytes",
+          "type": "u16",
+          "semantics": "Mod 状态之后且成员目录之前的私有意图结果段长度，Body 为零",
+          "evidence": "docs/mod-api.md §9",
+          "host": "stateframeheader_mod_result_bytes_encode",
+          "client": "stateframeheader_mod_result_bytes_decode"
         }
       ],
-      "notes": "2B；位于公共头之后。 本表仅定义固定封装字节；不再包12B状态记录头，也不表示完整消息编解码已实现。"
+      "notes": "8B；位于公共头之后。布局 93 包含 Mod 状态与私有意图结果的两个长度。"
     },
     {
       "type": "StateSectionHeader",
@@ -2336,6 +2370,18 @@
   ],
   "protocol_constants": [
     {
+      "domain": "input",
+      "name": "mod_keys_schema",
+      "value": 3,
+      "semantics": "输入记录增加 mod_held 和 mod_edge；各为按握手后排序的去重声明集编码的 u64 位图。统一输入快照 40 字节，带序号和目标的固定命令 80 字节。紧凑控制正文 schema 3。"
+    },
+    {
+      "domain": "event",
+      "name": "ModCutscene",
+      "value": 6,
+      "semantics": "World 事件携过场序号、资源 ID 和清理标记。清理若使原路由先退休，可靠 Retire 携同一请求序号与资源 ID。"
+    },
+    {
       "domain": "message",
       "name": "AppliedAck",
       "value": 9,
@@ -2364,6 +2410,18 @@
       "name": "ResourceBlobChunk",
       "value": 24,
       "semantics": "公共协议Kind24仅保留编号；版本61正文禁用306，不启用原始媒体／blob，也未接通运行stream_codec"
+    },
+    {
+      "domain": "message",
+      "name": "ModManifest",
+      "value": 27,
+      "semantics": "Hello／Welcome 后在连接路由的控制通道可靠交换。正文为 u32 段数及各段 u32 长度加原始字节，每段最多 4096 B，总长最多 60 KiB。每项为十进制字节数加冒号、键、十进制字节数加冒号、值。双方比较通过才接纳 Ready。"
+    },
+    {
+      "domain": "message",
+      "name": "ModIntent",
+      "value": 28,
+      "semantics": "授权 World 路由上的有序可靠客机请求。报文序号为调用序号，正文含声明号、成员代次和最多 512 B 的声明参数；发起者私有 World 结果结束该请求。"
     },
     {
       "domain": "resource_table",

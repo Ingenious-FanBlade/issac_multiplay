@@ -144,6 +144,10 @@ struct ClientDisplayEvent final {
   int animation=0,direction=-1;
   std::uint64_t final_room=0;
   bool completed=false;
+  // 过场的 World 事件和清场备用消息使用同一个请求号。
+  std::uint64_t cutscene_serial=0;
+  unsigned cutscene_id=0;
+  bool cutscene_clear=false;
 };
 // 基线中的Boss演出当前姿态，主Sprite用-1，extra map用原生层键。
 struct ClientDisplayBoss final {

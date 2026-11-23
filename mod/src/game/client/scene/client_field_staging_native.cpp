@@ -800,16 +800,19 @@ bool ClientStagedFieldBorrowAttachment(ClientStagedField *o,void *destination,st
       !o->attachment_uses||o->attachment_uses==UINT_MAX||size!=o->attachment_size||!ClientStagedFieldAttached(o,destination))return false;
   ++o->attachment_uses;return true;
 }
-bool ClientStagedFieldCommitCheckedAttachment(ClientStagedField *o,const void *destination) noexcept {
+ClientAttachmentCommit ClientStagedFieldCommitCheckedAttachment(ClientStagedField *o,const void *destination) noexcept {
   // 发布已读回此 header。同一主线程段内只有保管转移，仍核对登记及前一租约关系。
-  if(!o||!destination||o->attached!=destination||o->successor||!ClientBinaryInstallationScopeActive(false)||!attachments)return false;
-  const auto i=attachments->entries.find(o->attached);if(i==attachments->entries.end()||i->second!=o)return false;
+  if(!ClientBinaryInstallationScopeActive(false))return ClientAttachmentCommit::ScopeLost;
+  if(!o||!destination||o->attached!=destination||o->successor||!attachments)return ClientAttachmentCommit::InvalidChain;
+  const auto i=attachments->entries.find(o->attached);
+  if(i==attachments->entries.end()||i->second!=o)return ClientAttachmentCommit::InvalidChain;
   if(auto *previous=o->predecessor){
-    if(previous->successor!=o||previous->attached!=o->attached||previous->attachment_size!=o->attachment_size)return false;
+    if(previous->successor!=o||previous->attached!=o->attached||previous->attachment_size!=o->attachment_size)
+      return ClientAttachmentCommit::InvalidChain;
     o->displaced=previous->displaced;DequeOwner(*previous,previous->container);previous->attached=nullptr;previous->attachment_size=0;
     previous->successor=nullptr;o->predecessor=nullptr;
   }
-  return true;
+  return ClientAttachmentCommit::Committed;
 }
 bool ClientStagedFieldDetach(ClientStagedField *o) noexcept {
   if(!o||!o->attachment_uses)return true;

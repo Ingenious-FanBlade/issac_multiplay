@@ -1,5 +1,6 @@
 #include "state/host_publish.h"
 #include "state/budget.h"
+#include "state/mod_codec.h"
 #include "core/deferred_values.h"
 #include "state_host_fields.inc"
 #include <algorithm>
@@ -355,6 +356,7 @@ HostStateSnapshotRef HostStateCapture::Capture(const CapturePacket &packet,std::
     prior&&prior->witness.scope==packet.witness.scope?prior->baseline_request_revision:0;
   out->structure_revision=new_run?packet.witness.revision:prior->structure_revision;
   if(!ordinary){out->members=prior->members;out->retained_members=prior->retained_members;out->member_indices=prior->member_indices;out->records=prior->records;out->resources=prior->resources;out->member_epoch=prior->member_epoch;out->resource_epoch=prior->resource_epoch;
+    out->mods=prior->mods;
     out->event_first=prior->event_first;out->event_watermark=prior->event_watermark;}
   else {
     if(!new_run){ids=s.identities;free_indices=s.free_indices;}
@@ -611,6 +613,10 @@ HostStateSnapshotRef HostStateCapture::Capture(const CapturePacket &packet,std::
     out->event_first=segment.first_sequence;out->event_watermark=segment.watermark;
     for(const auto &e:segment.events){HostStateEvent event{e,Own(e.payload)};event.value.payload=event.payload->bytes;out->events.push_back(std::move(event));}
     out->member_indices=std::move(indices);
+    const auto previous=new_run?ModShadowRef{}:prior->mods;
+    out->mods=previous;
+    try {out->mods=EncodeModValues(packet.mods,previous,out->members,packet.witness.revision,out->member_epoch,out->mod_missing_references);}
+    catch(...){out->mod_encode_failures=1;}
   }
   if(flat_contract)out->flat_receipt=FlatReceipt(*out);
   out->memory->Resize(SnapshotBytes(*out));
@@ -644,6 +650,7 @@ HostStateSnapshotRef ProjectResourcePrefix(const HostStateSnapshotRef &source,co
   if(!epoch||count>source->resources.size())return {};
   if(source->resource_epoch<=epoch)return source;
   auto projected=memory::DeferredValue<HostStateSnapshot>();
+  projected->mods=source->mods;
   CopyFrameDirectory(*projected,*source);
   projected->resource_epoch=epoch;
   projected->resources.assign(source->resources.begin(),source->resources.begin()+count);
@@ -734,13 +741,18 @@ struct HostStatePublisher::Impl {
   Scratch scratch;
   FlatEncodeScratch flat_scratch;
   StateRoute route;
+  unsigned ordinal=kModPublic;
   HostStateSnapshotRef source,ordinary_source;
   // ACK 移走发送账本；实际已确认的两流来源与编码所用目录继续独立保留。
   struct ReceivedFrame {
     HostStateSnapshotRef values,tables;
+    ModShadowRef mods;
   };
   std::array<ReceivedFrame,2> received_frames;
   StateEventQueue events;
+  // 私有结果与原生事件各有序号，使用同一份 World 发送凭据确认。
+  net::ModIntentResults mod_results;
+  std::uint64_t mod_receipt=0;
   std::array<StateTarget,192> ledger{};
   std::unique_ptr<HostStateAcknowledgements> acknowledgements;
   std::vector<SentOwner> owners;
@@ -804,9 +816,23 @@ void HostStatePublication::Clear() noexcept {
 HostStatePublisher::HostStatePublisher():impl_(std::make_unique<Impl>()){}
 HostStatePublisher::~HostStatePublisher()=default;
 void HostStatePublisher::Stop() noexcept {auto &s=*impl_;s.pending.reset();s.table_inflight.reset();s.owners.clear();s.acknowledgements.reset();s.source.reset();s.ordinary_source.reset();s.received_frames={};s.ledger={};s.resource_base=0;s.resource_count=0;s.open=false;s.events.Reset();}
-void HostStatePublisher::Open(const StateRoute &route){Stop();auto &s=*impl_;s.route=route;s.targets={};s.confirmed_sources={};s.offered_sources={};s.offered_resource_epochs={};s.first=true;s.rebuild=false;s.awaiting_joint=false;
+void HostStatePublisher::Open(const StateRoute &route,unsigned ordinal){Stop();auto &s=*impl_;s.route=route;s.ordinal=ordinal;s.targets={};s.confirmed_sources={};s.offered_sources={};s.offered_resource_epochs={};s.first=true;s.rebuild=false;s.awaiting_joint=false;
+  auto &results=s.mod_results;
+  results.count=unsigned(std::remove_if(results.values.begin(),results.values.begin()+results.count,[&](const auto &value){
+    return value.connection!=route.connection||value.run!=route.scope.run||value.floor!=route.scope.floor;
+  })-results.values.begin());
   s.event_seen=0;s.capture_session=0;s.forced_baseline_revision=0;s.last_stream=0;s.world_event_budget_since.reset();
   s.recovery_history={};s.acknowledgements=std::make_unique<HostStateAcknowledgements>(route,s.ledger,&s.events);s.open=true;}
+bool HostStatePublisher::QueueModResult(const net::ModIntentResult &result) noexcept {
+  auto &s=*impl_;
+  if(result.connection!=s.route.connection||result.run!=s.route.scope.run||result.floor!=s.route.scope.floor)return true;
+  auto &queue=s.mod_results;
+  if(queue.count&&result.id<=queue.values[queue.count-1].id)return true;
+  if(queue.count==queue.values.size())return false;
+  queue.values[queue.count++]=result;
+  return true;
+}
+std::uint64_t HostStatePublisher::ModResultReceipt() const noexcept {return impl_->mod_receipt;}
 bool HostStatePublisher::Offer(HostStateSnapshotRef source){auto &s=*impl_;if(!s.open||!source)return false;
   if(source==s.source||source==s.ordinary_source)return true;
   // 采集会话属于独立观测owner；线上session必须使用实际C/S握手身份，其余scope逐项相等。
@@ -865,7 +891,8 @@ std::shared_ptr<const HostStateMessage> HostStatePublisher::Next(std::uint64_t n
     };
     const bool world_fresh=s.ordinary_source->ordinary.revision>s.offered_sources[0]||
       resource_advanced(0,*s.ordinary_source)||
-      (s.resource_base==s.ordinary_source->resource_epoch&&s.events.SentWatermark()<s.ordinary_source->event_watermark);
+      (s.resource_base==s.ordinary_source->resource_epoch&&s.events.SentWatermark()<s.ordinary_source->event_watermark)||
+      s.mod_results.count;
     const bool world=(dynamic_streams&1)&&world_fresh&&has_slot(world_usage);
     const bool body=(dynamic_streams&2)&&has_slot(body_usage)&&
       (s.source->witness.revision>s.offered_sources[1]||resource_advanced(1,*s.source));
@@ -955,7 +982,7 @@ std::shared_ptr<const HostStateMessage> HostStatePublisher::Next(std::uint64_t n
     if(root.member==kNullIndex)continue;
     retained.push_back(std::byte(root.member&0xff));retained.push_back(std::byte(root.member>>8));
   }
-  std::uint64_t fixed=52+(joint?104:52)+member_update.size()+retained.size()*unsigned(joint?2:1);
+  std::uint64_t fixed=58+(joint?104:52)+member_update.size()+retained.size()*unsigned(joint?2:1);
   for(unsigned n=0;n<2;++n)for(const auto &r:records[n])fixed+=StateRecordHeaderBytes(r)+r.bytes.size();
   const auto limit=StateMessageBodyLimit(joint?StateLane::Baseline:StateLane::World);
   const auto recover=[&]{return Recover(s.route,{s.route.scope,3,StateResyncReason::Budget,confirmed[0].target,confirmed[1].target});};
@@ -985,6 +1012,69 @@ std::shared_ptr<const HostStateMessage> HostStatePublisher::Next(std::uint64_t n
     }
   }
   StateFrameView frame;frame.scope=s.route.scope;frame.layout_version=LayoutVersion();frame.section_count=joint?2:1;
+  std::vector<std::byte> mod_bytes,result_bytes;
+  memory::Lease mod_workspace;
+  if(joint||stream==0){
+    const auto previous=s.received_frames[0].mods;
+    message->mods=previous;
+    try {
+      const auto world_usage=s.Outstanding(0,now_ms);
+      auto remaining=limit-fixed-segment.consumed;
+      if(!joint){
+        const auto room=StateBudgets().dynamic_send_bytes-world_usage.second;
+        remaining=(std::min)(remaining,room>fixed+segment.consumed?room-fixed-segment.consumed:0);
+      }
+      // 结果优先于普通 Mod 状态，未写入的后缀保留给下一帧。
+      if(s.mod_results.count){
+        mod_workspace=memory::Reserve(memory::Pool::Workspace,2168,"mod_world_send");
+        for(unsigned i=0;i<s.mod_results.count;++i){
+          const auto &result=s.mod_results.values[i];
+          const auto cost=kModResultHeaderBytes+result.size;
+          if(cost>remaining)break;
+          AppendModResult(result_bytes,result);remaining-=cost;message->mod_result_through=result.id;
+        }
+      }
+      const auto *values=snapshot.mods.get();
+      if(values||previous){
+        // 每个发送凭据只记录实际发出的 Mod 值，超出本拍预算的记录在下次仍待发。
+        const auto count=values?values->records.size():0;
+        if(!mod_workspace)mod_workspace=memory::Reserve(memory::Pool::Workspace,0,"mod_world_send");
+        mod_workspace->Resize(count*96+result_bytes.capacity());
+        auto next=CopyModSnapshot(full?ModShadowRef{}:previous,count);
+        if(previous)std::erase_if(next->records,[&](const auto &entry){return !values||!values->records.contains(entry.first);});
+        using Item=std::pair<const ModRecordKey,ModRecord>;
+        std::vector<const Item *> pending,selected;
+        if(values)for(const auto &record:values->records){
+          if(record.second.receiver!=kModPublic&&record.second.receiver!=s.ordinal)continue;
+          const auto sent=previous?previous->records.find(record.first):next->records.end();
+          if(full||!previous||sent==previous->records.end()||sent->second.changed!=record.second.changed)
+            pending.push_back(&record);
+        }
+        // 优先发送等待更久的变化，最终仍按记录键编码。
+        std::stable_sort(pending.begin(),pending.end(),[](auto a,auto b){return a->second.changed<b->second.changed;});
+        std::size_t total=0;
+        for(const auto *record:pending){
+          const auto size=kModRecordHeaderBytes+record->second.value->bytes.size();
+          if(size>remaining-total)continue;
+          total+=size;selected.push_back(record);
+        }
+        if(!joint&&selected.empty()&&!pending.empty()&&!world_usage.first&&
+           kModRecordHeaderBytes+pending.front()->second.value->bytes.size()>limit-fixed-segment.consumed){
+          recover();return {};
+        }
+        std::sort(selected.begin(),selected.end(),[](auto a,auto b){return a->first<b->first;});
+        mod_workspace->Resize(count*96+total+result_bytes.capacity());
+        mod_bytes.reserve(total);
+        for(const auto *record:selected){
+          AppendModRecord(mod_bytes,record->first,record->second);
+          next->records.insert_or_assign(record->first,record->second);
+        }
+        message->mods=std::move(next);
+      }
+    }catch(...){mod_bytes.clear();message->mods=full?ModShadowRef{}:previous;}
+  }
+  frame.mod_values=mod_bytes;
+  frame.mod_results=result_bytes;
   auto targets=s.targets;
   for(unsigned i=0;i<frame.section_count;++i){const auto n=joint?i:stream;if(targets[n]==UINT32_MAX)Fail("target_sequence_exhausted");++targets[n];}
   for(unsigned i=0;i<frame.section_count;++i){const auto n=joint?i:stream;auto &section=frame.sections[i];auto &c=section.context;
@@ -996,7 +1086,7 @@ std::shared_ptr<const HostStateMessage> HostStatePublisher::Next(std::uint64_t n
   }
   frame.member_update=member_update;
   order.resize(tables.members.size());StateFrameScratch fs;fs.member_order=order;fs.body=s.scratch.Body();
-  s.scratch.Ensure(std::size_t(fixed+(joint||stream==0?segment.consumed:0)));
+  s.scratch.Ensure(std::size_t(fixed+(joint||stream==0?segment.consumed:0))+mod_bytes.size()+result_bytes.size());
   const auto bytes=EncodeStateFrameInto(frame,s.scratch.output,context,fs,Limits(joint));
   if(!joint){
     const auto usage=s.Outstanding(stream,now_ms);
@@ -1049,10 +1139,19 @@ void HostStatePublisher::TableReceived(const HostStateMessage &message){
 StateAckResult HostStatePublisher::Received(const StateRoute &route,const StateAppliedAck &ack){auto &s=*impl_;if(!s.open)return StateAckResult::StaleRoute;
   std::array<std::uint64_t,2> sources=s.confirmed_sources;const auto before=s.acknowledgements->Confirmed();
   auto received_frames=s.received_frames;
+  std::uint64_t mod_receipt=0;
   for(const auto &owner:s.owners)if(StateTargetAck(owner->target)==ack)for(unsigned i=0;i<owner->target.count;++i){const auto &c=owner->target.sections[i];const auto n=unsigned(c.stream);
-    if(c.target_version>before[n].target){sources[n]=c.source_revision;received_frames[n]={owner->source,owner->tables};}}
+    if(c.target_version>before[n].target){
+      sources[n]=c.source_revision;received_frames[n]={owner->source,owner->tables,owner->mods};
+      if(!n)mod_receipt=owner->mod_result_through;
+    }}
   const auto result=s.acknowledgements->Accept(route,ack);
   if(result==StateAckResult::Accepted){
+    s.mod_receipt=(std::max)(s.mod_receipt,mod_receipt);
+    auto &results=s.mod_results;
+    results.count=unsigned(std::remove_if(results.values.begin(),results.values.begin()+results.count,[&](const auto &value){
+      return value.id<=mod_receipt;
+    })-results.values.begin());
     if(s.acknowledgements->Confirmed()[0].event_watermark>before[0].event_watermark)s.world_event_budget_since.reset();
     s.confirmed_sources=sources;s.received_frames=std::move(received_frames);if(ack.count==2)s.awaiting_joint=false;
     if(!s.acknowledgements->RecoveringStreams())s.rebuild=false;s.Collect();

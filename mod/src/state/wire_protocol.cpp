@@ -347,7 +347,12 @@ StateFrameView InspectStateFrame(const StateScope &scope,std::span<const std::by
     else if(event_counts[i])Fail("body_events");
     presentation_bytes[i]=bytes.subspan(start,input.Position()-start);events+=event_counts[i];
   }
-  // 最后一段之后的所有字节属于唯一成员目录更新，由影子按精确 base 合并。
+  const auto mod_bytes=std::size_t(h[std::size_t(StateFrameHeaderField::mod_bytes)]);
+  const auto mod_results=std::size_t(h[std::size_t(StateFrameHeaderField::mod_result_bytes)]);
+  if((mod_bytes||mod_results)&&frame.sections[0].context.stream!=BodyStream::World)Fail("body_mod_values");
+  frame.mod_values=input.Take(mod_bytes);
+  frame.mod_results=input.Take(mod_results);
+  // Mod 段之后的字节属于唯一成员目录更新，由原生影子按精确 base 合并。
   frame.member_update=input.Take(bytes.size()-input.Position());
   if(!frame.sections[0].context.base_version&&frame.member_update.empty())Fail("baseline_member_directory");
   if (frame.section_count==2) for (auto &s:frame.sections) s.context.paired_targets={frame.sections[0].context.target_version,frame.sections[1].context.target_version};
@@ -427,7 +432,10 @@ StateLane StateFrameLane(const StateFrameView &frame) {
 }
 std::span<const std::byte> EncodeStateFrameInto(StateFrameView &frame,std::span<std::byte> output,
     const StateFrameCodecContext &context,StateFrameScratch &scratch,BodyCodecLimits limits) {
-  FrameContexts(frame,limits.reliable);std::uint64_t size=kW_StateCommonHeaderBytes+kW_StateFrameHeaderBytes+frame.member_update.size();
+  FrameContexts(frame,limits.reliable);std::uint64_t size=kW_StateCommonHeaderBytes+kW_StateFrameHeaderBytes+
+    frame.member_update.size()+frame.mod_values.size()+frame.mod_results.size();
+  if(((!frame.mod_values.empty()||!frame.mod_results.empty())&&frame.sections[0].context.stream!=BodyStream::World)||
+      Overlap(frame.mod_values,output)||Overlap(frame.mod_results,output))Fail("frame_mod_values");
   FrameScratch(scratch,output);
   if (Overlap(ObjectBytes(frame),output)) Fail("frame_encode_metadata_overlap");
   std::uint64_t events=0;
@@ -445,6 +453,8 @@ std::span<const std::byte> EncodeStateFrameInto(StateFrameView &frame,std::span<
   if(size>output.size()||events>kW_max_audio_events)Fail("frame_output_or_count_budget");
   Limits(limits,std::size_t(size));Common(frame.scope,output);Values<StateFrameHeaderField> h{};
   At(h,StateFrameHeaderField::section_count)=frame.section_count;At(h,StateFrameHeaderField::flags)=frame.section_count==2?1:0;
+  At(h,StateFrameHeaderField::mod_bytes)=frame.mod_values.size();
+  At(h,StateFrameHeaderField::mod_result_bytes)=frame.mod_results.size();
   Write(kW_StateFrameHeader,h,output.subspan(kW_StateCommonHeaderBytes,kW_StateFrameHeaderBytes));
   auto position=kW_StateCommonHeaderBytes+kW_StateFrameHeaderBytes;auto remaining=limits;
   Visit(remaining,std::uint32_t(StateCommonHeaderField::count)+std::uint32_t(StateFrameHeaderField::count));
@@ -489,6 +499,14 @@ std::span<const std::byte> EncodeStateFrameInto(StateFrameView &frame,std::span<
         context.BodyContext(c,kNullIndex),local,visits);position+=encoded.size();}
     // 复用正式编码检查的真实成本，不信调用者计数，也不重复解码全部结果。
     Visit(remaining,visits);
+  }
+  if(!frame.mod_values.empty()){
+    std::memcpy(output.data()+position,frame.mod_values.data(),frame.mod_values.size());
+    position+=frame.mod_values.size();
+  }
+  if(!frame.mod_results.empty()){
+    std::memcpy(output.data()+position,frame.mod_results.data(),frame.mod_results.size());
+    position+=frame.mod_results.size();
   }
   if(!frame.sections[0].context.base_version&&frame.member_update.empty())Fail("baseline_member_directory");
   if(!frame.member_update.empty()){

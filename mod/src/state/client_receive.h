@@ -1,5 +1,6 @@
 #pragma once
 #include "state/client_events.h"
+#include "net/mod_intent.h"
 #include <atomic>
 #include <chrono>
 
@@ -17,6 +18,8 @@ struct ClientTargetFacts;
 struct ClientStatePreparedTarget {
   ClientStateCandidateRef candidate;
   std::array<ClientShadowStateRef,2> effective;
+  ModShadowRef mods;
+  bool mod_lifecycle=false;
   // 比较稳定控制分配与结构变化只使用真正成功安装根，不能拿等待候选作基线。
   std::array<ClientShadowStateRef,2> previous;
   ClientStateVector<ClientReceivedEvent> events;
@@ -89,13 +92,15 @@ public:
   virtual bool Apply(ClientStateApplyBatchRef)=0;
   virtual bool Resource(const ClientStateResourceJob &)=0;
   virtual bool Control(StateMessageKind,std::span<const std::byte>)=0;
+  virtual void ModResult(const net::ModIntentResult &) {}
 };
 class ClientStateReceiver final {
 public:
   ClientStateReceiver(std::shared_ptr<ClientStateMemory>,std::span<const ClientShadowLayoutBinding>,
       const ClientStatePreparation &,ClientStateReceiveDelivery &);
   ~ClientStateReceiver();
-  void Open(const StateRoute &,StateAgreement,std::uint64_t generation,std::uint64_t now_ms);
+  void Open(const StateRoute &,StateAgreement,std::uint64_t generation,std::uint64_t now_ms,
+      ModSchemaRef mods={},unsigned ordinal=kModPublic);
   void Close();
   bool Drained() const;
   void Receive(StateMessageKind,StateLane,std::span<const std::byte>,std::uint64_t sequence,std::uint64_t now_ms,bool defer_waiting=false);

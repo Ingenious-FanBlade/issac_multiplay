@@ -113,6 +113,9 @@ local errorText = {
     lobby_character_locked = "该角色在房主存档中尚未解锁。",
 }
 local function describeError(code)
+    if type(code) == "string" and code:sub(1, 14) == "mod_manifest: " then
+        return code:sub(15)
+    end
     return errorText[code] or ("错误代码：" .. tostring(code))
 end
 -- 会话与客机状态名到中文；未登记的状态名原样附在后面。

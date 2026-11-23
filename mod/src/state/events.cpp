@@ -41,7 +41,8 @@ bool Same(const StateEventView &a,const StateEventView &b){return a.sequence==b.
 bool StateEventCosmetic(StateEventKind kind) noexcept{return kind==StateEventKind::Sfx||kind==StateEventKind::ItemBanner||kind==StateEventKind::Fortune;}
 std::uint16_t StateEventLayout(StateEventKind kind) noexcept {
   switch(kind){case StateEventKind::Sfx:return F::SfxPlayEvent::kLayout;case StateEventKind::ItemBanner:return F::ItemBannerEvent::kLayout;
-    case StateEventKind::Fortune:return F::FortuneEvent::kLayout;case StateEventKind::BossIntro:return F::BossIntroEvent::kLayout;case StateEventKind::RoomTransition:return F::RoomTransitionEvent::kLayout;default:return 0;}
+    case StateEventKind::Fortune:return F::FortuneEvent::kLayout;case StateEventKind::BossIntro:return F::BossIntroEvent::kLayout;case StateEventKind::RoomTransition:return F::RoomTransitionEvent::kLayout;
+    case StateEventKind::Cutscene:return F::ModCutsceneEvent::kLayout;default:return 0;}
 }
 std::uint32_t StateEventHeaderBytes() noexcept{return 22;}
 std::uint32_t StateEventQueueHeaderBytes() noexcept{return 22;}
@@ -148,7 +149,7 @@ bool QueueCapturedStateEvents(const CapturePacket &packet,StateEventQueue &queue
   auto previous=packet.event_first_sequence-1;
   for(unsigned n=0;n<count;++n){const auto i=order[n];const auto &record=packet.records[i];
     if(record.event_sequence<=previous||record.event_sequence>packet.event_watermark)return false;previous=record.event_sequence;
-    StateEventKind kind{};for(unsigned k=1;k<=5;++k)if(StateEventLayout(StateEventKind(k))==record.layout)kind=StateEventKind(k);
+    StateEventKind kind{};for(unsigned k=1;k<=unsigned(StateEventKind::Cutscene);++k)if(StateEventLayout(StateEventKind(k))==record.layout)kind=StateEventKind(k);
     if(!StateEventLayout(kind)||(record.production.phase!=CapturePhase::Production&&record.production.phase!=CapturePhase::IntentionBinding)||
        record.production.scope.session!=packet.witness.scope.session||record.production.scope.run!=packet.witness.scope.run||
        record.generation!=packet.witness.generation||record.instance!=record.event_sequence||record.purpose!=record.layout||

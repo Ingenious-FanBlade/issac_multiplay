@@ -13,7 +13,7 @@
 | [RunScoreSheet](RunScoreSheet.md) | 234 | 144 | 3 | 是 |
 | [RunColorModState](RunColorModState.md) | 235 | 24 | 0 | 是 |
 | [RunGameStateFlags](RunGameStateFlags.md) | 236 | 8 | 0 | 是 |
-| [GameRun](GameRun.md) | 237 | 426216 | 150526 | 是 |
+| [GameRun](GameRun.md) | 237 | 426216 | 150509 | 是 |
 | [RunSeedEffectNode](RunSeedEffectNode.md) | 238 | 20 | 2 | 是 |
 | [PlayerHUDHeart](PlayerHUDHeart.md) | 310 | 16 | 3 | 是 |
 | [PlayerHUDActiveItem](PlayerHUDActiveItem.md) | 311 | 28 | 0 | 是 |
@@ -135,6 +135,7 @@
 | [RoomTransitionEvent](RoomTransitionEvent.md) | 453 | 0 | 0 | 是 |
 | [BossDisplayState](BossDisplayState.md) | 454 | 0 | 0 | 是 |
 | [BossDisplayPose](BossDisplayPose.md) | 455 | 0 | 0 | 是 |
+| [ModCutsceneEvent](ModCutsceneEvent.md) | 456 | 0 | 0 | 是 |
 
 公开目录：[run-catalog run域全部 191 行](run-catalog-run-members.md)。
 

@@ -88,7 +88,7 @@ struct CaptureExchange::State {
     tail.store(next,std::memory_order_release);return true;
   }
   // 只有真实外层已提交、当前证言仍有效时才能转Ready；此后producer不再碰packet内容。
-  bool Commit(Key key,CaptureValueWriter &writer,const CaptureWindow &window,const CaptureRoot &anchor,std::uint32_t roots) noexcept {
+  bool Commit(Key key,CaptureValueWriter &writer,const CaptureWindow &window,const CaptureRoot &anchor,std::uint32_t roots,ModRawRef mods) noexcept {
     if(!Producer()){writer.Fail(CaptureFailure::WrongThread);return false;}
     if(!Owned(key,Writing) || !Current(key)){writer.Fail(CaptureFailure::Revoked);return false;}
     if(key.lane==CaptureLane::Body && anchor.subject!=key.subject){writer.Fail(CaptureFailure::InvalidWindow);return false;}
@@ -114,6 +114,7 @@ struct CaptureExchange::State {
       lane=&cold;cold_enqueued=key.cold_request;
     }else key.cold_request=0;
     if(!Next(order))return false;
+    slot.packet.mods=std::move(mods);
     slot.key=key;slot.order=order;slot.queued_us=CaptureClock();slot.state.store(Ready,std::memory_order_release);
     const auto old=lane->exchange(key.slot,std::memory_order_acq_rel);
     if(old!=Empty){slots[old].state.store(Free,std::memory_order_release);replaced.fetch_add(1,std::memory_order_relaxed);}
@@ -230,8 +231,8 @@ CaptureValueWriter *CaptureExchange::WriteTicket::Values() noexcept {
   if(!state_->Producer() || !state_->Owned(key_,Writing) || !state_->Current(key_)){writer_->Fail(CaptureFailure::Revoked);return nullptr;}
   return &*writer_;
 }
-bool CaptureExchange::WriteTicket::Publish(const CaptureWindow &window,const CaptureRoot &anchor,std::uint32_t roots) noexcept {
-  if(!state_||!writer_||!state_->Commit(key_,*writer_,window,anchor,roots))return false;
+bool CaptureExchange::WriteTicket::Publish(const CaptureWindow &window,const CaptureRoot &anchor,std::uint32_t roots,ModRawRef mods) noexcept {
+  if(!state_||!writer_||!state_->Commit(key_,*writer_,window,anchor,roots,std::move(mods)))return false;
   writer_.reset();key_={};state_.reset();return true;
 }
 void CaptureExchange::WriteTicket::Reset() noexcept {

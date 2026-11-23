@@ -15,7 +15,7 @@ using input::NextStartupTarget;
 using input::ScriptDrainAllowed;
 using input::ValidateInputRuntimeConfig;
 
-inline constexpr std::uint32_t kHeldItem = 2, kHeldPill = 4, kHeldDrop = 8;
+inline constexpr std::uint32_t kHeldItem = 2, kHeldPill = 4, kHeldDrop = 8, kHeldBomb = 16;
 // 缺输入立即中性；静默阈值仅用于诊断，不退休参与者，也不代替连接存活判断。
 inline constexpr std::uint64_t kMaximumInputAgeTicks = 0;
 inline constexpr std::uint64_t kClientSilenceTimeoutTicks = 120;
@@ -54,21 +54,22 @@ struct ClientInputAvailability {
   bool effective_available = false, neutral_applied = false,
        has_valid_arrival = false;
 };
-// V2 保留原型 24 字节 codec，增加主动/卡牌/丢弃的 held 位，不含游戏布局。
+// 统一输入状态。模组按键位序按握手清单排序，边沿随对应目标 tick 消费。
 struct InputStateDraftV2 {
-  std::uint16_t version = 2, encoded_length = 24;
+  std::uint16_t version = 3, encoded_length = 40;
   std::uint32_t held_flags = 0, edge_flags = 0;
   std::int16_t move_x = 0, move_y = 0, aim_x = 0, aim_y = 0;
   std::uint32_t reserved = 0;
+  std::uint64_t mod_held = 0, mod_edge = 0;
 };
-// 64 字节 canonical 命令；会话 generation 与 exact pair 由本地 owner 校验。
+// 80 字节 canonical 命令；会话 generation 与 exact pair 由本地 owner 校验。
 struct alignas(8) InputCmdDraftV2 {
   std::array<std::uint8_t, 16> session_id{};
   std::uint64_t client_id = 0, sequence = 0, target_tick = 0;
   InputStateDraftV2 state{};
 };
-static_assert(sizeof(InputStateDraftV2) == 24);
-static_assert(sizeof(InputCmdDraftV2) == 64);
+static_assert(sizeof(InputStateDraftV2) == 40);
+static_assert(sizeof(InputCmdDraftV2) == 80);
 static_assert(offsetof(InputCmdDraftV2, state) == 40);
 
 enum class Decision : std::uint32_t {
@@ -95,7 +96,8 @@ enum class Consumer : std::uint32_t {
   Item,
   Pill,
   Shooting,
-  Drop
+  Drop,
+  Lua
 };
 
 // 适配层确认的 (Player, device, controllerIndex)，control block
@@ -127,8 +129,8 @@ bool CanonicalizeShooting(input::RawInputSample &raw,
                           const std::array<float, 4> &directions,
                           ShootingDirections &history,
                           InputStateDraftV2 &state) noexcept;
-using EncodedInputStateV2 = std::array<std::uint8_t, 24>;
-using EncodedInputCmdV2 = std::array<std::uint8_t, 64>;
+using EncodedInputStateV2 = std::array<std::uint8_t, sizeof(InputStateDraftV2)>;
+using EncodedInputCmdV2 = std::array<std::uint8_t, sizeof(InputCmdDraftV2)>;
 bool Encode(const InputStateDraftV2 &state,
             EncodedInputStateV2 &bytes) noexcept;
 bool Decode(const EncodedInputStateV2 &bytes,

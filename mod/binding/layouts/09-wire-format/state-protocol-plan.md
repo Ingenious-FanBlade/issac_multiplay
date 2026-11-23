@@ -1,11 +1,11 @@
 # 完整消息与接受数字合同
 
-布局版本 90；同源生成，不是测试报告。
+布局版本 94；同源生成，不是测试报告。
 
 | 头 | 布局 | 字节 |
 |---|---|---|
 | StateCommonHeader | 408 | 50 |
-| StateFrameHeader | 409 | 2 |
+| StateFrameHeader | 409 | 8 |
 | StateSectionHeader | 410 | 52 |
 | StateRecordHeader | 411 | 12 |
 | StateTableHeader | 412 | 10 |

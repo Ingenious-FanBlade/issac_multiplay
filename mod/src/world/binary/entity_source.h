@@ -47,6 +47,7 @@ struct EntityFacts {
   std::uint16_t layout=0,source_slot=state::kNullIndex;
   // 本次 ordinary 单根失败后的沿用状态；物理成员身份仍由原生列表确认。
   state::CaptureFailure capture_failure=state::CaptureFailure::None;
+  bool retained_mod_state=false; // 原生根沿用时，随实体的 Lua 记录也沿用。
   std::uint32_t grid_index=UINT32_MAX;
   std::uint32_t manager=0;
   // Q12由同一ordinary后态读取，未准备时拒绝合成字段，不回落normal。

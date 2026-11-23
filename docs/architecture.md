@@ -16,8 +16,8 @@
 | 目标游戏 | The Binding of Isaac: Repentance+ v1.9.7.12.J273（Win32） |
 | 运行平台 | 官方 REPENTOGON 1.1.3。本项目以 REPENTOGON 的 zhl 插件 DLL（`zhlIsaacCS.dll`）形式加载 |
 | 联机模型 | Listen Server：房主进程运行权威游戏，最多 3 个远端客机，共 4 名参与者 |
-| 客机职责 | 只上传输入、显示房主的世界，不运行玩法逻辑 |
-| 当前范围 | 原版内容。第三方 Mod 的状态同步不在当前范围内 |
+| 客机职责 | 上传输入和声明的 Mod 意图，安装 Host 状态并显示 |
+| 当前范围 | 原版内容和声明式 Mod 联机接口。Mod 适配已实现、待统一 E2E；具体 Mod 按声明和清单协商 |
 
 与原版 Online 和 Isaac Sync 相互隔离：不调用原版联机路径，也不兼容它们的协议。
 
@@ -47,7 +47,7 @@
 核心原则：
 
 1. **Host 唯一权威**：玩法、随机数、存档和成就只在 Host 上产生。客机拦截 `Game::Update` 等玩法入口，并隔离随机数和持久化副作用。
-2. **原生二进制采集**：Host 在 C++ 侧按生成的复制计划直接读取游戏对象内存，不经过 Lua getter，也不构造 JSON。
+2. **二进制采集**：原生对象按生成的复制计划读取。Mod 声明在普通 World 窗口读取 Lua 值并按强类型布局编码，两条路径都生成自有二进制数据。
 3. **按需采集**：只同步客机需要的字段：原生显示要读而客机算不出的值、原生对象结构需要的值、玩家可见的规则结果，以及事件。字段清单写在 `mod/binding/state/demand.json`。
 4. **显示交给原生代码**：客机把状态写进本地原生对象，再调用原生 `Game::Render` 绘制，不自行实现绘制。
 5. **最终一致**：ACK 只表示“已收到”。客机在一帧内把最新状态直接写进活对象，单个对象出错只隔离该对象，由后续帧纠正。
@@ -61,6 +61,7 @@
 | 布局源与清单 | `mod/binding/` | Hook 清单 `hooks.json`、原生布局常量 `world_layout.json`、二进制状态布局源 `state/*.json`、成员目录 `catalog/` |
 | 生成器 | `mod/tools/gen_*.py` | 构建时从布局源生成 C++ 表（`build/.../generated/*.inc`）和布局文档 `mod/binding/layouts/` |
 | 界面 Mod | `ui/isaac-cs-ui/` | REPENTOGON ImGui 菜单“以撒联机”。只通过 `Isaac.ExecuteCommand` 下发 `cs ...` 命令，不注册玩法回调 |
+| Mod SDK 与运行时 | `mod/sdk/isaaccs_sdk.lua`、`mod/src/game/mods/` | 加载期声明、握手清单、状态与意图、客机回调过滤。联机层的 `IsaacCS` 实现和回调分派脚本在 `mod/src/game/mods/lua/`，编进 DLL；对外分发的 SDK 是薄壳，只提供没装联机层时的单机行为 |
 | 观测 Mod | `mod/observation/isaac-cs-observation/` | 只读 Lua 观测来源，用于语义核对和 E2E 对照，不在正式同步路径上 |
 | E2E 工具 | `tools/harness/`（Rust）、`tools/isaac-dual/`、`tools/client-fixture/`、`tools/replica-contract/`、`tests/e2e-mods/` | 只在 `-E2E` 构建中产出，与产品包分开 |
 | 构建脚本 | `scripts/build.ps1`、`scripts/package.ps1` | 纯构建与产品打包 |
@@ -92,6 +93,7 @@
 | `game/input/` | 物理输入采样、统一输入查询、原生输入消费者 |
 | `game/participants/` | 参与者与身体拓扑、虚拟设备 K、原生 Join、远端输入、远端生命状态 |
 | `game/observation/` | Host 采样的主线程桥（`world_bridge.*`）和二进制采集协调（`binary_entities.*`） |
+| `game/mods/` | 主线程 Lua SDK 接入、声明编译、采集和安装、原生 Player／进度显示镜像 |
 | `game/client/` | 客机全部逻辑：`session/` 连接与输入上行，`scene/` 安装事务，`display/` 显示委托，`presentation/` 插值与预测，`entity/`、`player/`、`grid/`、`room/`、`resources/` 各域原生写入，`isolation/` 副作用隔离 |
 | `game/tests/` | 只在 E2E 构建中编译的故障注入与对照 |
 
@@ -114,6 +116,7 @@
 
 - 原生地址不离开主线程。采集包、快照和网络消息里只有自有字节和数字身份。
 - 状态变更命令（`cs host`、`cs stop` 等）只排队，在下一次最外层 `Manager::Update` 入口统一执行。
+- Mod 意图与本机指令同在 Manager 入口处理。后台只处理意图和状态记录的格式及纯值，Lua handler、getter、setter 和生命周期通知均在主线程调用。
 - 交接全部有界：队列满时显式计数并降级，不阻塞主线程。
 
 ## 6. 一帧之内
@@ -124,7 +127,7 @@
 
 1. **Manager 入口**：执行排队的命令；网络线程收到的远端输入在这里成为本 tick 的输入。
 2. **权威 tick**：`game/authority/tick.cpp` 绑定参与者、消费统一输入队列，然后让原生 `Game::Update` 运行。远端玩家的输入经虚拟设备 K 交给原生 co-op 玩家。
-3. **后态采样**：原生更新返回后，`world_bridge.cpp` 在已核定的读取窗口内调用 `BinaryEntities::Prepare`。普通帧（StandardRoom）采集整个 World，玩家后态（PlayerPost）采集逐身体的 Body。
+3. **后态采样**：原生更新返回后，`world_bridge.cpp` 在已核定的读取窗口内调用 `BinaryEntities::Prepare`。普通帧（StandardRoom）采集 World 和到期的 Mod 声明；玩家后态（PlayerPost）采集逐身体的 Body。
 4. **交接**：采样结果写入预分配缓冲，经 `CaptureExchange` 非阻塞交给采集后台线程。
 5. **后台编码**：后台线程生成不可变来源快照，发布到 `HostStatePublication`。
 6. **网络发送**：网络线程为每个 Peer 相对其已确认基线组帧，World 和 Body 两条流各自限窗发送。
@@ -132,7 +135,7 @@
 ### 6.2 Client
 
 1. **连接线程**：收包、重组、解码、纯值校验，更新影子状态，保留可解码的快照并立即发 ACK；把已封存的安装批次放入邮箱。
-2. **Manager 边界**：主线程取最新批次，在一次调用内完成删除、新建或原地 Morph、写字段、挂引用、写全局状态和帧号，然后回放事件。
+2. **Manager 边界**：主线程取最新批次，完成原生安装及事件回放，再使用同一 World 的 Mod 影子写入 Lua 值、派发生命周期及状态通知。
 3. **显示推进**：`Game::Update` 被拦截不运行。客机改为调用已核实的显示子更新（相机、HUD、地图、动画、音乐等）。
 4. **绘制**：包装原生 `Game::Render`。绘制前由插值和预测覆盖层临时写入显示位置，绘制后恢复。
 5. **输入上行**：采样本机物理输入，投影到预计抵达 Host 的 tick 后发送。
@@ -148,8 +151,9 @@
 
 | 项目 | 位置 | 当前值 | 规则 |
 | --- | --- | --- | --- |
-| 布局版本 | `mod/binding/state/version.json` 的 `version` | 90 | 布局源或影响互通的合同变化时手工加 1；握手要求双方完全相等 |
-| 流协议 | `mod/src/replica/stream_version.h` | framing 2、schema 1、compact 2 | 双方能力声明同时变化 |
+| 布局版本 | `mod/binding/state/version.json` 的 `version` | 94 | 布局源或影响互通的合同变化时手工加 1；握手要求双方完全相等 |
+| 流协议 | `mod/src/replica/stream_version.h` | framing 2、schema 1、compact 3 | 双方能力声明同时变化 |
+| Mod 清单 | `net/mod_manifest.*`、`game/mods/mod_api.cpp` | `ModManifest`（27） | 在 Ready 前比较启用集合、版本、声明文本和内容 ID，拒绝未声明的 Lua Mod |
 | 构建合同 | 同上 `kBuildContract` | `binary-state-v1` | — |
 | 目标游戏 | `mod/binding/v1_9_7_12-static.json`、`world_layout.json` | J273 | 只支持这一版本；RVA 以 IDB 基址 `0x400000` 记录，运行时加实际模块基址 |
 
@@ -162,8 +166,10 @@
 pwsh -NoProfile -File scripts/build.ps1
 # 含 E2E 工具与 Rust harness 的独立构建
 pwsh -NoProfile -File scripts/build.ps1 -E2E
-# 生成产品清单：DLL、界面 Mod、观测 Mod 与功能目录
+# 产品包包含 DLL、界面 Mod 与独立 SDK
 pwsh -NoProfile -File scripts/package.ps1 -OutputDirectory out/product
+# 从 E2E 构建单独选择模组适配夹具包
+pwsh -NoProfile -File scripts/package.ps1 -ModAdaptation
 ```
 
 - 依赖：Visual Studio 2022（v143）、Windows SDK、Python 3、REPENTOGON 1.1.3 源码树（默认 `F:/projects_isaac/REPENTOGON-1.1.3`，可用 `-RepentogonRoot` 指定）。
@@ -174,5 +180,6 @@ pwsh -NoProfile -File scripts/package.ps1 -OutputDirectory out/product
 
 - 二进制同步主链路已接通并通过纯编译；统一的 E2E 整体验收尚未完成，运行行为以验收结果为准。
 - 自布局版本 90（2026-11-21）起，实体、Player 两条流和 Grid 使用平铺记录编码，全局根和控制组仍用块编码，见[同步](synchronization.md)第 4 节。平铺编码在版本 85 上做过一轮实测；86—89 新增的字段（属性栏输入、预测对账字段、道具历史、`predict_gate`）在平铺路径上只通过了纯构建，尚未实机验证。
+- 模组适配的运行覆盖由[专用夹具](../tests/e2e-mods/isaac-cs-mod-fixture/README.md)在第 14 步统一验收。声明范围、回调类别和限制见 [Mod 联机接口](mod-api.md)。
 - 本机预测、插值与外推已实现，运行效果待验收，见[Client 端设计](client.md)。
 - 历史设计、逆向报告和验收记录保存在 `docs/archive/`，只作查证用，其中的旧流程不再作为现行要求。

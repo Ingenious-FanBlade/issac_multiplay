@@ -1,0 +1,13 @@
+#pragma once
+// 由 CMake 在配置阶段从 mod/src/game/mods/lua/*.lua 生成，不要手改生成结果。
+// 两段 Lua 源都只在 DLL 内使用；对外分发的 mod/sdk/isaaccs_sdk.lua 是薄壳，不嵌入。
+namespace cs::game {
+// isaaccs_api.lua：联机层的 IsaacCS 实现。
+inline constexpr unsigned char kModApiSource[] = {
+@ISAACCS_API_BYTES@
+};
+// isaaccs_dispatch.lua：回调放行、加载与卸载通知、Input 路由、内容 ID 表读取。
+inline constexpr unsigned char kModDispatchSource[] = {
+@ISAACCS_DISPATCH_BYTES@
+};
+}

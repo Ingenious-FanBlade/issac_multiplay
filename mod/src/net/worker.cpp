@@ -102,6 +102,10 @@ struct Worker::State {
   Endpoint endpoint{};
   // ICSR与历史输入工具共用监听socket，但每槽只选择一种协议与独立身份。
   std::unique_ptr<live::HostPeer> game_peer;
+  ModIntentInbox mod_inbox;
+  ModIntentInbox *shared_mod_inbox=nullptr;
+  OwnedQueue<ModIntentResult,kModIntentInFlight> mod_results;
+  std::optional<ModIntentResult> pending_mod_result;
   struct QueuedGame final {memory::Lease memory;std::vector<std::uint8_t> bytes;};
   std::deque<QueuedGame> game_outgoing;
   live::Uplink uplink_owner;
@@ -348,14 +352,14 @@ struct Worker::State {
       if (!game_peer) {
         std::uint64_t session = 0; std::memcpy(&session, identity.session.data(), sizeof(session));
         if (!session) session = 1;
-        game_peer = std::make_unique<live::HostPeer>(session, ordinal,config.stream,config.lobby);
+        game_peer = std::make_unique<live::HostPeer>(session, ordinal,config.stream,config.lobby,config.mods);
         game_candidate = true; candidate_since = now; peer = source;
       }
       ReceivedInput input{};
-      const bool delivered = game_peer->Receive(bytes, now, input, identity);
+      const bool delivered = game_peer->Receive(bytes, now, input, identity,shared_mod_inbox);
       if(config.lobby)lobby_selection.store(game_peer->LobbySelection(),std::memory_order_release);
       SendGame(game_peer->Reply(), now);
-      if (game_peer->Nonce()) {
+      if (game_peer->Established()) {
         locked = true; game_candidate = false;
         peer_ip.store(ntohl(peer.sin_addr.s_addr), std::memory_order_relaxed);
         peer_port.store(ntohs(peer.sin_port), std::memory_order_relaxed);
@@ -485,7 +489,10 @@ struct Worker::State {
       // 未完成的分片候选最多三个、每个64KiB；超时释放，不永久占用参与者。
       for (unsigned i=1;i<peers.size();++i) {
         auto &p=*peers[i];
-        if (p.game_candidate && now-p.candidate_since>=1000) {
+        if (!p.game_candidate) continue;
+        const auto last=p.game_peer->LastReceive();
+        if (now-(last?last:p.candidate_since)>=config.peer_timeout_ms ||
+            now-p.candidate_since>=config.stream.absolute_timeout_ms) {
           p.game_peer.reset();p.game_candidate=false;
         }
       }
@@ -563,14 +570,30 @@ struct Worker::State {
   void SendBatch(std::uint64_t now) noexcept {
     if (game_peer) {
       FlushGame(now);
-      if (!game_peer->Established()) return;
       try {
+        const auto send=[&](auto bytes) {
+          Packet packet{};packet.size=bytes.size();std::copy(bytes.begin(),bytes.end(),packet.bytes.begin());
+          if(SendPacket(packet,now))return replica::stream::SendResult::Sent;
+          return terminal.load(std::memory_order_acquire)==TerminalReason::InternalFailure?
+            replica::stream::SendResult::Failed:replica::stream::SendResult::WouldBlock;
+        };
+        game_peer->PumpManifest(now,send);
+        if (!game_peer->Established()) return;
         Ack ack{};
         // 每轮只发布最新完整快照，避免高帧率主线程造成无界发送；输入ACK独立产生。
         for (unsigned i=0;i<kSendBudget && outgoing.TryPop(ack);++i) heartbeat=ack;
         if(!(heartbeat.roster_mask&(1u<<ordinal)))return;
+        for(unsigned i=0;i<kModIntentInFlight;++i){
+          if(!pending_mod_result){
+            ModIntentResult result;
+            if(!mod_results.TryPop(result))break;
+            pending_mod_result=result;
+          }
+          if(!game_peer->QueueModResult(*pending_mod_result))break;
+          pending_mod_result.reset();
+        }
         SendGame(game_peer->Progress(heartbeat),now);
-        game_peer->Pump(now,*encoding_cache,[&](auto bytes){Packet packet{};packet.size=bytes.size();std::copy(bytes.begin(),bytes.end(),packet.bytes.begin());if(SendPacket(packet,now))return replica::stream::SendResult::Sent;return terminal.load(std::memory_order_acquire)==TerminalReason::InternalFailure?replica::stream::SendResult::Failed:replica::stream::SendResult::WouldBlock;});
+        game_peer->Pump(now,*encoding_cache,send);
         publication_phase.store(game_peer->PublicationPhase(),std::memory_order_relaxed);
         const auto binary=game_peer->StateProgress();
         const std::array<std::uint64_t,13> progress{binary.world,binary.body,binary.events,binary.dropped_capacity,
@@ -582,7 +605,11 @@ struct Worker::State {
         if(stream_status_mutex.try_lock()){stream_transfer=game_peer->TransferStatus();stream_limits=game_peer->EffectiveLimits();stream_fast_limits=game_peer->EffectiveFastLimits();stream_status_mutex.unlock();}
         const auto &stats=game_peer->OperationStatistics();const std::array<std::uint64_t,4> counters{stats.retransmissions,stats.cancellations,stats.completed,stats.failed};for(unsigned i=0;i<4;++i)operation_statistics[i].store(counters[i],std::memory_order_relaxed);
         if(!game_peer->FirstFailure().empty())ReplicationFailure(game_peer->FirstFailure().c_str());
-      } catch(const std::exception &error){ReplicationFailure(error.what());Finish(ByeReason::InternalFailure,Error::Payload);}
+      } catch(const std::exception &error){
+        ReplicationFailure(error.what());
+        if(locked)Finish(ByeReason::InternalFailure,Error::Payload);
+        else {game_peer.reset();game_candidate=false;}
+      }
       catch (...) {ReplicationFailure("live_network_exception");Finish(ByeReason::InternalFailure,Error::Payload);}
       return;
     }
@@ -675,9 +702,13 @@ struct Worker::State {
         const unsigned i=1+(round_robin+offset)%(peers.size()-1);
         auto &p = *peers[i];
         if (p.terminal.load(std::memory_order_acquire) != TerminalReason::None){if(now-p.terminal_at_ms.load(std::memory_order_relaxed)<2000)p.ServiceGameEnd(now);continue;}
-        if(p.game_peer&&current_publication){try{binary_transferred=p.game_peer->Offer(*current_publication,sources,now)&&binary_transferred;}catch(...){binary_transferred=false;p.Finish(ByeReason::InternalFailure,Error::Payload);}}
+        if(p.game_peer&&p.game_peer->Established()&&current_publication){try{binary_transferred=p.game_peer->Offer(*current_publication,sources,now)&&binary_transferred;}catch(...){binary_transferred=false;p.Finish(ByeReason::InternalFailure,Error::Payload);}}
         const auto requested = p.stop.load(std::memory_order_acquire);
         const bool timed_out = p.game_peer ? p.game_peer->LastReceive() && now-p.game_peer->LastReceive()>=config.peer_timeout_ms : p.endpoint.TimedOut(now);
+        if (!requested && timed_out && p.game_candidate) {
+          p.game_peer.reset();p.game_candidate=false;
+          continue;
+        }
         if (requested || timed_out) {
           const auto reason = requested ? static_cast<ByeReason>(requested)
                                         : ByeReason::PeerTimeout;
@@ -851,6 +882,7 @@ StartResult Worker::Start(const WorkerConfig &config) noexcept {
       peer->socket = state->socket;
       peer->ordinal = i;
       peer->uplink=&state->uplink_owner;peer->encoding_cache=&state->encoding_owner;
+      peer->shared_mod_inbox=&state->mod_inbox;
       peer->config = config;
       peer->identity = state->identity;
       if (BCryptGenRandom(nullptr, peer->identity.nonce.data(),
@@ -907,6 +939,15 @@ bool Worker::QueueAck(const protocol::Ack &ack) noexcept {
 bool Worker::PublishWorld(std::shared_ptr<const live::Publication> publication) noexcept {
   if(!state_||state_->stop.load(std::memory_order_acquire))return false;
   try{if(!publication)publication=std::make_shared<const live::Publication>();state_->publications.Put(std::move(publication));return true;}catch(...){return false;}
+}
+bool Worker::QueueLocalModIntent(const ModIntent &value) noexcept {
+  return state_&&state_->mod_inbox.Push(value);
+}
+unsigned Worker::TakeModIntents(ModIntentInbox::Batch &out) noexcept {
+  return state_?state_->mod_inbox.Take(out):0;
+}
+bool Worker::QueueModResult(unsigned ordinal,const ModIntentResult &value) noexcept {
+  return state_&&ordinal>0&&ordinal<core::kMaximumParticipants&&state_->peers[ordinal]->mod_results.TryPush(value);
 }
 bool Worker::TryReceive(ReceivedInput &input, unsigned ordinal) noexcept {
   if (!state_ || !ordinal || ordinal >= core::kMaximumParticipants)

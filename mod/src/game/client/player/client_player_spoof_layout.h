@@ -1,6 +1,7 @@
 #pragma once
 #include <map>
 #include <optional>
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -13,5 +14,13 @@ struct Timed {int id,count,timer;};
 struct Innate {std::unordered_map<int,int> persistent;std::vector<Timed> temporary;std::unordered_map<int,int> totals;};
 struct Spoof {void *vptr;std::unordered_set<int> blocked;std::map<std::string,Innate> groups;};
 struct PlusItems {Spoof collectible,trinket;int last_type;};
+// 前缀跟在 PlusItems 之后，读写实际容器元素与有显示语义的标志。
+struct PlusCache {
+  std::set<std::string> tags;
+  std::unordered_map<std::string,double> results;
+  bool requires_evaluation;
+  int previous_health;
+  bool evaluating,disable_health,camo;
+};
 static_assert(sizeof(PlusHeader)==16,"J273 official Plus base layout");
 }

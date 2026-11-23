@@ -1,4 +1,5 @@
 #include "replica/stream_codec.h"
+#include "net/mod_manifest.h"
 #include "state/host_publish.h"
 #include <algorithm>
 #include <bit>
@@ -20,21 +21,24 @@ const Slots &Schema(Kind kind){
   static const std::map<Kind,Slots> all={
     {Kind::Hello,{{"capabilities",'t'},{"nonce",'u'},{"role",'s'}}},
     {Kind::Welcome,{{"capabilities",'t'},{"session",'u'},{"client_nonce",'u'},{"server_nonce",'u'},{"participant",'u'},{"role",'s'}}},
+    {Kind::ModManifest,{{"chunks",'m'}}},
+    {Kind::ModIntent,{{"mod",'u'},{"declaration",'u'},{"member_epoch",'u'},{"args",'r'}}},
     {Kind::Ready,{{"client_nonce",'u'},{"server_nonce",'u'},{"sent_ms",'u'}}},
     {Kind::LobbySelection,{{"client_nonce",'u'},{"server_nonce",'u'},{"sent_ms",'u'},{"selection",'u'}}},
     {Kind::LobbyRoster,{{"roster",'u'},{"unlocked",'u'}}},
+    {Kind::Nightmare,{{"presentation",'t'}}},
     {Kind::ScenePrepare,{{"world",'w'},{"next_route",'u'},{"manifest",'u'},{"generation",'u'},{"native_domains",'u'},{"retained_domains",'u'},{"contract",'s'}}},
     {Kind::ScenePrepared,{{"world",'w'},{"manifest",'u'},{"generation",'u'},{"native_domains",'u'},{"retained_domains",'u'},{"contract",'s'}}},
     {Kind::ReceiveAck,{{"transfer",'u'},{"part_count",'u'},{"window",'u'},{"bitmap",'x'},{"complete",'b'}}},
     {Kind::Cancel,{{"transfer",'u'},{"reason",'s'}}},
     {Kind::OperationAck,{{"operation",'u'},{"operation_sequence",'u'},{"stage",'u'},{"progress_sequence",'u'},{"reason",'s'}}},
-    {Kind::Retire,{{"reason",'s'}}},
+    {Kind::Retire,{{"reason",'s'},{"cutscene_serial",'u'},{"cutscene_id",'u'}}},
     {Kind::Stop,{{"reason",'s'}}},{Kind::Disconnect,{{"reason",'s'}}},
     {Kind::Error,{{"code",'s'},{"recoverable",'b'},{"detail",'s'}}},
     {Kind::Roster,{{"eligibility_revision",'u'},{"server_tick",'u'},{"participant",'u'},{"accepted",'u'},{"processed",'u'},{"processed_tick",'u'},{"processed_source",'u'},{"generation",'u'},{"state",'u'},{"roster",'u'},{"rejected",'u'},{"rejection_mask",'u'},{"input_enabled",'b'},{"server_sample_ms",'u'},{"server_send_ms",'u'},{"echo_client_ms",'u'},{"echo_server_ms",'u'}}},
     {Kind::TickProgress,{{"eligibility_revision",'u'},{"server_tick",'u'},{"kind",'u'},{"paused",'b'},{"generation",'u'},{"input_enabled",'b'},{"sample_ms",'u'},{"send_ms",'u'},{"echo_client_ms",'u'},{"echo_server_ms",'u'}}},
     {Kind::InputAck,{{"participant",'u'},{"generation",'u'},{"input_sequence",'u'},{"processed_tick",'u'}}},
-    {Kind::Input,{{"participant",'u'},{"generation",'u'},{"input_sequence",'u'},{"target_tick",'u'},{"movement",'a'},{"aim",'a'},{"held",'u'},{"edge",'u'}}}
+    {Kind::Input,{{"participant",'u'},{"generation",'u'},{"input_sequence",'u'},{"target_tick",'u'},{"movement",'a'},{"aim",'a'},{"held",'u'},{"edge",'u'},{"mod_held",'u'},{"mod_edge",'u'}}}
   };const auto i=all.find(kind);if(i==all.end())Fail("compact_unknown_schema");return i->second;
 }
 // 版本化名称表在构建时展开为只读数组；首次Hello不解析大目录、不动态分配名称字典。
@@ -97,7 +101,7 @@ struct Writer final {
   void Nodes(std::uint64_t n=1){if(n>limits.nodes-nodes)Fail("compact_node_budget");nodes+=n;}
   void U(std::uint64_t n,unsigned width=8){if(measure){measured+=width;return;}if(width>limits.bytes-bytes.size())Fail("compact_byte_budget");for(unsigned i=0;i<width;++i)bytes.push_back(std::uint8_t(n>>(8*i)));}
   void Var(std::uint64_t n){do{const auto b=std::uint8_t(n&127);n>>=7;U(b|(n?128:0),1);}while(n);}
-  void String(std::string_view s){if(s.size()>limits.string_bytes||s.size()>UINT32_MAX||!Utf8(s))Fail("compact_string");U(s.size(),4);if(measure){measured+=s.size();return;}if(s.size()>limits.bytes-bytes.size())Fail("compact_byte_budget");bytes.insert(bytes.end(),s.begin(),s.end());}
+  void String(std::string_view s,bool utf8=true){if(s.size()>limits.string_bytes||s.size()>UINT32_MAX||(utf8&&!Utf8(s)))Fail("compact_string");U(s.size(),4);if(measure){measured+=s.size();return;}if(s.size()>limits.bytes-bytes.size())Fail("compact_byte_budget");bytes.insert(bytes.end(),s.begin(),s.end());}
   void Name(std::string_view name){if(name.size()>limits.string_bytes||!Utf8(name))Fail("compact_string");const auto code=NameCode(name);Var(code);if(!code)String(name);}
   void World(WorldScope w){for(auto n:{w.session,w.run,w.floor,w.dimension,w.room,w.scene})Var(n);}
   void Tree(const Value &v,unsigned depth=0){
@@ -155,7 +159,7 @@ struct Reader final {
   // ULEB128只接纳最短形式，最多十字节；先拒绝溢出再做位移。
   std::uint64_t Var(){std::uint64_t out=0;for(unsigned i=0;i<10;++i){const auto b=U(1);if(i==9&&(b&0xfe))Fail("compact_varint_overflow");out|=(b&127)<<(7*i);if(!(b&128)){if(i&&!(b&127))Fail("compact_varint_noncanonical");return out;}}Fail("compact_varint_overflow");}
   bool Bool(){const auto n=U(1);if(n>1)Fail("compact_bool");return n!=0;}
-  std::string_view View(){const auto n=U(4);if(n>limits.string_bytes||n>bytes.size()-p)Fail("compact_string_budget");std::string_view v(reinterpret_cast<const char *>(bytes.data()+p),std::size_t(n));p+=std::size_t(n);if(!Utf8(v))Fail("compact_utf8");Measure(2*n+64);return v;}
+  std::string_view View(bool utf8=true){const auto n=U(4);if(n>limits.string_bytes||n>bytes.size()-p)Fail("compact_string_budget");std::string_view v(reinterpret_cast<const char *>(bytes.data()+p),std::size_t(n));p+=std::size_t(n);if(utf8&&!Utf8(v))Fail("compact_utf8");Measure(2*n+64);return v;}
   std::string String(){const auto s=View();return build?std::string(s):std::string{};}
   std::string_view NameView(){const auto id=Var();if(!id)return View();const auto name=NameText(id);if(name.size()>limits.string_bytes)Fail("compact_string_budget");Measure(2*name.size()+64);return name;}
   std::string NamedString(){const auto s=NameView();return build?std::string(s):std::string{};}
@@ -204,6 +208,19 @@ void ReadBody(Reader &r,Message &m){
   if(r.build)m.body.SetObject();auto &a=r.arena.GetAllocator();for(const auto &slot:Schema(m.kind)){Value v;r.Nodes();r.Measure(256);switch(slot.type){
     case 'u':{const auto n=r.U();if(r.build)v=Decimal(n,a);break;}case 'b':v.SetBool(r.Bool());break;case 's':{const auto s=r.View();if(r.build)v.SetString(s.data(),rapidjson::SizeType(s.size()),a);break;}
     case 'w':{const auto w=r.World();if(r.build)v=WorldJson(w,a);break;}case 't':v=r.Tree();break;
+    case 'r':{const auto s=r.View(false);if(s.size()>512)Fail("mod_intent_bytes");if(r.build)v.SetString(s.data(),rapidjson::SizeType(s.size()),a);break;}
+    case 'm':{
+      // 清单分段按字节而非 UTF-8 切割，保留 Lua 声明的原始内容。
+      const auto count=r.Count(net::kModManifestBytes/net::kModManifestChunk,5,sizeof(Value));
+      v.SetArray();
+      if(r.build)v.Reserve(count,a);
+      for(unsigned i=0;i<count;++i) {
+        const auto chunk=r.View(false);
+        if(chunk.empty()||chunk.size()>net::kModManifestChunk)Fail("mod_manifest_chunk");
+        if(r.build)v.PushBack(Value(chunk.data(),rapidjson::SizeType(chunk.size()),a),a);
+      }
+      break;
+    }
     case 'a':case 'x':{v.SetArray();const auto count=slot.type=='a'?2u:4u;for(unsigned i=0;i<count;++i){const auto n=r.U(slot.type=='a'?2:8);if(r.build){if(slot.type=='a')v.PushBack(Value(std::int32_t(std::bit_cast<std::int16_t>(std::uint16_t(n)))),a);else v.PushBack(Value(n),a);}}break;}
     default:Fail("compact_slot");
   }if(r.build)Put(m.body,slot.name,std::move(v),a);}
@@ -215,7 +232,12 @@ void WritePayload(Writer &w,const Message &m){
   w.U(kCompactSchema,2);
   for(const auto &slot:Schema(m.kind)){w.Nodes();const auto &v=At(m.body,slot.name);switch(slot.type){
     case 'u':w.U(Unsigned(v));break;case 'b':w.U(v.GetBool(),1);break;case 's':w.String({v.GetString(),v.GetStringLength()});break;
+    case 'r':w.String({v.GetString(),v.GetStringLength()},false);break;
     case 'w':w.World({Unsigned(v["session"]),Unsigned(v["run"]),Unsigned(v["floor"]),Unsigned(v["dimension"]),Unsigned(v["room"]),Unsigned(v["scene"])});break;
+    case 'm':
+      w.U(v.Size(),4);
+      for(const auto &chunk:v.GetArray())w.String({chunk.GetString(),chunk.GetStringLength()},false);
+      break;
     case 't':w.Tree(v);break;case 'a':for(const auto &x:v.GetArray())w.U(std::bit_cast<std::uint16_t>(std::int16_t(x.GetInt())),2);break;case 'x':for(const auto &x:v.GetArray())w.U(Unsigned(x));break;default:Fail("compact_slot");
   }}
 }

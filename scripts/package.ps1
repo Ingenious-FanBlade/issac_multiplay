@@ -1,7 +1,8 @@
-param([string]$OutputDirectory,[switch]$E2E)
+param([string]$OutputDirectory,[switch]$E2E,[switch]$ModAdaptation)
 $ErrorActionPreference='Stop'
 $packageRepo=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
-if(-not $OutputDirectory){$OutputDirectory=Join-Path $packageRepo $(if($E2E){'out/e2e-package'}else{'out/product'})}
+if($ModAdaptation){$E2E=$true}
+if(-not $OutputDirectory){$OutputDirectory=Join-Path $packageRepo $(if($ModAdaptation){'out/e2e-mod-adaptation'}elseif($E2E){'out/e2e-package'}else{'out/product'})}
 elseif(-not [IO.Path]::IsPathRooted($OutputDirectory)){$OutputDirectory=Join-Path $packageRepo $OutputDirectory}
 $packageTarget=[IO.Path]::GetFullPath($OutputDirectory)
 # 产品只采用显式清单；不从包含Rust/fixture程序的out目录整体复制，不覆盖已有安装树。
@@ -19,6 +20,7 @@ $packageFiles=@(
 $packageFiles=@($packageFiles | ForEach-Object { ,@($_[0].Replace('out/repentogon',$inputRoot),$_[1]) })
 $packageFiles+=,@("$inputRoot/zstd-LICENSE.txt",'Repentogon/isaac-cs/licenses/zstd-LICENSE.txt')
 $packageFiles+=,@("$inputRoot/build-complete.json",'Repentogon/isaac-cs/build-complete.json')
+$packageFiles+=,@('mod/sdk/isaaccs_sdk.lua','sdk/isaaccs_sdk.lua')
 foreach($entry in $packageFiles){if(-not (Test-Path -LiteralPath (Join-Path $packageRepo $entry[0]) -PathType Leaf)){throw "Missing product build input: $($entry[0])"}}
 foreach($entry in $packageFiles){
     $destination=Join-Path $packageTarget $entry[1]
@@ -28,7 +30,10 @@ foreach($entry in $packageFiles){
 $luaPackages=,@('ui/isaac-cs-ui','mods/isaac-cs-ui')
 if($E2E){
     $luaPackages+=,@("$inputRoot/isaac-cs-observation",'mods/isaac-cs-observation')
-    $luaPackages+=,@("$inputRoot/isaac-cs-test",'mods/isaac-cs-test')}
+    # 一次启动只部署选中的夹具，模组清单由真实 Lua Mod 登记。
+    $fixtureName=if($ModAdaptation){'isaac-cs-mod-fixture'}else{'isaac-cs-test'}
+    $luaPackages+=,@("$inputRoot/$fixtureName","mods/$fixtureName")
+}
 foreach($entry in $luaPackages){
     $source=Join-Path $packageRepo $entry[0]
     if(-not (Test-Path -LiteralPath (Join-Path $source 'main.lua') -PathType Leaf)){throw "Missing product Lua: $source"}

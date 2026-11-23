@@ -1,4 +1,5 @@
 #include "game/observation/binary_entities.h"
+#include "game/mods/mod_api.h"
 #include "game/observation/world_bridge.h"
 #include "game/observation/binary_display_capture.h"
 #include "game/authority/state.h"
@@ -158,7 +159,12 @@ struct BinaryEntities::Impl {
     std::uint64_t resource_change=0;
     std::uint32_t roots=0;
     CandidateSeal seal;
+    ModRawRef mods;
   } ordinary;
+  // 按 run 保留最近成功采集，避免普通邮箱覆盖中途的低频或手动标记采样。
+  ModRawRef mod_values;
+  std::uint64_t mod_run=0;
+  unsigned mod_world_frame=0;
   std::array<Pending,8> bodies;
   std::array<CaptureSubject,8> fast_keys{};
   std::array<std::uint32_t,8> fast_addresses{};
@@ -302,7 +308,7 @@ struct BinaryEntities::Impl {
       else if(f.layout==270)mapped=f.source_slot<scene.descriptors.size()&&scene.descriptors[f.source_slot]==f.address&&
         f.subject.use==floor&&f.subject.shape==descriptor_revisions[f.source_slot];
       // 448—453只接纳锚定同一Game／run的自有事件树，不扩大任意原生对象可读范围。
-      else if(f.layout>=448&&f.layout<=453)mapped=f.ready&&f.address==scene.game&&
+      else if((f.layout>=448&&f.layout<=453)||f.layout==456)mapped=f.ready&&f.address==scene.game&&
         f.subject==CaptureSubject{3,w.scope.run,1,1}&&!f.display_values.empty()&&f.display_values.front().layout==f.layout;
       if(!mapped)return reject("mapping");
     }
@@ -417,8 +423,13 @@ struct BinaryEntities::Impl {
     roots[root_used]=f;std::move_backward(where,end,end+1);*where=root_used++;
     return &roots[root_used-1];
   }
+  // 官方 6047F0 的计时器只有 Host 回调。实体引用同样把该来源投影为 Null。
+  bool HostTimer(std::uint32_t address) noexcept {
+    std::array<std::uint32_t,2> shape{};
+    return address&&NativeValue(std::uint64_t(address)+0x28,shape)&&shape[0]==1000&&shape[1]==119;
+  }
   CaptureLink Reference(std::uint32_t address) noexcept {
-    if(!address)return {CapturedReferenceKind::Null,0};const bool pending=RootIndex(address)==UINT32_MAX;
+    if(!address||(reading_window.ordinary&&HostTimer(address)))return {CapturedReferenceKind::Null,0};const bool pending=RootIndex(address)==UINT32_MAX;
     if(reading_window.production){const auto *id=capture.identities.Find(world::ObjectDomain::Entity,address);
       return id&&!id->Retired()&&!id->candidate&&id->readiness>=2?Register({1,id->local_id,id->use,id->revision}):CaptureLink{CapturedReferenceKind::Invalid,0};}
     if(reading_window.ordinary){auto *f=Add(address);return f?Register(f->subject,pending):CaptureLink{CapturedReferenceKind::Invalid,0};}
@@ -538,6 +549,7 @@ struct BinaryEntities::Impl {
   bool Member(unsigned source,std::uint32_t address,std::uint32_t index) noexcept {
     // _tempEL 只保留原生暂存成员的见证。已离开活动列表的炸弹等对象不能靠暂存条目再次发布。
     if(source==5)return true;
+    if(source!=8&&HostTimer(address))return true;
     const auto flags=source<=4||source==7?1u|(source==3?2u:0u)|(source==2?4u:0u):0u;
     return !(source==8&&index>=kNullIndex)&&Add(address,flags,source==8?std::uint16_t(index):kNullIndex);
   }
@@ -720,7 +732,7 @@ struct BinaryEntities::Impl {
         return !publication.source.prepare_revoked&&ForeignResourceCurrent(publication.pending.seal.foreign_resource)&&
           root.subject==publication.pending.facts.subject&&root.address==publication.pending.facts.address&&publication.source.Current(w,publication.pending.facts);},nullptr};
     const auto packet=writer->Completed({});
-    const bool result=p.ticket.Publish(window,p.anchor,p.roots);collecting=false;
+    const bool result=p.ticket.Publish(window,p.anchor,p.roots,p.mods);collecting=false;
     if(result){stats.roots+=packet.records.size();stats.cells+=packet.cells.size();stats.paths+=packet.paths.size();stats.bytes+=packet.bytes.size();}
     else diagnostic=writer->Diagnostic();
     return result;
@@ -754,6 +766,7 @@ void BinaryEntities::Active(bool active) noexcept {auto &s=*impl_;if(!s.Main() |
   s.production_depth=0;
   s.display.Reset(true);
   s.display_run=0;
+  s.mod_values.reset();s.mod_run=0;s.mod_world_frame=0;
   s.publication->InvalidateBefore(s.revision==UINT64_MAX?UINT64_MAX:s.revision+1);
   s.invalidated=false;if(active)s.stats.active=s.exchange.Begin();else {s.exchange.Stop();s.stats.active=false;}}
 void BinaryEntities::FrameBegin() noexcept {auto &s=*impl_;if(!s.Main())return;s.CancelCandidates();s.EndRead();s.ordinary_count=0;s.link_used=0;
@@ -813,10 +826,10 @@ bool BinaryEntities::Prepare(bool normal,std::uint64_t completed_tick) noexcept 
         // 采集实体失败只回卷当前根的两个流，成员集合仍由同一窗口确认。
         for(std::uint32_t i=0;i<s.root_used&&success;++i){
           auto &facts=s.roots[i];
-          // 转场不产生新的 PlayerPost。只允许当前名册内已见证、同一 use/shape 的 Player 继续提供显示。
-          if(window.room_transition&&facts.roster!=kNullIndex&&!facts.ready)
+          // 死亡和转场可能都没有 PlayerPost，继续采同一名册实例上的原生动画。
+          if(facts.roster!=kNullIndex&&!facts.ready)
             if(const auto *id=s.capture.identities.Find(world::ObjectDomain::Entity,facts.address);
-               id&&s.capture.collector->NativeTransitionPlayer(window,*id)){
+               id&&s.capture.collector->NativeDisplayPlayer(window,*id)){
               // 原生名册成员仍是已初始化的显示载体。输入资格仍由当前绑定单独计算。
               facts.ready=facts.player_ready=facts.activation_qualified=true;
             }
@@ -842,8 +855,9 @@ bool BinaryEntities::Prepare(bool normal,std::uint64_t completed_tick) noexcept 
           if(!captured){
             facts.layout=layout;
             // 新房的首次 World 不能沿用上一房的 Player 记录补齐名册。
-            if(window.room_transition&&facts.roster!=kNullIndex){success=false;break;}
+            if(window.display_transition&&facts.roster!=kNullIndex){success=false;break;}
             if(!s.RetainFailedRoot(writer,checkpoint,facts,diagnostic)){success=false;break;}
+            facts.retained_mod_state=true;
             ++p.roots;continue;
           }
           facts.subject=writer.Root().subject;facts.layout=writer.Root().layout;p.roots+=writer.WrittenRoots()-first;
@@ -862,6 +876,26 @@ bool BinaryEntities::Prepare(bool normal,std::uint64_t completed_tick) noexcept 
       capture::Cost review(capture::CostPart::Review);
       if(success)success=s.GroupsInto(writer,p.roots);
       if(success)success=s.ProductionInto(writer,p.roots,diagnostic);
+      if(success&&s.network_publication.load(std::memory_order_acquire)){
+        if(s.mod_run!=window.run){s.mod_values.reset();s.mod_run=window.run;s.mod_world_frame=0;}
+        p.mods=CaptureModWorld(s.mod_values,p.witness.revision,s.mod_world_frame,window.display_transition,&s,
+          [](void *context,const void *entity,std::uint64_t &id,std::uint64_t &use) noexcept {
+            auto &owner=*static_cast<Impl *>(context);
+            const auto address=static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(entity));
+            const auto index=owner.RootIndex(address);
+            if(index==UINT32_MAX)return false;
+            const auto &root=owner.roots[index];
+            id=root.subject.local;use=root.subject.use;return id!=0;
+          },s.root_used,[](void *context,unsigned index,ModCaptureObject &out) noexcept {
+            auto &owner=*static_cast<Impl *>(context);
+            const auto &root=owner.roots[index];
+            const auto *id=owner.capture.identities.Find(world::ObjectDomain::Entity,root.address);
+            if(!id||id->Retired()||id->local_id!=root.subject.local||id->use!=root.subject.use)return false;
+            out={reinterpret_cast<void *>(root.address),{id->local_id,id->use},id->native_shape,
+                 root.retained_mod_state||!id->native_shape_known};
+            return true;
+          });
+      }
       if(success)success=s.Members(true);
       if(success)success=s.SceneRead(true);
       if(success)success=s.Seal(p);
@@ -971,9 +1005,58 @@ bool BinaryEntities::Prepare(bool normal,std::uint64_t completed_tick) noexcept 
   }
   return s.ordinary.seal.read_serial!=0;
 }
+
+bool HostModIdentity(const void *entity,state::ModEntityId &out) noexcept {
+  const auto owner=CurrentWorldRecording();
+  const auto address=static_cast<std::uint32_t>(reinterpret_cast<std::uintptr_t>(entity));
+  const auto *id=owner?owner->identities.Find(world::ObjectDomain::Entity,address):nullptr;
+  if(!id||id->Retired())return false;
+  out={id->local_id,id->use};return out.id!=0;
+}
+bool BinaryEntities::ModIntentWorld(net::ModIntent &out) const noexcept {
+  const auto &s=*impl_;
+  if(!s.Main()||!s.stats.active||s.floor_depth||!s.capture.collector)return false;
+  const auto frame=s.publication->Read().ordinary;
+  if(!frame||frame->witness.scope.run!=s.capture.collector->CurrentRunToken()||
+      frame->witness.scope.floor!=s.floor)return false;
+  const auto &scope=frame->witness.scope;
+  out.run=scope.run;out.floor=scope.floor;out.room=scope.room;out.member_epoch=frame->member_epoch;
+  return true;
+}
+void BinaryEntities::ModSceneIdentity(std::uint64_t &run,std::uint64_t &floor) const noexcept {
+  const auto &s=*impl_;
+  if(!s.Main()||!s.capture.collector)return;
+  run=s.capture.collector->CurrentRunToken();
+  if(run&&run==s.floor_run)floor=s.floor;
+}
+std::uint16_t BinaryEntities::ModIntentMember(const void *object) const noexcept {
+  const auto &s=*impl_;
+  state::ModEntityId id;
+  if(!HostModIdentity(object,id))return state::kModGlobal;
+  const auto frame=s.publication->Read().ordinary;
+  if(frame)for(const auto &member:frame->members)
+    if(member.identity.space==1&&member.identity.id==id.id&&member.identity.use==id.use)return member.index;
+  return state::kModGlobal;
+}
+void *BinaryEntities::ResolveModIntentMember(const net::ModIntent &intent,std::uint16_t number) const noexcept {
+  const auto &s=*impl_;
+  const auto frame=s.publication->Read().ordinary;
+  // 目录代次或房间变更后，同一数字可能属于另一个实体。
+  if(!frame||frame->member_epoch!=intent.member_epoch||frame->witness.scope.room!=intent.room)return nullptr;
+  const auto at=std::lower_bound(frame->members.begin(),frame->members.end(),number,
+    [](const auto &m,std::uint16_t n){return m.index<n;});
+  if(at==frame->members.end()||at->index!=number||at->identity.space!=1)return nullptr;
+  for(unsigned i=0;i<s.published_count;++i){
+    const auto address=s.published_addresses[i];
+    const auto *id=s.capture.identities.Find(world::ObjectDomain::Entity,address);
+    if(id&&!id->Retired()&&id->local_id==at->identity.id&&id->use==at->identity.use&&id->revision+1==at->identity.shape)
+      return reinterpret_cast<void *>(address);
+  }
+  return nullptr;
+}
 void BinaryEntities::CommitTransition() noexcept {
   // Manager 已正常返回，且这一窗口没有待提交的玩法 tick 或 PlayerPost。
-  if(impl_->ordinary.window.room_transition)Commit(false,{});
+  if(impl_->ordinary.window.display_transition)Commit(false,{});
 }
 void BinaryEntities::Commit(bool committed,const core::TickPostState &post) noexcept {
   auto &s=*impl_;if(!s.Main() || !s.stats.active)return;
@@ -986,7 +1069,7 @@ void BinaryEntities::Commit(bool committed,const core::TickPostState &post) noex
     // Manager 尾部 Prepare 到时钟提交之间只处理纯值。实体、Grid 与场景根已在写完时复核；
     // 真实 Game／Room、Authority 窗口和资源水位仍需与封存值一致。
     world::NativeCaptureWindow current;
-    const bool transition=ordinary.window.room_transition;
+    const bool transition=ordinary.window.display_transition;
     bool valid=(match||transition)&&s.capture.collector->NativeOrdinary(current,transition?ordinary.window.tick:0)&&current==ordinary.window;
     if(valid&&s.ordinary_failures>=StateBudgets().capture_failure_limit){
       if(auto *writer=ordinary.ticket.Values())writer->RequestBaseline();
@@ -995,6 +1078,8 @@ void BinaryEntities::Commit(bool committed,const core::TickPostState &post) noex
     CaptureDiagnostic diagnostic;
     const bool published=valid&&s.Publish(ordinary,diagnostic);capture::Candidate(true,published);
     if(published){
+      if(s.mod_values!=ordinary.mods)CommitModWorld(ordinary.mods);
+      s.mod_values=ordinary.mods;if(!transition)++s.mod_world_frame;
       s.invalidated=false;s.last_ordinary=ordinary.witness.revision;s.ordinary_failures=0;++s.stats.ordinary;
       s.capture.collector->CommitNativeMemberships(ordinary.window,s.scene.sources,s.scene.members,s.scene.grids);
 #ifdef ISAACCS_E2E
@@ -1123,6 +1208,10 @@ BinaryEntityStats BinaryEntities::Statistics() const noexcept {auto &s=*impl_;au
   if(const auto first=s.display.FirstFailure();first.reason!=CaptureFailure::None)out.failure=first;
   if(const auto published=s.publication->Read();published.latest){
     out.publication_revision=published.latest->witness.revision;
+    if(published.ordinary){
+      out.mod_missing_references=published.ordinary->mod_missing_references;
+      out.mod_encode_failures=published.ordinary->mod_encode_failures;
+    }
     out.retained_roots=std::uint32_t(published.latest->retained_members.size());
     for(const auto &root:published.latest->retained_members)
       out.max_retained_frames=(std::max)(out.max_retained_frames,root.count);

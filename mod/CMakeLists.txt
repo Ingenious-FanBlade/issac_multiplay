@@ -46,6 +46,17 @@ target_compile_definitions(isaac_cs_world PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
 target_compile_options(isaac_cs_world PRIVATE /W4 /Zi /utf-8 /EHsc)
 target_link_libraries(isaac_cs_world PUBLIC isaac_cs_core)
 set(GENERATED "${CMAKE_CURRENT_BINARY_DIR}/generated")
+# Mod API 的内部 Lua（联机层的 IsaacCS 实现与回调分派脚本）编进 DLL。
+# 对外分发的 sdk/isaaccs_sdk.lua 只是薄壳，由 package.ps1 随包发布，不嵌入。
+set(ISAACCS_LUA_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/game/mods/lua")
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+  "${ISAACCS_LUA_DIR}/isaaccs_api.lua" "${ISAACCS_LUA_DIR}/isaaccs_dispatch.lua")
+# MSVC 对字符串常量有长度限制，直接把 Lua 源编成字节数组。
+file(READ "${ISAACCS_LUA_DIR}/isaaccs_api.lua" ISAACCS_API_BYTES HEX)
+string(REGEX REPLACE "([0-9a-f][0-9a-f])" "0x\\1,\n" ISAACCS_API_BYTES "${ISAACCS_API_BYTES}")
+file(READ "${ISAACCS_LUA_DIR}/isaaccs_dispatch.lua" ISAACCS_DISPATCH_BYTES HEX)
+string(REGEX REPLACE "([0-9a-f][0-9a-f])" "0x\\1,\n" ISAACCS_DISPATCH_BYTES "${ISAACCS_DISPATCH_BYTES}")
+configure_file(src/game/mods/mod_lua_sources.h.in "${GENERATED}/mod_lua_sources.h" @ONLY)
 # 原生二进制布局与旧 stream 目录分开生成；已登记域共用正式复制／解码及嵌套表。
 # 第 10—14 步再接入正式同步并退役旧路径，这里不改变运行中的采集与协议。
 file(GLOB STATE_LAYOUT_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/binding/state/*.json")
@@ -65,7 +76,7 @@ add_custom_command(OUTPUT "${GENERATED}/state_capture.inc" "${GENERATED}/state_w
 add_library(isaac_cs_flat_avx2 OBJECT src/state/flat_simd_avx2.cpp)
 target_compile_options(isaac_cs_flat_avx2 PRIVATE /arch:AVX2 /W4 /Zi /utf-8)
 set_property(TARGET isaac_cs_flat_avx2 PROPERTY INTERPROCEDURAL_OPTIMIZATION FALSE)
-add_library(isaac_cs_state STATIC src/state/layout.cpp src/state/nested.cpp src/state/owned_payload.cpp src/state/entity_extension.cpp src/state/entity_counters.cpp src/state/npc_presentation.cpp src/state/body_codec.cpp src/state/resource_protocol.cpp src/state/wire_protocol.cpp src/state/acceptance.cpp src/state/budget.cpp
+add_library(isaac_cs_state STATIC src/state/layout.cpp src/state/nested.cpp src/state/owned_payload.cpp src/state/entity_extension.cpp src/state/entity_counters.cpp src/state/npc_presentation.cpp src/state/body_codec.cpp src/state/resource_protocol.cpp src/state/wire_protocol.cpp src/state/acceptance.cpp src/state/budget.cpp src/state/mod_codec.cpp
   src/state/capture.cpp src/state/capture_values.cpp src/state/flat_capture.cpp src/state/capture_exchange.cpp src/state/capture_executor.cpp src/state/production_cache.cpp src/state/events.cpp src/state/host_publish.cpp
   src/state/flat_encode.cpp src/state/flat_simd_sse2.cpp $<TARGET_OBJECTS:isaac_cs_flat_avx2>
   src/state/client_memory.cpp src/state/client_tables.cpp src/state/client_shadow.cpp src/state/client_events.cpp src/state/client_receive.cpp src/state/client_validation.cpp src/state/client_plan.cpp src/state/client_apply.cpp
@@ -134,7 +145,7 @@ target_compile_options(isaac_cs_replica PRIVATE /W4 /Zi /utf-8 /EHsc)
 target_compile_definitions(isaac_cs_replica PUBLIC _SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING)
 target_link_libraries(isaac_cs_replica PUBLIC isaac_cs_world isaac_cs_state PRIVATE isaac_cs_zstd)
 # 真实游戏连接复用复制合同，网络后台不引用SDK或游戏对象。
-target_sources(isaac_cs_net PRIVATE src/net/live.cpp src/net/stream_session.cpp)
+target_sources(isaac_cs_net PRIVATE src/net/live.cpp src/net/stream_session.cpp src/net/mod_manifest.cpp)
 target_link_libraries(isaac_cs_net PUBLIC isaac_cs_replica)
 # E2E工具与正式DLL分开打包；同一库用于正式主线程纯值适配和统一验收。
 option(ISAACCS_BUILD_E2E_TOOLS "Build explicitly requested E2E tools outside product install tree" OFF)
@@ -167,6 +178,8 @@ add_custom_command(OUTPUT "${GENERATED}/hooks_generated.cpp" "${GENERATED}/bindi
   DEPENDS tools/gen_binding.py binding/hooks.json binding/world_layout.json binding/v1_9_7_12-static.json binding/repentogon-binding.json VERBATIM)
 # game 按职责分目录；保持既有源码登记顺序、目标和编译条件，只迁移路径。
 add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions.cpp
+  src/game/mods/mod_native.cpp
+  src/game/mods/mod_api.cpp
   src/binding/world_layout.cpp src/hooks/registry.cpp src/hooks/context.cpp
   src/hooks/pointer_patch.cpp src/hooks/odd_patch.cpp src/hooks/host_patch.cpp src/hooks/exit_patch.cpp
   src/game/common/context.cpp src/game/common/player_api.cpp src/game/common/display_settings.cpp
@@ -235,6 +248,8 @@ file(GENERATE OUTPUT "${ISAACCS_DLL_OUTPUT}/build-flavor.json"
 # SDK-facing 单元只使用 C++17 值接口；Join/输入/world 核心保持 C++20。
 # 显式覆盖逐文件标准，不降低整个 DLL 标准，也不修改 SDK 头或补丁/汇编行为。
 set_source_files_properties(src/game/observation/sources/loot.cpp
+  src/game/mods/mod_native.cpp
+  src/game/mods/mod_api.cpp
   src/game/client/scene/client_preparation_native.cpp
   src/game/client/scene/client_field_staging_native.cpp
   src/game/client/scene/client_atomic_install_native.cpp
@@ -274,6 +289,9 @@ target_link_libraries(zhlIsaacCS PRIVATE isaac_cs_core isaac_cs_net isaac_cs_wor
 target_link_options(zhlIsaacCS PRIVATE /DEBUG)
 # 热路径跨采集／布局／写入多个静态库，Release允许链接期内联和常量传播。
 # 仅优化本工程对象，保留原有检查与异常语义；外部官方SDK仍按其原ABI链接。
+# 安装票据的成员布局变更后，VS 的增量 LTCG 曾复用带旧偏移的内联守卫。
+# DLL 每次重链都重新执行完整 LTCG，使 SDK 边界和协调器读取同一版票据。
+target_link_options(zhlIsaacCS PRIVATE "$<$<CONFIG:Release>:/LTCG>")
 set_property(TARGET isaac_cs_core isaac_cs_net isaac_cs_world isaac_cs_state
   isaac_cs_grid_description isaac_cs_room_description isaac_cs_replica
   isaac_cs_zstd zhlIsaacCS PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)

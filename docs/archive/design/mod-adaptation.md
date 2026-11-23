@@ -1,16 +1,16 @@
 # 第三方 Mod 适配：后续方案
 
-日期：2026-11-10（Asia/Singapore）。状态：从[原生二进制重构](binary-state/README.md)迁出的设计，后续另行推进；不是本轮 0—15 步的实现或验收条件。本次只迁移方案，没有实现、构建或测试。
+始于 2026-11-10（Asia/Singapore）。状态：**已实现、待 E2E**。声明式接口、原生显示补项和专用夹具已接入，统一实机验收归本方案第 14 步。该方案从[原生二进制重构](binary-state/README.md)迁出，独立于该重构的原版验收。
 
 2026-11-22 补记：公开接口方案草案见 [Mod 联机接口方案](../../mod-api.md)，路线为 Mod 作者声明、联机层提供基础设施、协商不一致就拒绝连接，待用户审阅。本文"仍未确定"中"仅保留具名 adapter 还是提供公开注册接口"一项以该草案为准；其余内容不变。同日起"Mod 值编码草稿"不采用（D4），声明类型的采集与编码见新增的同名一节。
 
-2026-11-23 补记：对照 REPENTOGON 接口，原生同步待补项和待核对项记在"具名适配交接"下的"REPENTOGON 接口对照"一节。
+2026-11-23 补记：对照 REPENTOGON 接口，原生同步补项和核对项记在"具名适配交接"下的"REPENTOGON 接口对照"一节。同日用户定为提供公开声明式接口（mod-api），具名 adapter 只作内部诊断手段；mod-api D12 定为客机进度查询以 Host 存档为准。以下"实施顺序"取代 mod-api 第 11 节原顺序。
 
 ## 当前顺序与范围
 
 用户决定当前先跑通原版内容的采集、传输、Client 原生应用和统一整体验收。官方 REPENTOGON 加载器、J273 目标及原版需要的官方扩展 owner 继续沿用；“原版”指内容范围，不改变加载方式。本项目自带界面与 E2E 夹具继续按原职责管理，不构成第三方 Mod 兼容声明。
 
-第三方 Mod 自定义状态、角色动态身份、专用资源／绘制、玩法 Lua 与表现隔离、生命周期及 StageAPI 等具名适配集中保存在本文。它们不延后原版必要功能，也不要求本轮预留可工作的通用 Mod 框架。后续开展时再确定实施范围和验收安排；本文不自动启动适配或实机操作。
+当前适配范围为[公开声明式接口](../../mod-api.md)、Lua 回调分级、Mod 状态、意图与本文的原生显示补项。StageAPI、自定义角色与武器等具名适配仍按各自范围推进。本项目自带界面和夹具按其原有职责管理。
 
 ## 迁入内容与已有事实
 
@@ -32,7 +32,7 @@
 - Lua 自定义状态没有可直接采用的原生字节布局，按 adapter 声明的 schema 判断完整性。未知闭包／私有对象不得宣称自动完整捕获；原生对象仍须遵守字节归属与已核生命周期规则。
 - Host 由 C++ 读取 adapter 的有界输出，直接编码为二进制，不再构建 JSON 树；Client 解码后由对应适配器安装状态／展示结果。不得在 Client 重演 Host gameplay Lua 来补值。
 - 每个 adapter 的输出作为一个块，用 memcmp 判断变化。稳定输出的顺序、共享节点编号与字节规范化仍须定稿，避免无变化时反复重发。
-- 沿用 `graph.lua` 的节点、项数、字节、深度预算，并单独计时；超预算、抛错、缺来源或读取超时必须报告具名缺口，不能截断后宣称完整。原草稿提出超时降频，具体失败后的发布／ACK 语义仍待设计。
+- 沿用 `graph.lua` 的节点、项数、字节、深度预算，并单独计时；超预算、抛错、缺来源或读取超时必须报告具名缺口，不能截断后宣称完整。原草稿提出超时降频，具体失败后的发布／ACK 语义仍待设计。（2026-11-23：已按原生采集定稿，不设时间上限、不降频，见 mod-api 5.4 节。）
 
 ## Mod 值编码草稿
 
@@ -129,7 +129,7 @@ type = { struct = {
 
 ### 5. 性能
 
-主线程开销与"声明的字段数 + 容器元素总数"成正比，每个字段一次驻留键的哈希查找，每个元素一次 `lua_geti`／`lua_next`。按每次 Lua API 调用 10—30 ns 粗算（未实测），1000 项、每项 3 个字段的 `list` 约需 0.1—0.2 ms；全部 Mod 共用的每帧读取预算是 1 ms。
+主线程开销与"声明的字段数 + 容器元素总数"成正比，每个字段一次驻留键的哈希查找，每个元素一次 `lua_geti`／`lua_next`。按每次 Lua API 调用 10—30 ns 粗算（未实测），1000 项、每项 3 个字段的 `list` 约需 0.1—0.2 ms；不设时间上限，耗时计入诊断（mod-api 5.4 节，2026-11-23 取消原定的每帧 1 ms 共用预算）。
 
 Lua 表没有修改标记，`rate = "world"` 的声明即使没变也要整条读完才能判断，记录内任意一项变化都要整条重发。对策写在 mod-api 5.3 节"复杂表的写法"和 5.4 节：大容器单独声明并配 `rate = "mark"` 与 `MarkDirty`；诊断模式提示 `max` 较大却按 `"world"` 读取的容器。不采用在 C++ 中直接遍历 `Table`／`Node` 内存的做法：它与 Lua 版本强绑定（当前为 REPENTOGON 编译成 `Lua5.3.3r.dll` 的 Lua 5.4.6），GC 还会重建 `node[]`。
 
@@ -409,24 +409,204 @@ M1（Mod 影子随 World 候选封存为不可变快照）和 M2（按字节引�
 | 玩家属性查询的有效结果 | `MC_PLAYER_GET_HEALTH_TYPE`、`MC_PLAYER_GET_HEART_LIMIT`、`MC_PLAYER_GET_ACTIVE_MAX_CHARGE`、`MC_PLAYER_GET_ACTIVE_MIN_USABLE_CHARGE` | 回调结果在查询时现算；生命类型另有 `EntityPlayerPlus::previousHealthType` 等状态 | 客机不触发这些回调（mod-api 6.2 节），HUD 按原版值显示 | 同步 Host 上的有效结果，客机查询时直接返回。`catalog/player-application.json` 已把 `GetHealthType`、`GetHeartLimit` 标为"最终显示缓存"；`GetActiveMaxCharge` 现标为 `@local_api_context`，要改。与上面的"Player／HUD 回调结果"一项合并实施 |
 | 楼层显示名 | `Level:SetName` | REPENTOGON 全局变量 `CustomStageName`（`LuaInterfaces/LuaLevel.cpp:45`） | HUD、暂停菜单、楼层横幅显示原版名字 | 作为 Level 的注入值，同步 Host 当前生效的楼层名 |
 | 当前楼层的名字、音乐、背景 | `Isaac.SetCurrentFloorName`、`SetCurrentFloorMusic`、`SetCurrentFloorBackdrop` | 运行时改写配置表 `RoomConfig._stages[]` 的 `_displayName`、`_musicId`、`_backdrop`，离开楼层时还原（`Patches/StagesStuff.cpp:39-75`） | 显示名丢失。音乐和当前房间的背景本身已同步；之后进入的房间，客机按本机配置表取背景，可能不对 | 显示名与上一项合并为"当前楼层显示名"；后续房间的背景实施时核对是否已由房间背景同步覆盖 |
+| 进度查询（mod-api D12） | `PersistentGameData:Unlocked`、`IsChallengeCompleted`、`GetEventCounter`、`GetBestiary*Count`、`IsBossKilled`、`IsItemInCollection` | 原生 PGD（成就 642 字节、事件计数 523 个等） | 返回客机本机存档的结果 | 以 Host 当前游戏所用的存档为准。沿用[显示委托](binary-state/client-display-delegation.md)"进度（成就、计数）"一行的做法：同步 Host 的进度数据，客机经查询 hook 返回同步值，不写客机 PGD、不改本机存档。原设计按显示需求裁剪，Mod 的查询对象事先不可知，这里需要覆盖上述查询的全部范围。写入类接口（`Unlock`、`TryUnlock`、`IncreaseEventCounter`、`AddBestiaryKill`、`AddBossKilled`）在客机上按持久化拦截，实施时核对现有拦截（`client_native_bridge.cpp`）是否已覆盖 |
 | 过场动画 | `Isaac.PlayCutscene` | 直接播放（`LuaInterfaces/LuaIsaac.cpp:369`） | Host 上没有采集点，客机看不到 | 原生同步新增过场事件，在调用点记录，客机按事件播放。`ClearGameState = true` 时会结束本局，要与场景退休一起处理 |
 
 **需要核对**
 
-| 项 | 疑点 |
+| 项 | 静态核对与处置 |
 | --- | --- |
-| `HUD:SetBossHPBarFill` | 写的是 HUD 字段 `_bossHPBarFill`（`LuaInterfaces/HUD/LuaHUD.cpp:142`）。客机本地 `HUD::Update` 可能按同步来的 Boss 血量重新计算，把 Host 的覆盖值冲掉 |
-| `Isaac.CreateTimer` | 创建一个 Effect 实体，Lua 函数存在注册表 `timerFnTable` 里、以 Effect 指针为键（`LuaInterfaces/LuaIsaac.cpp:167`）。这个 Effect 是否会作为普通实体复制到客机；复制过去后客机上没有函数，是否无害 |
-| `FXLayers:AddPoopFx` | 调原生 `FXLayers::AddPoopFx`（`LuaInterfaces/LuaFXLayers.cpp:19`）。FX 层的内容是否在同步范围内 |
-| Mod 生成的程序道具 | 原版 TMTRAINER 的负 ID 道具已同步。Mod 通过 REPENTOGON 接口生成的程序道具是否走同一路径 |
-| Host 音频采集点 | 采集点位于 REPENTOGON 的 `MC_PRE_SFX_PLAY`、`MC_PRE_MUSIC_PLAY` hook 之内还是之外，决定记下来的是回调修改之前还是之后的参数。必须记录修改之后的参数，被取消的声音不记录（mod-api 6.2 节"音频类回调"） |
+| `HUD:SetBossHPBarFill` | J273 HUD::Update（97ACF0）和 HUD::PostUpdate（97AE90）都不写 54B0，Boss 条绘制 97F7A0 直接读取它。Host 当前填充值随 World 安装，负值保持隐藏语义。 |
+| `Isaac.CreateTimer` | J273 6047F0 生成 Type 1000、Variant 119，对象保存 Host 回调入口，REPENTOGON 的 Lua 函数也只在 Host registry 中。正式实体目录现排除该变体，计时由 Host 推进。 |
+| `FXLayers:AddPoopFx` | REPENTOGON 调用原生 96E570。现有 DisplayInjectionState 采集 FX 层的 countdown（+34）和 ColorMod（+84），客机在首个活动值用原生 AddPoopFx 准备本地资源，再安装倒计时与颜色。已经覆盖这条 Mod 入口。 |
+| Mod 生成的程序道具 | Lua_PIMCreateProceduralItem 调用同一个原生 ProceduralItemManager::CreateProceduralItem（J273 9B1E50）。现有 Game+669BC 的定义采集按 ~id 接受负编号，客机复用同一资源注册和查询。 |
+| Host 音频采集点 | libzhl 按优先级从高到低安装 detour，后装的是外层。SFXManager::Play 和 SoundEffects::Play 同址 907C60，C/S 10000 的采集已位于官方 pre 回调内层。音乐 Play、Crossfade、Jingle、Layer 原来在外层，现移到 10000，接收官方 super 实参。回调取消时不进入采集。 |
 
 **已覆盖，不用新增**（目录或代码里有对应项，不代表每个字段都实测过）：Entity 状态倒计时、`SetColorParams`、`SetShadowSize`、`SetSpeedMultiplier`；EntityPlayer 的大部分字段 setter、Weapon、ItemSpoof；Room 的水、熔岩、雨、闪电、背景；Game 的 `SetDizzyAmount`、`SetBloom`、`SetColorModifier`；Sprite／LayerState 的图层、帧、渲染标志、裁切；自定义 shader 和冠军 shader；音乐音高；`ItemOverlay:Show`、`RoomTransition:StartBossIntro`。
 
 **本地界面，不同步**：ImGui、`Options`、窗口标题和图标、`DebugRenderer`、`Minimap:SetState`、`GenericPrompt`。Mod 在 Host 上弹出的提示框，客机不会出现；按 mod-api 7.1 节，这类界面由 Mod 在客机本地自己绘制。
 
+## 实施顺序（2026-11-23）
+
+日期：2026-11-23。状态：第 1—13 步已实现、待第 14 步 E2E。本节取代 mod-api 第 11 节原顺序，汇集公开 API、声明类型的采集与编码、REPENTOGON 接口对照及验收夹具。
+
+按项目规范执行：不设 gate、不校验哈希；每步只做纯编译（Win32 Release 产品 DLL 与 E2E 构建），中途不运行任何测试，运行验证全部归第 14 步统一 E2E；代码为组件、核心函数和数据结构写中文注释。每步开头列出的"先核对"是该步要依赖的静态事实（源码或 IDA），查清后写回对应小节再写代码，不是推进条件；查出与设计不符时先改设计。
+
+### 总览
+
+| 步 | 内容 | 依据 | 依赖 |
+| --- | --- | --- | --- |
+| 1 | `IsaacCS` 骨架、声明登记与编译、SDK | mod-api 3、4.2；本文第 1、2 节 | — |
+| 2 | 握手：Mod 清单、ID 表、拒绝连接 | mod-api 4.1、4.2 | 1 |
+| 3 | 客机回调分级放行、音频回放标记 | mod-api 6.2 | 1 |
+| 4 | Host 读取与 Mod 段（global、player） | mod-api 5.1—5.5；本文第 3、4 节 | 1、2 |
+| 5 | 客机安装（global、player） | mod-api 5.6；本文第 7.1—7.3、7.5—7.7 节 | 3、4 |
+| 6 | entity 作用域与实体生灭回调 | mod-api 5.3、5.6；本文第 7.4、7.7.4 节 | 5 |
+| 7 | 意图与结果事件 | mod-api 7.2、D8 | 1、2、5 |
+| 8 | 扩展按键与 Lua 输入路由 | mod-api 6.1、D7 | 1、2 |
+| 9 | 诊断模式 | mod-api 5.3、5.4、5.7；本文第 7.7.7 节 | 4—6 |
+| 10 | 原生待补：核对表五项 | "REPENTOGON 接口对照"需要核对 | — |
+| 11 | 原生待补：Player 附加字段与查询结果 | 同上"需要补同步"前三行 | 10 |
+| 12 | 原生待补：楼层显示名、过场事件、进度查询 | 同上后三行；mod-api D12 | 10 |
+| 13 | 测试夹具 Mod、文档收尾 | mod-api 10 | 1—12 |
+| 14 | 统一 E2E，连续修复与续测 | mod-api 10；本节末 | 13 |
+
+第 1—9 步是 Mod API 主线，第 10—12 步是原生同步支线。两条线互不依赖，支线可以穿插在主线任意两步之间做；唯一的交叉是音频：第 3 步的回放标记和第 10 步的 Host 采集点核对要都完成，夹具的音频场景才有意义。
+
+与 mod-api 原顺序相比有两处调整：骨架提到握手前面，因为清单里的"声明描述"要靠声明登记生成；回调放行从握手一步拆出来单列，放在客机安装之前，避免客机安装接通后玩法回调仍全部放行。
+
+### 第 1 步：`IsaacCS` 骨架、声明登记与编译、SDK
+
+先核对：DLL 能否在任何 Mod 的 `main.lua` 执行之前把真实 `IsaacCS` 注入全局表（mod-api 3.1 节"注入时机"）。做不到时，实现"真实实现加载后接管不联机实现已登记的声明"。
+
+静态核对确认 `LuaEngine::Init` 先运行 REPENTOGON 的 `main_ex.lua`，再缓存回调 registry 入口。沿用现有 bundled-script 包装，在脚本返回时注入真实 `IsaacCS`。加载结束在 `MC_POST_MODS_LOADED` 的官方分派之前记录。声明时计算尺寸，主线程创建握手清单时生成前序节点和 Lua registry 引用。Mod 卸载或会话内尝试 `luamod` 时在下次 Manager 边界发起退休。
+
+- 全局表与登记：`Declare`、`State`、`EntityData`、`EntityState`、`Intent`、`Keys` 的参数检查；加载期之外调用报错并记日志（4.2 节）；声明按 Mod 序号、声明序号编号。
+- 编译：类型树按前序排成节点数组，算出 `fixed`、`worst`，`worst` 超过 64 KiB 在声明时报错；驻留键、`set`、构造器（`Vector`、`Color`、`KColor`）存 registry ref（本文第 1、2 节）。节点数组在握手冻结后不可变。
+- 规范化声明文本：名称、作用域、类型、上限、`private`、`rate`，按声明顺序生成，供第 2 步逐字比较。
+- 查询接口：`IsClient`、`GetParticipant`、`GetPlayerByParticipant`、`GetLocalPlayer`、`IsLocalPlayer`；`MarkDirty`、`AddCallback` 先只登记（派发在第 5—7 步接上）。
+- `isaaccs_sdk.lua`：选择实现、多份共存、`api` 版本只增不减、版本不足时补不联机函数并把该 Mod 记为"api 版本不受支持"；不联机行为严格按 3.2 节表格（`SendIntent` 立即执行 handler、结果延到下一帧回调）。每个函数带中文注释和 LuaCATS 注解。
+- 会话中检测 `luamod` 热重载：结束会话（第 7.7.5 节的退休流程在第 5 步接上）。
+
+### 第 2 步：握手
+
+源码中 `ModManifest` 使用 27 号控制消息，在 Hello／Welcome 之后以现有可靠缺片机制交换。启用清单来自游戏 `ModManager`，`GetModRefByTable` 将声明与实际 `main.lua` 目录关联，REPENTOGON `XMLData` 按来源提供对应类别的 ID。两端比较通过后才继续 Ready。清单净内容上限为 60 KiB。
+
+- 新消息 `ModManifest`，编号登记到 `wire.json`；客机 Hello 之后经可靠通道交换。
+- 清单内容：启用的 Mod（目录名、`metadata.xml` 的 name 和 version、是否有 `main.lua`）；已声明 Mod 的 `api` 版本、自报版本和第 1 步生成的规范化声明文本；ID 表（道具、饰品、卡牌、药丸效果、实体、角色、挑战、音乐、音效、Costume）。
+- 比较：集合与顺序无关、版本字符串相等、声明文本逐字相等、ID 表逐项相等，全部按内容比较，不用哈希。不等时拒绝连接，大厅显示首个差异。
+- 拒绝情形：未声明的 Lua Mod（D1，大厅显示 Mod 名）；SDK 比联机层新（提示更新联机层）；ID 不一致不做重映射（D2）。本项目自带的界面 Mod、观测 Mod 和 REPENTOGON 不参与判定（3 节）。
+- 握手通过即冻结全部声明。
+
+### 第 3 步：客机回调分级放行
+
+先核对：C++ 直接分派的回调是否都经过 `_RunCallback` 系列入口；过滤做在注册时包装还是分派时检查（mod-api 6.2 节开头）。音频回放标记怎样传到过滤器，与这两项一起定。
+
+已核对 REPENTOGON 1.1.3 的 `LuaInit.cpp`、`CustomCallbacks.cpp` 和 `main_ex.lua`。C++ 通常使用两个缓存入口，多重射击兼容分支缓存了独立闭包，随后经 `Isaac.RunCallbackWithParam` 进入同一逐条调用点。过滤接在 `RunCallbackInternal`。ImGui 直接调用界面闭包。客机音频回放用主线程作用域标记，单次 SFX 保持现有原生音槽播放路径，音乐状态和循环声在同一规则下应用。Host 最终音频参数的采集点仍归第 10 步核对。
+
+补齐静态审阅发现的漏拦路径。两层分派按固定回调 ID 和原生阶段应用同一套规则，项目内置 Mod 同样受限。J273 `LuaCallbackCaller::CallInputAction`（`85AEC0`）复用官方结构返回 ABI，为稳定主菜单的原生输入调用授予资格。HUD 更新、历史栏重算和本地暂停菜单绘制在各自的显示入口放行。音乐 tick 在 `7D8303` 消费 Host 队列时继承回放标记，现有 `Music::Queue` Hook 记录本地重入队，包括覆盖同一个 ID 的情况。
+
+纯编译中，布局生成器拒绝新增的顶层报文字段，改用既有 `protocol_constants` 登记。MSVC 拒绝以单个字符串常量嵌入 SDK，改由同一源文件生成字节数组。修正后产品 DLL、E2E DLL 与工具均编译成功。
+
+- 按 `callback.Mod` 加回调种类过滤已声明 Mod 的回调，按 6.2 节分类表：绘制、HUD、菜单、`MC_GET_SHADER_PARAMS`、`MC_PRE_GET_LIGHTING_ALPHA` 放行；Init、玩法、Cache、玩家属性查询不触发。
+- 音频：客机回放 Host 的音效、音乐事件期间设"回放中"标记，过滤器跳过五个音频回调；客机本地发出的声音照常触发。
+- 文档：[client.md](../../client.md) §8"Lua 回调一律放行"改为按 mod-api 6.2 节分级放行。
+
+### 第 4 步：Host 读取与 Mod 段（global、player）
+
+2026-11-23 接入源码。Host 把采集结果交给普通 World 邮箱，后台按同帧成员目录填写实体引用并排序 map。布局升至 92。记录以接收 ACK 对应的实际发送值作差，私有记录在组帧时按参与者过滤。每拍优先保留原生正文和已有表现事件，剩余额度发送 Mod 记录。常规 World 无法承载大记录时复用可靠基线。
+
+- 读取（本文第 3 节）：World 采集窗口内按 `rate` 执行读取程序（`"world"`、`"low"`、`"mark"`）；类型不符、超限、`get` 抛错时该条本帧沿用并计数；Mod 段整体失败（VM 不一致、暂存区取不到）时全部沿用、原生帧照常发布。不设时间上限，耗时按 Mod、按声明计入诊断。
+- 值类型全部接通，含 `ENTITY`（成员号，不在目录或已离开写 Null 并计数）和 `PLAYER`（ordinal）。
+- 编码线程（本文第 4 节）：按索引给 `map` 排序得到规范字节，与上一版 memcmp，更新"最后变化版本"。
+- 线格式（mod-api 5.5 节）：World 帧新增 Mod 段和记录头；布局版本加 1；按 Peer 组帧时跳过接收者不是该 Peer 的私有记录；计入 World 预算、单条 64 KiB 上限和三池内存账本。
+- 完整基线带上全部读成功过的记录；从未读成功的记录不出现。
+
+### 第 5 步：客机安装（global、player）
+
+先核对：第 7.7.9 节第 2 项（`GetData`、`GetPtrHash`、`Vector` 构造等绑定在 `mod_state_install` 根下是否会被现有 Hook 拦掉）。
+
+2026-11-23 静态核对现有 Hook 清单及 REPENTOGON 1.1.3 Lua 绑定。`GetData`、`GetPtrHash` 和 `Vector`、`Color`、`KColor` 构造没有经由客机拦截的根入口。安装使用冻结的构造器引用及 REPENTOGON userdata 注册。客机后台把验证后的 Mod 字节绑定在同一份 World 的应用票据上，Manager 在显示前写 Lua 并派发本批通知。统计沿用联机诊断页。场景退休先执行 ENDED 和声明的 `reset`，同层换房沿用当前 Mod 场景。Host 提前撤下来源且下一场景尚未知时，保留 Mod 场景至下一次 Prepare 核对 run 和 floor。Lua 逻辑放在 SDK 兼容的 `game/mods/mod_api.cpp`，Host 编码与客机影子校验共用 `state/mod_codec.cpp`。运行行为归第 14 步验证。
+
+- 后台（第 7.1、7.2 节）：Mod 段解码接入 `state/client_receive.*`，结构校验失败整条丢弃；影子按记录键合并，封存为不可变 `ModShadowRef`，挂进 `ClientStatePreparedTarget`（M1）。
+- 主线程（第 7.7.1—7.7.3 节）：`game/client/session/client.cpp` 中 `Pump` 之后、`AdvanceDisplay` 之前进入安装阶段；已安装表、按引用加 memcmp 生成安装集（M2）；完整基线全部重写（M8）；有 `set` 时构建新值，无 `set` 时按默认写回原地写（第 7.3 节，D11）；顶层空值（D10）。
+- 未解析引用（第 7.4 节）：写 `nil`、打标记、每轮重试。
+- 回调：批末统一派发 `CLIENT_STATE_CHANGED`（M4）；`CLIENT_SCENE_STARTED`、`CLIENT_SCENE_ENDED` 与 `reset`（第 7.7.5 节），挂在 `scene.Retire` 原生拆卸之前；参与者离开只删 player 条目（M5）。
+- Lua 调用框架（第 7.7.6 节）：VM 核对、`ClientDispatchScope` 根 `mod_state_install`、`client_isolation` 新增 `mod_install` 分类、每条 `lua_pcall` 加 traceback、栈恢复、每条只记前 3 次错误。
+- 代码落点按第 7.7.10 节；其中"后台列出 M3 名单"的位置更正为 `game/client/scene/client_preparation_native.cpp`（`state/` 下没有 `client_preparation.*`），在第 6 步实现。
+
+### 第 6 步：entity 作用域
+
+先核对：第 7.7.9 节第 1、3、4 项（压实体所用的元表、`ClientSceneMemberStore` 的成员号→对象与实例号及差集、重建／Morph 预测与主线程身份核对是否一致）。
+
+2026-11-23 接入源码。REPENTOGON 1.1.3 的通用实体回调参数使用 `ENTITY`，具名子类参数使用各自注册。模组接口的 `ent` 采用前者。Host 暂存用实体的物理身份与使用代次，后台再换为同帧成员号。客机通过已发布目录和 `ClientSceneMainPreparation::FindLiveMember` 取得当前实例。后台按上一份成功安装的目录预测离开和重建，主线程用 `SelectRetiring` 重新核对。同一实例的原地 Morph 保留状态。预测漏掉的实际释放计数，预通知后仍存活的实例在下一次成功发布时补发 INSTALLED。Host 在提前撤下采集时携带同层换房语义，保留旧实例释放前的通知时机。
+
+- Host：`EntityData` 按 filter 读 `GetData()[key]`，`EntityState` 调 `get(ent)`；记录目标为成员号，与实体同生命周期（离开一起删、沿用一起沿用）。
+- 客机后台：成员目录显示离开时，从下一份快照删除该成员的 entity 记录；准备批次时列出 M3 计划内离开／重建名单随批次封存。
+- 客机主线程：`Pump` 取到 World 批次后、原生删除前派发 REMOVED 预通知；安装阶段按已提交成员集合差集处理新建、重建、原地 Morph、离开（第 7.7.4 节）；entity 记录写完后派发 `CLIENT_ENTITY_INSTALLED`；不重复通知、INSTALLED 配对、计划外释放计 `mod_removed_unplanned`；"待实体"标记；实体重建从影子重装，不需要 Host 重发。
+
+### 第 7 步：意图与结果
+
+2026-11-23 接入源码。布局 93 登记 `ModIntent`（28），并在 World 正文内将私有结果与原生事件分别定界。客机按队首重传，Host 以连接内序号去重，受理后进与本机共用的主线程队列。私有结果由实际 World 发送凭据上的 ACK 确认。客机在收包时将结果移交连接邮箱，Manager 在处理本轮应用后派发。换局、换层或退出时，客机为仍在等待的请求派发失败。实体参数沿用提交目录中的成员号，执行前重新核对目录代次和实体身份。
+
+- 新消息 `ModIntent`（可靠、有序），登记到 `wire.json`；内容 ≤ 512 B、每 Peer 在途 ≤ 8、每秒 ≤ 20，超出时 `SendIntent` 返回 nil。
+- Host 排队，在下一次最外层 `Manager::Update` 入口按到达顺序执行，与 `cs` 命令相同；发起者没有身体时拒绝；Host 本机发起的意图走同一个队列。
+- 结果（D8）：ok 加 ≤ 256 B 结果，作为发起者的私有事件进 World 事件队列，按 ACK 去重，客机派发 `CLIENT_INTENT_RESULT`；Host 本机同样回调（mod-api 3.2 节补充）。
+- 换局、换层、会话结束时丢弃未执行的意图并返回失败结果。
+
+### 第 8 步：扩展按键与 Lua 输入路由
+
+InputManager 的动作查询最终调用设备槽。C/S 在这些槽里的覆盖要求 Player consumer 作用域，普通 Lua 查询缺少这个作用域。公开 Input.IsActionPressed、IsActionTriggered 和 GetActionValue 现按 ControllerIndex 定位 C/S 参与者并读取同一 Authority 快照。两端按清单对扩展键升序去重，最多 64 个，按住与边沿各用一个 u64。边沿随输入序号去重、按目标 tick 消费，重绑和暂停丢弃待提交边沿。输入记录和紧凑控制正文升至 schema 3。
+
+先核对：远端玩家的 `ControllerIndex`（虚拟设备 K）上，Lua `Input.IsActionPressed`、`IsActionTriggered`、`GetActionValue` 是否经过原生输入消费者的同一条路径（mod-api 6.1 节）。不经过时补路由，使其返回该参与者的统一输入。
+
+- `Keys` 声明进清单（第 2 步已含声明文本）；客机采样声明的按键，随输入记录上传（输入记录格式变化按现有规则登记版本）。
+- Host 上 `IsKeyPressed`、`IsKeyTriggered` 按参与者查询。
+
+### 第 9 步：诊断模式
+
+现有诊断开关开启后，首次成功采集枚举未声明的结构键，大型 world 容器在编译声明时提示。联机诊断按模组和声明显示安装、基线重写、回调、拦截和解码统计。诊断模式每批从已安装字节重写当前实例，用重写前后的有类型读值检测改写并点名。带自定义 set 的声明需要 get 或默认键能观察到实际目标。
+
+- 读取：每个声明首次读取时把被忽略的字段名记进日志；`max` 超过 256 的容器按 `"world"` 读取时加载期提示（mod-api 5.3、5.4 节）。
+- 安装：按 Mod 统计第 7.7.7 节列出的各项。
+- D6 只读检查：每个显示批次前从已安装引用重写一遍，按 Mod、按声明统计并点名被改动的键（mod-api 5.7 节）。
+
+### 第 10 步：原生待补——核对表五项
+
+逐项查清"REPENTOGON 接口对照"中"需要核对"表，结论写回该表；需要补同步的项并入第 11、12 步：
+
+1. `HUD:SetBossHPBarFill` 的覆盖值会不会被客机 `HUD::Update` 冲掉。
+2. `Isaac.CreateTimer` 生成的 Effect 是否复制到客机、复制后是否无害。
+3. `FXLayers:AddPoopFx` 的 FX 层内容是否在同步范围内。
+4. Mod 经 REPENTOGON 接口生成的程序道具是否走 TMTRAINER 负 ID 的同一路径。
+5. Host 音频采集点在 `MC_PRE_SFX_PLAY`、`MC_PRE_MUSIC_PLAY` hook 之内还是之外；在之外时改到回调处理之后记录最终参数，被取消的声音不记录。
+
+### 第 11 步：原生待补——Player 附加字段与查询结果
+
+布局 94 通过 World Mod 段的原生保留声明表示每个 Player 实例的 Plus 附加状态。自定义缓存键、值与标签按固定顺序编码，客机写入经 SDK ABI 核对的容器和 previousHealthType、camoOverride。健康与充能结果由实际 Host 原生调用正常返回时采集，客机按身体与调用参数读取。未在 Host 执行过的参数组合仍走原生默认查询。采集不会主动执行可能转换心格或触发玩法 Lua 的 getter。原生保留记录使用 Mod 序号 65534。外层 u16 长度和 Mod 记录头由同一接收管线验证，Player 目标为同帧实体成员号。
+
+| u8 camo | i32 previous_health | u16 标签数及逐项 u16 长度＋字节 | u16 缓存项数及逐项字符串＋f64 | u16 查询项数及逐项 u8 类别＋两个 i32 参数＋i32 结果 |
+| --- | --- | --- | --- | --- |
+
+按[第 5 步](binary-state/5-player.md)的方式逐项建模，进 Player 附加结构，布局版本加 1：
+
+- 自定义 cache：`EntityPlayerPlus::customCacheResults`、`customCacheTags`。
+- 强制隐身外观：`EntityPlayerPlus::camoOverride`。
+- 玩家属性查询的有效结果：`GetHealthType`、`GetHeartLimit`、`GetActiveMaxCharge`、`GetActiveMinUsableCharge` 在 Host 上的结果（含 `previousHealthType` 等状态），客机查询 hook 直接返回同步值。`catalog/player-application.json` 中 `GetActiveMaxCharge` 从 `@local_api_context` 改为最终显示缓存，`GetActiveMinUsableCharge` 同样处理。与"具名适配交接"中"Player／HUD 回调结果"一项合并实施。
+
+### 第 12 步：原生待补——楼层显示名、过场事件、进度查询
+
+楼层名称从正常 Level::GetName 取得最终文字，客机在 J273 73FE80 返回同楼层结果。Room 的 backdrop_id 已安装到原生 Backdrop，客机冷构建从该字段选择背景，后续进房沿用此路径。过场请求使用 World 事件 6，清场导致旧路由提前退休时可靠 Retire 补带同一序号。客机确认原生场景退休后调用过场专用显示入口。REPENTOGON 对 ID 大于 26 的自定义过场走控制台入口，其清场选项沿用官方行为。
+
+PGD 固定范围、已分配的自定义成就／挑战、图鉴三类计数走 Host 只读快照。客机公开查询和原生 PersistentGameData::Unlocked 从镜像读。五个公开写入方法已由 client_native_bridge.cpp 的 Lua 持久保护包住，底层 TryUnlock、IncreaseEventCounter、AddBestiaryKill 和 AddBoss 也已有拦截。原展示用 ClientDisplayProgressBlocked 仍服务 HUD 资格。PGD 的原生解锁查询入口是 9039B0。
+
+- 当前楼层显示名：`Level:SetName`（`CustomStageName`）与 `Isaac.SetCurrentFloorName`（`_stages[]._displayName`）合并为一个 Level 注入值，同步 Host 当前生效的名字。同时核对 `SetCurrentFloorBackdrop` 之后进入的房间，背景是否已由房间背景同步覆盖，没覆盖就补。
+- 过场事件：在 `Isaac.PlayCutscene` 调用点记录，随 World 事件下发，客机按事件播放；`ClearGameState = true` 与场景退休一起处理。
+- 进度查询（D12）：把显示委托"进度（成就、计数）"一行从"按显示需求裁剪"扩到 mod-api 6.4 节所列查询的全部范围（成就、事件计数、挑战完成、图鉴、Boss 击杀、收藏）；客机查询 hook 返回同步值，不写客机 PGD、不改本机存档。核对 `client_native_bridge.cpp` 的持久化拦截是否已覆盖 `Unlock`、`TryUnlock`、`IncreaseEventCounter`、`AddBestiaryKill`、`AddBossKilled`，没覆盖就补。显示委托文档中的查询 hook 名 `client_hud_achievement_query` 在现有代码中查不到，实施时先确认实际入口。
+
+### 第 13 步：测试夹具 Mod、文档收尾
+
+- [专用夹具](../../../tests/e2e-mods/isaac-cs-mod-fixture/README.md)使用真实声明和同源单机 SDK，涵盖全部作用域、类型、采集频率、输入、意图及限流、握手负向样本、状态错误与生命周期。Host 命令和本端按键会留下可对照的 Lua 观察。原生用例覆盖进度 HUD、自定义 cache、隐身、充能和心上限、Boss 血条、两条楼层改名路径、下房背景、音频和过场。E2E 构建装配独立目录，`package.ps1 -ModAdaptation` 选择专用包。
+- [同步](../../synchronization.md)、[Client 端设计](../../client.md)、[架构](../../architecture.md)已更新至布局 94。先核对事项的结论分别记录在第 1 步（Lua 注入）、第 3 步（分派与音频标记）、第 5—6 步（Lua 绑定、成员与实例）、第 8 步（ControllerIndex 输入）及第 10—12 步（原生接口及持久化）。夹具对照条件见其 README。
+
+### 第 14 步：统一 E2E
+
+按 mod-api 第 10 节的场景，加原 E31 的覆盖要求（见下节）和第 13 步补的原生待补用例，统一跑 E2E，连续修复与续测。每次实机测试前先告知需要配合的操作和何时停手，需要手动配合时确认用户准备好再启动。
+
+**2026-11-23 首轮实机。** 两端到达标题页并记录夹具以 `native_sdk=true` 加载。Host 选择隔离存档二时，在 `mod_floor_name` 首次返回后退出，尚未开局。J273 的 `73FE80` 有五个原生调用点，每处调用方回收 20 字节栈参数。原自有成员定义使用被调用方清栈，导致栈指针错位。改为复用 REPENTOGON 的全局 `GetLevelName` 定义，保留 ECX 输出对象、EDX 层号和调用方清栈。
+
+**同轮续测。** 两端分别在安装联机层、会话关闭时进入存档二的单机局并读到夹具 HUD。Host 成功意图在帧 3562 将计分从 0 改为 3，结果在帧 3563 到达；失败意图在帧 3913 执行，帧 3914 收到失败，计分仍为 3。Host 的收藏、Boss 击杀及图鉴计数与 Client1 的本机进度有差异。随后 Host 开始联机时返回 `mod_api_unavailable`。启动跟踪显示正式 Lua 虚拟机中的全局 `debug` 为 nil，分派安装未完成。已改为由原生只向安装闭包传入调试库表；同轮继续握手验收。
+
+**2026-11-23 世界安装修复。** 用户手测时客机能接收并解码，但两次连接累计记录 1,470 次 `binary_live_copy_window` 安装撤销，画面反复回到等待。固定种子双端复测定位到 `RoomDescriptor.grid_index` 的原生写入前检查。同一 DLL 里，增量 LTCG 复用的内联守卫从票据旧偏移 `0xC9` 读取消位，当前守卫使用 `0xD9`。Release DLL 现显式使用完整 `/LTCG`，重新生成跨单元内联代码。写入前检查失败时，安装器保留此前真实写入的状态。修复后同样的双端流程首次安装通过，40.97 秒内发布 1,228 次 World 更新（29.97 Hz），40 次采样均为已安装且未过期，跟踪未见相关撤销或重同步。两端正常停止，客机原生场景及二进制队列均已排空。本次复测覆盖世界安装问题。
+
+**不在本顺序内**：客机副作用防护（mod-api 6.3 节，现阶段不做）；StageAPI、自定义角色与武器等具名适配，以及挑选示范 Mod（D9），在这套 API 跑通之后作为兼容 Mod 或单独设计推进。
+
 ## 后续验收与未决问题
 
-原 E31 的覆盖要求保留在这里：具名 adapter 的编码／解码须覆盖循环、共享、超预算、抛错、超时、引用失效和生命周期变化；超限不得伪装为空或完整，安装失败不得提前确认。StageAPI、角色、资源与绘制还须各自覆盖真实 Client 行为。后续按明确的完整适配目标统一 E2E，连续修复与续测；本次不执行这些用例，也不把迁出记为通过。
+原 E31 的覆盖要求保留在这里：具名 adapter 的编码／解码须覆盖循环、共享、超预算、抛错、超时、引用失效和生命周期变化；超限不得伪装为空或完整，安装失败不得提前确认。现行强类型夹具用有限声明路径覆盖共享与自引用表，用诊断耗时观察读取成本；运行时不设读取超时。StageAPI、角色、资源与绘制还须按自身范围覆盖真实 Client 行为。
 
-仍未确定：仅保留现有具名 adapter，还是提供公开注册接口；各 Mod 的 schema／版本与支持清单；稳定编码、读取耗时与降频／失败发布语义；Client 具体安装／展示 owner、资源寿命及隔离。本文不将这些未决项转为本轮原版验收前置条件。
+已定（2026-11-23）：提供公开声明式接口，见 [Mod 联机接口方案](../../mod-api.md)。
+
+已定（2026-11-23）：各 Mod 的 schema／版本与支持清单由 mod-api 取代：schema 就是 Mod 自己的声明，版本在握手时逐字比较（4.1 节），支持清单按 D9 不维护。稳定编码见"声明类型的采集与编码"第 2、4 节；读取耗时与失败发布语义按原生采集定稿：每条记录只按数量设上限，不设时间上限、不降频，失败记录沿用，帧照常发布，ACK 只表示收到（mod-api 5.4 节）。
+
+本文没有剩余的设计未决项。实施时要核对的事实见第 7.7.9 节和"REPENTOGON 接口对照"的"需要核对"表，已分别排进"实施顺序"各步的"先核对"；接口层的未决项见 mod-api 第 12 节。

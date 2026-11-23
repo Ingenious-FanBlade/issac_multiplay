@@ -31,6 +31,8 @@ public:
   std::span<const ClientDisplayEvent> Events()const noexcept{return events_;}
   std::span<const ClientSceneDisplayLinks> EventLinks()const noexcept{return event_links_;}
   const ClientDisplayBoss &Boss()const noexcept{return boss_;}
+  // 后台只预测目录身份。预通知还须在主线程核对上次发布的真实实例。
+  std::span<const state::StateMemberEntry> ModLeaving()const noexcept{return mod_leaving_;}
   bool Releasable()const noexcept override;
 private:
   friend struct ClientSceneDescribeWork;
@@ -42,6 +44,7 @@ private:
   state::ClientStateVector<ClientDisplaySound> sounds_;
   state::ClientStateVector<ClientSceneDisplayLinks> sound_links_,event_links_;
   state::ClientStateVector<ClientDisplayEvent> events_;
+  state::ClientStateVector<state::StateMemberEntry> mod_leaving_;
   ClientDisplayBoss boss_;
 };
 // 后续真实安装owner提供只读资格快照；后台不解引用游戏对象，也不在查询中物化资源。

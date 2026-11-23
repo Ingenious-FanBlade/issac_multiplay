@@ -282,6 +282,8 @@ def parse_legacy_rows(rows, problems, explicit_abi=None):
             problems.add(where, 'required 必须是布尔值')
         if conv == 'cdecl' and not static:
             problems.add(where, '既有行 schema 不能表达成员 cdecl；请用 world_observations')
+        if not cls and (own or not static):
+            problems.add(where, '空类名仅用于复用 SDK 的全局函数定义')
         rva = parse_int(rv, where + '.rva', problems)
         priority_value = parse_int(priority, where + '.priority', problems)
         if rva is None or priority_value is None:
@@ -304,11 +306,11 @@ def parse_legacy_rows(rows, problems, explicit_abi=None):
                     else:
                         problems.add(where, '未支持的显式参数ABI: %r' % location)
         parsed.append(dict(
-            kind='legacy', id=ident, group=group, cls=cls, method=method,
+            kind='legacy', id=ident, group=group, cls=cls or 'CsGlobal', method=method,
             ret=ret, params=params, call=call, rva=rva, owner=owner,
             static=static, conv=conv, own=own, priority=priority_value,
             required=bool(required), nargs=len(split_params(params)),
-            name=('IsaacCS::' + method) if own else cls + '::' + method, args=specs))
+            name=('IsaacCS::' + method) if own else (cls + '::' + method if cls else method), args=specs))
     return parsed
 
 
@@ -510,6 +512,8 @@ GENERATED_HEADER = """// 由 gen_binding.py 生成，请修改 binding/hooks.jso
 #include "hooks/cs_hook.h"
 #include "binding/offsets.h"
 #include "game/common/bridge.h"
+#include "game/mods/mod_api.h"
+#include "game/mods/mod_native.h"
 #include "game/client/entity/client_objects_native.h"
 #include "game/client/display/client_display_bridge.h"
 #include "game/tests/client_entity_e2e.h"
@@ -534,6 +538,7 @@ struct CsImageCache {};
 struct CsStatHUD {};
 // J273 HUD 的玩家槽布局选择 97E4A0、单槽绘制 97EB40（ECX=HUD，两个栈 word，retn 8）。
 struct CsHUD {};
+struct CsGlobal {};
 struct CsAudioStream {};
 struct CsMusic {};
 struct CsRoomTransition {};
@@ -691,9 +696,40 @@ def legacy_body(row):
                 '    auto result=super();',
                 '    trace.Returned();',
                 '    return result;']
+    if ident == 'nightmare_render':
+        return ['    cs::CallScope scope(record);',
+                '    cs::game::NightmareCaptureScope capture(this);',
+                '    super();',
+                '    capture.Returned();']
+    if ident == 'nightmare_layer':
+        return ['    cs::game::CaptureNightmareLayer(this, frameIndex, animation, &position, &topLeftClamp, &BottomRightClamp);',
+                '    super(%s);' % call]
     if ident == 'client_overlay_render':
         return ['    cs::CallScope scope(record);', '    super();',
                 '    if (cs::game::ClientNativeDisplayCallbacks()) cs::game::ClientBinaryRenderOverlays(this);']
+    mod_player_queries = {
+        'mod_player_health': (0, '0', '0'),
+        'mod_player_limit': (1, 'int(keeper)', '0'),
+        'mod_player_max_pair': (2, 'item', 'vardata'),
+        'mod_player_max_slot': (3, 'slot', '0'),
+        'mod_player_min_slot': (4, 'slot', '0'),
+    }
+    if ident in mod_player_queries:
+        kind, first, second = mod_player_queries[ident]
+        args = f'this,{kind},{first},{second},value'
+        return ['    int value=0;',
+                f'    if(cs::game::ClientModPlayerValue({args})) return value;',
+                '    cs::CallScope scope(record);', f'    value=super({call});',
+                f'    cs::game::HostModPlayerValue({args});', '    return value;']
+    if ident == 'mod_progress_unlocked':
+        return ['    bool value=false;',
+                '    if(cs::game::ClientModUnlocked(achievementID,value)) return value;',
+                '    cs::CallScope scope(record);','    return super(achievementID);']
+    if ident == 'mod_floor_name':
+        return ['    // 沿用官方全局定义：ECX 指向输出对象，EDX 为 stage，由调用方清栈。',
+                '    std::string name;',
+                '    if(cs::game::ClientModFloorName(stage,type,name)){new (output) std::string(std::move(name));return;}',
+                '    cs::CallScope scope(record);', f'    super({call});']
     if ident == 'client_hud_achievement_query':
         return ['    // 仅当前Client HUD绘制读取Authority的最终徽章条件；进度能力不受此查询影响。',
                 '    bool result=false;',
@@ -732,8 +768,9 @@ def legacy_body(row):
     if ident in display_requests:
         kind,args=display_requests[ident]
         guard=['    if(cs::game::ClientDisplayBossAudioSuppressed(_ReturnAddress())) return;'] if ident=='binary_music_play' else []
+        post=['    cs::game::ClientDisplayMusicQueued(this,musicid);'] if ident=='binary_music_queue' else []
         return guard+['    cs::game::BinaryProductionScope binary(cs::game::BinaryProductionKind::%s,this,g_Manager);' % kind,
-                '    binary.Request(%s);' % args,'    cs::CallScope scope(record);','    super(%s);' % call,'    binary.Returned();']
+                '    binary.Request(%s);' % args,'    cs::CallScope scope(record);','    super(%s);' % call,'    binary.Returned();']+post
     if ident=='client_boss_ambient':
         return ['    if(cs::game::ClientDisplayBossAudioSuppressed(_ReturnAddress())) return;',
                 '    cs::CallScope scope(record);','    super();']
@@ -867,9 +904,10 @@ def legacy_body(row):
                 '    super();',
                 '    record.completed.fetch_add(1, std::memory_order_relaxed);']
     if ident == 'client_entity_local_sound':
-        return ['    // 访客准备至安全退休期间不执行本地SFX/声音RNG；Authority瞬时音画由27具名消费。',
-                '    // 例外：客机本地暂停菜单（打开／关闭／选项）作用域内的菜单音效照常在本机播放。',
-                '    if(cs::game::ClientBusy()&&!cs::game::ClientPauseMenuSoundAllowed()) return;',
+        return ['    // 客机只放行本地暂停菜单及获准显示回调的单次 Lua 音效。',
+                '    // 循环音效与 Host 音效回放继续由现有的场景音频入口处理。',
+                '    if(cs::game::ClientBusy()&&!cs::game::ClientPauseMenuSoundAllowed()&&',
+                '        (loop||!cs::game::ClientDisplayLuaSoundAllowed())) return;',
                 '    record.calls.fetch_add(1, std::memory_order_relaxed);',
                 '    super(id, volume, delay, loop, pitch, pan);',
                 '    record.completed.fetch_add(1, std::memory_order_relaxed);']
@@ -951,6 +989,11 @@ def legacy_body(row):
                   '    callback_script.Returned(result);',
                   '    return result;']
         return lines
+    if ident == 'mod_menu_input':
+        lines += ['    // J273 85AEC0：复用官方定义的结构返回 ABI，资格只包住这一次原生输入分派。',
+                  '    cs::game::ModApiMenuInputScope menu_input(scope.main);',
+                  '    return super(%s);' % call]
+        return lines
     if ident == 'isaac_shutdown':
         lines += ['    if (scope.main) cs::game::ClientShutdownBeginning();',
                   '    super();',
@@ -966,10 +1009,12 @@ def legacy_body(row):
         lines.append('    cs::game::ClientRenderScope client_render(scope.main);')
     if ident == 'manager_update':
         lines += ['    cs::FrameScope frame(scope.main);',
+                  '    if (scope.main) cs::game::ModApiBeforeManager();',
                   '    if (cs::game::ClientManagerBoundary()) return;',
                   '    super(%s);' % call]
     elif ident == 'console_command':
         lines += [
+            '    if (scope.main) cs::game::ModApiConsoleCommand(in.c_str());',
             '    if (scope.main && cs::OwnCommand(in)) {',
             '        try {',
             '            auto* game = static_cast<unsigned char*>(cs::GamePointer());',

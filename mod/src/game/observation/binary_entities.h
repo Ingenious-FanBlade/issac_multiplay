@@ -23,6 +23,7 @@ struct BinaryEntityStats {
   state::HostMemberIndexStats member_indices;
   BinaryEventCaptureStats events;
   std::uint64_t publication_revision=0;
+  std::uint64_t mod_missing_references=0,mod_encode_failures=0;
   world::binary::CaptureReadSession::Counters reads;
   world::binary::NativeSourceStats native;
   std::uint64_t body_reused=0,member_scans=0,scene_scans=0,roots=0,cells=0,paths=0,bytes=0;
@@ -71,6 +72,10 @@ public:
   void NetworkPublication(bool enabled) noexcept;
   // 主线程授权纯值邮箱，网络线程从邮箱读取，不取得采集对象或原生地址。
   std::shared_ptr<const state::HostStatePublication> Publication() const noexcept;
+  bool ModIntentWorld(net::ModIntent &) const noexcept;
+  void ModSceneIdentity(std::uint64_t &run,std::uint64_t &floor) const noexcept;
+  std::uint16_t ModIntentMember(const void *) const noexcept;
+  void *ResolveModIntentMember(const net::ModIntent &,std::uint16_t) const noexcept;
   BinaryEntityStats Statistics() const noexcept;
   std::string WorkerFields(unsigned page) const;
   // 唯一worker consumer领取票据；不得借用游戏对象或主线程scratch。

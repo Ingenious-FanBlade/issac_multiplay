@@ -8,7 +8,7 @@ namespace cs::game {
 namespace {
 constexpr const char *names[]={"begin","native_call","native_return","expected_skip",
   "rejected_entry","lua_skip","own_lua","native_persistence","lua_persistence",
-  "random_rejected","fault","recover","stop","retired","observation_lost"};
+  "random_rejected","fault","recover","stop","retired","observation_lost","mod_install"};
 std::array<std::atomic<std::uint64_t>,unsigned(ClientIsolationKind::Count)> counts{};
 }
 void ClientIsolationObserve(ClientIsolationKind kind,const char *entry) noexcept {

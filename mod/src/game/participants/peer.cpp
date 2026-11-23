@@ -1,11 +1,16 @@
 #include "game/participants/peer.h"
+#include "game/mods/mod_native.h"
+#include "binding/offsets.h"
 #include "game/authority/lifecycle.h"
 #include "game/participants/remote_life.h"
 #include "game/authority/state.h"
 #include "game/authority/tick.h"
+#include "game/client/display/client_display_bridge.h"
+#include "game/common/bridge.h"
 #include "net/timing_clock.h"
 #include "game/observation/world_bridge.h"
 #include "game/observation/binary_entities.h"
+#include "game/participants/topology.h"
 #include "net/live.h"
 #include "replica/stream_e2e.h"
 #include "runtime.h"
@@ -224,15 +229,31 @@ void DrainPeer(SessionRuntime &r) noexcept {
     }
   }
 }
+// SDK 绘制只借用会话值，原生过场不访问网络或输入 owner。
+std::uint64_t HostNightmareSession() noexcept {
+  const auto *r=Runtime();
+  if(!r||r->mode!=core::SessionMode::Host||r->retiring||r->finished||r->failure)return 0;
+  return SessionGeneration(*r);
+}
 void PublishPeer(SessionRuntime &r) noexcept {
   if (r.mode != core::SessionMode::Host)
     return;
   // 世界发布失败只撤复制来源；输入scheduler与Authority提交不等待编码或网络。
   try {
     auto publication=std::make_shared<net::live::Publication>();
+    publication->nightmare_active=HostNightmareActive();
+    publication->nightmare=HostNightmareFrame();
     publication->source=CurrentLiveSource();
-    if(const auto capture=CurrentWorldRecording();publication->source[0]&&capture&&capture->binary_entities)
-      publication->binary=capture->binary_entities->Publication();
+    const auto cutscene=HostModCutscene();
+    if(cutscene.clear){publication->cutscene_serial=cutscene.serial;publication->cutscene_id=cutscene.id;publication->cutscene_run=cutscene.run;}
+    // 采集源为空时仍用房主当帧的原生遮罩模式保护换层画面。
+    std::uint32_t stage_mode=0;
+    publication->stage_display_active=!publication->source[0]&&
+        ReadAt(GamePointer(),offset::StageTransition,stage_mode)&&stage_mode>=1&&stage_mode<=4;
+    if(const auto capture=CurrentWorldRecording();capture&&capture->binary_entities){
+      capture->binary_entities->ModSceneIdentity(publication->mod_run,publication->mod_floor);
+      if(publication->source[0])publication->binary=capture->binary_entities->Publication();
+    }
     r.network.PublishWorld(std::move(publication));
   }catch(...){r.network.PublishWorld({});}
   std::uint32_t roster = 0;

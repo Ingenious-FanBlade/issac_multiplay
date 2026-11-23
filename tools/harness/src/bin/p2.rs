@@ -101,6 +101,10 @@ pub(super) fn deploy(instances: &[&TestInstance; 2], package: &Path) -> Result<(
             return Err(format!("missing deployment entry: {required}"));
         }
     }
+    // 模组适配包使用正式声明夹具。隔离目录内残留的旧玩法夹具继续禁用。
+    let mod_adaptation = sources.iter().any(|(path, _)| {
+        *path == Path::new("mods/isaac-cs-mod-fixture/main.lua")
+    });
 
     for (instance, port) in instances.iter().zip([HOST_CONTROL, CLIENT_CONTROL]) {
         for (relative, source) in &sources {
@@ -127,10 +131,15 @@ pub(super) fn deploy(instances: &[&TestInstance; 2], package: &Path) -> Result<(
             if !entry.file_type().map_err(|e| e.to_string())?.is_dir() {
                 continue;
             }
-            if PROJECT_MODS
-                .iter()
-                .any(|name| entry.file_name() == std::ffi::OsStr::new(name))
-            {
+            let name = entry.file_name();
+            let enabled = if mod_adaptation {
+                ["isaac-cs-ui", "isaac-cs-observation", "isaac-cs-mod-fixture"]
+                    .iter()
+                    .any(|own| name == std::ffi::OsStr::new(own))
+            } else {
+                PROJECT_MODS.iter().any(|own| name == std::ffi::OsStr::new(own))
+            };
+            if enabled {
                 if marker.is_file() {
                     fs::remove_file(&marker).map_err(|e| e.to_string())?;
                 }
@@ -145,6 +154,9 @@ pub(super) fn deploy(instances: &[&TestInstance; 2], package: &Path) -> Result<(
             "control_port": {"enabled": true, "port": port},
             "host": {"default_port": HOST_PORT, "bind_address": "127.0.0.1", "peer_timeout_ms": 30000}
         });
+        if mod_adaptation {
+            settings["diagnostics"] = json!({"enabled": true});
+        }
         // 仅为显式启用的 E2E 故障入口配置令牌，常规双端启动沿用默认关闭状态。
         if let Some(token) = &fault_token {
             settings["world_record"] = json!({"enabled": false, "e2e_token": token});
@@ -155,7 +167,7 @@ pub(super) fn deploy(instances: &[&TestInstance; 2], package: &Path) -> Result<(
         )
         .map_err(|e| format!("{}: {e}", config.display()))?;
         // 复用现有 Host 实机负载，F8 才开始；Client 始终拒绝注册玩法夹具。
-        if let Some(token) = host_fixture {
+        if let Some(token) = host_fixture.filter(|_| !mod_adaptation) {
             let path = local_path(&instance.root, Path::new("mods/isaac-cs-test/harness_config.lua"))?;
             // 标准压力与超载各自从干净房间开始，避免依赖前序 F8 操作留下的实体。
             let load = std::env::var("ISAAC_CS_P2_LOAD").unwrap_or_default();

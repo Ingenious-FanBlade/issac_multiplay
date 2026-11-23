@@ -61,14 +61,14 @@ const char *SourceActivityName(SourceActivity activity) noexcept {
   return "UNKNOWN";
 }
 bool Valid(const InputStateDraftV2 &state) noexcept {
-  return state.version == 2 && state.encoded_length == 24 &&
-         state.reserved == 0 && (state.held_flags & ~15u) == 0 &&
+  return state.version == 3 && state.encoded_length == sizeof(state) &&
+         state.reserved == 0 && (state.held_flags & ~31u) == 0 &&
          input::ValidateInputState(LegacyAxes(state), 15) ==
              input::CodecError::None;
 }
 bool Canonicalize(const input::RawInputSample &raw,
                   InputStateDraftV2 &state) noexcept {
-  if (raw.held_flags & ~15u)
+  if (raw.held_flags & ~31u)
     return false;
   auto axes = raw;
   axes.held_flags &= input::kHeldShoot;
@@ -170,6 +170,8 @@ bool Decode(const EncodedInputCmdV2 &bytes, InputCmdDraftV2 &command) noexcept {
 }
 bool ConsumerAllows(Consumer consumer, std::uint32_t action) noexcept {
   switch (consumer) {
+  case Consumer::Lua:
+    return action < 12;
   case Consumer::Movement:
     return action < 4 || action == 11;
   case Consumer::Shooting:
@@ -617,6 +619,7 @@ bool Participant::Begin(std::uint64_t tick) noexcept {
   progress_.resolved_contributors = 0;
   std::size_t write = 0;
   std::uint32_t edges = 0;
+  std::uint64_t mod_edges = 0;
   for (std::size_t i = 0; i < depth_; ++i) {
     const auto &queued = pending_[i];
     if (queued.generation != generation_)
@@ -628,6 +631,7 @@ bool Participant::Begin(std::uint64_t tick) noexcept {
     if (queued.cmd.target_tick == tick) {
       ++progress_.resolved_contributors; // 数量受 pending_ 容量约束。
       edges |= queued.cmd.state.edge_flags;
+      mod_edges |= queued.cmd.state.mod_edge;
       for (std::uint32_t action = 0; action < 4; ++action)
         if (queued.cmd.state.edge_flags & (1u << action)) {
           current_edge_sequences_[action] = queued.cmd.sequence;
@@ -645,6 +649,7 @@ bool Participant::Begin(std::uint64_t tick) noexcept {
   }
   depth_ = write;
   current_.edge_flags = edges;
+  current_.mod_edge = mod_edges;
   progress_.last_resolved_sequence = current_sequence_;
   if (current_sequence_)
     startup_pending_ = false;
@@ -681,6 +686,7 @@ void Participant::End(bool normal_return) noexcept {
     progress_.processed_contributors = progress_.resolved_contributors;
     progress_.last_state = current_;
     progress_.last_state.edge_flags = 0;
+    progress_.last_state.mod_edge = 0;
     progress_.last_state_tick = visible_tick_;
     progress_.last_state_generation = generation_;
     progress_.last_state_valid = true;
@@ -780,6 +786,9 @@ float Participant::Read(std::uint32_t action, Query query, Consumer consumer,
                         std::uint64_t tick) const noexcept {
   if (!CurrentEligible(exact, tick) || !ConsumerAllows(consumer, action))
     return 0.0F;
+  // 炸弹的原生玩家消费者仍只处理边沿，Lua 还能查询同一采样里的按住值。
+  if(consumer==Consumer::Lua&&action==8&&query!=Query::Triggered)
+    return current_.held_flags&kHeldBomb?1.0f:0.0f;
   if (query == Query::Scalar)
     return Magnitude(current_, action);
   if (query == Query::Pressed)

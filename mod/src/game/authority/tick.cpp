@@ -10,6 +10,7 @@
 #include "game/participants/remote_life.h"
 #include "game/authority/state.h"
 #include "game/observation/world_bridge.h"
+#include "game/mods/mod_api.h"
 #include "runtime.h"
 #include "net/timing_clock.h"
 #include <algorithm>
@@ -201,6 +202,27 @@ bool HostPlayerParticipant(const void *player,unsigned &ordinal) noexcept {
     if(r->topology[i].Contains(const_cast<void *>(player),false)){ordinal=i;return true;}
   return false;
 }
+bool HostModIntentContext(net::ModIntent &intent) noexcept {
+  const auto *r=Runtime();
+  const auto capture=CurrentWorldRecording();
+  if(!r||r->mode!=core::SessionMode::Host||r->failure||r->retiring||r->finished||r->run_torn_down||
+     r->control_lifecycle_depth||InBlockedContext()||!capture||!capture->binary_entities||
+     !capture->binary_entities->ModIntentWorld(intent))return false;
+  intent.connection=SessionGeneration(*r);intent.ordinal=0;
+  return true;
+}
+bool SubmitHostModIntent(const net::ModIntent &intent) noexcept {
+  auto *r=Runtime();
+  return r&&HostBusy()&&!r->retiring&&!r->finished&&r->network.QueueLocalModIntent(intent);
+}
+std::uint16_t HostModIntentMember(const void *object) noexcept {
+  const auto capture=CurrentWorldRecording();
+  return capture&&capture->binary_entities?capture->binary_entities->ModIntentMember(object):state::kModGlobal;
+}
+void *ResolveHostModIntentMember(const net::ModIntent &intent,std::uint16_t number) noexcept {
+  const auto capture=CurrentWorldRecording();
+  return capture&&capture->binary_entities?capture->binary_entities->ResolveModIntentMember(intent,number):nullptr;
+}
 // 相机只使用当前房间内已确认属于房主的身体，绑定撤销时回到原生跟随。
 bool HostOwnsCameraPlayer(const void *room,const void *player) noexcept {
   const auto *r=Runtime();
@@ -306,7 +328,10 @@ const char *StartHost(const net::WorkerConfig &config, int character) noexcept {
     next->join.character = character;
     next->peer.session_generation = ++generation;
     next->loop = manager_loop;
-    auto started = next->network.Start(config);
+    auto network_config=config;
+    if (const auto *error=CaptureModManifest(network_config.mods); *error)
+      return error;
+    auto started = next->network.Start(network_config);
     if (!started)
       return net::StartErrorName(started.error);
     if (config.lobby) {
@@ -340,6 +365,10 @@ const char *StartHost(const net::WorkerConfig &config, int character) noexcept {
 void StopSolo(core::SessionCause cause) noexcept {
   if (SoloBusy())
     StopSession(cause);
+}
+// Mod 卸载在 Lua/控制台栈上只记标记，此处沿用 Host 的主线程退休路径。
+void RejectHostModReload() noexcept {
+  FailRuntime("mod_lua_reloaded");
 }
 void StopSession(core::SessionCause cause) noexcept {
   auto *r = Runtime();
@@ -391,6 +420,27 @@ void BeginManager(uint64_t loop) noexcept {
       if (Armed())
         RefreshLifecycle(*r, false);
       DrainPeer(*r);
+    }
+    if(r->mode==core::SessionMode::Host){
+      net::ModIntentInbox::Batch pending;
+      const auto count=r->network.TakeModIntents(pending);
+      for(unsigned i=0;i<count;++i){
+        const auto &intent=pending[i];
+        net::ModIntentResult result;
+        result.id=intent.id;result.connection=intent.connection;result.run=intent.run;result.floor=intent.floor;
+        result.mod=intent.mod;result.declaration=intent.declaration;
+        net::ModIntent current;
+        if(intent.ordinal<4&&HostModIntentContext(current)&&intent.run==current.run&&intent.floor==current.floor&&
+           (intent.ordinal?(!r->Remote(intent.ordinal).retiring&&!r->Remote(intent.ordinal).retired):
+             intent.connection==current.connection)){
+          const auto &group=r->topology[intent.ordinal];
+          if(group.known&&group.unique)for(unsigned n=0;n<group.body_count;++n)
+            if(group.bodies[n].active&&group.bodies[n].player){RunModIntent(intent,group.bodies[n].player,result);break;}
+        }
+        if(intent.ordinal){
+          if(!r->network.QueueModResult(intent.ordinal,result))Trace("mod_state","phase=intent_result_queue");
+        }else DispatchModIntentResult(result,false);
+      }
     }
   }
 }
@@ -654,6 +704,11 @@ std::string SourceStreamFields(unsigned page){
     const auto key=std::string("stream.source.resource_cache.")+layers[i];
     out+=key+".capacity="+std::to_string(stats.native.resource_cache_capacity[i])+"\n";
     out+=key+".high_water="+std::to_string(stats.native.resource_cache_high_water[i])+"\n";
+  }
+  if(page==0){
+    out+=ModStateFields();
+    out+="mod.encode.missing="+std::to_string(stats.mod_missing_references)+"\n";
+    out+="mod.encode.failures="+std::to_string(stats.mod_encode_failures)+"\n";
   }
   return out+source->WorkerFields(page);
 }

@@ -45,6 +45,12 @@ static_assert(sizeof(Spoof)==sizeof(ItemSpoofSystem::TrinketSpoof));
 static_assert(sizeof(PlusItems)==sizeof(ItemSpoofSystem::PlayerItemSpoofs));
 // 第10步原生只读聚合用到的官方Release容器前缀；不调用私有getter或读取timer。
 static_assert(offsetof(EntityPlayerPlus,itemSpoofs)==0x10);
+#define CHECK_PLUS(member,official) static_assert(offsetof(PlusCache,member)+sizeof(PlusHeader)+sizeof(PlusItems)==offsetof(EntityPlayerPlus,official))
+CHECK_PLUS(tags,customCacheTags);
+CHECK_PLUS(results,customCacheResults);
+CHECK_PLUS(previous_health,previousHealthType);
+CHECK_PLUS(camo,camoOverride);
+#undef CHECK_PLUS
 static_assert(sizeof(std::unordered_map<int,int>)==0x20 && sizeof(std::unordered_set<int>)==0x20);
 static_assert(sizeof(std::map<std::string,Innate>)==8 && sizeof(std::string)==24);
 static_assert(offsetof(Innate,totals)==0x2c && offsetof(Spoof,groups)==0x24);

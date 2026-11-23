@@ -1,4 +1,6 @@
 #include "game/client/scene/client_binary_scene.h"
+#include "game/mods/mod_api.h"
+#include "game/mods/mod_native.h"
 #include "game/client/scene/client_atomic_install.h"
 #include "game/client/scene/client_scene.h"
 #include "game/common/context.h"
@@ -15,6 +17,7 @@
 #include <chrono>
 #include <cstring>
 #include <map>
+#include <optional>
 
 namespace cs::game {
 namespace {
@@ -73,6 +76,18 @@ struct ClientBinaryScene::Impl final:S::ClientStateNativeOwner,S::ClientStateApp
   std::array<S::ClientStateApplyCoordinator,2> channels;
   std::shared_ptr<ClientSceneAtomicInstaller::RootScalars> root_scalars;
   S::StateRoute route{};
+  std::uint32_t mod_version=0;
+  bool preserve_mod=false;
+  // 已经公布给 Lua 的活成员。只保存目录身份和实例号，通知前由准备 owner 再解析。
+  struct ModLiveMember {
+    S::PresentationMember identity;
+    std::uint64_t instance=0;
+    bool notified=false,released=false;
+    const void *address=nullptr; // 仅 UI 构建意图时与同一发布的对象地址比较。
+  };
+  using ModLiveRow=std::pair<const std::uint16_t,ModLiveMember>;
+  using ModLiveMembers=std::map<std::uint16_t,ModLiveMember,std::less<>,S::ClientStateAllocator<ModLiveRow>>;
+  ModLiveMembers mod_members{std::less<>{},S::ClientStateAllocator<ModLiveRow>(memory)};
   std::array<Batch,2> pending;
   Batch world,body,retired_world,retired_body;
   // 原生租约和纯字段索引分别保管。只随同一流的成功发布切换，不借已退休批次的地址。
@@ -231,6 +246,25 @@ struct ClientBinaryScene::Impl final:S::ClientStateNativeOwner,S::ClientStateApp
     return (b.write_state.compare_exchange_strong(expected,S::ClientStateWriteState::Writing,
         std::memory_order_acq_rel,std::memory_order_acquire)||expected==S::ClientStateWriteState::Writing)&&Current(b);
   }
+  void ModRemoved(ModLiveMember &member) noexcept {
+    if(member.notified||member.released)return;
+    std::uint64_t instance=0;
+    auto *address=preparation.FindLiveMember(member.identity,instance);
+    if(address&&instance==member.instance){member.notified=true;NotifyModRemoved(address);}
+  }
+  void ModReleased(std::span<const ClientLiveRetirement> leaving,bool include_unpublished=false) noexcept {
+    if(!ModWantsEntityLifecycle())return;
+    for(const auto &entry:leaving){
+      if(entry.identity.space!=1)continue;
+      const auto at=std::find_if(mod_members.begin(),mod_members.end(),[&](const auto &live){
+        return live.second.identity==entry.identity&&live.second.instance==entry.instance;
+      });
+      if(at==mod_members.end()){if(include_unpublished)CountUnplannedModRemoval();continue;}
+      if(at->second.released)continue;
+      if(!at->second.notified)CountUnplannedModRemoval();
+      at->second.released=true;
+    }
+  }
   S::ClientStateNativeStep Reconcile(const S::ClientStateApplyBatch &b) noexcept {
     auto &slot=Pending(b);
     if(slot.reconciled||!slot.Plan().Display()||!world.writer)return Ready("binary_live_no_structure_prefix");
@@ -251,6 +285,14 @@ struct ClientBinaryScene::Impl final:S::ClientStateNativeOwner,S::ClientStateApp
       const auto publication=ReservePublication(b);
       if(!publication.ready)return publication;
       if(!BeginWrite(b))return Failed("binary_write_ticket_withdrawn");
+      for(const auto &planned:slot.Plan().ModLeaving()){
+        const auto at=mod_members.find(planned.index);
+        if(at==mod_members.end()||at->second.identity!=planned.identity)continue;
+        if(std::any_of(leaving.begin(),leaving.end(),[&](const auto &entry){
+            return entry.identity==planned.identity&&entry.instance==at->second.instance;
+          }))ModRemoved(at->second);
+      }
+      if(!Current(b))return Failed("binary_mod_removal_revoked");
       // 旧 surface 必须在删除第一名旧成员之前捕获。资源／事件句柄在实际安装前再绑定。
       const auto display=scene.PrepareBinaryDisplay(slot.Plan().Display());
       if(!display.done)return Failed(display.reason,display.written);
@@ -269,6 +311,7 @@ struct ClientBinaryScene::Impl final:S::ClientStateNativeOwner,S::ClientStateApp
       std::erase_if(leaving,[](const auto &entry){return entry.morphed;});
       if(!world.writer->ReclaimRetiring(leaving))
         return Failed("binary_live_structure_reclaim",true);
+      ModReleased(leaving);
       slot.reconciled=true;
       return Ready("binary_live_structure_reclaimed",true);
     }catch(...){return Failed("binary_live_structure_budget");}
@@ -466,6 +509,10 @@ struct ClientBinaryScene::Impl final:S::ClientStateNativeOwner,S::ClientStateApp
       if(cosmetic)replayed_cosmetic=sequence;
       return Ready("binary_item_banner_owner_missing");
     }
+    if(event.kind==unsigned(S::StateEventKind::Cutscene)){
+      QueueClientModCutscene({event.cutscene_serial,event.cutscene_id,event.cutscene_clear});
+      return Ready("binary_cutscene_queued");
+    }
     const auto step=scene.ReplayBinaryEvent(event);
     // 只在原生回放成功后推进水位；失败的事件留给后续目标重试。
     if(step.done&&cosmetic)replayed_cosmetic=sequence;
@@ -528,6 +575,7 @@ struct ClientBinaryScene::Impl final:S::ClientStateNativeOwner,S::ClientStateApp
   }
   // 保留当前复制路线与资源目录，停显后由 Manager 归还旧场景的原生借用和对象槽。
   void ResetInstalledScene() noexcept {
+    preserve_mod=false;mod_version=0;
     scene.SuspendBinaryDisplay();published_fields={};ForgetFastState();
     resetting=true;
     // 换路由取消在途写入时，旧画面已单独接管，不能随被撤销的写票一起丢掉。
@@ -578,6 +626,7 @@ struct ClientBinaryScene::Impl final:S::ClientStateNativeOwner,S::ClientStateApp
       for(const auto &batch:pending)if(batch.native_published&&!unbind(batch))return false;
       if(!unbind(body)||!unbind(world)||!unbind(retired_body)||!unbind(retired_world))return false;
       if(!current.writer->ReclaimFailed(leaving))return false;
+      ModReleased(leaving,true);
       if(current.Plan().Display())for(const auto &entry:leaving)
         std::replace(event_players.begin(),event_players.end(),entry.address,static_cast<void *>(nullptr));
       return true;
@@ -619,6 +668,7 @@ struct ClientBinaryScene::Impl final:S::ClientStateNativeOwner,S::ClientStateApp
     auto &pending=Pending(b);
     if(pending.ticket.get()!=&b)return true;
     const bool retire_scene=resetting||closing;
+    if(retire_scene&&!preserve_mod)RetireModWorld();
     // 音频和显示先退出当前对象栈，再拆卸原生字段附件和回收成员。
     if(retire_scene&&!DetachDisplay())return false;
     if(!retire_scene&&pending.display_entered)scene.AbortBinaryDisplay();
@@ -720,13 +770,16 @@ std::shared_ptr<const S::ClientStatePreparation> ClientBinaryScene::Preparation(
 }
 bool ClientBinaryScene::Open(const S::StateRoute &route) noexcept {
   auto &s=*impl_;if(s.route.connection||!route.connection||!route.route)return false;
-  s.route=route;s.published_fields={};s.readback_cursor={};s.ForgetFastState();
+  s.route=route;s.mod_version=0;s.preserve_mod=false;s.published_fields={};s.readback_cursor={};s.ForgetFastState();
   for(auto &runs:s.failure_runs)runs.clear();
   s.failure_frames={};
   s.scene.BeginBinary();return true;
 }
-void ClientBinaryScene::Close(bool preserve_room) noexcept {
+void ClientBinaryScene::Close(bool preserve_room,bool preserve_mod) noexcept {
   auto &s=*impl_;
+  if(preserve_mod&&TopOwner()==Owner::Manager&&!s.closing)
+    for(auto &[index,member]:s.mod_members)s.ModRemoved(member);
+  s.preserve_mod=preserve_mod;
   if(!s.route.connection){
     if(!preserve_room)s.closing=true;
     return;
@@ -764,6 +817,8 @@ void ClientBinaryScene::Pump() noexcept {
     explicit PumpScope(bool &value):active(value){active=true;}
     ~PumpScope(){active=false;}
   } pumping(s.pumping);
+  // 场景回调须在 Manager 上运行，并先于通道排空可能释放的原生对象。
+  if((s.closing||s.resetting)&&!s.preserve_mod)RetireModWorld();
   if(!s.route.connection){
     if(s.closing&&s.scene.DiscardBinaryHistory())s.closing=false;
     return;
@@ -794,6 +849,7 @@ void ClientBinaryScene::Pump() noexcept {
 #endif
     }
     if(!s.DetachDisplay()||!s.RetireInstalled()||!s.scene.ReleaseBinaryDisplayRoots(s.preserve_room))return;
+    s.mod_members.clear();
     if(s.closing){
       if(s.preparation.PumpResources(s.transport,deadline)!=ClientSceneMainPreparation::ResourcePump::Done||
           !s.preparation.Drain())return;
@@ -813,6 +869,92 @@ void ClientBinaryScene::Pump() noexcept {
       s.preparation.PumpResources(s.transport,deadline)==ClientSceneMainPreparation::ResourcePump::Yielded)
     s.memory->ApplyMetrics().Wait(1,S::ClientApplyWait::ResourceYieldFrame);
   s.Collect();
+}
+
+void ClientBinaryScene::InstallMods() noexcept {
+  auto &s=*impl_;
+  if(!IsMain()||TopOwner()!=Owner::Manager||s.closing||s.resetting)return;
+  const auto published=s.scene.PublishedBlocks();
+  if(!published||!published->streams[0])return;
+  const auto &batch=s.PublishedBatch(S::BodyStream::World);
+  const auto &ticket=batch.current?batch.current:batch.ticket;
+  if(!ticket||ticket->target.effective[0]!=published->streams[0])return;
+  const auto &world=*published->streams[0];
+  const auto version=world.Context().target_version;
+  const bool fresh=version!=s.mod_version;
+  struct Context {Impl &scene;const S::ClientShadowState &world;} context{s,world};
+  ModClientLookup lookup;
+  lookup.context=&context;
+  for(const auto &group:batch.Plan().State().Groups())if(group.ordinal<4)lookup.players|=1u<<group.ordinal;
+  lookup.entity=[](void *owner,std::uint16_t index,bool &known,std::uint64_t &instance) noexcept -> void * {
+    auto &context=*static_cast<Context *>(owner);
+    const auto entries=context.world.Members()->Directory().entries;
+    const auto at=std::lower_bound(entries.begin(),entries.end(),index,
+      [](const auto &member,std::uint16_t number){return member.index<number;});
+    known=at!=entries.end()&&at->index==index&&at->identity.space==1;
+    if(!known)return nullptr;
+    instance=0;
+    auto *entity=context.scene.preparation.FindLiveMember(at->identity,instance);
+    return instance?entity:nullptr;
+  };
+  S::ClientStateVector<void *> joined{S::ClientStateAllocator<void *>(s.memory)};
+  // 新成员表先在旁边建好，INSTALLED 真正派发后才替换；未派发时保留旧表，
+  // 下一份 World 会把这些成员重新列入加入名单，避免只有 REMOVED 没有 INSTALLED。
+  std::optional<Impl::ModLiveMembers> next;
+  try {
+    if(fresh&&ModWantsEntityLifecycle()){
+      next.emplace(std::less<>{},S::ClientStateAllocator<Impl::ModLiveRow>(s.memory));
+      for(const auto &member:world.Members()->Directory().entries){
+        if(member.identity.space!=1)continue;
+        std::uint64_t instance=0;
+        auto *entity=s.preparation.FindLiveMember(member.identity,instance);
+        if(!entity||!instance)continue;
+        const auto at=s.mod_members.find(member.index);
+        const bool same=at!=s.mod_members.end()&&at->second.identity.id==member.identity.id&&
+          at->second.identity.use==member.identity.use&&at->second.instance==instance&&!at->second.released;
+        if(!same||at->second.notified)joined.push_back(entity);
+        next->emplace(member.index,Impl::ModLiveMember{member.identity,instance,false,false,entity});
+      }
+    }
+  }catch(...){Trace("mod_state","phase=mod_lifecycle_storage");return;}
+  const bool delivered=InstallModWorld(ticket->target.mods,fresh,fresh&&!world.Context().base_version,lookup,joined.data(),joined.size());
+  if(next&&delivered){
+    // 对准备阶段之后才失去的实例，只计数。原地 Morph 保持同实例。替换成功时才计，未派发的批次不重复计数。
+    for(const auto &[index,old]:s.mod_members){
+      const auto at=next->find(index);
+      if(!old.notified&&!old.released&&(at==next->end()||at->second.instance!=old.instance))
+        CountUnplannedModRemoval();
+    }
+    s.mod_members.swap(*next);
+  }
+  // 需要实体生命周期而未派发时不推进版本，下一次 Manager 边界按同一份 World 重试，不等下一份 World。
+  if(!next||delivered)s.mod_version=version;
+}
+bool ClientBinaryScene::ModIntentWorld(net::ModIntent &intent) const noexcept {
+  const auto &s=*impl_;
+  const auto published=s.scene.PublishedBlocks();
+  if(s.closing||s.resetting||!published||!published->streams[0])return false;
+  const auto &context=published->streams[0]->Context();
+  intent.connection=s.route.connection;intent.run=context.scope.run;intent.floor=context.scope.floor;
+  intent.room=context.scope.room;intent.member_epoch=context.member_epoch;
+  return true;
+}
+std::uint16_t ClientBinaryScene::ModIntentMember(const void *object) const noexcept {
+  const auto &s=*impl_;
+  const auto published=s.scene.PublishedBlocks();
+  if(!published||!published->streams[0])return S::kModGlobal;
+  if(TopOwner()!=Owner::Manager){
+    if(published->streams[0]->Context().target_version!=s.mod_version)return S::kModGlobal;
+    for(const auto &[number,member]:s.mod_members)
+      if(!member.released&&member.address==object)return number;
+    return S::kModGlobal;
+  }
+  for(const auto &member:published->streams[0]->Members()->Directory().entries){
+    if(member.identity.space!=1)continue;
+    std::uint64_t instance=0;
+    if(s.preparation.FindLiveMember(member.identity,instance)==object&&instance)return member.index;
+  }
+  return S::kModGlobal;
 }
 // HUD 只读取成功安装的累计量，不展开诊断页或请求内存采样。
 std::string ClientBinaryScene::InstallTimingFields() const {

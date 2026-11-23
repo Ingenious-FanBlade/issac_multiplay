@@ -1,4 +1,5 @@
 #pragma once
+#include "state/mod_state.h"
 #include "state/capture.h"
 
 namespace cs::capture {struct BodyCloneCounts;}
@@ -59,6 +60,7 @@ struct CapturePacket {
   // 两者均为0表示本包不携带事件交接，body快包不能代替ordinary确认。
   std::uint64_t event_first_sequence=0,event_watermark=0;
   bool request_baseline=false;
+  ModRawRef mods;
 };
 // 缓存的引用号属于原生产目录；克隆时按物理身份转入当前交接目录，资源handle只追加。
 struct CaptureAppendContext {

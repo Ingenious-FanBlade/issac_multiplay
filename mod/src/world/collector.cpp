@@ -672,9 +672,11 @@ bool Collector::NativeOrdinary(NativeCaptureWindow &out,std::uint64_t completed_
      !ReadRoots(now) || now!=roots_)return false;
   const bool transition=authority_count_==0&&completed_tick;
   if(transition){
-    // 转场分支不执行 StandardRoom。已完成的 Manager 尾部可以采完整显示 World，沿用最近提交的玩法 tick。
-    std::int32_t mode=0;
-    if(!Value(std::uint64_t(roots_.game)+offset::RoomTransition,mode)||mode<1||mode>4)return false;
+    // 房间滚动和楼层淡出均可跳过 StandardRoom；只在原生转场仍活跃时采集当前显示。
+    std::int32_t room_mode=0,stage_mode=0;
+    if(!Value(std::uint64_t(roots_.game)+offset::RoomTransition,room_mode)||
+       !Value(std::uint64_t(roots_.game)+offset::StageTransition,stage_mode)||
+       !((room_mode>=1&&room_mode<=4)||(stage_mode>=1&&stage_mode<=4)))return false;
     if(std::any_of(phases_.begin(),phases_.end(),[](const auto &phase){return phase.active||phase.entered!=phase.returned;}))return false;
   }else{
     if(authority_count_!=1||authority_.kind!=AuthorityKind::StandardRoom||!authority_.tick)return false;
@@ -684,7 +686,7 @@ bool Collector::NativeOrdinary(NativeCaptureWindow &out,std::uint64_t completed_
   std::uint32_t frame=0;if(!Value(std::uint64_t(roots_.game)+layout::LayoutConstants().game_frame_offset,frame))return false;
   out={generation_,run_,room_,outer_,transition?outer_:authority_.scope,transition?completed_tick:authority_.tick,
     mutation_,attempt_,capture_,roots_.game,roots_.room,frame,kNoOrdinal,true};
-  out.room_transition=transition;
+  out.display_transition=transition;
   const auto failures=ObservationFailures();out.wrong_thread=failures.wrong_thread;out.native_exception=failures.native_exception;
   return true;
 }
@@ -720,7 +722,7 @@ bool Collector::NativeWindowCurrent(const NativeCaptureWindow &w,bool recheck_pr
      lifecycle_depth_ || lifecycle_episode_ || entity_reconfiguration_depth_ || w.generation!=generation_ || w.run!=run_ || w.room!=room_ ||
      w.outer!=outer_ || w.mutation!=mutation_ || w.attempt!=attempt_ ||
      w.game!=roots_.game || w.room_address!=roots_.room)return false;
-  if(w.room_transition)return w.ordinary&&authority_count_==0&&w.owner==outer_&&w.tick&&w.capture==capture_;
+  if(w.display_transition)return w.ordinary&&authority_count_==0&&w.owner==outer_&&w.tick&&w.capture==capture_;
   if(w.owner!=authority_.scope||w.tick!=authority_.tick)return false;
   if(w.ordinary && (authority_.kind!=AuthorityKind::StandardRoom || capture_!=w.capture))return false;
   return true;
@@ -759,12 +761,18 @@ bool Collector::NativeGridReady(const NativeCaptureWindow &w,const Identity &id,
   }
   return false;
 }
-bool Collector::NativeTransitionPlayer(const NativeCaptureWindow &w,const Identity &id) noexcept {
-  if(!w.room_transition||id.Retired()||!id.native_shape_known||id.native_shape[0]!=1)return false;
+bool Collector::NativeDisplayPlayer(const NativeCaptureWindow &w,const Identity &id) noexcept {
+  if(!w.ordinary||id.Retired()||!id.native_shape_known||id.native_shape[0]!=1)return false;
   const auto prior=std::find_if(transition_players_.begin(),transition_players_.end(),[&](const auto &p){
     return p.run==w.run&&p.address==id.address&&p.local==id.local_id&&p.use==id.use&&p.shape==id.revision;
   });
   if(prior==transition_players_.end())return false;
+  // 死亡会先撤销输入锚点，原身体仍留在名册中播放动画。以同一实例的旧更新
+  // 证言核定当前显示读取，资格不延伸到快流或输入，也不跨越 Morph/复用。
+  if(!w.display_transition){
+    std::uint8_t dead=0;
+    if(!Value(std::uint64_t(id.address)+offset::EntityDead,dead)||dead!=1)return false;
+  }
   std::array<std::uint32_t,3> shape{};
   std::uint32_t seed=0;
   return Value(std::uint64_t(id.address)+offset::EntityType,shape)&&shape==id.native_shape&&
@@ -821,7 +829,7 @@ bool Collector::NativeCurrent(const NativeCaptureWindow &w,std::uint32_t address
   const auto *id=identities_.Find(domain,address);
   return id && id->local_id==local && id->use==use && id->revision==shape &&
     (domain==ObjectDomain::Grid?NativeGridReady(w,*id,reader,grid_already_qualified):
-      !id->Retired()&&(id->readiness>=2||(transition_roster_player&&NativeTransitionPlayer(w,*id))));
+      !id->Retired()&&(id->readiness>=2||(transition_roster_player&&NativeDisplayPlayer(w,*id))));
 }
 
 // RTTI 只读分类：验证 COL/CHD/每个 BCD 的地址、签名与非虚单继承形状。

@@ -1,6 +1,8 @@
 #pragma once
 
 #include "net/protocol.h"
+#include "net/mod_manifest.h"
+#include "net/mod_intent.h"
 #include "replica/stream_config.h"
 #include "replica/stream_metrics.h"
 #include "replica/stream_transport.h"
@@ -23,6 +25,7 @@ struct WorkerConfig {
   replica::stream::RuntimeConfig stream;
   protocol::Text build = protocol::TextId("isaac.cs.tx-04-09");
   bool lobby = false;
+  ModManifestRef mods;
 };
 // 系统随机数生成的会话身份；主线程据此构造 Session，不能用对象地址替代。
 struct HostIdentity {
@@ -134,6 +137,9 @@ public:
   void CloseLobby() noexcept;
   bool PublishWorld(std::shared_ptr<const live::Publication>) noexcept;
   bool TryReceive(ReceivedInput &input, unsigned ordinal = 1) noexcept;
+  bool QueueLocalModIntent(const ModIntent &) noexcept;
+  unsigned TakeModIntents(ModIntentInbox::Batch &) noexcept;
+  bool QueueModResult(unsigned ordinal,const ModIntentResult &) noexcept;
   // 单 Peer 退出只关闭自己的 Endpoint，监听线程和其他远端继续运行。
   void RequestPeerStop(unsigned ordinal, protocol::ByeReason reason) noexcept;
   void

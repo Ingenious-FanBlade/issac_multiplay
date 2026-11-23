@@ -212,6 +212,7 @@ bool ClientObjectStagedPoolNotification(void *,bool execute,bool creating,const 
 bool ClientObjectSealEssmDeleteBinding(void *state) noexcept;
 void ClientCallbackFault(const char *reason) noexcept;
 bool ClientCallbackMenuAllowed() noexcept;
+bool ClientCallbackInStableMenu() noexcept;
 void ClientCallbackSkipped() noexcept;
 void ClientCallbackOwnExecuted() noexcept;
 // main_ex.lua 重载开始即撤销旧保护资格；正常返回后重装，异常/失败阻止活跃 Client 继续。
@@ -227,7 +228,7 @@ private:
   bool tracked_=false,returned_=false,allowed_=true;
 };
 // I3 入口分派只标记实际用途和原调用处置；不会把观察 Hook 的 skip 计作原调用返回。
-enum class ClientOperation : unsigned { Build, Apply, PresentMaintenance, PresentDraw, Retire, BinaryPreparation, BinaryPreparationRetire, BinaryInstall, BinaryInstallRetire };
+enum class ClientOperation : unsigned { Build, Apply, PresentMaintenance, PresentDraw, Retire, BinaryPreparation, BinaryPreparationRetire, BinaryInstall, BinaryInstallRetire, ModInstall };
 enum class ClientEntry : unsigned {
   GameUpdate, PostUpdate, RoomUpdate, EntityListUpdate, PlayerUpdate, OddHelper,
   LifecycleFSM, DoorUpdate, DoorNested, NewRoom, RoomInit, GameRender,
@@ -237,7 +238,7 @@ enum class ClientEntry : unsigned {
   DisplayHudUpdate, DisplayHudPostUpdate, DisplayMinimapUpdate, DisplayMinimapRefresh,
   DisplaySort, DisplayFxUpdate, DisplayBackground, DisplayTransition,
   DisplayCamera, DisplaySfxRefresh, DisplayMusic, DisplaySfxReplay, DisplayPause, DisplayCursor, TransitionChangeRoom, NativePreparation, NativeAtomicInstall,
-  Count
+  ModStateInstall, Count
 };
 enum class ClientEntryDecision : unsigned { CallOriginal, ExpectedSkip, FaultSkip };
 // 仅二进制准备 owner 当前主线程栈授予；不借用旧 JSON target 作为资源准备资格。

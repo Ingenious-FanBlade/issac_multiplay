@@ -52,7 +52,7 @@ struct NativeCaptureWindow {
   std::uint32_t game=0,room_address=0,game_frame=0,body_slot=kNoOrdinal;
   bool ordinary=false;
   std::uint64_t wrong_thread=0,native_exception=0;
-  bool production=false,production_outer=false,room_transition=false;
+  bool production=false,production_outer=false,display_transition=false;
   bool operator==(const NativeCaptureWindow &) const = default;
 };
 
@@ -139,7 +139,7 @@ public:
   bool NativeBody(std::uint32_t slot,NativeCaptureWindow &,PlayerPostWitness &) noexcept;
   bool NativeBodyInOrdinary(std::uint32_t slot,const NativeCaptureWindow &,NativeCaptureWindow &,PlayerPostWitness &) noexcept;
   bool NativeWindowCurrent(const NativeCaptureWindow &,bool recheck_production_roots=true) noexcept;
-  bool NativeTransitionPlayer(const NativeCaptureWindow &,const Identity &) noexcept;
+  bool NativeDisplayPlayer(const NativeCaptureWindow &,const Identity &) noexcept;
   PlayerLifeWitness BeginPlayerLife(std::uint32_t address,bool ghost) noexcept;
   void CompletePlayerLife(const PlayerLifeWitness &) noexcept;
   bool NativeCurrent(const NativeCaptureWindow &,std::uint32_t address,std::uint64_t local,

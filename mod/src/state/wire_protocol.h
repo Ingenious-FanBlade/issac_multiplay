@@ -69,6 +69,9 @@ struct StateFrameView {
   std::uint16_t layout_version=0;
   std::uint8_t section_count=0;
   std::array<StateSectionView,2> sections{};
+  // 只在含 World 的报文里出现，位于全部原生分段与成员目录之间。
+  std::span<const std::byte> mod_values;
+  std::span<const std::byte> mod_results;
   // 版本 84 在分段后携带成员目录增量，基线帧携带完整目录。
   std::span<const std::byte> member_update;
   // 解码／编码完成后的精确规范正文，由owner持有；用精确字节比较重复，不计算哈希。

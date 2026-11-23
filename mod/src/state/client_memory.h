@@ -36,7 +36,7 @@ enum class ClientApplyVolume : unsigned {Values,Structure,Dependencies,Reused,Dr
   // 每批按变化量安装时整体跳过纯值叶与可跳过委托的静止记录数。
   QuietRecords,
   // 快速路径（设计 10.6 节）：整批快速帧命中／未命中、事务内被吸收记录、写程序表条目、写程序实际写入的叶数。
-  FastHits,FastMisses,AbsorbedRecords,StoreRecords,FastLeaves,Count};
+  FastHits,FastMisses,AbsorbedRecords,StoreRecords,FastLeaves,ModRecordsRejected,Count};
 // 每个连接固定两流的聚合桶。主线程和 worker 都可写，详细字段只在显式诊断读取。
 class ClientApplyMetrics final {
 public:

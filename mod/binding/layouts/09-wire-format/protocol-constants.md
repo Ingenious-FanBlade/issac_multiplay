@@ -1,6 +1,6 @@
 # 公共协议常量
 
-布局版本 90；由唯一布局源生成。数值登记不表示运行编解码已经接通。
+布局版本 94；由唯一布局源生成。数值登记不表示运行编解码已经接通。
 
 | 分类 | 名称 | 数值 | 语义 |
 |---|---|---|---|
@@ -17,11 +17,15 @@
 | display_branch | secondary_fade | 10 | Q12终结分支：secondary_fade；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用 |
 | display_branch | pause_screen | 11 | Q12终结分支：pause_screen；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用 |
 | display_branch | unknown_ui_word_24444 | 12 | Q12终结分支：unknown_ui_word_24444；按RE-1原生优先级在Update后状态选取；normal只在全部阻断均不成立时使用 |
+| input | mod_keys_schema | 3 | 输入记录增加 mod_held 和 mod_edge；各为按握手后排序的去重声明集编码的 u64 位图。统一输入快照 40 字节，带序号和目标的固定命令 80 字节。紧凑控制正文 schema 3。 |
+| event | ModCutscene | 6 | World 事件携过场序号、资源 ID 和清理标记。清理若使原路由先退休，可靠 Retire 携同一请求序号与资源 ID。 |
 | message | AppliedAck | 9 | 沿用线上编号，表示完整帧已经解码且接收快照可作基线 |
 | message | Resync | 10 | 公共协议Kind编号；仅合同登记，运行stream_codec尚未接通 |
 | message | StateFrame | 21 | 公共协议Kind编号；仅合同登记，运行stream_codec尚未接通 |
 | message | ResourceTable | 23 | 公共协议Kind编号；仅合同登记，运行stream_codec尚未接通 |
 | message | ResourceBlobChunk | 24 | 公共协议Kind24仅保留编号；版本61正文禁用306，不启用原始媒体／blob，也未接通运行stream_codec |
+| message | ModManifest | 27 | Hello／Welcome 后在连接路由的控制通道可靠交换。正文为 u32 段数及各段 u32 长度加原始字节，每段最多 4096 B，总长最多 60 KiB。每项为十进制字节数加冒号、键、十进制字节数加冒号、值。双方比较通过才接纳 Ready。 |
+| message | ModIntent | 28 | 授权 World 路由上的有序可靠客机请求。报文序号为调用序号，正文含声明号、成员代次和最多 512 B 的声明参数；发起者私有 World 结果结束该请求。 |
 | resource_table | anm2-animation-table | 0 | 显式u8资源空间；不能因序号相等跨表替换 |
 | resource_table | image-table | 1 | 显式u8资源空间；不能因序号相等跨表替换 |
 | resource_table | anm2-files | 2 | 显式u8资源空间；不能因序号相等跨表替换 |

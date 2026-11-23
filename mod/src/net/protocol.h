@@ -93,7 +93,7 @@ struct Header {
 struct Hello {
   Text build{};
   Id local_nonce{}, peer_nonce{};
-  std::uint16_t input_schema = 2, protocol = kVersion;
+  std::uint16_t input_schema = 3, protocol = kVersion;
   Role role = Role::Remote;
   std::uint64_t capabilities = kCapabilities;
   std::uint32_t maximum_packet = kMaximumPacket;

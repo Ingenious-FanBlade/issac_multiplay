@@ -1259,6 +1259,11 @@ void ClientInstallBuilder::Rule(const ClientInstallValue &v) {
         Require(config&&config->id==std::uint32_t(id),"client_plan_procedural_configuration_identity");break;
       }
       case F::SfxPlayEvent::kLayout:Sample(v,F::SfxPlayEvent::asset);break;
+      case F::ModCutsceneEvent::kLayout:
+        Require(AtNumber<std::uint64_t>(v,F::ModCutsceneEvent::serial)&&
+          AtNumber<std::uint32_t>(v,F::ModCutsceneEvent::id)<=INT32_MAX&&
+          AtNumber<std::uint8_t>(v,F::ModCutsceneEvent::clear)<=1,"client_plan_cutscene");
+        break;
       case F::FortuneEvent::kLayout:Require(AtNumber<std::int32_t>(v,F::FortuneEvent::index)>=-1,"client_plan_fortune_index");break;
       case F::ItemBannerEvent::kLayout:{
         const auto style=AtNumber<std::uint8_t>(v,F::ItemBannerEvent::style);const auto config=AtNumber<std::uint16_t>(v,F::ItemBannerEvent::configuration);

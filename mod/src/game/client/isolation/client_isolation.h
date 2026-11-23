@@ -6,7 +6,7 @@ namespace cs::game {
 enum class ClientIsolationKind : unsigned {
   Begin, NativeCall, NativeReturn, ExpectedSkip, RejectedEntry, LuaSkip, OwnLua,
   NativePersistence, LuaPersistence, RandomRejected, Fault, Recover, Stop, Retired,
-  ObservationLost, Count
+  ObservationLost, ModInstall, Count
 };
 // 当前主线程场景的纯值身份快照；零值保留尚未分配/外线程未知的事实。
 struct ClientIsolationIdentity final {

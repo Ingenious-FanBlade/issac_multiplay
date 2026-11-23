@@ -18,6 +18,11 @@ unsigned Lane(s::Lane lane) {
          : lane == s::Lane::Baseline || lane == s::Lane::Context ? 3
                                                                  : 0;
 }
+unsigned PacketLane(std::span<const std::uint8_t> bytes) {
+  const auto header=s::ReadHeader(bytes);
+  // 过场的独立可替换报文使用控制封套，实际数据量计入 World 额度。
+  return Lane(header.kind==s::Kind::Nightmare?s::Lane::WorldDynamic:header.lane);
+}
 std::uint64_t Read(std::span<const std::uint8_t> b, std::size_t at, unsigned width) {
   if (at + width > b.size())
     Fail("uplink_packet_length");
@@ -46,7 +51,7 @@ void ObservePacket(s::Metrics &m,std::span<const std::uint8_t> b,const char *dir
       if(!messages||messages>16||b.size()<=28)throw r::ContractError("metric_bundle");
       for(unsigned i=0;i<messages;++i){const auto n=Read(b,at,2),lane=Read(b,at+4,1);if(lane<1||lane>6||at+22+n>b.size())throw r::ContractError("metric_lane");const auto cost=i+1==messages?b.size()+28-assigned:(22+n)*(b.size()+28)/(b.size()-28);costs[Lane(s::Lane(lane))]+=cost;assigned+=cost;at+=22+std::size_t(n);}
       if(at!=b.size())throw r::ContractError("metric_length");
-    }else costs[Lane(s::ReadHeader(b).lane)]=b.size()+28;
+    }else costs[PacketLane(b)]=b.size()+28;
     ++m.packets;m.payload_bytes+=b.size();m.wire_bytes+=b.size()+28;m.bundle_messages+=messages;for(unsigned i=0;i<4;++i){m.lane_bytes[i]+=costs[i];if(costs[i])++m.lane_packets[i];}
 #ifdef ISAACCS_E2E
     s::E2EPacket(Read(b,8,8),Read(b,16,8),b.size()+28,costs,direction);
@@ -93,7 +98,7 @@ s::SendResult Uplink::Transmit(unsigned peer, std::span<const std::uint8_t> b, b
     if (at != b.size())
       Fail("uplink_bundle_trailing");
   } else
-    costs[b.size() >= 4 && !std::memcmp(b.data(), "ICRF", 4) ? Lane(s::ReadHeader(b).lane) : 0] =
+    costs[b.size() >= 4 && !std::memcmp(b.data(), "ICRF", 4) ? PacketLane(b) : 0] =
         b.size() + 28;
   auto &p = peers_[peer];
   auto &status = stats_[peer];

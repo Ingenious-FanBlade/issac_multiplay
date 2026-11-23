@@ -1327,6 +1327,26 @@
       "record_limit": 24
     },
     {
+      "type": "ModCutsceneEvent",
+      "layout": 456,
+      "native_size": 0,
+      "extent": "protocol",
+      "parent": null,
+      "rtti": {"name": "C/S主线程纯值，无原生对象", "rva": 0},
+      "ranges": [],
+      "synthetic_fields": [
+        {"name": "serial", "type": "u64", "semantics": "过场请求序号，场景退休备用路径共用", "evidence": "REPENTOGON LuaIsaac.cpp::Lua_PlayCutscene；J273 Manager 9320F0", "host": "display_value_read", "client": "display_value_install"},
+        {"name": "id", "type": "u32", "semantics": "过场资源 ID", "evidence": "REPENTOGON LuaIsaac.cpp::Lua_PlayCutscene", "host": "display_value_read", "client": "display_value_install"},
+        {"name": "clear", "type": "u8", "semantics": "等待本次场景退休再显示", "evidence": "J273 Manager 92E483→932970", "host": "display_value_read", "client": "display_value_install"}
+      ],
+      "blocks": [{"id": 0, "name": "过场请求", "sequence": "world", "fields": ["serial", "id", "clear"]}],
+      "conversions": {"display_value_read": "Host API 请求被原生接收后记录", "display_value_install": "客机按序回放本地过场资源"},
+      "members": [],
+      "public_owners": [],
+      "validators": {},
+      "record_limit": 16
+    },
+    {
       "type": "RoomTransitionEvent",
       "layout": 453,
       "native_size": 0,

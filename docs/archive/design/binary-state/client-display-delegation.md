@@ -589,7 +589,7 @@ isaac-lan 排除不了的点：
 | 故障道具（TMTRAINER） | 负id的道具定义随生成结果同步 | 同步显示定义／资源，由Client自有配置owner注册并解析负id；不生成effects | Game+669BC vector；负id下标`~id`，`ItemConfig::GetCollectible 0x72A400`读ProceduralItem+0；本地atlas／owner接线仍待实施 |
 | 地图拾取图标 | 构建地图缓存时提供 | 地图刷新时提供每房间Host图标摘要。**Q13 已定**（第 5 节表后）：包装缓存构建 `0x9635B0`，作用域内把 descriptor `+0x74/+0x78`、`+0x68/+0x6C` 临时指向按摘要合成的最小条目，调用后恢复；不常驻镜像、不构建后修补 | `0x9635B0`是 `Minimap::Refresh 0x965D60` 调用的FBO缓存构建（RE-7 原称 MinimapConfig::Render 有误，后者为`0x4ECA30`），扫描descriptor SavedEntities+74（步长78h）与保存Grid+68（步长20h），聚合Pickup／Slot；只装DisplayFlags／Refresh不足。挑战32另需Host选定标记 |
 | 水流向量 | 直接写 Room+7460／7464 | C++复用SDK GetWaterCurrent指针做有限Vector赋值，等价官方SetWaterCurrent | 官方Room/LuaRoom.cpp setter即直接赋值；不额外运行Lua／Update |
-| 进度（成就、计数） | 同步 642 字节成就和 523 个计数 | 只取显示需要的部分，经 `client_hud_achievement_query` 等查询 hook 注入；不写 PGD，不改本机存档 | 按需求清单裁剪 |
+| 进度（成就、计数） | Host当前存档的成就、事件计数、挑战完成、图鉴遭遇／击杀／死亡、Boss 击杀和收藏 | 客机公开 PGD 查询与原生 PersistentGameData::Unlocked 读取同一份 World 进度镜像。客机存档、PGD 和五个公开写入入口继续由持久隔离保护。 | Mod 适配第 12 步、mod-api 6.4、布局 94 |
 
 注入顺序：world 安装 → 库存与 Player → 诅咒 → 其余注入值 → 显示推进。（2026-11-12 审阅后诅咒改为 raw 字段随 world 安装，此处的“诅咒”一步不再单独存在；顺序其余不变。）getter hook 只在 Client 会话期间返回同步值，其他时候直接调原函数。
 

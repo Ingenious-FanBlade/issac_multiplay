@@ -117,7 +117,7 @@ std::string ClientApplyMetrics::Fields(unsigned page)const {
     "plan_shared_records",
     "pool_members_deferred",
     "quiet_records",
-    "fast_path_hits","fast_path_misses","absorbed_records","store_records","fast_write_leaves"};
+    "fast_path_hits","fast_path_misses","absorbed_records","store_records","fast_write_leaves","mod_records_rejected"};
   constexpr const char *holds[]={"published","pending","retired_native","waiting","in_flight","retired_values"};
   static_assert(std::size(stages)==unsigned(ClientApplyStage::Count)&&std::size(waits)==unsigned(ClientApplyWait::Count)&&
                 std::size(volumes)==unsigned(ClientApplyVolume::Count));

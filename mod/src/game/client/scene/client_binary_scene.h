@@ -1,5 +1,6 @@
 #pragma once
 #include "game/client/player/client_player_control.h"
+#include "net/mod_intent.h"
 #include "state/wire_protocol.h"
 #include <memory>
 #include <string>
@@ -15,8 +16,11 @@ public:
   ~ClientBinaryScene();
   static std::shared_ptr<const state::ClientStatePreparation> Preparation();
   bool Open(const state::StateRoute &) noexcept;
-  void Close(bool preserve_room=false) noexcept;
+  void Close(bool preserve_room=false,bool preserve_mod=false) noexcept;
   void Pump() noexcept;
+  void InstallMods() noexcept;
+  bool ModIntentWorld(net::ModIntent &) const noexcept;
+  std::uint16_t ModIntentMember(const void *) const noexcept;
   void Recover(state::StateResyncReason) noexcept;
   bool Drained() const noexcept;
   ClientPlayerControlView Control(unsigned ordinal) const noexcept;

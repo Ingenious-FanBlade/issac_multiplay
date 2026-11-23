@@ -112,6 +112,8 @@ private:
   std::map<TransferKey,Candidate> pending_;
   std::deque<std::uint64_t> retired_;
   std::uint64_t retired_before_=0;
+  // 过场片段最多借一个候选，丢片后由更新一帧直接取代。
+  std::uint64_t nightmare_transfer_=0;
   TransferStatistics statistics_;
   std::uint64_t rate_=RuntimeConfig{}.reliable_bytes_per_second;
   void Retire(std::uint64_t) noexcept;

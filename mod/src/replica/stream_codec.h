@@ -1,10 +1,11 @@
 #pragma once
 #include "replica/codec.h"
 #include "replica/stream_model.h"
+#include "replica/nightmare.h"
 namespace cs::state {struct HostStateBytes;}
 
 namespace cs::replica::stream {
-enum class Kind : unsigned { Hello=1, Welcome, Ready, ScenePrepare, ScenePrepared, ReceiveAck=7, AppliedAck=9, Resync, Cancel, Stop, Error, Roster, TickProgress, InputAck, Input, Disconnect, OperationAck, Retire, StateFrame, StateResources=23, LobbySelection, LobbyRoster };
+enum class Kind : unsigned { Hello=1, Welcome, Ready, ScenePrepare, ScenePrepared, ReceiveAck=7, AppliedAck=9, Resync, Cancel, Stop, Error, Roster, TickProgress, InputAck, Input, Disconnect, OperationAck, Retire, StateFrame, StateResources=23, LobbySelection, LobbyRoster, Nightmare, ModManifest=27, ModIntent=28 };
 enum class Lane : unsigned { Control=1, Baseline, Context, WorldDynamic, PlayerFast, Input };
 enum class Direction { ToAuthority, ToClient };
 enum class State { Handshake, Waiting, Preparing, Active, Retiring, Stopped };
@@ -38,12 +39,14 @@ Lane MessageLane(const Message &);
 WorldScope StateMessageScope(const Message &);
 void ValidateMessage(const Message &);
 void ValidateReceive(const Message &,Direction,State);
+void WriteNightmare(Message &,const NightmareFrame *);
+NightmareFrameRef ReadNightmare(const Message &);
 Json Capabilities();
 Json Negotiate(const Value &,const Value &);
 // 可传入调用者工作区租约，返回后继续覆盖wire至压缩/所有权交接完成。
 std::vector<std::uint8_t> Encode(const Message &,Limits={},memory::Lease workspace={});
 Message Decode(std::span<const std::uint8_t>,Limits={});
-// 固定payload schema=2；具名结构/字段编号与最短整数保持原值，未知形状仍保留完整树。
+// 固定payload schema=3；具名结构/字段编号与最短整数保持原值，未知形状仍保留完整树。
 std::vector<std::uint8_t> EncodePayload(const Message &,Limits,std::uint64_t expected_bytes=0);
 // 调用者先完成消息形状校验；计量与正式编码采用同一节点/深度/字符串约束。
 std::uint64_t MeasurePayload(const Message &,Limits);

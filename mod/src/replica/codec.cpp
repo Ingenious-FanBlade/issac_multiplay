@@ -84,10 +84,10 @@ void Schema(const Message &m){
       if(Unsigned(b["domain"])<1||Unsigned(b["domain"])>11||!b["source_schema"].IsString()||!b["coverage"].IsString()||!Unsigned(b["source_scope"]))Fail("component_schema");
       {const auto phase=Str(b["capture_kind"]);if(phase!="Render"&&phase!="PlayerPost"&&phase!="Lifecycle"&&phase!="Transition"&&phase!="ActualCall")Fail("component_phase");}Unsigned(b["required_state"]);break;
     case Kind::Input:
-      Members(b,{"scope","participant","generation","input_sequence","target_tick","movement","aim","held","edge"});
-      if(Unsigned(b["participant"])>3||!Unsigned(b["generation"])||Unsigned(b["input_sequence"])!=m.sequence||!Unsigned(b["target_tick"])||Unsigned(b["held"])>15||Unsigned(b["edge"])>15)Fail("input_schema");
+      Members(b,{"scope","participant","generation","input_sequence","target_tick","movement","aim","held","edge","mod_held","mod_edge"});
+      if(Unsigned(b["participant"])>3||!Unsigned(b["generation"])||Unsigned(b["input_sequence"])!=m.sequence||!Unsigned(b["target_tick"])||Unsigned(b["held"])>31||Unsigned(b["edge"])>15)Fail("input_schema");
       for(const char *key:{"movement","aim"}){if(!b[key].IsArray()||b[key].Size()!=2)Fail("input_axis");for(const auto &axis:b[key].GetArray())if(!axis.IsInt()||axis.GetInt() < -32767||axis.GetInt()>32767)Fail("input_axis");}
-      {core::InputStateDraftV2 state;state.move_x=std::int16_t(b["movement"][0].GetInt());state.move_y=std::int16_t(b["movement"][1].GetInt());state.aim_x=std::int16_t(b["aim"][0].GetInt());state.aim_y=std::int16_t(b["aim"][1].GetInt());state.held_flags=std::uint32_t(Unsigned(b["held"]));state.edge_flags=std::uint32_t(Unsigned(b["edge"]));if(!core::Valid(state))Fail("noncanonical_input");}break;
+      {core::InputStateDraftV2 state;state.move_x=std::int16_t(b["movement"][0].GetInt());state.move_y=std::int16_t(b["movement"][1].GetInt());state.aim_x=std::int16_t(b["aim"][0].GetInt());state.aim_y=std::int16_t(b["aim"][1].GetInt());state.held_flags=std::uint32_t(Unsigned(b["held"]));state.edge_flags=std::uint32_t(Unsigned(b["edge"]));state.mod_held=Unsigned(b["mod_held"]);state.mod_edge=Unsigned(b["mod_edge"]);if(!core::Valid(state))Fail("noncanonical_input");}break;
     case Kind::Error:
       Members(b,{"scope","code","recoverable","detail"});if(!b["code"].IsString()||!b["recoverable"].IsBool()||!b["detail"].IsString())Fail("error_schema");break;
     default:Fail("unknown_kind");

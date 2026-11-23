@@ -1,5 +1,7 @@
 #include "game/tests/client_entity_e2e.h"
 #include "game/client/session/client.h"
+#include "game/mods/mod_api.h"
+#include "game/mods/mod_native.h"
 #include "game/client/scene/client_scene.h"
 #include "game/client/scene/client_binary_scene.h"
 #include "game/client/player/client_player_control.h"
@@ -164,6 +166,8 @@ struct ClientRuntime final {
   State state=State::Connecting;
   replica::Scope scope{};
   net::protocol::Ack progress{};
+  replica::NightmareFrameRef nightmare;
+  std::uint64_t nightmare_route=0,nightmare_received=0;
   std::optional<net::live::Event> prepare,retire_control;
   bool prepare_sent=false;
   std::array<std::uint64_t,6> prepare_progress{};
@@ -183,7 +187,8 @@ struct ClientRuntime final {
   core::InputStateDraftV2 last_sent{};
   // 补发跳过 tick 的命令数、同一目标重发数（诊断）。
   std::uint64_t fill_sent=0,resent=0;
-  std::array<unsigned,16> edges{};
+  struct InputEdge { unsigned actions; std::uint64_t keys; };
+  std::array<InputEdge,16> edges{};
   unsigned edge_head=0,edge_count=0;
   unsigned held=0;
   bool baseline=false, eligible=false, sampled_this_loop=false, blocked=true;
@@ -247,7 +252,7 @@ constexpr const char *kClientEntryNames[]={
   "room_init","game_render","room_prerender","room_render","render_sort","game_start",
   "native_build","native_apply","native_teardown","presentation_maintenance","presentation_draw","menu_render","backdrop_effects",
   "display_hud_update","display_hud_post","display_minimap_update","display_minimap_refresh","display_sort","display_fx",
-  "display_background","display_transition","display_camera","display_sfx_refresh","display_music","display_sfx_replay","display_pause","display_cursor","transition_change_room","binary_native_preparation","binary_native_atomic_install"};
+  "display_background","display_transition","display_camera","display_sfx_refresh","display_music","display_sfx_replay","display_pause","display_cursor","transition_change_room","binary_native_preparation","binary_native_atomic_install","mod_state_install"};
 static_assert(std::size(kClientEntryNames)==unsigned(ClientEntry::Count));
 void CountDispatch(ClientRuntime &c,ClientEntry entry,ClientEntryDecision decision) noexcept {
   const auto index=unsigned(entry);
@@ -264,6 +269,8 @@ void CountDispatch(ClientRuntime &c,ClientEntry entry,ClientEntryDecision decisi
 bool DispatchRootAllowed(ClientOperation operation,ClientEntry root,
                          ClientSceneState state,Owner owner) noexcept {
   switch(operation){
+    case ClientOperation::ModInstall:
+      return owner==Owner::Manager&&root==ClientEntry::ModStateInstall;
     case ClientOperation::BinaryInstall:
     case ClientOperation::BinaryInstallRetire:
       return owner==Owner::Manager&&root==ClientEntry::NativeAtomicInstall&&
@@ -357,6 +364,16 @@ const char *ClientStartUnavailable() noexcept {
 }
 }
 bool ClientBusy() noexcept {return client_active.load(std::memory_order_acquire);}
+bool ClientModIntentContext(net::ModIntent &intent) noexcept {
+  return IsMain()&&ClientBusy()&&client&&client->binary&&client->scene.DisplayReady()&&
+    !client->terminal_frozen&&client->binary->ModIntentWorld(intent);
+}
+bool SubmitClientModIntent(const net::ModIntent &intent) noexcept {
+  return client&&client->network.SendModIntent(intent);
+}
+std::uint16_t ClientModIntentMember(const void *object) noexcept {
+  return client&&client->binary?client->binary->ModIntentMember(object):state::kModGlobal;
+}
 bool ClientLocalOrdinal(unsigned &ordinal) noexcept {
   if(!IsMain()||!ClientBusy()||!client||!client->scope.session)return false;
   ordinal=client->ordinal;
@@ -417,10 +434,13 @@ void ClientCallbackOwnExecuted() noexcept {
   if(!IsMain()){foreign_client.store(true,std::memory_order_release);return;}
   if(client&&ClientBusy()&&client->callback_own!=UINT64_MAX)++client->callback_own;
 }
-bool ClientCallbackMenuAllowed() noexcept {
+// 主菜单输入和绘制共用稳定菜单检查；绘制另须持有本帧的场景借用。
+bool ClientCallbackInStableMenu() noexcept {
   if(!IsMain()){foreign_client.store(true,std::memory_order_release);return false;}
-  return ClientBusy()&&client&&!dispatch_frame.id&&TopOwner()==Owner::Render&&
-         !InBlockedContext()&&ContextHealthy()&&MenuReady()&&
+  return ClientBusy()&&client&&!dispatch_frame.id&&!InBlockedContext()&&ContextHealthy()&&MenuReady();
+}
+bool ClientCallbackMenuAllowed() noexcept {
+  return ClientCallbackInStableMenu()&&TopOwner()==Owner::Render&&
          render_observation.active&&client->scene.Valid(render_observation);
 }
 ClientDispatchScope::ClientDispatchScope(ClientOperation operation,ClientEntry root,
@@ -496,10 +516,16 @@ ClientEntryDecision ClientDispatchBefore(ClientEntry entry) noexcept {
       // 私有准备前缀归二进制 owner，不挂到旧 JSON 世界的退休位。
       if(frame.operation!=ClientOperation::BinaryPreparation&&frame.operation!=ClientOperation::BinaryPreparationRetire&&
          frame.operation!=ClientOperation::BinaryInstall&&frame.operation!=ClientOperation::BinaryInstallRetire&&
+         frame.operation!=ClientOperation::ModInstall&&
          !frame.scene->NoteNativeDispatchEntry()){
         frame.fault=true;Failure(*client,"client_dispatch_prefix_budget");return decide(ClientEntryDecision::FaultSkip);
       }
       frame.called=true;return decide(ClientEntryDecision::CallOriginal);
+    }
+    if(frame.operation==ClientOperation::ModInstall){
+      ModInstallBlocked();
+      ClientIsolationObserve(ClientIsolationKind::ModInstall,kClientEntryNames[unsigned(entry)]);
+      return decide(ClientEntryDecision::FaultSkip);
     }
     // 原生显示树只允许明确登记的显示入口；玩法Update仍走原先ExpectedSkip／拒绝。
     const bool display_entry=NativeDisplayPath(entry);
@@ -565,13 +591,15 @@ const char *StartClient(const std::string &ipv4,unsigned port,int device_key,boo
   if(!ui_seen_ms||GetTickCount64()-ui_seen_ms>1000)return "client_ui_unavailable";
   if(port<1||port>65535||device_key<0||device_key>255)return "arguments";
   try {
+    net::ModManifestRef mods;
+    if(const auto *error=CaptureModManifest(mods);*error)return error;
     auto next=std::make_unique<ClientRuntime>();next->connection=++connections;
     next->address=ipv4;next->device_key=device_key;next->config=Settings.stream;
     next->lobby_mode=lobby;next->lobby_port=port;
     const auto memory=state::ClientStateMemory::Create();
     next->binary=std::make_unique<ClientBinaryScene>(next->scene,next->network,memory);
     const auto error=next->network.Start(ipv4,std::uint16_t(port),Settings.peer_timeout_ms,next->config,
-      ClientBinaryScene::Preparation(),memory,lobby);
+      ClientBinaryScene::Preparation(),memory,lobby,std::move(mods),FrozenModSchema());
     if(*error)return error;
     // 连接开始时冻结原生调用计数起点。
     size_t count=0;auto hooks=Hooks(count);
@@ -689,6 +717,12 @@ bool ClientManagerBoundary() noexcept {
     SceneFailure(c);
     if(foreign_client.exchange(false))Failure(c,"client_foreign_manager");
     ++c.manager_skipped;
+    const auto deliver_mod_results=[&]{
+      net::ModIntentResult result;
+      while(c.network.PollModResult(result)){
+        DispatchModIntentResult(result,true);c.network.FinishModIntent(result.id);
+      }
+    };
     net::live::Event event;
     for(unsigned i=0;i<256&&c.network.Poll(event);++i) {
       if(c.terminal_frozen)continue;
@@ -700,6 +734,15 @@ bool ClientManagerBoundary() noexcept {
           c.ordinal=event.ordinal;c.state=State::AwaitingWorld;
           Trace("client","event=welcome connection=%llu ordinal=%u session=%llu wire_connection=%llu",c.connection,c.ordinal,c.scope.session,c.scope.connection);break;
         case net::live::Event::Type::Prepared:Failure(c,"client_prepare_on_notification_queue");break;
+        case net::live::Event::Type::Nightmare:
+          if(event.scope==c.scope&&event.route==c.route){
+            c.nightmare=std::move(event.nightmare);
+            c.nightmare_route=event.route;c.nightmare_received=event.received_ms;
+            // 演出期间没有玩法快照，收到当前路由持续推进的演出就刷新接收时限。
+            c.stale_origin=(std::max)(c.stale_origin,event.received_ms);
+            if(!c.nightmare)ReleaseNightmareSprites();
+          }
+          break;
         case net::live::Event::Type::Progress:
         case net::live::Event::Type::TickProgress:
           if(c.state!=State::AwaitingWorld)break;
@@ -747,12 +790,27 @@ bool ClientManagerBoundary() noexcept {
         }
         if(c.prepare){if(c.prepare->world->sequence!=m.sequence||c.prepare->world->body!=m.body)Failure(c,"client_prepare_conflict");continue;}
         Neutral(c,true);c.network.RevokeInput();c.input_ready=false;c.timing={};c.progress={};c.prepare=event;c.prepare_sent=false;c.prepare_progress={};c.state=State::PreparingWorld;
-        if(c.binary)c.binary->Close(replica::Unsigned(p["world"]["run"])==c.scope.run);
+        const bool same_run=replica::Unsigned(p["world"]["run"])==c.scope.run;
+        const bool same_mod_scene=same_run&&replica::Unsigned(p["world"]["floor"])==c.scope.floor;
+        if(!same_mod_scene){
+          deliver_mod_results();
+          c.network.FinishModIntent(CancelModIntents(true));
+          RetireModWorld();
+        }
+        if(c.binary)c.binary->Close(same_run,same_mod_scene);
         if(!c.scene.CanReturnToMenu())c.scene.Retire("network_scene_prepare");
       }else if(m.kind==replica::stream::Kind::Retire){
+        const auto cutscene_serial=replica::Unsigned(m.body["cutscene_serial"]);
+        if(cutscene_serial)QueueClientModCutscene({cutscene_serial,unsigned(replica::Unsigned(m.body["cutscene_id"])),true});
         const std::string_view reason=m.body.HasMember("reason")?m.body["reason"].GetString():"";
         // 原生换房先撤旧来源时，新 World 可能尚未交给网络。此时也保存本地图，等下一份 Prepare 核对 run。
-        if(c.binary)c.binary->Close(reason=="binary_scope_changed"||reason=="binary_host_source_retired");
+        const bool room_change=reason=="binary_host_room_source_retired"||reason=="binary_scope_changed";
+        const bool preserve_room=room_change||reason=="binary_host_source_retired";
+        if(!room_change){
+          deliver_mod_results();
+          c.network.FinishModIntent(CancelModIntents(true));RetireModWorld();
+        }
+        if(c.binary)c.binary->Close(preserve_room,room_change);
         Neutral(c,true);c.network.RevokeInput();c.input_ready=false;c.timing={};c.progress={};c.prepare.reset();c.retire_control=event;c.prepare_progress={};c.state=State::PreparingWorld;c.scene.Retire("network_source_retired");
       }else if(m.kind!=replica::stream::Kind::Cancel){Failure(c,"client_stream_control_kind");break;}
     }
@@ -764,6 +822,9 @@ bool ClientManagerBoundary() noexcept {
     };
     recover_graphics();
     if(c.binary)c.binary->Pump();
+    if(c.binary)c.binary->InstallMods();
+    deliver_mod_results();
+    if(c.terminal_frozen)c.network.FinishModIntent(CancelModIntents(true));
     if((c.prepare||c.retire_control)&&!c.scene.CanReturnToMenu()){
       const auto r=c.scene.Result();const std::array<std::uint64_t,6> step{r.attempt,r.executed_prefix,r.native_owners,r.grid_prefix,r.grid_owners,r.pending_owners};
       // 只报告真实完整退休步骤的变化；不以Manager心跳延长准备超时。
@@ -787,7 +848,7 @@ bool ClientManagerBoundary() noexcept {
       c.was_paused=c.progress.authority_paused;
       const auto last=(std::max)(c.scene.LastStreamCommit(),c.stale_origin);
       const auto age=last&&now>=last?now-last:0;
-      c.stale=!c.progress.authority_paused&&age>=c.config.stale_ms;
+      c.stale=!c.progress.authority_paused&&!ClientModCutsceneActive()&&age>=c.config.stale_ms;
       if(c.stale&&age>=c.config.recovery_ms){
         Neutral(c,true);c.network.RevokeInput();c.binary->Recover(state::StateResyncReason::Base);
       }
@@ -802,13 +863,14 @@ bool ClientManagerBoundary() noexcept {
       // 只有无原生执行前缀、无借用与在途使用时才能交还本地菜单。
       if(c.network.Finished()&&(!c.binary||c.binary->Drained())&&c.neutral_loops>=2&&MenuReady()&&c.scene.CanReturnToMenu()) {
         ClientIsolationObserve(ClientIsolationKind::Retired,"scene_and_worker_drained");
+        c.nightmare.reset();ReleaseNightmareSprites();ResetClientModCutscene();
         c.state=State::Off;ForgetInputDevice();client_active.store(false,std::memory_order_release);
         Trace("client","event=off connection=%llu input_closed=1 worker_finished=1 local_run=0",c.connection);
       }
     } else if(c.state==State::Connecting||c.state==State::AwaitingWorld) {
       const bool was_blocked=c.blocked;c.sampled_this_loop=false;c.focused=Focused();c.ui_blocked=ClientUiBlocked();
       // 本地暂停菜单打开期间与控制台一样封住本机玩法输入；Host 不随之暂停。
-      c.blocked=!c.focused||c.ui_blocked||ClientPauseMenuOpen();
+      c.blocked=!c.focused||c.ui_blocked||ClientPauseMenuOpen()||ClientModCutsceneActive();
       if(c.blocked&&!was_blocked){c.network.RevokeInput();c.timing={};}
       std::uint64_t target=0;
       // 16 的等待场景仍能向 Authority 发输入；已有目标的构建/替换窗口则清边沿并保持中性。
@@ -872,14 +934,16 @@ bool ClientManagerBoundary() noexcept {
         const bool advance=target>c.last_target;
         const bool changed=c.sample.move_x!=c.last_sent.move_x||c.sample.move_y!=c.last_sent.move_y||
                            c.sample.aim_x!=c.last_sent.aim_x||c.sample.aim_y!=c.last_sent.aim_y||
-                           c.sample.held_flags!=c.last_sent.held_flags;
+                           c.sample.held_flags!=c.last_sent.held_flags||c.sample.mod_held!=c.last_sent.mod_held;
         std::uint64_t first=target;
         if(advance)first=(std::max)(c.last_target+1,target>=kInputFillTicks?target-kInputFillTicks+1:1);
         else if(!changed)first=target+1; // 同一目标、采样未变：本帧不发
         // 发送一条命令；返回 false 表示已转入失败状态。
         const auto send_one=[&](std::uint64_t tick,bool with_edge)->bool{
           if(c.sequence==UINT64_MAX){Failure(c,"client_input_exhausted");return false;}
-          auto sample=c.sample;sample.edge_flags=with_edge&&c.edge_count?c.edges[c.edge_head]:0;
+          auto sample=c.sample;
+          const auto edge=with_edge&&c.edge_count?c.edges[c.edge_head]:ClientRuntime::InputEdge{};
+          sample.edge_flags=edge.actions;sample.mod_edge=edge.keys;
           net::live::Intent intent{sample,c.generation,c.sequence+1,tick,c.scope,c.route};
           if(!c.network.Send(intent)){Failure(c,"client_input_queue_full");return false;}
           ++c.sequence;++c.sent;c.last_target=tick;c.last_tick=c.progress.server_tick;c.last_sent=sample;c.sample.edge_flags=0;
@@ -889,7 +953,7 @@ bool ClientManagerBoundary() noexcept {
 #ifdef ISAACCS_E2E
           replica::stream::E2EInput("physical-input",{c.ordinal,0,0,sample.edge_flags,c.generation,c.sequence,tick,c.progress.server_tick,{sample.move_x,sample.move_y,sample.aim_x,sample.aim_y}});
 #endif
-          if(sample.edge_flags){
+          if(sample.edge_flags||sample.mod_edge){
             c.sent_edge_mask|=sample.edge_flags;
             c.edge_head=(c.edge_head+1)%unsigned(c.edges.size());--c.edge_count;
           }
@@ -903,7 +967,9 @@ bool ClientManagerBoundary() noexcept {
         if(c.sequence==UINT64_MAX)
           Failure(c,"client_input_exhausted");
         else {
-          auto sample=c.sample;sample.edge_flags=c.edge_count?c.edges[c.edge_head]:0;
+          auto sample=c.sample;
+          const auto edge=c.edge_count?c.edges[c.edge_head]:ClientRuntime::InputEdge{};
+          sample.edge_flags=edge.actions;sample.mod_edge=edge.keys;
           net::live::Intent intent{sample,c.generation,c.sequence+1,target,c.scope,c.route};
           if(c.network.Send(intent)) {
             ++c.sequence;++c.sent;c.last_target=target;c.last_tick=c.progress.server_tick;c.sample.edge_flags=0;c.last_sent=sample;
@@ -930,7 +996,8 @@ bool ClientManagerBoundary() noexcept {
     // 输入泵可能刚处理本机窗口变化。先进入恢复，再让显示推进读取本轮图形资源。
     // 覆盖层按本机控制组序号排除本机身体；Host 暂停时世界显示时间停住。
     c.scene.SetMotionContext(c.ordinal,c.progress.authority_paused);
-    if(!recover_graphics()&&!c.scene.AdvanceDisplay(c.ui_blocked))Failure(c,"client_display_schedule");
+    if(!recover_graphics()&&!AdvanceClientModCutscene(c.scene.CanReturnToMenu())&&
+       !c.scene.AdvanceDisplay(c.ui_blocked))Failure(c,"client_display_schedule");
     // 暂停菜单“退出”：与面板“离开会话”走同一正常停止路径，回到主菜单。
     if(c.pause_exit){c.pause_exit=false;StopClient();}
     // 本轮Body已经进入原生，随后Render会显示；只读计数，不影响调度。
@@ -959,18 +1026,21 @@ bool ClientDeviceReturned(void *device,bool success,unsigned polls,bool poll_ok)
   if(!same){Neutral(c,true);c.shooting={};}
   unsigned held=0;for(unsigned i=0;i<4;++i)if(actions.pressed[8+i])held|=1u<<i;
   core::input::RawInputSample raw{};raw.move_x=actions.values[1]-actions.values[0];raw.move_y=actions.values[3]-actions.values[2];
-  raw.held_flags=((held>>1)&7u)<<1;raw.edge_flags=same&&!c.blocked?held&~c.held:0;
+  raw.held_flags=(held&14u)|((held&1u)?core::kHeldBomb:0u);raw.edge_flags=same&&!c.blocked?held&~c.held:0;
   core::InputStateDraftV2 sample{};
   if(!core::CanonicalizeShooting(raw,{actions.values[4],actions.values[5],actions.values[6],actions.values[7]},c.shooting,sample)) {
     Failure(c,"client_noncanonical_sample");return true;
   }
+  SampleModKeys(sample.mod_held,sample.mod_edge);
+  if(sample.mod_held)c.physical_neutral=false;
+  if(!same||c.blocked)sample.mod_edge=0;
   c.source=device;c.baseline=true;c.held=held;
   // 与Host物理源相同：真实上升沿按轮次进入有界FIFO，重复同键也不位或合并。
   const bool eligible=c.input_ready;
-  if(!eligible) {c.edge_head=c.edge_count=0;sample.edge_flags=0;}
-  else if(sample.edge_flags) {
+  if(!eligible) {c.edge_head=c.edge_count=0;sample.edge_flags=0;sample.mod_edge=0;}
+  else if(sample.edge_flags||sample.mod_edge) {
     if(c.edge_count==c.edges.size()){Failure(c,"client_edge_queue_full");return true;}
-    c.edges[(c.edge_head+c.edge_count)%c.edges.size()]=sample.edge_flags;++c.edge_count;
+    c.edges[(c.edge_head+c.edge_count)%c.edges.size()]={sample.edge_flags,sample.mod_edge};++c.edge_count;
   }
   c.sample=sample;c.eligible=eligible;return true;
 }
@@ -983,8 +1053,20 @@ void ClientInputUnavailable() noexcept {
 void ClientMenuRendered() noexcept {
   if(IsMain()&&ClientBusy())++client->render_calls;
 }
+// 丢失结束包时按接收时限归还绘制；切换路由后旧过场立即失效。
+bool ClientRenderNightmare() noexcept {
+  if(!IsMain()||!ClientBusy()||client->terminal_frozen||TopOwner()!=Owner::Render)return false;
+  auto &c=*client;
+  if(!c.nightmare)return false;
+  if(c.nightmare_route!=c.route||GetTickCount64()-c.nightmare_received>1000){
+    c.nightmare.reset();ReleaseNightmareSprites();
+    return false;
+  }
+  return RenderNightmareFrame(*c.nightmare);
+}
 // 同局换房交接期间仍有完整旧画面，菜单回调及等待提示留给真正的连接等待。
 bool ClientRenderTransitionHold() noexcept {
+  if(ClientModCutsceneActive()||ClientRenderNightmare())return true;
   if(!IsMain()||!ClientBusy()||!render_observation.active)return false;
   const auto state=client->state;
   return (state==State::PreparingWorld||state==State::AwaitingWorld)&&
@@ -1017,6 +1099,7 @@ ClientGameRenderScope::ClientGameRenderScope(void *game) noexcept:exceptions_(st
   }
   if(!IsMain()){foreign_client.store(true,std::memory_order_release);return;}
   if(!client)return;
+  if(ClientModCutsceneActive()||ClientRenderNightmare())return;
   if(client->scene.DisplayGraphicsChanged()||!client->scene.NativeDisplay()){
     // 新房的显示根可能先把 Manager 切到游戏态，仍沿用同一张旧画面直到提交。
     ClientRenderTransitionHold();
@@ -1092,6 +1175,7 @@ void ClientShutdownBeginning() noexcept {
   if(client->state!=State::Retiring)StopClient();
 }
 void ClientContextClosing() noexcept {
+  ReleaseNightmareSprites();
   if(IsMain()&&ClientBusy())client->scene.ContextClosing();
 }
 // 此分派独立于 PersistenceScope 的 original exactly-once 观察；外层 wrapper 可直接拒绝。
@@ -1135,7 +1219,7 @@ std::string ClientStreamFields(unsigned page) {
   out+=c.network.TransmitMetrics().Fields("stream.transmit.",page);
   out+=c.network.Metrics().Fields("stream.receive.",page);
   if(c.binary)out+=c.binary->Diagnostics(page);
-  if(page==0){out+=c.latency.Fields();out+=c.scene.MotionFields();}
+  if(page==0){out+=c.latency.Fields();out+=c.scene.MotionFields();out+=ModStateFields();}
   const auto t=c.network.TransferStatus();
   const auto add=[&](const char *name,std::uint64_t value){out+="stream."+std::string(name)+"="+std::to_string(value)+"\n";};
   add("fragments",t.fragments);add("duplicates",t.duplicates);add("conflicts",t.conflicts);add("decoded",t.decoded);add("decoded_bytes",t.decoded_bytes);add("decode_us",t.decode_us);add("expired",t.expired);add("ack_windows",t.ack_windows);

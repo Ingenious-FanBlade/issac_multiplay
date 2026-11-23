@@ -2,6 +2,7 @@
 #include "binding/offsets.h"
 #include "game/common/bridge.h"
 #include "game/participants/device_k.h"
+#include "game/mods/mod_api.h"
 #include "game/authority/state.h"
 #include "game/authority/tick.h"
 #include "runtime.h"
@@ -855,6 +856,52 @@ int DeviceIdOccurrences(int id) noexcept {
       ++matches;
   }
   return matches;
+}
+// 模组扩展按键的物理采样（声明见 game/mods/mod_api.h）。从 mod_api.cpp 迁来，
+// 因为那里按 SDK 要求以 C++17 编译，不能包含本模块的 C++20 头文件。
+void ReadNativeKeyboardKeys(const int *keys, std::size_t count,
+                            std::uint64_t &held, std::uint64_t &edge) noexcept {
+  held = edge = 0;
+  if (!keys || !count || count > 64)
+    return;
+  InputLease lease(true);
+  uintptr_t begin = 0;
+  size_t devices = 0;
+  if (!lease.Ready() ||
+      !VectorRange(reinterpret_cast<void *>(Base + offset::InputManager),
+                   offset::DeviceVector, 256, begin, devices))
+    return;
+  // ControllerIndex 0 必须恰好对应一个设备，否则不确定读的是哪个键盘。
+  void *keyboard = nullptr;
+  for (size_t i = 0; i < devices; ++i) {
+    void *device = nullptr;
+    int controller = -1;
+    if (!ReadAt(reinterpret_cast<void *>(begin), i * sizeof(device), device) ||
+        !ReadAt(device, offset::DeviceId, controller))
+      return;
+    if (controller != 0)
+      continue;
+    if (keyboard)
+      return;
+    keyboard = device;
+  }
+  uintptr_t vtable = 0;
+  std::array<uintptr_t, 2> query{};
+  if (!keyboard || !ReadAt(keyboard, 0, vtable) ||
+      vtable != Base + offset::KeyboardVtable ||
+      !ReadAt(reinterpret_cast<void *>(vtable), 5 * sizeof(void *), query) ||
+      query[0] != Base + offset::KeyboardButtonPressed ||
+      query[1] != Base + offset::KeyboardButtonTriggered)
+    return;
+  using ButtonQuery = bool(__thiscall *)(void *, int);
+  const auto pressed = reinterpret_cast<ButtonQuery>(query[0]);
+  const auto triggered = reinterpret_cast<ButtonQuery>(query[1]);
+  for (std::size_t i = 0; i < count; ++i) {
+    if (pressed(keyboard, keys[i]))
+      held |= 1ull << i;
+    if (triggered(keyboard, keys[i]))
+      edge |= 1ull << i;
+  }
 }
 } // namespace cs::game
 

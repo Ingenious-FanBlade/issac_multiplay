@@ -1637,7 +1637,10 @@ struct ClientSceneAtomicInstaller::Impl {
       const bool managed_attachment=!op.delegated&&op.write.kind==ClientAtomicWriteKind::FieldAttachment;
       if(Pure(op)){
         if(!copies_left){
-          if(!Current(*batch)||!ClientAtomicCopyWindow())return Fail("binary_live_copy_window");
+          // 区分后台撤销票据、原生对象／图形上下文失效和仍在借用纯值的提交队列。
+          if(!Current(*batch))return Fail("binary_live_copy_target_changed");
+          if(!ClientAtomicScopeActive())return Fail("binary_live_copy_scope_lost");
+          if(!ClientAtomicQueuesEmpty())return Fail("binary_live_copy_cpu_borrow");
           copies_left=128;
         }
         --copies_left;
@@ -1649,12 +1652,16 @@ struct ClientSceneAtomicInstaller::Impl {
         // 只保存撤场需要的原版 Game／Room 输入，实体纯值直接写入。
         if(root_scalars&&root_scalars->NeedsSnapshot(roots,op.write.destination,op.write.size)&&
             !root_scalars->Save(op.write,read_region))return Fail("binary_live_restore_root_snapshot");
-        written=true;
-        if(!ClientAtomicWriteApply(op.write)){
+        bool attempted=false;
+        if(!ClientAtomicWriteApply(op.write,&attempted)){
+          // 写入作用域在进入拷贝前失效时，本字段没有修改；保留此前真实写入的状态。
+          if(!attempted)return Fail("binary_live_native_write_precondition");
           checked_copy_object=S::kClientPlanNone;
+          written=true;
           if(RejectField(op,"binary_live_native_write"))continue;
           return Fail("binary_live_native_write");
         }
+        written=true;
         op.done=true;pure_write_bytes+=op.write.size;
       }else if(!(managed_attachment?Current(*batch):callback_boundary())){
         return Fail("binary_atomic_lifecycle_during_install");
@@ -1837,8 +1844,14 @@ struct ClientSceneAtomicInstaller::Impl {
   S::ClientStateNativeStep CommitFields() noexcept {
     for(const auto n:attachment_operations){
       const auto &op=operations[n];
-      if(!op.duplicate&&!op.restored&&!Rejected(ObjectOf(op))&&!op.write.retained_attachment&&
-          !ClientStagedFieldCommitCheckedAttachment(op.write.field,op.write.destination)){uncertain=true;return Fail("binary_atomic_attachment_commit_failed");}
+      if(op.duplicate||op.restored||Rejected(ObjectOf(op))||op.write.retained_attachment)continue;
+      const auto result=ClientStagedFieldCommitCheckedAttachment(op.write.field,op.write.destination);
+      // 已完成的附件折叠与尚未折叠的前驱链均能按现有逆序拆卸。
+      if(result==ClientAttachmentCommit::ScopeLost)return Fail("binary_atomic_attachment_commit_scope_lost");
+      if(result==ClientAttachmentCommit::InvalidChain){
+        uncertain=true;
+        return Fail("binary_atomic_attachment_commit_failed");
+      }
     }
     return Ready(written,"binary_atomic_fields_committed");
   }
@@ -2276,7 +2289,13 @@ S::ClientStateNativeStep ClientSceneAtomicInstaller::Publish(const S::ClientStat
   if(!result.ready||result.failed)return s.Fail(result.reason);
   if(!s.preparation.PublishLiveUse(b,&s))return s.Fail("binary_atomic_custody_commit_failed");
   const auto attachments=s.preparation.ApplyInstallation(b,&s,false,&s,[](void *p)noexcept{return static_cast<Impl *>(p)->CommitFields();});
-  if(!attachments.ready||attachments.failed){s.uncertain=true;return s.Fail(attachments.reason);}
+  if(!attachments.ready||attachments.failed){
+    // 换房可能在转交保管责任后撤销票据。只有 CommitFields 发现真实链异常才停住原生释放。
+    Trace("client_error","event=binary_attachment_finalize_interrupted route=%llu serial=%llu cancelled=%u withdrawn=%u uncertain=%u reason=%s",
+      b.ticket.route.route,b.ticket.serial,unsigned(b.cancelled.load(std::memory_order_acquire)),unsigned(b.Withdrawn()),
+      unsigned(s.uncertain),attachments.reason);
+    return s.Fail(attachments.reason);
+  }
   s.bindings.Committed(b,s.Inputs());
   s.RefreshStore();
   const auto streams=S::StateTargetStreams(s.scene->State().Target());
